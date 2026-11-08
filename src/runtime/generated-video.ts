@@ -630,6 +630,21 @@ class GeneratedPriorityBitmap {
     this.pixels = new Uint8Array(this.width * this.height);
   }
 
+  /** bitmap_t::pix(y, x), in raster coordinates as the screen update addresses it. */
+  pix(y: number, x = 0): number {
+    const at = this.index(x, y);
+    return at < 0 ? 0 : this.pixels[at]!;
+  }
+
+  /**
+   * `&screen.priority().pix(y)`: a row a merge loop indexes by raster x.
+   * System 16A's sprite mix reads `pri[x]` for each pixel of a dirty rect.
+   */
+  'pix&'(y: number, x = 0): { generatedPointer: true; source: Uint8Array; offset: number } {
+    const row = Math.floor((y - this.yOffset) / this.yScale);
+    return { generatedPointer: true, source: this.pixels, offset: row * this.width + x - this.xOffset };
+  }
+
   private index(x: number, y: number): number {
     const column = Math.floor((x - this.xOffset) / this.xScale);
     const row = Math.floor((y - this.yOffset) / this.yScale);

@@ -415,7 +415,8 @@ export type GeneratedDeviceResource =
   | { kind: 'owner' }
   | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
-  | { kind: 'region'; name: string }
+  /** `required_region_ptr<T>`: the region, indexed in T's width (elementBytes, when wider than a byte). */
+  | { kind: 'region'; name: string; elementBytes?: 2 | 4 }
   // MAME's `memory_region *`: the bytes plus the size questions asked of them.
   | { kind: 'region-object'; name: string }
   // A pointer part-way into a region, as MAME writes `get_rom_base() + N`.
@@ -1473,7 +1474,15 @@ function compileMameDeviceSource(
     if (!object && !/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
     const target = constructorBindings[member.name]?.at(-1) ?? '';
     const name = target === 'DEVICE_SELF' ? 'self' : unquoteToken(target);
-    return name ? [[member.name, { kind: object ? 'region-object' as const : 'region' as const, name }]] : [];
+    // A region pointer is indexed in its element type: segaic16's sprite
+    // devices read `required_region_ptr<uint16_t>` a word at a time, and its
+    // bytes() counts the whole region.
+    const element = /_region_ptr<\s*([^>]+?)\s*>$/.exec(member.valueType)?.[1];
+    const bits = element ? integerBits(element) : undefined;
+    const elementBytes = bits === 16 ? 2 as const : bits === 32 ? 4 as const : undefined;
+    return name ? [[member.name, object
+      ? { kind: 'region-object' as const, name }
+      : { kind: 'region' as const, name, ...(elementBytes ? { elementBytes } : {}) }]] : [];
   }));
   for (const className of hierarchy) {
     const body = classes.get(className)?.body ?? '';
@@ -1846,7 +1855,16 @@ function compileMameDeviceSource(
   // so long as it is not a device (those are children, found by tag).
   for (const member of result.members) {
     if (member.memory || member.finder || member.fields) continue;
-    const owner = [...hierarchy].reverse().find(className => classes.has(`${className}::${member.valueType}`));
+    // Looked up in the class and then outward through the scopes enclosing
+    // it, as C++ does: dual_sprite_parameter's `sprite_parameter m_lower` is
+    // the `atari_motion_objects_device::sprite_parameter` declared beside it.
+    // Missed, both halves were zero and no motion object found a code.
+    const enclosing = (className: string): string[] => {
+      const parts = className.split('::');
+      return parts.map((_, depth) => parts.slice(0, parts.length - depth).join('::'));
+    };
+    const owner = [...hierarchy].reverse().flatMap(enclosing)
+      .find(className => classes.has(`${className}::${member.valueType}`));
     const qualified = owner ? `${owner}::${member.valueType}` : member.valueType;
     const template = qualified.replace(/\s*<[\s\S]*>$/, '');
     if (!owner && (!classes.has(template) || hierarchy.includes(qualified) || /_device$/.test(template))) continue;

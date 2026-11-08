@@ -24,6 +24,11 @@ assert.equal(
   ),
   true,
 );
+// COMBINE_DATA on the share is a store too: Gauntlet's yscroll_w compares the
+// old value before it, so the bus must not have stored the new one already.
+assert.equal(handlerOwnsSharedRam('uint16_t const old = *m_yscroll;\nCOMBINE_DATA(m_yscroll);', 'yscroll'), true);
+assert.equal(handlerOwnsSharedRam('COMBINE_DATA(&m_vram[offset]);', 'vram'), true);
+assert.equal(handlerOwnsSharedRam('if (*m_flags == 1) update();', 'flags'), false);
 assert.equal(handlerOwnsSharedRam('palette.write8(offset, data);', 'palette'), false);
 assert.equal(handlerOwnsSharedRam('m_spriteram[offset] = data;', ''), false);
 assert.equal(sourceHandlerDataWidth(['offs_t offset, u8 data']), 8);

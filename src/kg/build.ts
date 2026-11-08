@@ -1359,7 +1359,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         : undefined;
       if (aggregate) {
         props.constructorAggregate = [aggregate.setter, aggregate.name];
-        if (dev.clockExpr === aggregate.name) delete dev.clockExpr;
+        if (dev.clockExpr === aggregate.name || dev.clockExpr === aggregate.name.split('::').at(-1)) delete dev.clockExpr;
       }
       if (configCalls.length) props.configCalls = configCalls;
       // A third argument a setter took is the constructor's, not a clock: the
@@ -3057,7 +3057,9 @@ export function constructorAggregate(
         const table = /\*/.test(parameter) || /\bconst\s+[\w:]+\s*&\s*\w+\s*$/.test(parameter);
         if (!name || !table || !/^(?:\w+::)*[A-Za-z_]\w*$/.test(argument) || evalExpr(argument, constants) !== null) continue;
         const setter = new RegExp(`(?:^|;)\\s*(\\w+)\\s*\\(\\s*${name}\\s*\\)\\s*;`).exec(after[1]!)?.[1];
-        if (setter) return { setter, name: argument.split('::').at(-1)! };
+        // Kept qualified: several Atari drivers each define their own
+        // `s_mob_config`, and the class says whose (static-aggregate.ts).
+        if (setter) return { setter, name: argument };
       }
     }
   }

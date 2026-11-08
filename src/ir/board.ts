@@ -1299,6 +1299,8 @@ export interface GeneratedHandlerRuntime {
   };
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
+  pointerOffset(value: unknown): number;
   /**
    * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
    * copied, so the wider view writes through to the same shared bytes.

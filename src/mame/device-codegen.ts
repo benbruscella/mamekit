@@ -1465,6 +1465,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       }
       const operator = expression.operator === '==' ? '===' :
         expression.operator === '!=' ? '!==' : expression.operator;
+      // Pointers order by where they point within their memory.
+      if (operator !== '===' && operator !== '!==' && (leftType?.includes('*') || rightType?.includes('*'))) {
+        return `((runtime.pointerOffset(${left}) ${operator} runtime.pointerOffset(${right})) ? 1 : 0)`;
+      }
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
     // An operand declared unsigned shifts logically in C++ whatever its sign

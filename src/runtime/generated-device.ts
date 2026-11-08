@@ -31,7 +31,7 @@ import {
   resizeGeneratedContainer,
   resizeGeneratedVector,
 } from './generated-handler.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -120,7 +120,8 @@ type DeviceResource =
   | { kind: 'owner' }
   | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
-  | { kind: 'region'; name: string }
+  /** `required_region_ptr<T>`: the region, indexed in T's width (elementBytes, when wider than a byte). */
+  | { kind: 'region'; name: string; elementBytes?: 2 | 4 }
   | { kind: 'region-object'; name: string }
   | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
@@ -174,6 +175,8 @@ export interface GeneratedDeviceExecutionContext {
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
+  pointerOffset(value: unknown): number;
   /**
    * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
    * copied, so the wider view writes through to the same shared bytes.
@@ -1935,6 +1938,7 @@ class IrDevice implements Device {
           offset: index,
         },
       dereference: dereferenceGeneratedFast,
+      pointerOffset: generatedPointerOffset,
       copyStruct: copyGeneratedStruct,
       packedView: generatedPackedView,
       byteView: generatedByteView,
@@ -3164,7 +3168,12 @@ class IrDevice implements Device {
   ): unknown {
     try {
       const defaults = this.methodDefaults.get(method);
-      const compiled = this.definition.compiledMethods?.[method.name];
+      // Compiled methods are keyed by name, so an overloaded name has one body
+      // for all its overloads: the one selected runs from its own program.
+      // atarimo's sprite_parameter::set(entry) and set(uint16_t[4]) both ran
+      // the first, and every motion-object mask stayed zero.
+      const compiled = (this.methods.get(method.name)?.length ?? 0) > 1
+        ? undefined : this.definition.compiledMethods?.[method.name];
       // A `&` parameter always arrives as a get/set wrapper, because the caller
       // cannot know whether the callee reassigns it. Only methods that do NOT
       // reassign one reach this map (the emitter keeps the others out of it,
@@ -3380,7 +3389,19 @@ function resolveDeviceResource(
   const regionName = resourceName === 'self'
     ? options.tag ?? ''
     : subtag && regions[subtag] ? subtag : resourceName;
-  if (resource.kind === 'region') return regions[regionName] ?? new Uint8Array(0);
+  if (resource.kind === 'region') {
+    const bytes = regions[regionName] ?? new Uint8Array(0);
+    const width = resource.elementBytes;
+    if (!width || bytes.byteOffset % width) return bytes;
+    // The same reinterpreting view a `u16 *` cast makes, which reads a
+    // 68000's big-endian region (ROM_REGION16_BE) word by word as MAME's
+    // byte-swapped copy does. Read in the host's order instead, System 16's
+    // sprite rows missed their end-of-row nibble and drew three times over.
+    const view = generatedPackedView(bytes, width === 2 ? false : 'u32') as object;
+    // `bytes()` is the region's size in bytes, whatever the element width.
+    Object.defineProperty(view, 'bytes', { value: () => bytes.byteLength, configurable: true });
+    return view;
+  }
   // MAME's `memory_region *`. A device that is handed one asks it three
   // questions -- how big, where does it start, give me the bytes -- and a
   // missing region answers as a null pointer does, which is what lets a
@@ -3681,7 +3702,12 @@ function memoryMember(
   const tag = (memory.share === 'self' ? options.tag : memory.share)
     ?.replace(/^\^+/, '')
     .replace(/^:/, '');
-  const bytes = tag ? options.shares?.[tag] : undefined;
+  // A plain tag is the device's own child, as MAME's finder resolves it:
+  // atarimo's `m_slipramshare(*this, "slip")` is Gauntlet's share "mob:slip".
+  // One spelled `^tag` or `:tag` names the owner's or the root's.
+  const relative = memory.share !== 'self' && !/^[\^:]/.test(memory.share ?? '') && options.tag
+    ? options.shares?.[`${options.tag}:${tag}`] : undefined;
+  const bytes = relative ?? (tag ? options.shares?.[tag] : undefined);
   if (!bytes && /^optional_shared_ptr\b/.test(member.valueType)) {
     return new Uint8Array(0);
   }
@@ -3753,7 +3779,12 @@ function isIndexableMemberType(valueType: string | undefined): boolean {
 }
 
 function parameterName(parameter: string): string {
-  return /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.replace(/=[\s\S]*$/, '')) ?.[1]
+  // An array parameter names itself before its bound: `const uint16_t input[4]`
+  // is `input`. Taken whole, atarimo's sprite_parameter::set never saw its
+  // input and every motion-object mask stayed zero.
+  const declarator = parameter.replace(/=[\s\S]*$/, '').replace(/(\s*\[[^\]]*\])+\s*$/, '');
+  return /(\w+)\s*$/.exec(declarator)?.[1]
+    ?? /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.replace(/=[\s\S]*$/, '')) ?.[1]
     ?? /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1]
     ?? parameter;
 }

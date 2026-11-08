@@ -800,6 +800,7 @@ function preparedHandlerRuntime(
         offset: index,
       },
     dereference: dereferenceGeneratedValue,
+    pointerOffset: generatedPointerOffset,
     // A `u16*`/`s16*` declaration over byte memory is a reinterpreting view,
     // not a copy -- the same rule compilePackedPointerView applies on the
     // interpreted path. Emitted code dropped it, so a byte-backed sprite RAM
@@ -1692,6 +1693,13 @@ function compileFastExpression(
           : BINARY_OPERATORS['/']!(leftValue, rightValue);
       };
     }
+    if (ORDERING.has(operator)) {
+      const compare = BINARY_OPERATORS[operator]!;
+      return context => {
+        const leftValue = left(context), rightValue = right(context);
+        return orderedPointers(operator, leftValue, rightValue) ?? compare(toNumber(leftValue), toNumber(rightValue));
+      };
+    }
     const apply = BINARY_OPERATORS[operator] ?? UNKNOWN_BINARY;
     // Only + and - can carry pointer arithmetic. Every other operator skips
     // those runtime shape tests entirely.
@@ -1981,7 +1989,9 @@ function parameterNames(parameters: string | undefined): string[] {
       // A declarator in parentheses names its parameter inside them: a
       // function pointer `void (*cb)(...)`, or resnet.h's reference to an
       // array, `U const (&tab)[N]`.
-      .map(parameter => /\(\s*[*&]\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
+      // An array parameter names itself before its bound: `const uint16_t input[4]`.
+      .map(parameter => /\(\s*[*&]\s*(\w+)\s*\)/.exec(parameter)?.[1] ??
+        /(\w+)\s*$/.exec(parameter.replace(/(\s*\[[^\]]*\])+\s*$/, ''))?.[1])
       .filter((name): name is string => Boolean(name));
     PARAMETER_NAMES.set(key, names);
   }
@@ -2174,6 +2184,10 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     }
     const rightValue = evaluate(expression.right, context);
     if (expression.precision === 64) return wideBinary(expression.operator, leftValue, rightValue);
+    if (ORDERING.has(expression.operator)) {
+      const ordered = orderedPointers(expression.operator, leftValue, rightValue);
+      if (ordered !== undefined) return ordered;
+    }
     if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, toNumber(rightValue));
     }
@@ -2880,12 +2894,11 @@ function applyIdentifierCall(
   // identity operation, not a call to a generated source handler.  Keeping
   // the object intact is essential for declarations such as
   // `bitmap_ind16 &bm(bitmap)` used by Popeye's renderer.
-  if (
-    name === 'auto' ||
-    name === 'bitmap_ind8' ||
-    name === 'bitmap_ind16' ||
-    name === 'bitmap_rgb32'
-  ) {
+  if (name === 'auto') return args[0];
+  // A bitmap direct-initialised from another is that bitmap; one built from
+  // memory -- sprite.h's `BitmapType wrapped(base, width, height, rowpixels)`
+  // -- is a new view, which the host's call table constructs below.
+  if ((name === 'bitmap_ind8' || name === 'bitmap_ind16' || name === 'bitmap_rgb32') && args.length === 1) {
     return args[0];
   }
   // `m_irq_timer = timer_alloc(FUNC(cls::cb), this)`: the board runs each
@@ -3909,6 +3922,29 @@ function intersectionCopy(value: Intersectable): Intersectable {
 export function applyGeneratedAnd(left: unknown, right: unknown): unknown {
   if (isIntersectable(left)) return intersection(left, right);
   return toNumber(left) & toNumber(right);
+}
+
+/**
+ * Where a value points, for ordering two pointers into the same memory: a
+ * pointer's offset, a bare container's start, a number as itself.
+ * sega16sp.cpp walks its sprite list `for (data = spriteram(); data < ramend;
+ * data += 8)`, and compared as numbers both sides were NaN: no sprite drew.
+ */
+export function generatedPointerOffset(value: unknown): number {
+  const held = isLValue(value) ? value.get() : value;
+  if (isGeneratedPointer(held)) return held.offset;
+  if (isIndexableMemory(held)) return 0;
+  return toNumber(held);
+}
+
+const ORDERING = new Set(['<', '<=', '>', '>=']);
+
+/** A relational operator over two values either of which may be a pointer. */
+function orderedPointers(operator: string, left: unknown, right: unknown): number | undefined {
+  const pointerish = (value: unknown) => isGeneratedPointer(value) || isIndexableMemory(value);
+  if (!pointerish(left) && !pointerish(right)) return undefined;
+  const a = generatedPointerOffset(left), b = generatedPointerOffset(right);
+  return (operator === '<' ? a < b : operator === '<=' ? a <= b : operator === '>' ? a > b : a >= b) ? 1 : 0;
 }
 
 export function generatedValuesEqual(left: unknown, right: unknown): boolean {

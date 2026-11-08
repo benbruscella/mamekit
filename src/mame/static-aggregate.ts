@@ -382,15 +382,23 @@ export function deviceTables(
     if (call && !lowered.has(call[1])) named.push([call[1]!, call[2]!, false]);
   }
   type Table = { setter: string; name: string; file?: string; value: AggregateValue | undefined; diagnostics: string[]; constants?: Readonly<Record<string, number>> };
-  return named.flatMap(([setter, name, required]): Table[] => {
+  return named.flatMap(([setter, qualified, required]): Table[] => {
+    // `atarisy1_state::s_mob_config`: a class's own table, found where that
+    // class defines it. Matched by leaf alone, Marble Madness took the first
+    // Atari driver's `s_mob_config` in the directory instead of its own.
+    const owner = qualified.includes('::') ? qualified.split('::').slice(0, -1).join('::') : undefined;
+    const name = qualified.split('::').at(-1)!;
     // Read as written first: preprocessing a driver for every setter that
     // takes a name would cost seconds a board for nothing. The table may be
     // in another file of the driver: galaga.cpp adds the device, and
     // galaga_a.cpp holds galaga_discrete.
     const declares = (candidate: string) => {
       const path = join(mameSrc, candidate);
-      return existsSync(path) && new RegExp(`(?:\\bconst\\b[^;=(){}]*\\b${name}\\s*(?:\\[[^\\]]*\\])?\\s*=|^\\s*(?:static\\s+)?[A-Z][A-Z0-9_]*\\s*\\(\\s*${name}\\s*\\))`, 'm')
-        .test(readFileSync(path, 'utf8'));
+      if (!existsSync(path)) return false;
+      const text = readFileSync(path, 'utf8');
+      if (owner) return new RegExp(`\\b${owner}\\s*::\\s*${name}\\s*(?:\\[[^\\]]*\\])?\\s*=`).test(text);
+      return new RegExp(`(?:\\bconst\\b[^;=(){}]*\\b${name}\\s*(?:\\[[^\\]]*\\])?\\s*=|^\\s*(?:static\\s+)?[A-Z][A-Z0-9_]*\\s*\\(\\s*${name}\\s*\\))`, 'm')
+        .test(text);
     };
     const directory = dirname(file);
     const siblings = existsSync(join(mameSrc, directory))
