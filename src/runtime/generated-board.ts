@@ -450,6 +450,8 @@ class IrBoard implements Board {
    * head a half-track away from where the DOS believes it is.
    */
   private machinePhase = DEFAULT_CONSTANTS['machine_phase::INIT']!;
+  /** device_t::m_started for the driver device (see `started` in the call table). */
+  private driverStarted = false;
   /** Composed slot cards' own scopes (see cardScope), by card tag. */
   private readonly cardScopes = new Map<string, { instance: Record<string, unknown>; bindings: GeneratedHandlerBindings }>();
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
@@ -1425,6 +1427,11 @@ class IrBoard implements Board {
     // effects such as clearing a sound CPU IRQ.
     calls['machine().side_effects_disabled'] = () => 0;
     calls['machine().phase'] = () => this.machinePhase;
+    // device_t::started() on the driver itself: device_t::start sets it once
+    // driver_device::device_start, which runs machine_start, sound_start and
+    // video_start, has returned. The Spectrum's end-of-screen timer reads it
+    // before forcing a partial update.
+    calls['started'] = () => this.driverStarted ? 1 : 0;
     // The scheduler's clock, as devices already see it. Carnival's sound timer
     // is `machine().time().as_ticks(500) & 1`, a 500 Hz square wave the game
     // polls; unbound it read 0 forever (#178).
@@ -2175,6 +2182,13 @@ class IrBoard implements Board {
         // their own addresses (`m_boot_view[0].install_read_handler(...)`, the
         // Game Boy's boot ROM), so the window itself places nothing.
         install_view: () => 0,
+        // `space(AS_*).specific(m_program)` / `.cache(m_cache)` bind a driver
+        // member to this space. The compiler reads the same statement into
+        // spaceAccessors, and the member is wired from that just below, so
+        // the call itself, which the Spectrum's machine_start makes, binds
+        // nothing more.
+        specific: () => 0,
+        cache: () => 0,
         install_read_tap: (...args: unknown[]) => tapInto('install_read_tap', args),
         install_write_tap: (...args: unknown[]) => tapInto('install_write_tap', args),
         install_readwrite_tap: (...args: unknown[]) => tapInto('install_readwrite_tap', args),
@@ -3416,6 +3430,7 @@ class IrBoard implements Board {
     // machine_start was enough to change how Bubble Bobble ran.
     this.bindDelegateSlots(machine);
     this.runMachineLifecycle('startHandlers');
+    this.driverStarted = true;
     this.setRtcDatetime(config.baseTime);
     // running_machine::soft_reset: every device resets, then the driver's
     // machine_reset runs, all after the driver has started.
@@ -5054,6 +5069,13 @@ class IrBoard implements Board {
       // start: each entry is wherever its pointer points, in the region it
       // points into (gng's machine_start banks its program ROM this way).
       const placeEntry = (value: number, base: unknown): void => {
+        // Or in the storage of the device the bank is configured over: the
+        // 128K's machine_start places each RAM bank at `m_ram->pointer()`.
+        const stored = deviceStorage && regionOffsetOf({ storage: deviceStorage }, base);
+        if (stored) {
+          entryOffsets[value] = stored.offset;
+          return;
+        }
         const placed = regionOffsetOf(regions, base);
         if (!placed) {
           throw new Error(`${machine.game}: memory bank "${bank.tag}" entry ${value} points into no region`);
