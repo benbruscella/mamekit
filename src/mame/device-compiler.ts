@@ -2955,7 +2955,7 @@ function executionDataAddressBits(
  * format class (every floppy connector) compiles exactly as it did.
  */
 /** The file-scope functions a header declares; a class's methods are its own. */
-function headerFunctionNames(header: string): string[] {
+export function headerFunctionNames(header: string): string[] {
   const declared = stripCppComments(header);
   const outside = declared.replace(/\b(?:class|struct)\s+\w+[^;{]*\{(?:[^{}]|\{[^{}]*\})*\}\s*;/g, '');
   return [...outside.matchAll(/^[\w:<>*&\s]+?\b(\w+)\s*\([^;{}]*\)\s*;/gm)].map(name => name[1]!);
@@ -5296,7 +5296,10 @@ function structFieldList(
       // The type and the
       // name are apart by a space or a `*`: without that, `unsigned short
       // energytable[...]` backtracked into a field `e` of type `energytabl`.
-      /(?:^|(?<=[;}]))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
+      // An elaborated type names its struct with the keyword: CPS1config's
+      // `const struct gfx_range *bank_mapper;`, which missed shifted every
+      // later field of each config row by one.
+      /(?:^|(?<=[;}]))\s*(?:const\s+)?(?:struct\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
     )) {
       const valueType = statement[1]!.replace(/\s+/g, ' ');
       if (/^(?:return|using|typedef|friend|enum|struct|class|union)$/.test(valueType)) continue;

@@ -3,13 +3,14 @@ import type { Regions, VideoRenderer as Renderer } from './types.ts';
 import type { BoardIr, GeneratedGfxEntry, GeneratedGfxLayout, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
+  executeGeneratedMachineHandler,
+  generatedElement,
   executeGeneratedMachineProgram,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import { executeGeneratedHandler } from '../ir/execute.ts';
 import { GeneratedRectangle } from './rectangle.ts';
 import { decodeGfx, type GfxSet } from './gfx.ts';
-import { executeDvgDisplayList } from '../hardware/vector/dvg.ts';
 import type { GeneratedDirectScreenShape } from '../ir/video-execution.ts';
 
 /**
@@ -2928,48 +2929,6 @@ export function generatedScrollBand(
   return Math.min(bands - 1, Math.floor(tile * bands / tileCount));
 }
 
-interface CpsGfxRange {
-  type: number;
-  start: number;
-  end: number;
-  bank: number;
-}
-
-interface CpsGameConfig {
-  bank_sizes?: number[];
-  bank_mapper?: CpsGfxRange[];
-  bootleg_kludge?: number;
-}
-
-/**
- * CPS1 stores its graphics mapper as a pointer to a sentinel-terminated table.
- * The generic expression evaluator intentionally does not infer C++ pointer
- * types from `auto`, so preserve the small hardware lookup explicitly here.
- */
-export function cpsGfxromBankMap(
-  config: CpsGameConfig,
-  type: number,
-  sourceCode: number,
-): number {
-  const shifts: Record<number, number> = { 1: 1, 2: 0, 4: 1, 8: 3 };
-  const shift = shifts[type] ?? 0;
-  const code = sourceCode << shift;
-  const sizes = config.bank_sizes ?? [];
-  for (const range of config.bank_mapper ?? []) {
-    if (!range.type) break;
-    if (
-      code < range.start || code > range.end ||
-      !(range.type & type)
-    ) continue;
-    const size = sizes[range.bank] ?? 0;
-    if (!size) return -1;
-    let base = 0;
-    for (let bank = 0; bank < range.bank; bank++) base += sizes[bank] ?? 0;
-    return (base + (code & (size - 1))) >> shift;
-  }
-  return -1;
-}
-
 /** Decode one pixel from the Taito SJ board's writable character RAM. */
 export function decodeTaitoSjRamPixel(
   characterRam: Uint8Array,
@@ -3121,13 +3080,35 @@ export function segaSystem16PaletteEntry(raw: number): {
 class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['colors'];
+    return ['colors', 'entryColors', 'indirect', 'indirectColors', 'contrast'];
   }
 
+  /** The colours the screen shows: each entry under the palette's contrast. */
   readonly colors: Uint32Array;
+  /** palette_t's own entries, which entry_color() answers (palette.cpp). */
+  private readonly entryColors: Uint32Array;
+  /** device_palette_interface's m_indirect_pens and m_indirect_colors (dipalette.cpp). */
+  private readonly indirect: Uint16Array;
+  private readonly indirectColors: Uint32Array;
+  /** palette_t::m_contrast, a float. */
+  private contrast = 1;
 
-  constructor(entries: number) {
+  constructor(entries: number, indirectEntries = 0) {
     this.colors = new Uint32Array(Math.max(1, entries)).fill(0xff000000);
+    this.entryColors = this.colors.slice();
+    this.indirectColors = new Uint32Array(indirectEntries).fill(0xff000000);
+    // allocate_palette points each pen at `pen % indirect_colors`; a palette
+    // with no indirect colours has no indirect pens at all.
+    this.indirect = indirectEntries
+      ? Uint16Array.from({ length: this.colors.length }, (_, pen) => pen % indirectEntries)
+      : new Uint16Array(0);
+  }
+
+  /** palette_t::entry_set_color, then update_adjusted_color for that entry. */
+  private setEntry(pen: number, color: number): void {
+    if (pen < 0 || pen >= this.entryColors.length) return;
+    this.entryColors[pen] = color >>> 0;
+    this.colors[pen] = this.contrast === 1 ? color >>> 0 : adjustedColor(color, this.contrast);
   }
 
   set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
@@ -3137,17 +3118,80 @@ class GeneratedInitialisedPalette implements GeneratedPaletteDevice {
     const color = green === undefined
       ? colorOrRed >>> 0
       : packRgb(colorOrRed & 0xff, green & 0xff, (blue ?? 0) & 0xff);
-    if (pen >= 0 && pen < this.colors.length) this.colors[pen] = color;
+    this.setEntry(pen, color);
   }
 
-  /** `set_pen_colors(base, colors)`: a whole table of rgb_t from `base` on (the Spectrum's 16 pens). */
+  /**
+   * `set_pen_colors(base, colors)`: a whole table of rgb_t from `base` on --
+   * the Spectrum's 16 pens, or the std::vector compute_res_net_all fills.
+   */
   set_pen_colors(base: number, colors: ArrayLike<number>, count = colors.length): void {
     for (let index = 0; index < count; index++) this.set_pen_color(base + index, Number(colors[index]));
   }
 
-  transpen_mask(): number { return 0; }
+  /** set_indirect_color: every pen that points at the colour takes it. */
+  set_indirect_color(index: number, color: number): void {
+    if (index < 0 || index >= this.indirectColors.length) return;
+    this.indirectColors[index] = color >>> 0;
+    for (let pen = 0; pen < this.indirect.length; pen++) {
+      if (this.indirect[pen] === index) this.setEntry(pen, this.indirectColors[index]!);
+    }
+  }
 
-  black_pen(): number { return 0; }
+  set_pen_indirect(pen: number, index: number): void {
+    if (pen < 0 || pen >= this.indirect.length) return;
+    this.indirect[pen] = index & 0xffff;
+    this.setEntry(pen, this.indirectColors[index] ?? 0xff000000);
+  }
+
+  pen_indirect(pen: number): number {
+    return this.indirect[pen] ?? 0;
+  }
+
+  indirect_entries(): number {
+    return this.indirectColors.length;
+  }
+
+  /**
+   * `palette.palette()`: the palette_t. normalize_range is dkong's tri-state
+   * black; num_colors, entry_color and set_contrast are how Irem's M62 finds
+   * its brightest entry and lifts every palette to it.
+   */
+  palette(): Record<string, (...args: number[]) => number> {
+    return {
+      num_colors: () => this.entryColors.length,
+      entry_color: index => this.entryColors[index] ?? 0xff000000,
+      set_contrast: contrast => {
+        this.contrast = Math.fround(contrast);
+        for (let pen = 0; pen < this.entryColors.length; pen++) this.setEntry(pen, this.entryColors[pen]!);
+        return 0;
+      },
+      normalize_range: (start, end, lumMin = 0, lumMax = 255) => {
+        normalizePaletteRange(this.entryColors, { start, end, lumMin, lumMax });
+        for (let pen = start; pen <= end && pen < this.entryColors.length; pen++) this.setEntry(pen, this.entryColors[pen]!);
+        return 0;
+      },
+    };
+  }
+
+  /** dipalette.cpp transpen_mask: the pens whose indirect value is the transparent one. */
+  transpen_mask(gfx: GeneratedGfxElement, color: number, transparent: number): number {
+    let mask = 0;
+    const base = gfx.entry.colorBase + color * gfx.granularity();
+    const count = Math.max(0, Math.min(gfx.granularity(), this.indirect.length - base));
+    for (let pen = 0; pen < count; pen++) {
+      if (this.indirect[base + pen] === transparent) mask |= 1 << pen;
+    }
+    return mask;
+  }
+
+  /** A pen that resolves to black, as the PROM palette answers it. */
+  black_pen(): number {
+    for (let pen = 0; pen < this.colors.length; pen++) {
+      if (this.colors[pen] === 0xff000000) return pen;
+    }
+    return 0;
+  }
 
   pens(): Uint32Array { return this.colors; }
 }
@@ -3230,22 +3274,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         (bitmapPlan.rowStart + bitmapPlan.rows) * bitmapPlan.bytesPerRow,
       );
     }
-    for (const [member, values] of Object.entries(machine.video?.colorTables ?? {})) {
-      state[member] = Uint32Array.from(values, value => value >>> 0);
-    }
-    const lfsr = machine.video?.lfsrTable;
-    if (lfsr) {
-      const values = new Uint8Array(lfsr.period);
-      let shift = 0;
-      for (let index = 0; index < values.length; index++) {
-        const enabled = (shift & lfsr.enabledMask) === lfsr.enabledValue;
-        const color = (~shift & lfsr.colorMask) >> lfsr.colorShift;
-        values[index] = color | (enabled ? 0x80 : 0);
-        const feedback = ((shift >> lfsr.feedbackTap) ^ ~(shift >> lfsr.feedbackInvertTap)) & 1;
-        shift = (shift >> 1) | (feedback << (lfsr.feedbackWidth - 1));
-      }
-      state[lfsr.member] = values;
-    }
     if (machine.video?.palette) {
       this.palettes.set(
         'm_palette',
@@ -3276,14 +3304,13 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     for (const palette of machine.video?.palettes ?? []) {
       this.palettes.set(palette.member, new GeneratedPalette(palette.plan, regions));
     }
-    this.palette = this.palettes.get('m_palette') ?? this.palettes.values().next().value;
-    // A machine whose colours are written by code rather than decoded from a
-    // colour PROM: MAME hands `palette_device` an init routine, and the pens
-    // it sets are the whole palette. Run once here, as MAME runs it once at
-    // device_start, so the screen has colours before the first frame.
-    if (!this.palette && machine.execution.paletteInit) {
-      this.palette = new GeneratedInitialisedPalette(machine.execution.paletteInit.entries ?? 0);
+    // Each palette_device MAME hands an init routine: the pens it sets are the
+    // palette. The gfx decode names each by its finder.
+    for (const init of machine.execution.paletteInits ?? []) {
+      if (this.palettes.has(init.member)) continue;
+      this.palettes.set(init.member, new GeneratedInitialisedPalette(init.entries ?? 0, init.indirectEntries ?? 0));
     }
+    this.palette = this.palettes.get('m_palette') ?? this.palettes.values().next().value;
     // A palette with neither a decoded PROM nor an init routine: the driver
     // sets every pen itself as the game runs (Missile Command's palette_w).
     if (!this.palette && machine.execution.paletteDevice) {
@@ -3371,6 +3398,16 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     for (const [name, layout] of Object.entries(machine.video?.gfxLayouts ?? {})) {
       state[name] = { gfxLayout: layout };
     }
+    const drawScanline = (args: unknown[]): number => {
+      const [bitmap, destx, desty, length, source, paldata] = args.map(generatedArgumentValue);
+      const target = bitmap as BitmapTarget | undefined;
+      if (!target) return 0;
+      for (let index = 0; index < Number(length); index++) {
+        const pen = Number(generatedElement(source, index));
+        target['pix='](Number(desty), Number(destx) + index, paldata ? Number(generatedElement(paldata, pen)) : pen);
+      }
+      return 0;
+    };
     const referenceCalls: NonNullable<GeneratedHandlerBindings['referenceCalls']> = {
       ...bindings.referenceCalls,
       // gfx_element(palette, layout, srcdata, xormask, total_colors, color_base).
@@ -3419,6 +3456,11 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         }
         return 0;
       },
+      // drawgfx.cpp's draw_scanline16/32 (drawscanline_core): `length` pens
+      // from a row buffer into the bitmap at (destx, desty), each through
+      // paldata when one is given. Pole Position draws its road this way.
+      draw_scanline16: (...args) => drawScanline(args),
+      draw_scanline32: (...args) => drawScanline(args),
       'machine().tilemap().set_flip_all': (...args) => {
         const flags = Number(generatedArgumentValue(args[0]) ?? 0);
         for (const plan of machine.video?.tilemaps ?? []) {
@@ -3427,288 +3469,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         return 0;
       },
     };
-    const roadHandler = machine.videoExecution?.roadHandler
-      ? replacedHandler(machine, machine.videoExecution.roadHandler) : undefined;
-    if (roadHandler) {
-      // polepos_palette() has a non-palette side effect: three PROM pages are
-      // combined into the road generator's 12-bit vertical address table.
-      // The generated palette plan owns colors and lookup pens, so materialize
-      // this source table explicitly before the first road draw.
-      const colorProms = state.m_proms;
-      if (ArrayBuffer.isView(colorProms)) {
-        state.m_vertical_position_modifier = polePositionVerticalModifiers(
-          colorProms as unknown as Uint8Array,
-        );
-      }
-      const drawRoad = (...rawArgs: unknown[]) => {
-        const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
-        const roadRegion = state.m_road_region;
-        const roadMemory = state.m_road16_memory;
-        const vertical = state.m_vertical_position_modifier;
-        if (
-          !bitmap || !ArrayBuffer.isView(roadRegion) ||
-          !ArrayBuffer.isView(roadMemory) || !ArrayBuffer.isView(vertical)
-        ) return 0;
-        const roadBytes = roadRegion as unknown as Uint8Array;
-        const roadWords = roadMemory as unknown as Uint16Array;
-        const verticalWords = vertical as unknown as Uint16Array;
-        // Driver raster coordinates include the configured visible-area
-        // offset. A framebuffer's compact height is not the source bitmap's
-        // maximum y (Pole Position exposes 224 rows at source y=16..239 and
-        // its road generator intentionally draws through y=255). Let pix=
-        // perform the final visible clipping in that source coordinate space.
-        const height = this.machine.execution.screen.vtotal;
-        const roadBits1 = 0x2000;
-        const roadBits2 = 0x4000;
-        for (let y = 128; y < Math.min(256, height); y++) {
-          const scanline = new Uint16Array(256 + 8);
-          let destination = 0;
-          const yOffset = (
-            ((verticalWords[y] ?? 0) + Number(state.m_road16_vscroll ?? 0)) >> 3
-          ) & 0x1ff;
-          const roadPalette = (roadWords[yOffset] ?? 0) & 15;
-          const penBase = 0x0b00 + (roadPalette << 6);
-          let xOffset = (roadWords[0x380 + (y & 0x7f)] ?? 0) & 0x3ff;
-          const xScroll = xOffset & 7;
-          xOffset &= ~7;
-          for (let chunk = 0; chunk < 256 / 8 + 1; chunk++, xOffset += 8) {
-            if (xOffset & 0x200) {
-              for (let pixel = 0; pixel < 8; pixel++) scanline[destination++] = penBase;
-              continue;
-            }
-            const romOffset = ((y & 0x07f) << 6) + ((xOffset & 0x1f8) >> 3);
-            const control = roadBytes[romOffset] ?? 0;
-            const bits1 = roadBytes[roadBits1 + romOffset] ?? 0;
-            const bits2 = roadBytes[roadBits2 +
-              ((romOffset & 0xfff) | ((romOffset & 0x1000) >> 1))] ?? 0;
-            let roadValue = control & 0x3f;
-            const carryIn = control >>> 7;
-            for (let pixel = 8; pixel > 0; pixel--) {
-              let bits = ((bits1 >>> pixel) & 1) + (((bits2 >>> pixel) & 1) << 1);
-              if (!carryIn && bits) bits++;
-              scanline[destination++] = penBase | (roadValue & 0x3f);
-              roadValue += bits;
-            }
-          }
-          for (let x = 0; x < 256; x++) bitmap['pix='](y, x, scanline[x + xScroll]!);
-        }
-        return 0;
-      };
-      referenceCalls.draw_road = drawRoad;
-      referenceCalls[`${roadHandler.ownerClass}.draw_road`] = drawRoad;
-    }
-    const zoomSpriteHandler = machine.videoExecution?.zoomSpriteHandler
-      ? replacedHandler(machine, machine.videoExecution.zoomSpriteHandler) : undefined;
-    const spriteHandler = machine.videoExecution?.spriteHandler
-      ? replacedHandler(machine, machine.videoExecution.spriteHandler) : undefined;
-    if (zoomSpriteHandler && spriteHandler) {
-      const zoomSprite = (...rawArgs: unknown[]) => {
-        const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
-        const big = Boolean(Number(generatedArgumentValue(rawArgs[1]) ?? 0));
-        const code = Number(generatedArgumentValue(rawArgs[2]) ?? 0) >>> 0;
-        const color = Number(generatedArgumentValue(rawArgs[3]) ?? 0) >>> 0;
-        const flipX = Boolean(Number(generatedArgumentValue(rawArgs[4]) ?? 0));
-        const sx = Number(generatedArgumentValue(rawArgs[5]) ?? 0) | 0;
-        const sy = Number(generatedArgumentValue(rawArgs[6]) ?? 0) | 0;
-        const sizeX = Number(generatedArgumentValue(rawArgs[7]) ?? 0) | 0;
-        const sizeY = Number(generatedArgumentValue(rawArgs[8]) ?? 0) | 0;
-        const scale = state.m_scalelut_region;
-        const gfx = this.gfx[big ? 3 : 2];
-        if (!bitmap || !ArrayBuffer.isView(scale) || !gfx || !this.palette) return 0;
-        const scaleLut = scale as unknown as Uint8Array;
-        const source = gfx.get_data(code % gfx.elements());
-        const transparent = this.palette.transpen_mask(gfx, color, 0x1f);
-        const colorOffset = gfx.colorbase() + color * gfx.granularity();
-        const offsetXor = flipX ? (big ? 0x1f : 0x0f) : 0;
-        for (let y = 0; y <= sizeY; y++) {
-          const yy = (sy + y) & 0x1ff;
-          if (yy < 0x10 || yy >= 0xf0) continue;
-          let dy = (scaleLut[(y << 6) + sizeY] ?? 0) & 0x1f;
-          if (!big) dy >>= 1;
-          const row = dy * gfx.rowbytes();
-          let xx = sx & 0x3ff;
-          let accumulator = 0;
-          let sourceOffset = 0;
-          for (let x = big ? 0x40 : 0x20; x > 0; x--) {
-            if (xx < 0x100) {
-              const pen = source[row + ((sourceOffset >> 1) ^ offsetXor)] ?? 0;
-              if (!((transparent >>> pen) & 1)) {
-                bitmap['pix=']?.(yy, xx, pen + colorOffset);
-              }
-            }
-            sourceOffset++;
-            accumulator += 1 + sizeX;
-            if (accumulator & 0x40) {
-              accumulator &= 0x3f;
-              xx = (xx + 1) & 0x3ff;
-            }
-          }
-        }
-        return 0;
-      };
-      const drawSprites = (...rawArgs: unknown[]) => {
-        const bitmap = generatedArgumentValue(rawArgs[0]) as BitmapTarget | undefined;
-        const spriteMemory = state.m_sprite16_memory;
-        if (!bitmap || !ArrayBuffer.isView(spriteMemory)) return 0;
-        const words = spriteMemory as unknown as Uint16Array;
-        for (let index = 0; index < 64; index++) {
-          const position = 0x380 + index * 2;
-          const size = 0x780 + index * 2;
-          const positionY = words[position] ?? 0;
-          const positionX = words[position + 1] ?? 0;
-          const sizeCode = words[size] ?? 0;
-          const sizeColor = words[size + 1] ?? 0;
-          const sx = (positionX & 0x3ff) - 0x40 + 4;
-          const sy = 512 - (positionY & 0x1ff) + 1;
-          const sizeX = (sizeColor & 0x3f00) >> 8;
-          const sizeY = (sizeCode & 0x3f00) >> 8;
-          const code = sizeCode & 0x7f;
-          const flipX = Boolean(sizeCode & 0x80);
-          let color = sizeColor & 0x3f;
-          if (sy >= 128) color |= 0x40;
-          zoomSprite(
-            bitmap,
-            Number(Boolean(sizeCode & 0x8000)),
-            code,
-            color,
-            Number(flipX),
-            sx,
-            sy,
-            sizeX,
-            sizeY,
-          );
-        }
-        return 0;
-      };
-      referenceCalls.zoom_sprite = zoomSprite;
-      referenceCalls[`${zoomSpriteHandler.ownerClass}.zoom_sprite`] = zoomSprite;
-      referenceCalls.draw_sprites = drawSprites;
-      referenceCalls[`${spriteHandler.ownerClass}.draw_sprites`] = drawSprites;
-    }
-    const cpsBankMapper = machine.videoExecution?.bankMapperHandler
-      ? replacedHandler(machine, machine.videoExecution.bankMapperHandler) : undefined;
-    if (cpsBankMapper) {
-      const map = (...rawArgs: unknown[]) => cpsGfxromBankMap(
-        state.m_game_config as CpsGameConfig,
-        Number(generatedArgumentValue(rawArgs[0]) ?? 0),
-        Number(generatedArgumentValue(rawArgs[1]) ?? 0),
-      );
-      referenceCalls.gfxrom_bank_mapper = map;
-      referenceCalls[`${cpsBankMapper.ownerClass}.gfxrom_bank_mapper`] = map;
-
-      // CPS1 owns a uint16_t sprite buffer. The neutral ALLOC primitive is
-      // byte-oriented because most generated driver allocations are u8; keep
-      // the source element width here so the vblank memcpy and marker scan see
-      // the same word table as MAME.
-      referenceCalls.ALLOC = (...rawArgs) => new Uint16Array(
-        Math.max(0, Number(generatedArgumentValue(rawArgs[0]) ?? 0)),
-      );
-
-      const spriteHandler = machine.videoExecution?.cpsSpriteHandler
-        ? replacedHandler(machine, machine.videoExecution.cpsSpriteHandler) : undefined;
-      if (spriteHandler) {
-        const renderSprites = (...rawArgs: unknown[]) => {
-          const bitmap = generatedArgumentValue(rawArgs[1]) as BitmapTarget | undefined;
-          const clip = generatedArgumentValue(rawArgs[2]) as GeneratedRectangle | undefined;
-          const words = state.m_buffered_obj;
-          const gfx = this.gfx[2];
-          const config = state.m_game_config as CpsGameConfig;
-          if (!bitmap || !clip || !gfx || !ArrayBuffer.isView(words)) return 0;
-          const objects = words as unknown as Uint16Array;
-          const last = Math.min(
-            Number(state.m_last_sprite_offset ?? -4),
-            objects.length - 4,
-          );
-          if (last < 0) return 0;
-          const reverse = Boolean(Number(config.bootleg_kludge ?? 0) & 0x40);
-          let base = reverse ? last : 0;
-          const baseAdd = reverse ? -4 : 4;
-          const screenFlipped = Boolean(state.__flip_screen);
-          // DRAWSPRITE is prio_transpen(..., screen.priority(), 0x02, 15), not
-          // a plain transpen. Both halves of that matter: pmask 0x02 hides the
-          // sprite under a scenery pen the tilemap pass stamped with 1, and the
-          // implicit high mask bit means an object already drawn keeps the
-          // pixel — CPS1 sprite priority is the object table's own order, and a
-          // plain transpen inverts it (sf2's "INSERT COIN" vanished behind
-          // Blanka; issue #82).
-          const priority = this.screenPriority();
-          const draw = (
-            code: number, color: number, flipX: number, flipY: number,
-            sx: number, sy: number,
-          ) => {
-            gfx.prio_transpen(
-              bitmap,
-              clip,
-              code,
-              color,
-              screenFlipped ? Number(!flipX) : flipX,
-              screenFlipped ? Number(!flipY) : flipY,
-              screenFlipped ? 512 - 16 - sx : sx,
-              screenFlipped ? 256 - 16 - sy : sy,
-              priority,
-              0x02,
-              15,
-            );
-          };
-          for (let offset = last; offset >= 0; offset -= 4, base += baseAdd) {
-            const x = objects[base] ?? 0;
-            const y = objects[base + 1] ?? 0;
-            const sourceCode = objects[base + 2] ?? 0;
-            const attributes = objects[base + 3] ?? 0;
-            const mapped = cpsGfxromBankMap(config, 1, sourceCode);
-            if (mapped < 0) continue;
-            const color = attributes & 0x1f;
-            const flipX = Number(Boolean(attributes & 0x20));
-            const flipY = Number(Boolean(attributes & 0x40));
-            const nx = (attributes & 0xff00) ? ((attributes >>> 8) & 0x0f) + 1 : 1;
-            const ny = (attributes & 0xff00) ? ((attributes >>> 12) & 0x0f) + 1 : 1;
-            for (let blockY = 0; blockY < ny; blockY++) {
-              const sy = (y + blockY * 16) & 0x1ff;
-              const codeY = flipY ? ny - 1 - blockY : blockY;
-              for (let blockX = 0; blockX < nx; blockX++) {
-                const sx = (x + blockX * 16) & 0x1ff;
-                const codeX = flipX ? nx - 1 - blockX : blockX;
-                const code = (mapped & ~0x0f) + ((mapped + codeX) & 0x0f) + 0x10 * codeY;
-                draw(code, color, flipX, flipY, sx, sy);
-              }
-            }
-          }
-          return 0;
-        };
-        referenceCalls.cps1_render_sprites = renderSprites;
-        referenceCalls[`${spriteHandler.ownerClass}.cps1_render_sprites`] = renderSprites;
-      }
-    }
-    if (lfsr?.rowRenderer) {
-      const row = lfsr.rowRenderer;
-      referenceCalls[row.method] = (...rawArgs) => {
-        const args = rawArgs.map(generatedArgumentValue);
-        const bitmap = args[0] as BitmapTarget;
-        const maxX = Number(args[1]);
-        const y = Number(args[2]);
-        let starOffset = modulo(Number(args[3]), lfsr.period);
-        const starMask = Number(args[4]);
-        const stars = state[lfsr.member] as Uint8Array;
-        const colors = state[row.colorMember] as Uint32Array;
-        const scale = Number(state[row.scaleMember] ?? 1);
-        for (let x = 0; x < maxX; x++) {
-          const enabled = (y ^ (x >> 3)) & 1;
-          let star = stars[starOffset++]!;
-          if (starOffset >= lfsr.period) starOffset = 0;
-          if (enabled && (star & 0x80) && (star & starMask)) {
-            bitmap['pix='](y, scale * x, colors[star & 0x3f] ?? 0xff000000);
-          }
-          star = stars[starOffset++]!;
-          if (starOffset >= lfsr.period) starOffset = 0;
-          if (enabled && (star & 0x80) && (star & starMask)) {
-            const color = colors[star & 0x3f] ?? 0xff000000;
-            bitmap['pix='](y, scale * x + 1, color);
-            bitmap['pix='](y, scale * x + 2, color);
-          }
-        }
-        return 0;
-      };
-    }
     const callParameters: NonNullable<GeneratedHandlerBindings['callParameters']> = {
       ...bindings.callParameters,
     };
@@ -3904,16 +3664,14 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     // The machine's own palette routine, run once with the palette it is
     // handed -- which is what MAME does at device_start. Every colour the
     // screen resolves comes out of this call.
-    if (this.palette instanceof GeneratedInitialisedPalette) {
-      const callback = machine.callbacks.find(candidate =>
-        candidate.signal === 'palette_init');
-      if (callback) {
-        executeGeneratedCallbackHandler(
-          machine,
-          callback,
-          this.bindings,
-          { palette: this.palette },
-        );
+    for (const init of machine.execution.paletteInits ?? []) {
+      const palette = this.palettes.get(init.member);
+      if (!init.handler) continue;
+      const handler = requiredHandler(machine, init.handler);
+      // The callback names the device by its own parameter (`palette_device &palette`).
+      const [parameter = 'palette'] = parameterNames(handler.parameters);
+      if (palette instanceof GeneratedInitialisedPalette) {
+        executeGeneratedMachineHandler(machine, handler, this.bindings, { [parameter]: palette });
       }
     }
   }
@@ -4217,34 +3975,6 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         const intensity = points[index + 3]!;
         if (intensity !== 0) {
           drawAdditiveVectorLine(pixels, width, height, lastX, lastY, x, y, intensity, points[index + 2]!);
-        }
-        lastX = x;
-        lastY = y;
-      }
-      return true;
-    }
-    if (vector?.type === 'DVG' && this.memoryRead && bitmap.direct) {
-      bitmap.fill(0xff000000);
-      const points = executeDvgDisplayList(this.memoryRead, vector);
-      const pixels = bitmap.direct.pixels;
-      const width = bitmap.direct.width;
-      const height = bitmap.direct.height;
-      const center = 1 << (vector.coordinateBits - 1);
-      const xOffset = this.machine.execution.screen.xOffset ?? 0;
-      const yOffset = this.machine.execution.screen.yOffset ?? 0;
-      let lastX = 0;
-      let lastY = 0;
-      for (const point of points) {
-        const x = Math.round(xOffset + point.x - center);
-        const y = Math.round(yOffset + center - point.y);
-        if (point.intensity > 0) {
-          drawAdditiveVectorLine(
-            pixels, width, height, lastX, lastY, x, y,
-            // dvg_device::dvg_draw_to passes the 4-bit display-list intensity
-            // through pal4bit, which replicates the nibble rather than only
-            // shifting it, so full brightness reaches 0xff.
-            ((point.intensity & 0x0f) << 4) | (point.intensity & 0x0f),
-          );
         }
         lastX = x;
         lastY = y;
@@ -5743,17 +5473,6 @@ function requiredHandler(machine: BoardIr, key: string): GeneratedHandler {
   return handler;
 }
 
-/**
- * A source handler a runtime stand-in answers in its place. Only its owner
- * class is needed, to name the reference call; its body need not lower, and
- * CPS1's DRAWSPRITE-based cps1_render_sprites does not.
- */
-function replacedHandler(machine: BoardIr, key: string): GeneratedHandler {
-  const handler = machine.handlers?.find(candidate => `${candidate.ownerClass}.${candidate.method}` === key);
-  if (!handler) throw new Error(`${machine.game}: generated video handler "${key}" is missing from the IR`);
-  return handler;
-}
-
 function standardMapper(key: string): boolean {
   return key === 'TILEMAP_SCAN_ROWS' || key === 'TILEMAP_SCAN_COLS';
 }
@@ -5857,6 +5576,16 @@ function computeMameTtlSanyoResNet(
   voltage = Math.min(voltage, vcc - 1.4);
   voltage = voltage / (vcc - 1.4) * vcc;
   return Math.floor(voltage * 255 / vcc + 0.4);
+}
+
+/**
+ * palette_t::adjust_palette_entry with no brightness and a linear gamma:
+ * each channel `clamp(float(level) * contrast)`, alpha kept.
+ */
+function adjustedColor(color: number, contrast: number): number {
+  const channel = (shift: number) =>
+    Math.min(255, Math.max(0, Math.trunc(Math.fround(((color >>> shift) & 0xff) * contrast)))) << shift;
+  return ((color & 0xff000000) | channel(16) | channel(8) | channel(0)) >>> 0;
 }
 
 function normalizePaletteRange(

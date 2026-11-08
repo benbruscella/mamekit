@@ -76,9 +76,8 @@ const HOST_BOUNDARIES = {
 // A branch on a MAME device type selects code written for that chip or board.
 const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
   'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS', 'DVG',
+    'ATARI_MOTION_OBJECTS',
   ],
-  'generated-video.ts': ['DVG'],
 };
 // Each direct-screen shape is a renderer written for one driver.
 const DIRECT_SCREEN_SHAPES = [

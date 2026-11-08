@@ -1105,13 +1105,17 @@ class HandlerParser {
           return declarations;
         }
         // Further dimensions: `static const uint8_t convtable[32][4] = { {...}, ... }`,
-        // each of the Sega Z80 decryptors' key tables.
+        // each of the Sega Z80 decryptors' key tables, and resnet.cpp's
+        // `double r[MAX_NETS][MAX_RES_PER_NET]`, which ALLOC sizes row by row.
         let dimensions = 1;
+        const inner: GeneratedExpression[] = [];
         while (this.consume('[')) {
-          if (!this.parseExpression() || !this.consume(']')) {
+          const extent = this.parseExpression();
+          if (!extent || !this.consume(']')) {
             this.unsupportedStatement(`invalid array declaration of "${name.text}"`);
             return declarations;
           }
+          inner.push(extent);
           dimensions++;
         }
         const directListInitializer = this.consume('{');
@@ -1139,13 +1143,13 @@ class HandlerParser {
           } : {
             kind: 'call',
             callee: { kind: 'identifier', name: 'ALLOC' },
-            args: [length ?? { kind: 'number', value: 0 }],
+            args: [length ?? { kind: 'number', value: 0 }, ...inner],
           };
         } else {
           value = {
             kind: 'call',
             callee: { kind: 'identifier', name: 'ALLOC' },
-            args: [length ?? { kind: 'number', value: 0 }],
+            args: [length ?? { kind: 'number', value: 0 }, ...inner],
           };
         }
       } else if (this.consume('=')) {

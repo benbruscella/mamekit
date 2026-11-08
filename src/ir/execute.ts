@@ -1335,13 +1335,12 @@ function compileFastOperations(
       const valueType = operation.valueType;
       const arrayLength = declaredArrayLength(operation.value);
       if (arrayLength) {
-        const length = compileFastExpression(arrayLength, bindings, localNames);
-        if (!length) return undefined;
+        const extents = [arrayLength, ...declaredInnerExtents(operation.value)]
+          .map(extent => compileFastExpression(extent, bindings, localNames));
+        if (extents.some(extent => !extent)) return undefined;
         compiled.push(context => {
           context.localTypes[name] = valueType;
-          const size = toNumber(length(context));
-          context.locals[name] = allocateDeclaredArray(valueType, size) ??
-            new Uint8Array(Math.max(0, Math.trunc(size)));
+          context.locals[name] = allocateLocalArray(valueType, extents.map(extent => toNumber(extent!(context))));
           return undefined;
         });
         continue;
@@ -1804,8 +1803,11 @@ function compileFastExpression(
 function allocateDeclaredArray(
   valueType: string | undefined,
   length: number,
-): ArrayBufferView | undefined {
+): ArrayBufferView | unknown[] | undefined {
   const size = Math.max(0, Math.trunc(length));
+  // An array of pointers holds what each one points at: resnet.cpp's
+  // `double *out[MAX_NETS]` keeps the caller's weight tables it fills.
+  if (valueType?.trim().endsWith('*')) return new Array<unknown>(size).fill(0);
   switch (valueType?.replace(/\bconst\b/g, '').trim()) {
     // MAME computes in single precision where the source says float, and the
     // difference is visible: Mr. Do!'s palette normalises against its own
@@ -1821,6 +1823,25 @@ function allocateDeclaredArray(
     // uint8_t, char and every unnamed type keep ALLOC's byte array.
     default: return undefined;
   }
+}
+
+/**
+ * A local array of every declared dimension: `double r[3][18]` is three rows
+ * of eighteen doubles, each row the array its declared type allocates.
+ */
+function allocateLocalArray(valueType: string | undefined, sizes: readonly number[]): unknown {
+  const [length = 0, ...rest] = sizes;
+  if (rest.length) {
+    return Array.from({ length: Math.max(0, Math.trunc(length)) }, () => allocateLocalArray(valueType, rest));
+  }
+  return allocateDeclaredArray(valueType, length) ?? new Uint8Array(Math.max(0, Math.trunc(length)));
+}
+
+/** The inner extents of a multi-dimensional ALLOC, past its first. */
+function declaredInnerExtents(value: GeneratedExpression | undefined): GeneratedExpression[] {
+  return value?.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'ALLOC'
+    ? value.args.slice(1)
+    : [];
 }
 
 /** The ALLOC(length) a local array declaration lowers to, if this is one. */
@@ -1933,7 +1954,10 @@ function parameterNames(parameters: string | undefined): string[] {
       // `int length = 1` names `length`, not its default. Read as `1`, ymfm's
       // bitfield masked with `(1 << 0) - 1` and answered 0 for every field.
       .map(parameter => parameter.replace(/=[\s\S]*$/, ''))
-      .map(parameter => /\(\s*\*\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
+      // A declarator in parentheses names its parameter inside them: a
+      // function pointer `void (*cb)(...)`, or resnet.h's reference to an
+      // array, `U const (&tab)[N]`.
+      .map(parameter => /\(\s*[*&]\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
       .filter((name): name is string => Boolean(name));
     PARAMETER_NAMES.set(key, names);
   }
@@ -1970,7 +1994,10 @@ function executeOperations(
       context.localTypes[operation.name] = operation.valueType;
       const arrayLength = declaredArrayLength(operation.value);
       const typed = arrayLength
-        ? allocateDeclaredArray(operation.valueType, toNumber(evaluate(arrayLength, context)))
+        ? declaredInnerExtents(operation.value).length
+          ? allocateLocalArray(operation.valueType, [arrayLength, ...declaredInnerExtents(operation.value)]
+            .map(extent => toNumber(evaluate(extent, context))))
+          : allocateDeclaredArray(operation.valueType, toNumber(evaluate(arrayLength, context)))
         : undefined;
       context.locals[operation.name] = typed ?? wrapValue(operation.valueType, operation.value
         ? evaluate(operation.value, context)
@@ -2931,7 +2958,8 @@ function evaluateCall(
     // A MAME `rgb_t` is a packed number, and its channel accessors read it
     // back: the TIA builds its 16k blended palette by averaging every pair of
     // base pens through `pen_color(i).r()`.
-    if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method]) {
+    // Red sits at shift 0 in canvas order, so the test is presence, not value.
+    if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method] !== undefined) {
       return (object >>> RGB_CHANNELS[method]!) & 0xff;
     }
     // A std::string is a JS string, which has none of its methods. `append`
@@ -3571,6 +3599,15 @@ function toBigInt(value: unknown): bigint {
 
 function modulo(value: number, divisor: number): number {
   return ((value % divisor) + divisor) % divisor;
+}
+
+/**
+ * Element `index` of whatever a program holds as memory: a typed array, a
+ * pointer into one (`&scanline[xscroll]`), or a plain array.
+ */
+export function generatedElement(value: unknown, index: number): unknown {
+  if (ArrayBuffer.isView(value)) return (value as Uint8Array)[index] ?? 0;
+  return isGeneratedPointer(value) ? pointerValue(value, index) : indexValue(value, index);
 }
 
 function indexValue(object: unknown, index: number): unknown {

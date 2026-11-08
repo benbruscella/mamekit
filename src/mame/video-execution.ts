@@ -219,25 +219,6 @@ export function lowerVideoExecution(machine: BoardIr): GeneratedVideoExecution {
   const handlers = machine.handlers ?? [];
   const key = (handler: typeof handlers[number] | undefined) => handler
     ? `${handler.ownerClass}.${handler.method}` : undefined;
-  const road = handlers.find(handler => handler.method === 'draw_road' &&
-    handler.body?.includes('m_vertical_position_modifier') &&
-    handler.body.includes('m_road16_memory'));
-  const zoom = handlers.find(handler => handler.method === 'zoom_sprite' &&
-    handler.body?.includes('m_scalelut_region[(y << 6) + sizey]') &&
-    handler.body.includes('gfx->get_data(code % gfx->elements())') &&
-    handler.body.includes('bitmap.pix(yy, xx) = pen + coloroffs'));
-  const sprites = handlers.find(handler => handler.method === 'draw_sprites' &&
-    handler.ownerClass === zoom?.ownerClass &&
-    handler.body?.includes('&m_sprite16_memory[0x380]') &&
-    handler.body.includes('&m_sprite16_memory[0x780]') &&
-    handler.body.includes('zoom_sprite(bitmap, BIT(sizmem[0], 15)'));
-  const mapper = handlers.find(handler => handler.method === 'gfxrom_bank_mapper' &&
-    handler.body?.includes('m_game_config->bank_mapper') &&
-    handler.body.includes('m_game_config->bank_sizes'));
-  const cpsSprites = handlers.find(handler => handler.ownerClass === mapper?.ownerClass &&
-    handler.method === 'cps1_render_sprites' &&
-    handler.body?.includes('m_buffered_obj.get()') &&
-    handler.body.includes('handle blocked sprites'));
   const bitmaps = new Map<string, number>();
   for (const handler of handlers) {
     for (const match of (handler.body ?? '').matchAll(/\b(m_\w*bitmap\w*)\s*(?:\[\s*(\d+)\s*\])?/g)) {
@@ -247,10 +228,6 @@ export function lowerVideoExecution(machine: BoardIr): GeneratedVideoExecution {
   }
   return {
     ...(generatedDirectScreenShape(machine) ? { directScreen: generatedDirectScreenShape(machine) } : {}),
-    ...(road ? { roadHandler: key(road) } : {}),
-    ...(zoom && sprites ? { zoomSpriteHandler: key(zoom), spriteHandler: key(sprites) } : {}),
-    ...(mapper ? { bankMapperHandler: key(mapper) } : {}),
-    ...(mapper && cpsSprites ? { cpsSpriteHandler: key(cpsSprites) } : {}),
     bitmapMembers: [...bitmaps].map(([member, count]) => ({ member, count })),
   };
 }

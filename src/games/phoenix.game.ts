@@ -22,12 +22,12 @@ export const phoenix = sourceTarget({
     },
     checkpoints: {
       1: { video: 'eda81a59', state: '14fabd2b' },
-      60: { video: '62f7defc', state: '11229c83' },
-      180: { video: 'dfd9596d', state: 'de953278' },
-      300: { video: '8dea2b6a', state: 'a14c9f75' },
-      600: { video: '8a08218e', state: '8806148d' },
-      900: { video: 'b3c84d37', state: '8da75768' },
-      1200: { video: '7f60d66e', state: 'ef9a311f' },
+      60: { video: 'aa75f3a2', state: '11229c83' },
+      180: { video: 'd2e02c87', state: 'de953278' },
+      300: { video: 'ddd2a658', state: 'a14c9f75' },
+      600: { video: '94c1f3f4', state: '8806148d' },
+      900: { video: 'be2b9f58', state: '8da75768' },
+      1200: { video: 'c331d61c', state: 'ef9a311f' },
     },
     audio: {
       writes: 943718,

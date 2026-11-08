@@ -111,6 +111,8 @@ export interface GeneratedCallback {
   scanlineIncrement?: number;
   /** Palette size, from `palette_device`'s own constructor argument. */
   entries?: number;
+  /** The palette's indirect_entries, its constructor's argument after `entries`. */
+  indirectEntries?: number;
   /** A screen update that writes palette indices rather than colours. */
   indexed?: boolean;
   /**
@@ -805,15 +807,20 @@ export interface GeneratedExecutionPlan {
     source?: BoardSourceRef;
   };
   /**
-   * The routine that fills the palette, for a machine whose colours come from
-   * code rather than from a colour PROM. MAME passes it to `palette_device`'s
-   * constructor; the host runs it once and keeps the pens it sets.
+   * The routine that fills each palette: the init callback MAME passes to
+   * `palette_device`'s constructor. The host runs each once, at that palette's
+   * device_start, and keeps the pens it sets.
    */
-  paletteInit?: {
-    handler: string;
+  paletteInits?: {
+    /** The palette's finder member (`m_palette`, `m_spr_palette`). */
+    member: string;
+    /** Absent when the driver's own code colours the palette as it starts. */
+    handler?: string;
     entries?: number;
+    /** indirect_entries: the callback sets indirect colours and points pens at them. */
+    indirectEntries?: number;
     source?: BoardSourceRef;
-  };
+  }[];
   /**
    * A `palette_device` with no init routine and no decoded plan: its pens are
    * set by the driver's own code (`set_pen_color`) as the machine runs.
@@ -1233,25 +1240,6 @@ export interface GeneratedVideoPlan {
   renderScale?: { x: number; y: number };
   /** Driver-init delegate member -> selected MAME method, or null when explicitly cleared. */
   delegates?: Record<string, string | null>;
-  /** Small source-derived color arrays used by generated video handlers. */
-  colorTables?: Record<string, number[]>;
-  /** Source-derived LFSR table initialized once and consumed by generated handlers. */
-  lfsrTable?: {
-    member: string;
-    period: number;
-    enabledMask: number;
-    enabledValue: number;
-    colorMask: number;
-    colorShift: number;
-    feedbackTap: number;
-    feedbackInvertTap: number;
-    feedbackWidth: number;
-    rowRenderer?: {
-      method: string;
-      colorMember: string;
-      scaleMember: string;
-    };
-  };
   bitmap?: GeneratedBitmapPlan;
   /**
    * Nibble-packed background RAM addressing, lowered from draw_background.
@@ -1268,17 +1256,7 @@ export interface GeneratedVideoPlan {
     /** Revisions that feed background scroll bit 8 into the column counter. */
     columnHighFromScroll: boolean;
   };
-  /** Atari Digital Vector Generator display list executed from the CPU bus. */
   vector?: {
-    type: 'DVG';
-    memoryBase: number;
-    coordinateBits: number;
-    doneInput?: {
-      port: string;
-      mask: number;
-      activeLow: boolean;
-    };
-  } | {
     /**
      * A generated vector generator (`set_vector("vector")`) that appends to
      * vector_device's display list itself; the host draws that list.
@@ -1384,6 +1362,12 @@ export interface BoardIr {
   execution: GeneratedExecutionPlan;
   devices?: GeneratedDevice[];
   handlers?: GeneratedHandler[];
+  /**
+   * The file-scope constant tables the handlers read by name, as data:
+   * dkong_v.cpp's `static const res_net_info dkong_net_info = { ... }`, which
+   * its palette callback hands resnet.cpp's compute_res_net.
+   */
+  staticTables?: Record<string, GeneratedTableValue>;
   /** Declared widths for the driver state class's own integer members. */
   stateMembers?: GeneratedStateMember[];
   maps?: GeneratedAddressMap[];

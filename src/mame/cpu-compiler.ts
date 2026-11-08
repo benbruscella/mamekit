@@ -4050,6 +4050,11 @@ export function normalizeMameExecutionSource(source: string): string {
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
   )) {
     const name = match[1]!;
+    // A table handed on stays the array it is: as a whole, or by an element's
+    // address, as pacman_palette hands compute_resistor_weights
+    // `&resistances[1]`. Folded, that pointed at a number.
+    const rest = normalized.replace(match[0], '');
+    if (new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(rest) || new RegExp(`&\\s*${name}\\s*\\[`).test(rest)) continue;
     // Comments go before the split, as the two-dimensional folder above already
     // does. MAME annotates hand-aligned tables per entry -- TIA's write-delay
     // table names the register on every line -- and folding the comment into

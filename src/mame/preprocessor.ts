@@ -337,3 +337,20 @@ export function expandMemberAliasMacros(
   }
   return expanded;
 }
+
+/**
+ * The statement macros a function defines for itself -- cps1_render_sprites
+ * `#define`s DRAWSPRITE inside its own body -- or its translation unit does,
+ * expanded where they are used, as the preprocessor would, with the
+ * definitions dropped. Left as written, the `#define` line did not parse and
+ * the whole function could not lower.
+ */
+export function expandStatementMacros(body: string, unitSource: string): string {
+  const own = collectFunctionMacros(body);
+  const macros = [
+    ...own,
+    ...collectFunctionMacros(unitSource).filter(macro => !own.some(mine => mine.name === macro.name)),
+  ];
+  const stripped = body.replace(/^[ \t]*#[ \t]*(?:define|undef)\b(?:[^\n]*\\[ \t]*\r?\n)*[^\n]*/gm, '');
+  return macros.length ? expandFunctionMacros(stripped, macros) : stripped;
+}

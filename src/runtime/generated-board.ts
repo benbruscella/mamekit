@@ -29,7 +29,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { callLinksGeneration, DEFAULT_CONSTANTS, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
+import { callLinksGeneration, DEFAULT_CONSTANTS, GENERATED_STRUCT, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
 import {
@@ -670,6 +670,10 @@ class IrBoard implements Board {
     this.hostState['vector-display'] = this.vectorPoints;
     this.inputs = inputs;
     this.regions = regions;
+    // The file-scope constant tables the handlers name, where every handler
+    // resolves a name it does not declare: dkong's palette callback hands
+    // `dkong_net_info` to compute_res_net.
+    for (const [name, value] of Object.entries(machine.staticTables ?? {})) this.state[name] = staticTableValue(value);
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
     // The first line boundary is the beam arriving at line 0 with nothing run
@@ -1427,6 +1431,9 @@ class IrBoard implements Board {
     // effects such as clearing a sound CPU IRQ.
     calls['machine().side_effects_disabled'] = () => 0;
     calls['machine().phase'] = () => this.machinePhase;
+    // The running game_driver: CPS1's machine_reset finds its row of
+    // cps1_config_table by `strcmp(pCFG->name, machine().system().name)`.
+    calls['machine().system'] = () => ({ name: machine.game }) as never;
     // device_t::started() on the driver itself: device_t::start sets it once
     // driver_device::device_start, which runs machine_start, sound_start and
     // video_start, has returned. The Spectrum's end-of-screen timer reads it
@@ -1511,13 +1518,6 @@ class IrBoard implements Board {
           }
           const shift = trailingZeroBits(custom.mask);
           value = (value & ~custom.mask) | ((line << shift) & custom.mask);
-        }
-        const vectorPlan = machine.video?.vector;
-        const done = vectorPlan?.type === 'DVG' ? vectorPlan.doneInput : undefined;
-        if (done?.port === port) {
-          // This DVG executor consumes the display list synchronously, so the
-          // source custom input observes the generator in its completed state.
-          value = done.activeLow ? value & ~done.mask : value | done.mask;
         }
         return value;
       },
@@ -1895,11 +1895,6 @@ class IrBoard implements Board {
       write: { ...sourceHandlers.write },
     };
     this.installDeviceHandlers(machine, registry);
-    if (machine.video?.vector?.type === 'DVG') {
-      registry.write['dvg.go_w'] = () => {};
-      registry.write['dvg.reset_w'] = () => {};
-      calls['m_dvg.reset_w'] = () => 0;
-    }
     this.installGeneratedDeviceBuses(machine, registry);
     this.cartridgeTaps = this.installCartridgeMemoryHandlers(machine, registry);
     this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
@@ -4731,10 +4726,9 @@ class IrBoard implements Board {
           // PORT_READ_LINE_DEVICE_MEMBER: the bit is another device's output
           // line, answered live rather than by a switch.
           if (custom.source === 'device-line') {
-            // A line belonging to hardware the board does not instantiate —
-            // Asteroids reads the DVG's done flag, and the vector generator is
-            // a host service — leaves the bit as the port supplies it, which is
-            // what an unresolved handler custom already does.
+            // A line belonging to hardware the board does not instantiate
+            // leaves the bit as the port supplies it, which is what an
+            // unresolved handler custom already does.
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
             const specification = machine.devices?.find(candidate =>
               candidate.tag === custom.deviceTag);
@@ -6327,6 +6321,21 @@ function systemTime(baseTime: string | undefined): { local_time: Record<string, 
  * over, and how far in. `memregion("maincpu")->base() + 0x10000` is a pointer
  * whose source is that region's own array.
  */
+/**
+ * A file-scope constant table as the program sees it: each struct a struct
+ * (so an array of them decays to its first element, `range->type`), each
+ * array an array, copied so no board shares another's.
+ */
+function staticTableValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(staticTableValue);
+  if (value && typeof value === 'object') {
+    const struct = Object.fromEntries(Object.entries(value).map(([field, item]) => [field, staticTableValue(item)]));
+    Object.defineProperty(struct, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
+    return struct;
+  }
+  return value;
+}
+
 function regionOffsetOf(regions: Regions, base: unknown): { region: string; offset: number } | undefined {
   const pointer = base as { generatedPointer?: boolean; source?: unknown; offset?: number } | undefined;
   const source = pointer && typeof pointer === 'object' && pointer.generatedPointer ? pointer.source : base;

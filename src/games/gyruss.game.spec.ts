@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { gyruss } from './gyruss.game.ts';
-import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-support.ts';
+import { assertGameContract, assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 assertGameContract(gyruss);
 const mameSrc = mameSourceRoot();
@@ -26,15 +26,7 @@ assert.deepEqual(video.plan.tilemaps.map(tilemap => tilemap.transmasks), [[
   { group: 0, foreground: 0, background: 0 },
   { group: 1, foreground: 0x0f, background: 0 },
 ]]);
-assert.deepEqual(video.plan.palette?.banks.map(bank => ({
-  penOffset: bank.penOffset,
-  colorOr: bank.colorOr,
-  lookupOffset: bank.lookupOffset,
-  lookupCount: bank.lookupCount,
-})), [
-  { penOffset: 0, colorOr: 0, lookupOffset: 32, lookupCount: 256 },
-  { penOffset: 256, colorOr: 0x10, lookupOffset: 288, lookupCount: 64 },
-]);
+assertPaletteCallback(video, { handler: 'gyruss_state.palette', entries: 320, indirectEntries: 32 });
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
 const timer = graph.nodes.find(node =>

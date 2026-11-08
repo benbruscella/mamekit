@@ -7,6 +7,8 @@
  * guessed at or discarded.
  */
 
+import { instantiateVariadicTemplates } from './variadic-template.ts';
+
 export interface SourceSpan {
   file: string;
   start: number;
@@ -57,6 +59,13 @@ export interface MameFunction {
    * being a double division.
    */
   inlineReturnType?: string;
+  /** A file-scope function's enclosing namespace (`emu::detail`). */
+  namespace?: string;
+  /**
+   * A file-scope function template's parameter list as written
+   * (`typename T = int, typename U, std::size_t N, typename... V`).
+   */
+  template?: string;
   parameters: string;
   body: string;
   statements: MameStatement[];
@@ -441,6 +450,11 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     /(?:^|\n)((?:[\w:<>,~*&]+[^\S\n]+)+(?:[*&]+[^\S\n]*)?)(\w+)[^\S\n]*\(((?:[^;{}()]|\([^;{}()]*\))*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
   const classBodies = classes.map(declaration =>
     [declaration.bodySpan.start, declaration.bodySpan.end] as [number, number]);
+  // `namespace emu::detail { ... }`, outermost first, for the functions inside.
+  const namespaces = [...masked.matchAll(/\bnamespace\s+([\w:]+)\s*\{/g)].map(match => {
+    const open = match.index! + match[0].length - 1;
+    return { name: match[1]!, open, close: matchPair(masked, open, '{', '}') };
+  }).filter(block => block.close > block.open);
   let ff: RegExpExecArray | null;
   while ((ff = freeFunctionRe.exec(masked)) !== null) {
     const start = ff.index + (ff[0].startsWith('\n') ? 1 : 0);
@@ -454,10 +468,17 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const braceEnd = matchPair(masked, braceStart, '{', '}');
     if (braceEnd < 0) continue;
     const bodyStart = braceStart + 1;
+    const namespace = namespaces
+      .filter(block => start > block.open && start < block.close)
+      .map(block => block.name)
+      .join('::');
+    const template = /\btemplate\s*<([^;{}]*)>\s*$/.exec(masked.slice(Math.max(0, start - 512), start))?.[1]?.trim();
     functions.push({
       kind: 'function',
       className: '',
       name: ff[2]!,
+      ...(namespace ? { namespace } : {}),
+      ...(template !== undefined ? { template } : {}),
       parameters: source.slice(
         masked.indexOf('(', ff.index),
         matchPair(masked, masked.indexOf('(', ff.index), '(', ')') + 1,
@@ -491,6 +512,16 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     macroRe.lastIndex = close + 1;
   }
 
+  // MACHINE_START_CALL_MEMBER(x) and MACHINE_RESET_CALL_MEMBER(x) may sit in
+  // any method, not only another lifecycle override: CPS1's video_start runs
+  // `MACHINE_RESET_CALL_MEMBER(cps)`, which picks the game's config row. Each
+  // is that call, the same length, wherever it is written.
+  for (const fn of functions) {
+    if (!/_CALL_MEMBER\b/.test(fn.body)) continue;
+    fn.body = fn.body.replace(/\b(MACHINE|VIDEO)_(START|RESET)_CALL_MEMBER\s*\(\s*(\w+)\s*\)/g,
+      (whole, owner: string, kind: string, name: string) =>
+        `${owner.toLowerCase()}_${kind.toLowerCase()}_${name}()`.padEnd(whole.length, ' '));
+  }
   return { file, source, masked, macros, classes, functions };
 }
 
@@ -603,7 +634,9 @@ function memberMacroParameters(name: string): string {
 }
 
 export function parseMameAst(files: { file: string; source: string }[]): MameAst {
-  return { units: files.map(({ file, source }) => parseMameSource(file, source)) };
+  const units = files.map(({ file, source }) => parseMameSource(file, source));
+  instantiateVariadicTemplates(units);
+  return { units };
 }
 
 export function parseCallChain(

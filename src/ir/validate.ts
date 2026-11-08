@@ -58,11 +58,6 @@ export function validateBoardIr(board: BoardIr): BoardIrDiagnostic[] {
 
   const videoExecution = board.videoExecution;
   if (videoExecution) {
-    const handlers = new Set((board.handlers ?? []).map(handler => `${handler.ownerClass}.${handler.method}`));
-    for (const field of ['roadHandler', 'zoomSpriteHandler', 'spriteHandler', 'bankMapperHandler', 'cpsSpriteHandler'] as const) {
-      const key = videoExecution[field];
-      if (key && !handlers.has(key)) fail(`videoExecution.${field}`, `handler "${key}" is not generated`);
-    }
     const members = videoExecution.bitmapMembers.map(bitmap => bitmap.member);
     if (new Set(members).size !== members.length) fail('videoExecution.bitmapMembers', 'duplicate bitmap member');
   }

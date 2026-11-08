@@ -9,7 +9,7 @@ import {
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
-import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -20,6 +20,7 @@ import {
   coreAddressSpaces,
   integerBits,
   constructorInitialValues,
+  headerFunctionNames,
   integerSigned,
   memberDeclarations,
 } from '../mame/device-compiler.ts';
@@ -112,6 +113,28 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ]) {
         if (existsSync(extra) && !family.includes(extra)) family.push(extra);
       }
+    }
+  }
+
+  // A library of MAME's own core the driver calls into (`video/resnet.h`,
+  // whose compute_resistor_weights and combine_weights colour most PROM
+  // palettes): src/emu is on every driver's include path, and the header and
+  // its .cpp join for their free functions when the family calls one. A
+  // function the header defines counts too: combine_weights is a template.
+  const familyText = family.map(file => stripComments(readFileSync(file, 'utf8'))).join('\n');
+  for (const file of [...family]) {
+    for (const inc of parseIncludes(readFileSync(file, 'utf8'))) {
+      if (!inc.includes('/') || !inc.endsWith('.h')) continue;
+      const header = join(mameSrc, 'src/emu', inc);
+      const implementation = header.replace(/\.h$/, '.cpp');
+      if (family.includes(implementation) || !existsSync(header) || !existsSync(implementation)) continue;
+      const declared = readFileSync(header, 'utf8');
+      const names = [
+        ...headerFunctionNames(declared),
+        ...parseMameSource(inc, declared).functions.filter(fn => fn.className === '').map(fn => fn.name),
+      ];
+      if (!names.some(name => new RegExp(`\\b${name}\\s*(?:<[^;{}()]*>)?\\s*\\(`).test(familyText))) continue;
+      family.push(header, implementation);
     }
   }
 
@@ -2675,6 +2698,7 @@ function handlerProps(
     // was never written and every button read as held down.
     body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
     body = expandFunctionMacros(body, collectParameterCallMacros(source));
+    body = expandStatementMacros(body, ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '');
     // A time constant the driver spells as an expression, `#define
     // NEOGEO_VBLANK_IRQ_HTIM (attotime::from_ticks(56+2, NEOGEO_MASTER_CLOCK))`:
     // its value is that expression, where unexpanded it named nothing and the
@@ -2686,17 +2710,39 @@ function handlerProps(
     // name: `ymfm::decode_fp(...)`.
     body = body.replace(/\b\w+::(\w+)(?=\s*\()/g, (all, name: string) =>
       ast.findUniqueFunction(name)?.className === '' ? name : all);
-    for (const table of source.matchAll(
-      /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
-    )) {
+    // A table is visible where C++ sees it: declared in this body, or at file
+    // scope in this function's own translation unit -- and not where the
+    // function names something else that way. pacman_palette's local
+    // `static constexpr int resistances[3]` once folded into resnet.cpp's
+    // compute_resistor_weights, whose `resistances` is its own pointer to
+    // whichever network it is reading, and every blue weight came out of
+    // pacman's red resistors.
+    const tablePattern =
+      /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g;
+    const visibleTables = [
+      ...body.matchAll(tablePattern),
+      // The function's own unit and the headers the family includes.
+      ...ast.ast.units
+        .filter(unit => unit.file === fn.span.file || /\.(?:h|hpp|hxx|ipp)$/.test(unit.file))
+        .flatMap(unit => [...unit.source.matchAll(tablePattern)].filter(table =>
+          !unit.functions.some(other => table.index! >= other.bodySpan.start && table.index! < other.bodySpan.end))),
+    ];
+    for (const table of visibleTables) {
       const [, valueType, name, declared] = table;
       if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+      if (new RegExp(`\\b${name}\\b`).test(fn.parameters)) continue;
+      const shadowed = new RegExp(`(?:^|[;{}(]\\s*)(?:const\\s+)?[\\w:]+(?:\\s*\\*+\\s*(?:const\\s+)?|\\s+)${name}\\s*[\\[;=,]`);
+      if (shadowed.test(body.replace(table[0], ''))) continue;
       // A table handed on whole stays the declared array it is: Neo Geo's
       // create_rgb_lookups passes `resistances` to compute_resistor_weights,
       // and with its declaration rewritten away the name meant nothing and
       // every palette weight came out zero.
-      if (body.includes(table[0]) &&
-          new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(body.replace(table[0], ''))) continue;
+      // So does one whose element's address is taken: pacman_palette hands
+      // compute_resistor_weights `&resistances[1]`, the blue network's two
+      // resistors, which a folded `&TABLE(1, ...)` points at nothing.
+      if (body.includes(table[0]) && (
+        new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(body.replace(table[0], '')) ||
+        new RegExp(`&\\s*${name}\\s*\\[`).test(body))) continue;
       // MAME annotates its tables, and comments out alternatives it kept:
       // `palette_gb` carries a whole disused black-and-white palette inside
       // `/* ... */`. Read as data those numbers become the table.
@@ -3855,7 +3901,18 @@ function recordPaletteInit(
     if (paletteEntries !== null && paletteEntries > 0) device.props.paletteEntries = paletteEntries;
     const func = construction && /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(construction);
     if (!func) continue;
-    const entries = /,\s*([^,()]+)\s*\)\s*$/.exec(construction!)?.[1]?.trim();
+    // PALETTE(config, tag, init, entries [, indirect_entries]), or the counts
+    // set after it: System 1's `.set_entries(2048, 256)`.
+    const open = construction!.indexOf('(');
+    const [, , , constructed, constructedIndirect] = splitMameArgs(construction!.slice(open + 1, matchingParenthesis(construction!, open)))
+      .map(argument => argument.trim());
+    const setEntries = config.join('\n').match(/\bset_entries\s*\(/);
+    const setOpen = setEntries ? config.join('\n').indexOf('(', setEntries.index!) : -1;
+    const [setCount, setIndirect] = setOpen >= 0
+      ? splitMameArgs(config.join('\n').slice(setOpen + 1, matchingParenthesis(config.join('\n'), setOpen))).map(argument => argument.trim())
+      : [];
+    const entries = constructed ?? setCount;
+    const indirectEntries = constructedIndirect ?? setIndirect;
     const callbackId = `${device.id}/callback:palette_init`;
     g.node('Callback', callbackId, {
       signal: 'palette_init',
@@ -3866,6 +3923,9 @@ function recordPaletteInit(
       targetMethod: func[2]!,
       ...(entries !== undefined && evalExpr(entries, constants) !== null
         ? { entries: evalExpr(entries, constants)! }
+        : {}),
+      ...(indirectEntries !== undefined && evalExpr(indirectEntries, constants) !== null
+        ? { indirectEntries: evalExpr(indirectEntries, constants)! }
         : {}),
       ...(device.props.sourceFile ? { sourceFile: device.props.sourceFile } : {}),
       ...(device.props.sourceLine ? { sourceLine: device.props.sourceLine } : {}),

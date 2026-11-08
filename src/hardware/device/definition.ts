@@ -23,6 +23,8 @@ export const DEVICE_MAME_TYPES = [
   // preprocessor (compileMameDevice).
   'M68705P5',
   'AVG_BZONE',
+  // Asteroids' Digital Vector Generator, avgdvg.cpp's dvg_device beside the AVG.
+  'DVG',
   'BUFFERED_SPRITERAM8',
   'BUFFERED_SPRITERAM16',
   'CD4099',

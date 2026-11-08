@@ -30,9 +30,15 @@ assert.ok(video, 'Moon Patrol MAME video source must lower to executable video I
 assert.deepEqual(video.plan.gfx.map(entry => entry.region), [
   'sp', 'tx', 'bg0', 'bg1', 'bg2',
 ]);
-assert.deepEqual(video.plan.palettes?.map(palette => palette.member), [
-  'm_sp_palette', 'm_tx_palette', 'm_bg_palette',
+// None of the three palettes has an init callback: m52_state::init_palette,
+// called from video_start, colours them through their finders, and the host
+// allocates each with the counts its configuration sets.
+assert.deepEqual(video.paletteCallbacks, [
+  { member: 'm_sp_palette', entries: 256, indirectEntries: 32 },
+  { member: 'm_tx_palette', entries: 512 },
+  { member: 'm_bg_palette', entries: 12, indirectEntries: 32 },
 ]);
+assert.equal(video.plan.palettes, undefined);
 assert.deepEqual(video.plan.tilemaps[0]?.scrollDx, [127, 127]);
 assert.deepEqual(video.plan.tilemaps[0]?.scrollDy, [16, 16]);
 assert.deepEqual(video.plan.initialState.m_bgxpos, [0, 0]);

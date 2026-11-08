@@ -47,6 +47,7 @@ export {
   generatedReferent,
   GENERATED_FIELD_WIDTHS,
   generatedFieldWidth,
+  generatedElement,
   GENERATED_STRUCT,
   generatedVector,
   resizeGeneratedVector,

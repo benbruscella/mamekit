@@ -19,10 +19,5 @@ export type GeneratedDirectScreenShape =
 
 export interface GeneratedVideoExecution {
   directScreen?: GeneratedDirectScreenShape;
-  roadHandler?: string;
-  zoomSpriteHandler?: string;
-  spriteHandler?: string;
-  bankMapperHandler?: string;
-  cpsSpriteHandler?: string;
   bitmapMembers: { member: string; count: number }[];
 }

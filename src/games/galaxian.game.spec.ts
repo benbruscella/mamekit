@@ -5,7 +5,7 @@ import { compileMameDevice } from '../mame/device-compiler.ts';
 import { deviceDefinitionsFromSource } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { galaxian } from './galaxian.game.ts';
-import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-support.ts';
+import { assertGameContract, assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 assertGameContract(galaxian);
 const mameSrc = mameSourceRoot();
@@ -25,29 +25,18 @@ assert.deepEqual(video.plan.tilemaps.map(tilemap => ({
   scrollColumns: tilemap.scrollColumns,
   transparentPen: tilemap.transparentPen,
 })), [{ mapper: 'TILEMAP_SCAN_ROWS', scrollColumns: 32, transparentPen: 0 }]);
-assert.equal(video.plan.palette?.banks[0]?.direct, true);
+assertPaletteCallback(video, { handler: 'galaxian_state.galaxian_palette', entries: 32 });
 assert.deepEqual(video.plan.delegates, {
   m_draw_bullet_ptr: 'galaxian_state.galaxian_draw_bullet',
   m_draw_background_ptr: 'galaxian_state.galaxian_draw_background',
   m_extend_tile_info_ptr: 'galaxian_state.empty_extend_tile_info',
   m_extend_sprite_info_ptr: 'galaxian_state.empty_extend_sprite_info',
 });
-assert.deepEqual(video.plan.lfsrTable, {
-  member: 'm_stars',
-  period: 131071,
-  enabledMask: 0x1fe01,
-  enabledValue: 0x1fe00,
-  colorMask: 0x1f8,
-  colorShift: 3,
-  feedbackTap: 12,
-  feedbackInvertTap: 0,
-  feedbackWidth: 17,
-  rowRenderer: {
-    method: 'stars_draw_row',
-    colorMember: 'm_star_color',
-    scaleMember: 'm_x_scale',
-  },
-});
+// The starfield is MAME's own: video_start's stars_init clocks the 17-bit
+// LFSR into m_stars, and the screen update draws each row through
+// stars_draw_row, both as written.
+assert.equal(video.plan.initialState.m_stars, undefined, 'no precomputed star table stands in for stars_init');
+assert.ok(video.handlers.some(handler => handler.method === 'stars_draw_row' && !handler.program?.diagnostics.length));
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
 const audioFile = 'src/mame/galaxian/galaxian_a.cpp';

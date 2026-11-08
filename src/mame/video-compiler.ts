@@ -7,12 +7,18 @@ import { compileAtariMotionObjects } from './atarimo-compiler.ts';
 import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
+import { expandStatementMacros } from './preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { unboundIdentifiers } from '../ir/walk.ts';
 
 export interface CompiledMameVideo {
   plan: GeneratedVideoPlan;
   handlers: GeneratedHandler[];
+  /**
+   * The palette_device init callbacks the board runs at each palette's
+   * device_start (execution.paletteInits), when no plan colours them.
+   */
+  paletteCallbacks?: PaletteCallback[];
 }
 
 const TILEMAP_FRAMEWORK_HEADER = 'src/emu/tilemap.h';
@@ -102,40 +108,6 @@ export function compileMameVideo(
   // asteroid came up with no video at all.
   if (screenClass === 'vector_device' &&
       (screenMethod === 'video_output_update' || screenMethod === 'screen_update')) {
-    const dvg = /\bDVG\s*\(\s*config\s*,\s*(m_\w+)[^)]*\)[\s\S]*?\1\s*->\s*set_memory\s*\([^,]+,[^,]+,\s*(0x[\da-f]+|\d+)\s*\)/i
-      .exec(source);
-    if (dvg) {
-      let doneInput: Extract<NonNullable<GeneratedVideoPlan['vector']>, { type: 'DVG' }>['doneInput'];
-      for (const port of source.matchAll(
-        /PORT_START\s*\(\s*"([^"]+)"\s*\)([\s\S]*?)(?=PORT_START\s*\(|INPUT_PORTS_END)/g,
-      )) {
-        const done = /PORT_BIT\s*\(\s*(0x[\da-f]+|\d+)\s*,\s*(IP_ACTIVE_LOW|IP_ACTIVE_HIGH)[^)]*\)\s*PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"dvg"\s*,\s*FUNC\s*\(\s*dvg_device::done_r\s*\)\s*\)/i
-          .exec(port[2]!);
-        if (!done) continue;
-        doneInput = {
-          port: port[1]!,
-          mask: Number(done[1]),
-          activeLow: done[2] === 'IP_ACTIVE_LOW',
-        };
-        break;
-      }
-      const config = ast.findFunction(String(machine.props.cls), String(machine.props.name));
-      return {
-        plan: {
-          gfx: [],
-          tilemaps: [],
-          initialState: memberDefaults,
-          vector: {
-            type: 'DVG',
-            memoryBase: Number(dvg[2]),
-            coordinateBits: 10,
-            ...(doneInput ? { doneInput } : {}),
-          },
-          ...(config ? { source: sourceRef(config) } : {}),
-        },
-        handlers: [],
-      };
-    }
     // A vector generator the board composes as a generated device, pointed at
     // the display with `set_vector` (Battlezone's AVG). It fills the display
     // list itself; the plan only says whose list it is.
@@ -207,18 +179,20 @@ export function compileMameVideo(
     screen.body.includes('source[(x / 2) * 256]') &&
     screen.body.includes('m_palette->pen_color(m_paletteram[x])')
   ) {
-    const palette = compilePalette(graph, machineIds, ast, source, constants);
-    if (!palette) return fail('index-derived screen palette did not lower');
+    const paletteCallbacks = compileCallbackPalettes(graph, machineIds).filter(callback => callback.handler).slice(0, 1);
+    const palette = paletteCallbacks.length ? undefined : compilePalette(graph, machineIds, ast, source, constants);
+    if (!palette && !paletteCallbacks.length) return fail('index-derived screen palette did not lower');
     return {
       plan: {
         gfx: [],
-        palette,
+        ...(palette ? { palette } : {}),
         ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
         tilemaps: [],
         initialState: memberDefaults,
         source: sourceRef(screen),
       },
       handlers: [],
+      ...(paletteCallbacks.length ? { paletteCallbacks } : {}),
     };
   }
   // A screen-update entry point may select between source-defined renderers
@@ -305,11 +279,6 @@ export function compileMameVideo(
   const game = (gameName
     ? graph.nodes.find(node => node.label === 'Game' && node.props.name === gameName)
     : undefined) ?? graph.nodes.find(node => node.label === 'Game');
-  const boardSpecificState = compileCps1GameConfig(
-    source,
-    String(game?.props.name ?? ''),
-    constants,
-  );
   const driverInit = ast.findFunctionInHierarchy(
     String(machine.props.cls),
     String(game?.props.init ?? ''),
@@ -446,22 +415,24 @@ export function compileMameVideo(
       .map(binding => binding.paletteMember)
       .filter((member): member is string => Boolean(member)),
   )];
-  const palettes = paletteMembers.length > 1
+  // Every palette_device whose init callback compiles. A board with several
+  // (Kung-Fu Master's character and sprite palettes) runs each one's own.
+  const callbackPalettes = compileCallbackPalettes(graph, machineIds);
+  const namedByCallback = paletteMembers.length > 1 &&
+    paletteMembers.every(member => callbackPalettes.some(callback => callback.member === member));
+  const palettes = paletteMembers.length > 1 && !namedByCallback
     ? compileNamedPalettes(graph, ast, source, constants, paletteMembers)
     : [];
-  const palette = palettes.length
+  const promPalette = palettes.length || namedByCallback
     ? undefined
-    : (
-      compilePalette(graph, machineIds, ast, source, constants) ??
-      compileBuiltinPromPalette(graph, machineIds, mameSrc, constants)
-    );
-  const pointerBindings = palette
-    ? sourceAssignedRegionPointers(ast, palette, constants)
-    : { bindings: {}, offsets: {} };
-  Object.assign(regionBindings, pointerBindings.bindings);
+    : compilePalette(graph, machineIds, ast, source, constants);
+  const builtinPalette = palettes.length || namedByCallback || promPalette
+    ? undefined
+    : compileBuiltinPromPalette(graph, machineIds, mameSrc, constants);
+  let palette = promPalette ?? builtinPalette;
   // A palette_device with no init callback colors CPU-writable palette RAM
   // through the set_format converter named in the machine configuration.
-  const ramPalette = palette || palettes.length
+  const ramPalette = palette || palettes.length || namedByCallback
     ? undefined
     : (
       compileSetFormatRamPalette(
@@ -500,28 +471,44 @@ export function compileMameVideo(
         }
       : entry)
     : gfx;
+  // A driver's own palette callback runs as the board handler it already is,
+  // at the palette's device_start (execution.paletteInits), against the
+  // driver's state: MAME's resnet.cpp is in its call closure, and what it
+  // assigns (`m_color_codes = color_prom`) lands where every other handler
+  // reads it. TNX1 re-banks its palette from its screen update
+  // (update_palette), which only runs once that update is executable IR
+  // (#240 item 22); until then its banked plan stays.
+  const singleCallback = ramPalette || palettes.length || namedByCallback || builtinPalette || palette?.dynamic
+    ? undefined
+    : callbackPalettes.find(callback => callback.handler && callback.member === 'm_palette') ??
+      (callbackPalettes.length === 1 && callbackPalettes[0]!.handler ? callbackPalettes[0] : undefined);
+  const paletteCallbacks = namedByCallback
+    ? callbackPalettes.filter(callback => paletteMembers.includes(callback.member))
+    : singleCallback ? [singleCallback] : [];
+  if (paletteCallbacks.length) palette = undefined;
+  const pointerBindings = palette
+    ? sourceAssignedRegionPointers(ast, palette, constants)
+    : { bindings: {}, offsets: {} };
+  Object.assign(regionBindings, pointerBindings.bindings);
   // Last resort before failing: execute the source callback itself. A driver
   // that computes its own resistor weights has a palette no declarative shape
   // describes, but its callback is ordinary code the handler IR already covers.
-  const paletteProgram = palette || ramPalette || palettes.length
+  const paletteProgram = palette || ramPalette || palettes.length || paletteCallbacks.length
     ? undefined
     : compileProgramPalette(graph, machineIds, ast, constants, mameSrc);
-  if (!palette && !ramPalette && !paletteProgram &&
+  if (!palette && !ramPalette && !paletteProgram && !paletteCallbacks.length &&
     palettes.length !== paletteMembers.length) {
     return fail(`palette callback did not lower`);
   }
   const paletteGroups = compilePaletteGroups(
     graph,
     machineIds,
-    ramPalette?.entries ?? paletteProgram?.entries,
+    ramPalette?.entries ?? paletteProgram?.entries ?? paletteCallbacks[0]?.entries,
   );
   const motionObjects = compileMotionObjects(graph, mameSrc, driver, start?.body);
   const runtimeGfxLayouts = compileRuntimeGfxLayouts(source);
-  const colorTables = compileVideoColorTables(source, constants);
-  const lfsrTable = compileVideoLfsr(ast, String(machine.props.cls), constants);
   const needsClassDefaults = renderScale !== 1 ||
-    Object.keys(delegates).length > 0 ||
-    Boolean(lfsrTable);
+    Object.keys(delegates).length > 0;
 
   return {
     plan: {
@@ -549,19 +536,17 @@ export function compileMameVideo(
         ...lifecycleArrays,
         ...allocatedState,
         ...driverInitState,
-        ...boardSpecificState,
       },
       ...(renderScale !== 1 ? { renderScale: { x: renderScale, y: 1 } } : {}),
       ...(bankedBackground ? { bankedBackground } : {}),
       ...(Object.keys(delegates).length ? { delegates } : {}),
-      ...(Object.keys(colorTables).length ? { colorTables } : {}),
-      ...(lfsrTable ? { lfsrTable } : {}),
       // A device-drawn screen is sourced where the driver configured it.
       source: start ?? screen
         ? sourceRef(start ?? screen!)
         : { file: String(screenCallback?.props.sourceFile ?? ''), line: Number(screenCallback?.props.sourceLine ?? 0) },
     },
     handlers,
+    ...(paletteCallbacks.length ? { paletteCallbacks } : {}),
   };
 }
 
@@ -765,85 +750,6 @@ function configuredGfxDeviceStart(
     }
   }
   return undefined;
-}
-
-function compileCps1GameConfig(
-  source: string,
-  game: string,
-  constants: Record<string, number>,
-): Record<string, unknown> {
-  if (!game || !source.includes('static const struct CPS1config cps1_config_table[]')) {
-    return {};
-  }
-  const row = source.split('\n').find(line =>
-    new RegExp(`^\\s*\\{\\s*"${game.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"\\s*,`)
-      .test(line));
-  if (!row) return {};
-  const start = row.indexOf('{');
-  const end = row.lastIndexOf('}');
-  if (start < 0 || end <= start) return {};
-  const entry = splitMameArgs(row.slice(start + 1, end));
-  const cpsbName = entry[1]?.trim();
-  const mapperName = entry[2]?.trim();
-  if (!cpsbName || !mapperName) return {};
-
-  const macro = new RegExp(`^\\s*#define\\s+${cpsbName}\\s+(.+)$`, 'm').exec(source)?.[1]
-    ?.replace(/__not_applicable__/g, '-1,-1,-1,-1,-1,-1,-1');
-  const mapper = new RegExp(`^\\s*#define\\s+${mapperName}\\s+(.+)$`, 'm')
-    .exec(source)?.[1];
-  if (!macro || !mapper) return {};
-  const fields = splitMameArgs(macro);
-  const mapperFields = splitMameArgs(mapper);
-  if (fields.length < 13 || mapperFields.length < 2) return {};
-  const number = (value: string | undefined): number => {
-    if (!value) return 0;
-    const evaluated = evalExpr(value.trim(), constants);
-    return typeof evaluated === 'number' && Number.isFinite(evaluated)
-      ? evaluated
-      : Number(value) || 0;
-  };
-  const array = (value: string | undefined): number[] => {
-    const body = value?.trim().replace(/^\{/, '').replace(/\}$/, '') ?? '';
-    return splitMameArgs(body).map(number);
-  };
-  const tableName = mapperFields[1]!.trim();
-  const tableBody = new RegExp(
-    `static\\s+const\\s+struct\\s+gfx_range\\s+${tableName}\\s*\\[\\s*\\]\\s*=\\s*\\{([\\s\\S]*?)\\n\\};`,
-  ).exec(source)?.[1] ?? '';
-  const bankMapper = [...tableBody.matchAll(/\{([^{}]+)\}/g)]
-    .map(match => splitMameArgs(match[1]!))
-    .filter(values => values.length >= 1)
-    .map(values => ({
-      type: number(values[0]),
-      start: number(values[1]),
-      end: number(values[2]),
-      bank: number(values[3]),
-    }));
-
-  return {
-    m_game_config: {
-      name: game,
-      cpsb_addr: number(fields[0]),
-      cpsb_value: number(fields[1]),
-      mult_factor1: number(fields[2]),
-      mult_factor2: number(fields[3]),
-      mult_result_lo: number(fields[4]),
-      mult_result_hi: number(fields[5]),
-      unknown1: number(fields[6]),
-      unknown2: number(fields[7]),
-      unknown3: number(fields[8]),
-      layer_control: number(fields[9]),
-      priority: array(fields[10]),
-      palette_control: number(fields[11]),
-      layer_enable_mask: array(fields[12]),
-      bank_sizes: array(mapperFields[0]),
-      bank_mapper: bankMapper,
-      in2_addr: number(entry[3]),
-      in3_addr: number(entry[4]),
-      out2_addr: number(entry[5]),
-      bootleg_kludge: number(entry[6]),
-    },
-  };
 }
 
 /**
@@ -2592,6 +2498,78 @@ function lineOf(source: string, offset: number): number {
   return source.slice(0, offset).split('\n').length;
 }
 
+/** A palette_device and the init callback that colours it. */
+export interface PaletteCallback {
+  /** The device's finder member (`m_palette`, `m_spr_palette`). */
+  member: string;
+  /** Absent when the driver's own code colours the palette (Moon Patrol's init_palette). */
+  handler?: string;
+  entries: number;
+  indirectEntries?: number;
+}
+
+/**
+ * The machine's palette_devices: each one's finder member, its configured
+ * pen counts, and the init callback that colours it when that callback
+ * compiles as a board handler. The board runs each callback at its palette's
+ * device_start, as MAME does. Compiled the way the board compiles every
+ * handler (emit-machine.ts), so a callback that lowers here is the one the
+ * board will run.
+ */
+function compileCallbackPalettes(
+  graph: KnowledgeGraph,
+  machineIds: Set<string>,
+): PaletteCallback[] {
+  const deviceIds = new Set(graph.edges
+    .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
+    .map(edge => edge.to));
+  return graph.nodes
+    .filter(node => deviceIds.has(node.id) && node.label === 'Device' && node.props.type === 'PALETTE')
+    .flatMap(device => {
+      const config = ((device.props.config as string[] | undefined) ?? []).join('\n');
+      const construction = /\bPALETTE\s*\(/.exec(config);
+      if (!construction) return [];
+      const open = config.indexOf('(', construction.index);
+      // PALETTE(config, finder, init, entries [, indirect_entries]), or the
+      // counts set after it: `PALETTE(config, m_sp_palette).set_entries(256, 32)`.
+      const [, finder = '', , ...constructed] = splitMameArgs(config.slice(open + 1, matchingPair(config, open, '(', ')')))
+        .map(argument => argument.trim());
+      const set = /\bset_entries\s*\(/.exec(config);
+      const counts = set
+        ? splitMameArgs(config.slice(config.indexOf('(', set.index) + 1, matchingPair(config, config.indexOf('(', set.index), '(', ')')))
+          .map(argument => argument.trim())
+        : constructed;
+      const entries = counts[0] !== undefined ? evalExpr(counts[0], {}) ?? 0 : 0;
+      const indirectEntries = counts[1] !== undefined ? evalExpr(counts[1], {}) ?? undefined : undefined;
+      // `PALETTE(config, "palette", ...)` names the tag, whose finder is m_<tag>.
+      const member = /^m_\w+$/.test(finder) ? finder : `m_${finder.replace(/"/g, '') || String(device.props.tag ?? 'palette')}`;
+      const callbackId = graph.edges.find(edge => edge.from === device.id && edge.rel === 'HAS_CALLBACK' &&
+        graph.nodes.find(node => node.id === edge.to)?.props.signal === 'palette_init')?.to;
+      const callback = graph.nodes.find(node => node.id === callbackId);
+      const handlerId = graph.edges.find(edge => edge.from === callbackId && edge.rel === 'CALLS_HANDLER')?.to;
+      const handler = graph.nodes.find(node => node.id === handlerId);
+      const counted = Number(callback?.props.entries ?? entries);
+      if (!counted) return [];
+      const shape = {
+        member,
+        entries: counted,
+        ...((callback?.props.indirectEntries ?? indirectEntries) !== undefined
+          ? { indirectEntries: Number(callback?.props.indirectEntries ?? indirectEntries) }
+          : {}),
+      };
+      if (!callback) return [shape];
+      if (!handler || typeof handler.props.sourceBody !== 'string') return [];
+      const program = compileMameHandler(normalizeMameExecutionSource(handler.props.sourceBody));
+      if (program.diagnostics.length) {
+        if (process.env.MAMEKIT_DEBUG_VIDEO === '1') {
+          console.error('callback palette: callback did not compile', program.diagnostics);
+        }
+        return [];
+      }
+      return [{ ...shape, handler: `${callback.props.targetClass}.${callback.props.targetMethod}` }];
+    });
+}
+
 /**
  * Lower a palette init callback by preserving it as an executable program.
  *
@@ -3719,12 +3697,13 @@ function addHandler(
   fn: MameFunction,
   constants: Record<string, number> = {},
   fallbackOwnerClass?: string,
+  unitSource = '',
 ): void {
   const ownerClass = fn.className || fallbackOwnerClass || 'source_helper';
   if (handlers.some(handler => handler.ownerClass === ownerClass && handler.method === fn.name)) {
     return;
   }
-  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(fn.body));
+  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(expandStatementMacros(fn.body, unitSource)));
   handlers.push({
     id: `handler:${ownerClass}.${fn.name}`,
     ownerClass,
@@ -3786,7 +3765,8 @@ function addHandlerClosure(
     // the ones written inside a base class it inherited.
     const fn = ast.findDispatchedFunction(driverClass, ownerClass, method);
     if (!fn) continue;
-    addHandler(handlers, fn, constants, driverClass);
+    addHandler(handlers, fn, constants, driverClass,
+      ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '');
     queue.push(...calledSourceMethods(fn.body).map(name => `${fn.className}.${name}`));
   }
 }
@@ -3997,65 +3977,6 @@ function compileInitDelegates(
     delegates[match[1]!] = null;
   }
   return delegates;
-}
-
-function compileVideoColorTables(
-  source: string,
-  constants: Record<string, number>,
-): Record<string, number[]> {
-  const tables: Record<string, number[]> = {};
-  if (source.includes('m_star_color[i]') && constants.RGB_MAXIMUM) {
-    const maximum = constants.RGB_MAXIMUM;
-    const min = Math.trunc(maximum * 130 / 150);
-    const mid = Math.trunc(maximum * 130 / 100);
-    const max = Math.trunc(maximum * 130 / 60);
-    const map = [0, min, min + Math.trunc((255 - min) * (mid - min) / (max - min)), 255];
-    tables.m_star_color = Array.from({ length: 64 }, (_, index) => packRgb(
-      map[(((index >> 4) & 1) << 1) | ((index >> 5) & 1)]!,
-      map[(((index >> 2) & 1) << 1) | ((index >> 3) & 1)]!,
-      map[((index & 1) << 1) | ((index >> 1) & 1)]!,
-    ));
-  }
-  if (source.includes('m_bullet_color[7]') && source.includes('rgb_t(0xff,0xff,0x00)')) {
-    tables.m_bullet_color = [
-      ...Array.from({ length: 7 }, () => packRgb(255, 255, 255)),
-      packRgb(255, 255, 0),
-    ];
-  }
-  return tables;
-}
-
-function compileVideoLfsr(
-  ast: MameAstIndex,
-  ownerClass: string,
-  constants: Record<string, number>,
-): GeneratedVideoPlan['lfsrTable'] | undefined {
-  const fn = ast.findFunctionInHierarchy(ownerClass, 'stars_init');
-  if (!fn) return undefined;
-  const enabled = /\(shiftreg\s*&\s*(0x[\da-f]+|\d+)\)\s*==\s*(0x[\da-f]+|\d+)/i.exec(fn.body);
-  const color = /~shiftreg\s*&\s*(0x[\da-f]+|\d+)\)\s*>>\s*(\d+)/i.exec(fn.body);
-  const feedback = /shiftreg\s*>>\s*(\d+)\)\s*\^\s*~shiftreg[\s\S]*?<<\s*(\d+)/.exec(fn.body);
-  const period = constants.STAR_RNG_PERIOD;
-  if (!enabled || !color || !feedback || !period) return undefined;
-  const row = ast.findFunctionInHierarchy(ownerClass, 'stars_draw_row');
-  const colorMember = row && /m_star_color\s*\[/.exec(row.body)?.[0]
-    ? /\b(m_\w+)\s*\[\s*star\s*&/.exec(row.body)?.[1]
-    : undefined;
-  const scaleMember = row && /bitmap\.pix\s*\(\s*y\s*,\s*(m_\w+)\s*\*\s*x/.exec(row.body)?.[1];
-  return {
-    member: 'm_stars',
-    period,
-    enabledMask: Number(enabled[1]),
-    enabledValue: Number(enabled[2]),
-    colorMask: Number(color[1]),
-    colorShift: Number(color[2]),
-    feedbackTap: Number(feedback[1]),
-    feedbackInvertTap: 0,
-    feedbackWidth: Number(feedback[2]) + 1,
-    ...(row && colorMember && scaleMember
-      ? { rowRenderer: { method: row.name, colorMember, scaleMember } }
-      : {}),
-  };
 }
 
 function packRgb(red: number, green: number, blue: number): number {

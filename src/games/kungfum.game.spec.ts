@@ -49,13 +49,14 @@ assert.equal(
   'spr_height_prom',
 );
 assert.deepEqual(video.plan.gfx.map(entry => entry.region), ['gfx2', 'gfx1']);
-assert.deepEqual(video.plan.palettes?.map(palette => ({
-  member: palette.member,
-  region: palette.plan.region,
-})), [
-  { member: 'm_spr_palette', region: 'spr_color_proms' },
-  { member: 'm_chr_palette', region: 'chr_color_proms' },
+// Each palette is its own callback, run as written: compute_res_net_all over
+// the PROMs, and then video_start's m62_amplify_contrast lifts both to the
+// brightest entry through palette_t's set_contrast.
+assert.deepEqual(video.paletteCallbacks, [
+  { member: 'm_chr_palette', entries: 256, handler: 'm62_state.m62_chr' },
+  { member: 'm_spr_palette', entries: 256, handler: 'm62_state.m62_spr' },
 ]);
+assert.equal(video.plan.palettes, undefined);
 assert.equal(video.plan.tilemaps[0]?.tileInfo, 'm62_state.get_kungfum_bg_tile_info');
 assert.equal(video.plan.tilemaps[0]?.scrollRows, 32);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));

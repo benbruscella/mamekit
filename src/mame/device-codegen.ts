@@ -881,6 +881,20 @@ function emitOperation(
         `((value) => Object.assign(Object.create(Object.getPrototypeOf(value)), value))(${value});`;
     }
     const pointee = context.dereferencedLocals?.get(operation.name);
+    // A local of more than one dimension, or an array of pointers, is built
+    // as the interpreter builds it (allocateLocalArray in ir/execute.ts).
+    const extents = operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+      operation.value.callee.name === 'ALLOC' ? operation.value.args : [];
+    if (extents.length > 1 || (extents.length && declared?.endsWith('*'))) {
+      const rows = (level: number): string => {
+        const length = `Math.max(0, Math.trunc(Number(${emitExpression(extents[level]!, context)})))`;
+        if (level < extents.length - 1) return `Array.from({ length: ${length} }, () => ${rows(level + 1)})`;
+        return declared?.endsWith('*')
+          ? `new Array(${length}).fill(0)`
+          : wrapAllocatedArray(`new Uint8Array(${length})`, operation.valueType);
+      };
+      return `${pad}let ${localName(operation.name)}${annotation} = ${rows(0)};`;
+    }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
         ? (context.plainArrayLocals?.has(operation.name) ? value : wrapAllocatedArray(value, operation.valueType))
@@ -1472,6 +1486,14 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // it. The D64 loader's sector loop never ended while it read the wrapper.
     const pointerLocal = (expression.object.kind === 'identifier' && context.locals.has(expression.object.name)) ||
       expression.object.kind === 'index';
+    // A driver member may hold a pointer into a table of structs: CPS1's
+    // machine_reset_cps leaves `m_game_config` at its game's row of
+    // cps1_config_table, and `m_game_config->bank_mapper` reads that row. The
+    // board's state carries no declared pointer type to decide it from, and a
+    // non-pointer dereferences to itself.
+    if (context.boardScope && expression.object.kind === 'identifier' && !context.locals.has(expression.object.name)) {
+      return `runtime.dereference(${object}).${expression.property}`;
+    }
     return expressionValueType(expression.object, context)?.includes('*') &&
       (structFieldsOf(expression.object, context) || pointerLocal)
       ? `runtime.dereference(${object}).${expression.property}`
