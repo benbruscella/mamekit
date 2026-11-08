@@ -3,13 +3,15 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
-  MameAstIndex, parseCallChain, parseMameAst, parseMameSource, spanProps, splitMameArgs,
+  MameAstIndex, functionArity, lowerOverloadedCalls, overloadedName, parseCallChain, parseMameAst, parseMameConstructors,
+  parseMameSource, parseOverloadedName, spanProps, splitMameArgs,
   type MameClass, type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { lowerDriverMemberPointers } from '../mame/member-pointers.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
-import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasMacros, collectMemberExpressionMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -830,12 +832,15 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // sound_start comes between them: Mario's writes its MCU bootstrap there.
     const soundStart = ast.findFunctionInHierarchy(cfg.cls, 'sound_start');
     const machineStarts = resolveMachineLifecycle(ast, cfg.cls, cfg.name, 'start');
+    const constructed = driverConstructorCalls(ast, cfg.cls);
     const startFunctions = [
+      ...constructed,
       ...machineStarts,
       ...(soundStart ? [soundStart] : []),
       ...(videoStart ? [videoStart] : []),
     ];
     const startHandlers = [
+      ...constructed,
       ...machineStarts.slice(-1),
       ...(soundStart ? [soundStart] : []),
       ...(videoStart ? [videoStart] : []),
@@ -1633,6 +1638,36 @@ export function derivedDeviceClock(
   return numerator !== null && denominator !== null && denominator !== 0
     ? parentClock * numerator / denominator
     : undefined;
+}
+
+/**
+ * What a driver's constructors call, base class first, as MAME constructs the
+ * driver before starting it: sega_16bit_common_base's constructor runs
+ * palette_init(), which fills the resistor-weighted tables every System 16
+ * palette write reads. Never run, they stayed zero and every colour was black.
+ *
+ * Only bare member calls (`palette_init();`) are taken: a constructor's
+ * member values come from its initializers, which are lowered elsewhere. A
+ * call in a constructor reaches the constructing class's own override.
+ */
+export function driverConstructorCalls(ast: MameAstIndex, className: string): MameFunction[] {
+  const constructors = ast.ast.units.flatMap(unit => parseMameConstructors(unit.file, unit.source));
+  const classes = ast.ast.units.flatMap(unit => unit.classes);
+  const ordered: MameFunction[] = [];
+  const seen = new Set<string>();
+  const visit = (name: string): void => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    for (const base of classes.find(candidate => candidate.name === name)?.bases ?? []) visit(base.split('::').at(-1)!);
+    for (const constructor of constructors.filter(candidate => candidate.className === name)) {
+      for (const call of constructor.body.matchAll(/(?:^|[;{}])\s*([A-Za-z_]\w*)\s*\(\s*\)\s*;/g)) {
+        const target = ast.findFunctionInHierarchy(name, call[1]!);
+        if (target && !ordered.includes(target)) ordered.push(target);
+      }
+    }
+  };
+  visit(className);
+  return ordered;
 }
 
 /** Resolve a MAME lifecycle override in base-first execution order. */
@@ -2685,9 +2720,7 @@ function handlerProps(
   // A numeric suffix is our encoding for a bound function-template argument,
   // but it can also be part of a literal MAME method name (clock_14024). An
   // exact definition must therefore win before attempting specialization.
-  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
-  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
-  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
+  const { fn } = handlerFunction(ast, ownerClass, method);
   let body = inline?.inlineBody ?? fn?.body;
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
@@ -2696,9 +2729,17 @@ function handlerProps(
     // The name stands for nothing but the subscript, so it has to become the
     // subscript before lowering -- unexpanded, the Game Boy's joypad register
     // was never written and every button read as held down.
-    body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
+    body = expandMemberAliasMacros(body, [
+      ...collectMemberAliasMacros(source), ...collectBitAliasMacros(source), ...collectMemberExpressionMacros(source)]);
     body = expandFunctionMacros(body, collectParameterCallMacros(source));
     body = expandStatementMacros(body, ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '');
+    body = lowerDriverMemberPointers(body, ast.ast.units.flatMap(unit => unit.classes.map(declaration => declaration.name)));
+    body = lowerOverloadedCalls(body, ast, fn.className);
+    // An array of driver timers, one timer_alloc per element -- Exidy's
+    // `m_collision_timer[i] = timer_alloc(FUNC(...), this)` -- holds real
+    // timers, which the board makes from the callback's name.
+    body = body.replace(/(\b\w+\s*\[[^\]]+\]\s*=\s*)timer_alloc\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*,\s*this\s*\)/g,
+      (_all, target: string, owner: string, method: string) => `${target}timer_alloc("${owner}.${method}")`);
     // A time constant the driver spells as an expression, `#define
     // NEOGEO_VBLANK_IRQ_HTIM (attotime::from_ticks(56+2, NEOGEO_MASTER_CLOCK))`:
     // its value is that expression, where unexpanded it named nothing and the
@@ -2762,8 +2803,10 @@ function handlerProps(
           })
         : splitMameArgs(entries).map(value => value.trim());
       if (body.includes(table[0])) body = body.replace(table[0], '');
+      // An index may itself subscript (`pens[(color_prom[offs] >> 1) & 0x07]`
+      // in vicdual's screen update); stopping at its first `]` cut it in two.
       body = body.replace(
-        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
+        new RegExp(`\\b${name}\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]`, 'g'),
         (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
       );
     }
@@ -2894,7 +2937,11 @@ export function constructorConfigCalls(
         else if (body[end] === ')') level--;
       }
       const parameters = splitMameArgs(body.slice(start, end - 1));
-      if (parameters.length < 3 + extra.length) continue;
+      // The overload C++ picks for this many arguments: every parameter past
+      // them has a default. atarimo declares `(..., clock, screen_tag,
+      // config)` beside `(..., screen_tag, config)`.
+      if (parameters.length < 3 + extra.length ||
+        parameters.slice(3 + extra.length).some(parameter => !parameter.includes('='))) continue;
       // `const char *tag` or `char const *tag`: MAME spells it both ways.
       if (!/machine_config/.test(parameters[0] ?? '') || !/\bchar\b[\w\s]*\*/.test(parameters[1] ?? '') ||
         !/device_t\s*\*/.test(parameters[2] ?? '')) continue;
@@ -3004,9 +3051,13 @@ export function constructorAggregate(
       for (const [position, argument] of extra.entries()) {
         const parameter = own[position]!;
         const name = /(\w+)\s*(?:=.*)?$/.exec(parameter)?.[1];
-        if (!name || !/\*/.test(parameter) || !/^[A-Za-z_]\w*$/.test(argument) || evalExpr(argument, constants) !== null) continue;
+        // A pointer, or a struct taken by const reference -- Atari's
+        // `const atari_motion_objects_config &config`, handed
+        // `gauntlet_state::s_mob_config`, a class's static member.
+        const table = /\*/.test(parameter) || /\bconst\s+[\w:]+\s*&\s*\w+\s*$/.test(parameter);
+        if (!name || !table || !/^(?:\w+::)*[A-Za-z_]\w*$/.test(argument) || evalExpr(argument, constants) !== null) continue;
         const setter = new RegExp(`(?:^|;)\\s*(\\w+)\\s*\\(\\s*${name}\\s*\\)\\s*;`).exec(after[1]!)?.[1];
-        if (setter) return { setter, name: argument };
+        if (setter) return { setter, name: argument.split('::').at(-1)! };
       }
     }
   }
@@ -3044,6 +3095,22 @@ function configArgument(text: string, sources: readonly string[], constants: Rec
   return number === null ? undefined : String(number);
 }
 
+/**
+ * The function a handler name stands for: one overload when the name carries
+ * its arity (`copy_layer__a6`), else the method itself or, with a numeric
+ * suffix, the function template it specializes.
+ */
+function handlerFunction(ast: MameAstIndex, ownerClass: string, method: string): { fn?: MameFunction; exact: boolean } {
+  const overload = parseOverloadedName(method);
+  if (overload) {
+    const fn = ast.overloadsInHierarchy(ownerClass, overload.name).find(candidate => functionArity(candidate) === overload.arity);
+    if (fn) return { fn, exact: true };
+  }
+  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
+  if (exactFunction) return { fn: exactFunction, exact: true };
+  return { fn: ast.findFunctionInHierarchy(ownerClass, method.replace(/_-?\d+$/, '')), exact: false };
+}
+
 function emitSourceHandlerClosure(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -3053,9 +3120,7 @@ function emitSourceHandlerClosure(
   fallbackSource?: SourceSpan,
   visited = new Set<string>(),
 ): string {
-  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
-  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
-  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
+  const { fn } = handlerFunction(ast, ownerClass, method);
   const handlerId = `handler:${ownerClass}.${method}`;
   if (visited.has(handlerId)) return handlerId;
   visited.add(handlerId);
@@ -3170,6 +3235,10 @@ function emitSourceHandlerClosure(
     const named = ast.findUniqueFunction(match[1]!);
     if (named && named.className === '') callNames.add(match[1]!);
   }
+  // A method named as a value, through a member-function pointer -- Cosmic's
+  // palette stores `m_map_color = &cosmic_state::panic_map_color` -- is called
+  // through that pointer later, so it is as much a dependency.
+  for (const match of fn.body.matchAll(/&\s*\w+\s*::\s*(\w+)\b(?!\s*\()/g)) callNames.add(match[1]!);
   // A library's free function, called by its namespace: `ymfm::decode_fp(...)`.
   for (const match of fn.body.matchAll(/\b\w+::(\w+)\s*\(/g)) {
     if (ast.findUniqueFunction(match[1]!)?.className === '') callNames.add(match[1]!);
@@ -3181,6 +3250,19 @@ function emitSourceHandlerClosure(
     if (accessor && isSourceAccessor(accessor.body)) callNames.add(callName);
   }
   for (const callName of callNames) {
+    // Each overload is its own handler (lowerOverloadedCalls renames the
+    // calls to match), and every one is a dependency: a member pointer names
+    // the method without saying which.
+    const overloads = ast.overloadsInHierarchy(fn.className, callName);
+    if (overloads.length) {
+      for (const overload of overloads) {
+        if (overload === fn) continue;
+        const overloadId = emitSourceHandlerClosure(
+          g, ast, overload.className, overloadedName(callName, functionArity(overload)), constants, overload.span, visited);
+        g.edge(handlerId, overloadId, 'CALLS_HANDLER');
+      }
+      continue;
+    }
     // Calls through a required_device member may enter a composed device
     // class (tutankhm_state::sound_on_w ->
     // timeplt_audio_device::sh_irqtrigger_w). Preserve that source method when

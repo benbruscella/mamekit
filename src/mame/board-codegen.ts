@@ -64,12 +64,31 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const member of Object.keys(machine.execution.regionBindings ?? {})) {
     names.set(member, memory);
   }
+  // And the ones the video plan binds into the same state before any handler
+  // runs: System 1's `m_spriterom` and `m_lookup_prom` kept its whole
+  // renderer interpreted at 5 fps.
+  for (const member of Object.keys(machine.video?.regionBindings ?? {})) {
+    names.set(member, memory);
+  }
   // A memory_view the board composes. `m_boot_view.disable()` resolves through
   // the board's own call table, which emitted code consults first.
   for (const cpu of machine.execution.cpus) {
     for (const range of cpu.ranges ?? []) {
       if (range.viewTag) names.set(range.viewTag, '');
     }
+  }
+  // A bitmap the driver allocates or registers is a host object the board
+  // materialises before video_start (videoExecution.bitmapMembers). Unknown
+  // here, every renderer that composes through one -- Exidy's background and
+  // motion-object bitmaps -- stayed interpreted at a quarter of full speed.
+  for (const bitmap of machine.videoExecution?.bitmapMembers ?? []) {
+    names.set(bitmap.member, '');
+  }
+  // A file-scope constant table the handlers name (BoardIr.staticTables) is
+  // installed into the same state under its own name: vicdual's
+  // pens_from_color_prom, read per pixel by its colour screen update.
+  for (const name of Object.keys(machine.staticTables ?? {})) {
+    names.set(name, '');
   }
   // Video-plan initial state (CPS-B configuration, scroll registers, size
   // constants) is written into the board's members before any handler runs,

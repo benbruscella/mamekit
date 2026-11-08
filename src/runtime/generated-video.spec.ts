@@ -1,4 +1,3 @@
-import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 import assert from 'node:assert/strict';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
@@ -6,10 +5,6 @@ import { executeGeneratedProgram } from './generated-handler.ts';
 import type { BoardIr } from '../ir/board.ts';
 import {
   createGeneratedTileInfoTarget,
-  decodeTaitoSjRamPixel,
-  decodeVicDualPixel,
-  exidySpriteCollisionMask,
-  exidySpriteCollisions,
   generatedScrollBand,
   generatedTileGroupIndirectMask,
   generatedTileGroupTransparentMask,
@@ -19,11 +14,6 @@ import {
   GeneratedMameVideoPrimitives,
   GeneratedPaletteShadows,
   GeneratedVideoRenderer,
-  polePositionVerticalModifiers,
-  segaSystem16Channel,
-  segaSystem16PaletteEntry,
-  taitoSjLayerScrollX,
-  taitoSjSpritePosition,
   type GeneratedVideoPrimitives,
 } from './generated-video.ts';
 
@@ -66,188 +56,6 @@ assert.equal(
   generatedTileCategoryMatches(1, 0x200),
   true,
   'TILEMAP_DRAW_ALL_CATEGORIES must repaint category-one tiles in opaque passes',
-);
-
-const taitoSjRam = new Uint8Array(0x3000);
-// charlayout plane 0 at bit 32768 is the high pen bit; x offset 7 selects
-// the byte's least-significant mask under MAME's MSB-first bit numbering.
-taitoSjRam[4096] = 0x01;
-assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 4);
-taitoSjRam[4096] = 0;
-taitoSjRam[2048] = 0x01;
-assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 2);
-taitoSjRam[2048] = 0;
-taitoSjRam[0] = 0x01;
-assert.equal(decodeTaitoSjRamPixel(taitoSjRam, 0, 0, 0, 0, false), 1);
-
-assert.deepEqual(
-  [0, 1, 2].map(layer => taitoSjLayerScrollX(0x25, layer, false)),
-  [-24, -16, -16],
-  'Taito SJ unflipped layers retain their hardware pixel skew',
-);
-assert.deepEqual(
-  [0, 1, 2].map(layer => taitoSjLayerScrollX(0x25, layer, true)),
-  [40, 48, 48],
-  'Taito SJ flipped layers retain their hardware pixel skew',
-);
-assert.deepEqual(taitoSjSpritePosition(0, 0), { x: 255, y: 240, visible: false });
-assert.deepEqual(taitoSjSpritePosition(1, 241), { x: 0, y: 255, visible: false });
-assert.deepEqual(taitoSjSpritePosition(17, 16), { x: 16, y: 224, visible: true });
-
-assert.equal(decodeVicDualPixel(0x80, 0xa2, 0), 0xff00ffff);
-assert.equal(decodeVicDualPixel(0x80, 0xa2, 1), 0xff00ff00);
-const exidyPixels = new Uint8Array(3 * 2 * 2);
-exidyPixels[0] = 1;
-exidyPixels[4] = 1;
-assert.equal(exidySpriteCollisionMask(
-  { count: 3, width: 2, height: 2, pixels: exidyPixels },
-  (x, y) => Number(x === 4 && y === 5),
-  { code: 0, x: 4, y: 5 },
-  { code: 1, x: 4, y: 5 },
-), 0x1c);
-assert.deepEqual(exidySpriteCollisions(
-  { count: 3, width: 2, height: 2, pixels: exidyPixels },
-  (x, y) => Number(x === 4 && y === 5),
-  { code: 0, x: 4, y: 5 },
-  { code: 1, x: 4, y: 5 },
-), [
-  { position: 4, mask: 0x14 },
-  { position: 4, mask: 0x08 },
-]);
-
-const polePositionProms = new Uint8Array(0x800);
-polePositionProms[0x507] = 3;
-polePositionProms[0x607] = 4;
-polePositionProms[0x707] = 5;
-assert.equal(polePositionVerticalModifiers(polePositionProms)[7], 0x543);
-
-assert.deepEqual(
-  [0, 1, 30, 31].map(value => segaSystem16Channel(value)),
-  [0, 8, 247, 255],
-);
-assert.equal(segaSystem16Channel(31, 'shadow'), 200);
-assert.equal(segaSystem16Channel(0, 'highlight'), 55);
-assert.deepEqual(segaSystem16PaletteEntry(0x0fff), {
-  normal: 0xfff7f7f7,
-  effect: 0xffc1c1c1,
-});
-assert.deepEqual(segaSystem16PaletteEntry(0x8fff), {
-  normal: 0xfff7f7f7,
-  effect: 0xfff8f8f8,
-});
-
-const segaScreenBody = `
-  m_sprites->draw_async(cliprect);
-  m_segaic16vid->tilemap_draw(screen, bitmap, cliprect, 0, TILEMAP_BACKGROUND, 0, 0);
-  m_sprites->iterate_dirty_rects(cliprect, [] (rectangle const &rect) {});
-`;
-assert.equal(
-  generatedDirectScreenShape({
-    family: 'segas16a',
-    devices: [{ id: 'sprites', tag: 'sprites', type: 'SEGA_SYS16A_SPRITES' }],
-    execution: { screenUpdate: { handler: 'segas16a_state.screen_update' } },
-    handlers: [{
-      ownerClass: 'segas16a_state',
-      method: 'screen_update',
-      body: segaScreenBody,
-    }],
-  } as unknown as BoardIr),
-  'system16a-layers',
-);
-assert.equal(
-  generatedDirectScreenShape({
-    family: 'segas16b',
-    devices: [{ id: 'sprites', tag: 'sprites', type: 'SEGA_SYS16B_SPRITES' }],
-    execution: { screenUpdate: { handler: 'segas16b_state.screen_update' } },
-    handlers: [{
-      ownerClass: 'segas16b_state',
-      method: 'screen_update',
-      body: segaScreenBody,
-    }],
-  } as unknown as BoardIr),
-  undefined,
-  'without the 16A sprite device a Sega screen has no direct shape',
-);
-
-assert.equal(
-  generatedDirectScreenShape({
-    execution: { screenUpdate: { handler: 'exidy_state.screen_update' } },
-    handlers: [{
-      ownerClass: 'exidy_state',
-      method: 'screen_update',
-      body: `set_colors(); draw_background();
-        copybitmap(bitmap, m_background_bitmap, 0, 0, 0, 0, cliprect);
-        draw_sprites(bitmap, cliprect);`,
-    }, {
-      ownerClass: 'exidy_state',
-      method: 'draw_background',
-      body: `const uint8_t *const cram = m_characterram;
-        m_background_bitmap.pix(y, x) = 0;`,
-    }, {
-      ownerClass: 'exidy_state',
-      method: 'draw_sprites',
-      body: `int sx = 236 - *m_sprite2_xpos - 4;
-        m_gfxdecode->gfx(0)->transpen(bitmap, cliprect, 0, 0, 0, 0, sx, 0, 0);`,
-    }],
-  } as unknown as BoardIr),
-  'exidy-character-ram',
-);
-
-assert.equal(
-  generatedDirectScreenShape({
-    execution: { screenUpdate: { handler: 'berzerk_state.screen_update' } },
-    handlers: [{
-      ownerClass: 'berzerk_state',
-      method: 'screen_update',
-      body: `
-        for (int offs = 0; offs < m_videoram.bytes(); offs++) {
-          uint8_t color = m_colorram[((offs >> 2) & 0x07e0) | (offs & 0x001f)];
-          rgb_t pen = (data & 0x80) ? pens[color >> 4] : rgb_t::black();
-          rgb_t pen = (data & 0x80) ? pens[color & 0x0f] : rgb_t::black();
-        }
-      `,
-    }],
-  } as unknown as BoardIr),
-  'berzerk-color-bitmap',
-);
-
-assert.equal(
-  generatedDirectScreenShape({
-    execution: { screenUpdate: { handler: 'vicdual_state.screen_update_color' } },
-    handlers: [{
-      ownerClass: 'vicdual_state',
-      method: 'screen_update_color',
-      body: `
-        color_prom = m_proms->base();
-        char_code = m_videoram[offs];
-        video_data = m_characterram[offs];
-        offs = (char_code >> 5) | (m_palette_bank << 3);
-        back_pen = color_prom[offs];
-        pen = (video_data & 0x80) ? fore_pen : back_pen;
-      `,
-    }],
-  } as unknown as BoardIr),
-  'vicdual-character-ram',
-);
-
-assert.equal(
-  generatedDirectScreenShape({
-    execution: { screenUpdate: { handler: 'fixture.screen_update' } },
-    handlers: [{
-      ownerClass: 'fixture',
-      method: 'screen_update',
-      body: `
-        bitmap.fill(255, cliprect);
-        for (offs = 0; offs < m_objectram.bytes(); offs += 4) {
-          prom_line = prom + 0x80 + ((gfx_num & 0xe0) >> 1);
-          code = m_videoram[goffs + 1];
-          m_gfxdecode->gfx(0)->transpen(bitmap,cliprect, code, color, 0, 0, 0, 0, 15);
-          sx += 16;
-        }
-      `,
-    }],
-  } as unknown as BoardIr),
-  'bublbobl-object-columns',
 );
 
 assert.deepEqual(

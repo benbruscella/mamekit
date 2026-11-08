@@ -102,7 +102,22 @@ export function driverAggregates(
     // A literal may lead with its point: phoenix's `CAP_U(.001)`.
     // A class's enumerator spelled through its class is the enumerator:
     // `discrete_dss_inverter_osc_node::IS_TYPE1`.
-    const unqualified = expression.replace(/\b\w+::([A-Z_][A-Z0-9_]*)\b/g, (whole, name: string) => constants[name] !== undefined ? name : whole);
+    // An rgb_t is the packed word the interpreter makes of palette.h's
+    // constexpr constructors (execute.ts), in the host framebuffer's byte
+    // order -- alpha, blue, green, red from the top: vicdual's pens_from_color_prom
+    // is a table of `rgb_t(0x00, 0xff, 0x00)` and `rgb_t::black()`, and
+    // unlowered every Sega VIC Dual colour screen drew nothing but black.
+    const packed = expression
+      .replace(/\brgb_t\s*::\s*black\s*\(\s*\)/g, 'rgb_t(0, 0, 0)')
+      .replace(/\brgb_t\s*::\s*white\s*\(\s*\)/g, 'rgb_t(255, 255, 255)')
+      .replace(/\brgb_t\s*\(([^()]*)\)/g, (whole, inner: string) => {
+        const channels = inner.split(',').map(channel => channel.trim());
+        const [a, r, g, b] = channels.length === 3 ? ['255', ...channels] : channels;
+        return channels.length === 3 || channels.length === 4
+          ? `((((${a}) & 255) * 16777216) + (((${b}) & 255) * 65536) + (((${g}) & 255) * 256) + ((${r}) & 255))`
+          : whole;
+      });
+    const unqualified = packed.replace(/\b\w+::([A-Z_][A-Z0-9_]*)\b/g, (whole, name: string) => constants[name] !== undefined ? name : whole);
     let substituted = expandConstexprCalls(unqualified.replace(/\.\s*d?value\s*\(\s*\)/g, '').replace(/(?<![\w.])\.(?=\d)/g, '0.'), functions)
       // An integral cast truncates: `static_cast<int>(RES_K(1.5))`, `int(x)`.
       .replace(/\bstatic_cast\s*<\s*(?:unsigned\s+)?(?:int|long|u?int(?:8|16|32|64)_t|[us](?:8|16|32))\s*>\s*\(/g, 'int(')

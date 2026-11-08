@@ -3904,7 +3904,32 @@ function compileOpcodeOperations(
   return compileMameHandler(normalizeMameExecutionSource(source));
 }
 
+/**
+ * A struct type a function body declares together with its variable --
+ * `struct attribute_memory { int row = 0; uint8_t color = 0; } attributes[64];`
+ * in popeye's sprite pass -- as that variable built from the fields' initial
+ * values (STRUCT_ARRAY / STRUCT_VALUE). A field with no initializer is zero,
+ * as value-initialization leaves it.
+ */
+export function lowerLocalStructs(source: string): string {
+  return source.replace(
+    /\bstruct\s+\w*\s*\{([^{}]*)\}\s*(\w+)\s*(?:\[\s*([^\]]+?)\s*\])?\s*;/g,
+    (whole, fields: string, name: string, count?: string) => {
+      const pairs: string[] = [];
+      for (const field of fields.split(';').map(item => item.trim()).filter(Boolean)) {
+        const declared = /^(?:[\w:]+\s+)+?(\w+)\s*(?:\[[^\]]*\])?\s*(?:=\s*([\s\S]+)|\{\s*([\s\S]*)\s*\})?$/.exec(field);
+        if (!declared) return whole;
+        pairs.push(JSON.stringify(declared[1]), (declared[2] ?? declared[3] ?? '').trim() || '0');
+      }
+      return count === undefined
+        ? `auto ${name} = STRUCT_VALUE(${pairs.join(', ')});`
+        : `auto ${name} = STRUCT_ARRAY(${count}${pairs.length ? `, ${pairs.join(', ')}` : ''});`;
+    },
+  );
+}
+
 export function normalizeMameExecutionSource(source: string): string {
+  source = lowerLocalStructs(source);
   // A variadic template pack is always empty here: mamekit specializes only
   // the argument lists its call sites name, and it cannot expand a pack. C++
   // discards the branch in that case, so the text goes before parsing --

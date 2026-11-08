@@ -1252,7 +1252,7 @@ class IrDevice implements Device {
     if (definition.structs && definition.structMethods && !STRUCT_METHODS.has(definition.structs)) {
       const device = this;
       STRUCT_METHODS.set(definition.structs, Object.fromEntries(Object.entries(definition.structMethods).map(([type, methods]) =>
-        [type, Object.fromEntries(methods.map(method => {
+        [type, structOverloads(methods, methods.map(method => {
           const names = splitParameters(method.parameters).map(parameterName);
           // Emitted, when the codegen compiled the struct's type as one of the
           // device's allocations: run against the device's own runtime with
@@ -3180,6 +3180,16 @@ class IrDevice implements Device {
     if (overloads.length === 1 && this.methodParams.get(overloads[0]!)?.length === args.length) return overloads[0];
     const exact = overloads.filter(method =>
       (this.methodParams.get(method) ?? splitParameters(method.parameters)).length === args.length);
+    // Same arity: the overload whose parameters take these arguments, as C++
+    // picks by type. atarimo's sprite_parameter has `set(const entry &)`,
+    // which calls `set(input.data)`, beside `set(const uint16_t input[4])`;
+    // taking the last for both made the first call itself forever.
+    if (exact.length > 1) {
+      // By declaration: methodParams holds only the parameters' names.
+      const fitting = exact.filter(method => splitParameters(method.parameters)
+        .every((parameter, index) => argumentFits(parameter, args[index])));
+      if (fitting.length) return fitting.at(-1);
+    }
     if (exact.length) return exact.at(-1);
     return overloads
       .filter(method => {
@@ -3193,6 +3203,57 @@ class IrDevice implements Device {
         splitParameters(left.parameters).length - splitParameters(right.parameters).length)
       .at(0) ?? overloads.at(-1);
   }
+}
+
+/**
+ * A struct's methods by name. Overloads share a name, and C++ picks one by its
+ * arguments: atarimo's `sprite_parameter::set(const entry &)` forwards to
+ * `set(const uint16_t input[4])`, and keying the table by name alone left only
+ * the last, so the forward called itself until the stack ran out.
+ */
+function structOverloads(
+  methods: readonly { name: string; parameters: string }[],
+  entries: readonly [string, (this: Record<string, unknown>, ...args: unknown[]) => unknown][],
+): Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown> {
+  const table: Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown> = {};
+  const byName = new Map<string, number[]>();
+  methods.forEach((method, index) => byName.set(method.name, [...(byName.get(method.name) ?? []), index]));
+  for (const [name, indices] of byName) {
+    if (indices.length === 1) { table[name] = entries[indices[0]!]![1]; continue; }
+    const candidates = indices.map(index => ({
+      parameters: splitParameters(methods[index]!.parameters),
+      call: entries[index]![1],
+    }));
+    table[name] = function (this: Record<string, unknown>, ...args: unknown[]): unknown {
+      const sameArity = candidates.filter(candidate => candidate.parameters.length === args.length);
+      const chosen = sameArity.filter(candidate =>
+        candidate.parameters.every((parameter, index) => argumentFits(parameter, args[index]))).at(-1) ??
+        sameArity.at(-1) ?? candidates.at(-1)!;
+      return chosen.call.apply(this, args);
+    };
+  }
+  return table;
+}
+
+/**
+ * Whether a call argument suits a declared parameter, for choosing between
+ * overloads of one arity: a pointer or array takes memory, a struct taken by
+ * reference takes a struct, and a builtin scalar takes a number.
+ */
+function argumentFits(parameter: string, argument: unknown): boolean {
+  const value = argument && typeof argument === 'object' && (argument as { generatedLValue?: boolean }).generatedLValue
+    ? (argument as { get(): unknown }).get()
+    : argument;
+  const declared = parameter.replace(/=[\s\S]*$/, '').trim();
+  const memory = Array.isArray(value) || ArrayBuffer.isView(value) ||
+    Boolean(value && typeof value === 'object' && (value as { generatedPointer?: boolean }).generatedPointer);
+  if (/\*|\[/.test(declared)) return memory;
+  const struct = Boolean(value && typeof value === 'object' && !memory);
+  const type = declared.replace(/\b(?:const|volatile)\b/g, '').replace(/&/g, '').trim().split(/\s+/).slice(0, -1).join(' ');
+  if (/^(?:bool|char|short|int|long|unsigned|signed|float|double|u?int\d+_t|[us]\d+|offs_t|size_t)(?:\s+\w+)*$/.test(type)) {
+    return typeof value === 'number' || typeof value === 'boolean';
+  }
+  return struct;
 }
 
 class IrMemoryBank implements GeneratedMemoryBank {

@@ -4,7 +4,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { BoardIr } from '../ir/board.ts';
 import { decodeBoardIr } from '../ir/decode.ts';
 import { validateBoardIr } from '../ir/validate.ts';
-import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 import { buildClosureFailures, readBuildManifest } from './build-manifest.ts';
 import { gameDataPath, generatedGameOutputs } from './output-layout.ts';
 import { CANDIDATE_TARGETS } from './targets.ts';
@@ -402,12 +401,10 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
       failures.push(`${target}: no generated screen-update plan`);
     } else if (
       machine.video?.bitmap ||
-      machine.video?.vector ||
-      generatedDirectScreenShape(machine)
+      machine.video?.vector
     ) {
       // Direct framebuffer/vector boards are rendered by their generated
-      // hardware plan. Source-shaped direct renderers likewise execute the
-      // callback without requiring the generic handler compiler to lower it.
+      // hardware plan.
       screenUpdates++;
     } else if (screenUpdate.deviceTag) {
       // A video-display processor draws its own picture, so the update is one

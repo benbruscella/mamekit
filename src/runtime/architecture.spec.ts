@@ -74,19 +74,9 @@ const HOST_BOUNDARIES = {
 };
 
 // A branch on a MAME device type selects code written for that chip or board.
-const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {
-  'generated-board.ts': [
-    'ATARI_MOTION_OBJECTS',
-  ],
-};
+const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {};
 // Each direct-screen shape is a renderer written for one driver.
-const DIRECT_SCREEN_SHAPES = [
-  'berzerk-color-bitmap', 'bublbobl-object-columns', 'cosmic-bitmap-sprites',
-  'dkong-scanline-sprites', 'exidy-character-ram', 'galaxian-no-bullets',
-  'gauntlet-tilemaps', 'm62-category-sprites', 'system1-prom-mixer',
-  'system16a-layers', 'taitosj-layered-char-ram',
-  'technos-tilemap-sprites', 'timeplt', 'tnx1-banked-raster', 'vicdual-character-ram',
-];
+const DIRECT_SCREEN_SHAPES: string[] = [];
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
 // for a hand-written body, keyed by the compiler that makes it.
 const REPLACED_METHODS = [

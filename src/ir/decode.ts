@@ -143,8 +143,8 @@ export function decodeBoardIr(value: unknown, subject = 'board'): BoardIr {
 function decodeVideoExecution(reader: Reader, value: unknown): void {
   if (value === undefined) return;
   const plan = reader.object(value, 'videoExecution');
-  if (plan.directScreen !== undefined && !DIRECT_SCREEN_SHAPES.has(String(plan.directScreen))) {
-    reader.fail('videoExecution.directScreen', `unknown executor ${String(plan.directScreen)}`);
+  if (plan.directScreen !== undefined) {
+    reader.fail('videoExecution.directScreen', 'a screen update runs as its handler; no direct executor exists');
   }
   for (const [index, raw] of reader.array(plan.bitmapMembers, 'videoExecution.bitmapMembers').entries()) {
     const path = `videoExecution.bitmapMembers[${index}]`;
@@ -154,14 +154,6 @@ function decodeVideoExecution(reader: Reader, value: unknown): void {
     if (!Number.isSafeInteger(count) || count < 0) reader.fail(`${path}.count`, 'expected a non-negative integer');
   }
 }
-
-const DIRECT_SCREEN_SHAPES = new Set([
-  'berzerk-color-bitmap', 'bublbobl-object-columns', 'cosmic-bitmap-sprites',
-  'dkong-scanline-sprites', 'exidy-character-ram', 'gauntlet-tilemaps',
-  'galaxian-no-bullets', 'm62-category-sprites', 'system16a-layers',
-  'system1-prom-mixer', 'technos-tilemap-sprites', 'tnx1-banked-raster',
-  'timeplt', 'taitosj-layered-char-ram', 'vicdual-character-ram',
-]);
 
 function decodeStateMembers(reader: Reader, value: unknown): void {
   if (value === undefined) return;

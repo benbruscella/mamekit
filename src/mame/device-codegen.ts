@@ -1,5 +1,5 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, STRING_MUTATORS } from '../ir/execute.ts';
+import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDereference, STRING_MUTATORS } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
@@ -707,6 +707,11 @@ export function supportsMethod(
           // device_gfx_interface::gfx(index) is a host-bound object lookup;
           // calls on the returned gfx_element are safe value-method calls.
           inner.callee.name === 'gfx' ||
+          // A board answers `memregion(tag)` and `ioport(tag)` with objects
+          // from the call table emitted code reads (its referenceCalls are
+          // flattened into it), so `memregion("maincpu")->base()` resolves the
+          // same either way. Declining it left Exidy's background interpreted.
+          (definition.boardScope && (inner.callee.name === 'memregion' || inner.callee.name === 'ioport')) ||
           (inner.callee.name === 'space' && Boolean(definition.spaces?.length)) ||
           definition.methods.some(candidate => candidate.name ===
             (inner.callee as { name: string }).name);
@@ -895,13 +900,43 @@ function emitOperation(
       };
       return `${pad}let ${localName(operation.name)}${annotation} = ${rows(0)};`;
     }
+    // A local array of a class the host constructs (`rectangle areas[32]`):
+    // that many default-built objects, as the interpreter's classArray.
+    if (allocated && context.boardScope && extents.length === 1 && declared && /^[A-Za-z_]\w*$/.test(declared) &&
+        wrapAllocatedArray('x', operation.valueType) === 'x' && !/^(?:u?int\d+_t|[us]\d+|u?char|bool|char|offs_t|pen_t|rgb_t)$/.test(declared)) {
+      const link = callLink(context, declared);
+      return `${pad}let ${localName(operation.name)}${annotation} = typeof ${link} === 'function' ? ` +
+        `Array.from({ length: Math.max(0, Math.trunc(Number(${emitExpression(extents[0]!, context)}))) }, () => ${link}(0, 0, 0, 0)) : ${value};`;
+    }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
-        ? (context.plainArrayLocals?.has(operation.name) ? value : wrapAllocatedArray(value, operation.valueType))
+        ? (context.plainArrayLocals?.has(operation.name) ||
+            // A braced list of pointers is an array of pointers: System 1's
+            // `const u16 *const bgbase[2] = { &a->pix(y), &b->pix(y) }`. A
+            // Uint16Array of them held two NaNs.
+            (operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+              operation.value.callee.name === 'ARRAY' && /\*\s*$/.test(operation.valueType ?? ''))
+          ? value
+          : wrapAllocatedArray(value, operation.valueType))
         : wrapType(value, operation.valueType)
     };${pointee ? ` let ${pointee}${annotation} = runtime.dereference(${localName(operation.name)});` : ''}`;
   }
   if (operation.op === 'assign') {
+    // `static_cast<base &>(*this) = config`: each field of the base the
+    // object inherits is assigned as its own member would be.
+    if (operation.target.kind === 'cast' && isThisDereference(operation.target.operand) && operation.operator === '=') {
+      const value = emitExpression(operation.value, context);
+      // The source's own struct names the fields: `config` is a
+      // `const atari_motion_objects_config &`.
+      const sourceType = expressionValueType(operation.value, context)
+        ?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+      const names = (sourceType ? context.definition.structs?.[sourceType] : undefined)?.map(field => field.name) ?? [];
+      if (!names.length) throw new Error(`device codegen cannot copy a base subobject of unknown type "${sourceType}"`);
+      const inner: EmitContext = { ...context, locals: new Map([...context.locals, ['__base', sourceType ?? '']]) };
+      const fields = names.map(name => `${pad}  ` + `${emitAssignment({ kind: 'identifier', name }, '=',
+        { kind: 'member', object: { kind: 'identifier', name: '__base' }, property: name }, inner)};`);
+      return `${pad}{\n${pad}  const __base = ${value};\n${fields.join('\n')}\n${pad}}`;
+    }
     const pointee = operation.target.kind === 'identifier' ? context.dereferencedLocals?.get(operation.target.name) : undefined;
     return `${pad}${emitAssignment(operation.target, operation.operator, operation.value, context)};` +
       (pointee ? ` ${pointee} = runtime.dereference(${localName((operation.target as { name: string }).name)});` : '');
@@ -2413,7 +2448,10 @@ function emitAddressOf(
       : `({ generatedPointer: true, source: ${object}, offset: ${index} })`;
   }
   if (expression.kind === 'call' && expression.callee.kind === 'member') {
-    const object = emitExpression(expression.callee.object, context);
+    // A slot of an array of pointers holds a pointer to the object, whose
+    // method is the one asked: `&bgpixmaps[i]->pix(y)` (as the interpreter).
+    const receiver = emitExpression(expression.callee.object, context);
+    const object = expression.callee.object.kind === 'index' ? `runtime.dereference(${receiver})` : receiver;
     const args = expression.args.map(argument => emitExpression(argument, context));
     return `${object}[${JSON.stringify(`${expression.callee.property}&`)}](${args.join(', ')})`;
   }
@@ -2976,10 +3014,12 @@ function isBytePointerType(valueType: string | undefined): boolean {
   return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
 }
 
-function packedPointerView(valueType: string | undefined): boolean | undefined {
+function packedPointerView(valueType: string | undefined): string | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
-  if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
-  if (/^(?:s16|int16_t)$/.test(pointee)) return true;
+  if (/^(?:u16|uint16_t)$/.test(pointee)) return 'false';
+  if (/^(?:s16|int16_t)$/.test(pointee)) return 'true';
+  if (/^(?:u32|uint32_t)$/.test(pointee)) return "'u32'";
+  if (/^(?:s32|int32_t)$/.test(pointee)) return "'s32'";
   return undefined;
 }
 

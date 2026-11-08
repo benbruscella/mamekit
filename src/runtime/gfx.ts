@@ -72,23 +72,43 @@ export function decodeGfx(layout: GfxLayout, rom: Uint8Array, byteOffset = 0): G
   for (let y = 0; y < height; y++) yOffs[y] = resolveOffset(layout.yOffsets[y]!, regionBits);
 
   const pixels = new Uint8Array(count * width * height);
+  const set = { count, width, height, pixels };
+  for (let elem = 0; elem < count; elem++) decodeElement(set, rom, byteOffset, elem, planes, charIncrement, planeOffs, xOffs, yOffs);
+  return set;
+}
 
-  for (let elem = 0; elem < count; elem++) {
-    const base = byteOffset * 8 + elem * charIncrement;
-    const dstBase = elem * width * height;
-    for (let p = 0; p < planes; p++) {
-      const planebit = 1 << (planes - 1 - p);       // plane 0 = MSB, per MAME
-      const po = base + planeOffs[p]!;
-      for (let y = 0; y < height; y++) {
-        const yo = po + yOffs[y]!;
-        const dstRow = dstBase + y * width;
-        for (let x = 0; x < width; x++) {
-          const off = yo + xOffs[x]!;
-          if (rom[off >> 3]! & (0x80 >> (off & 7))) pixels[dstRow + x] = pixels[dstRow + x]! | planebit;
-        }
+/**
+ * Decode one element of `set` again from `rom`: gfx_element::decode for a
+ * code its source RAM has dirtied (mark_dirty), at the offsets the layout
+ * resolved against the set's own region.
+ */
+export function redecodeGfxElement(layout: GfxLayout, set: GfxSet, rom: Uint8Array, byteOffset: number, elem: number): void {
+  const regionBits = rom.length * 8;
+  const planeOffs = Int32Array.from(layout.planeOffsets.slice(0, layout.planes), offset => resolveOffset(offset, regionBits));
+  const xOffs = Int32Array.from(layout.xOffsets.slice(0, layout.width), offset => resolveOffset(offset, regionBits));
+  const yOffs = Int32Array.from(layout.yOffsets.slice(0, layout.height), offset => resolveOffset(offset, regionBits));
+  set.pixels.fill(0, elem * set.width * set.height, (elem + 1) * set.width * set.height);
+  decodeElement(set, rom, byteOffset, elem, layout.planes, layout.charIncrement, planeOffs, xOffs, yOffs);
+}
+
+function decodeElement(
+  set: GfxSet, rom: Uint8Array, byteOffset: number, elem: number, planes: number, charIncrement: number,
+  planeOffs: Int32Array, xOffs: Int32Array, yOffs: Int32Array,
+): void {
+  const { width, height, pixels } = set;
+  const base = byteOffset * 8 + elem * charIncrement;
+  const dstBase = elem * width * height;
+  for (let p = 0; p < planes; p++) {
+    const planebit = 1 << (planes - 1 - p);       // plane 0 = MSB, per MAME
+    const po = base + planeOffs[p]!;
+    for (let y = 0; y < height; y++) {
+      const yo = po + yOffs[y]!;
+      const dstRow = dstBase + y * width;
+      for (let x = 0; x < width; x++) {
+        const off = yo + xOffs[x]!;
+        if (rom[off >> 3]! & (0x80 >> (off & 7))) pixels[dstRow + x] = pixels[dstRow + x]! | planebit;
       }
     }
   }
-
-  return { count, width, height, pixels };
 }
+

@@ -1,5 +1,6 @@
 import {
   MameAstIndex,
+  lowerOverloadedCalls,
   maskComments,
   parseMameAst,
   parseMameConstructors,
@@ -340,6 +341,25 @@ fm_operator<RegisterType>::fm_operator(fm_engine_base<RegisterType> &owner, uint
   const start = videoUnit.functions.find(fn => fn.name === 'video_start_dkong');
   check('video start call member: called as a method', start?.statements[0]?.calls.map(call => call.name), ['video_start_dkong_base']);
   check('video start call member: columns kept', start?.body.split('\n')[1]?.length, '\tVIDEO_START_CALL_MEMBER(dkong_base);'.length);
+}
+
+{
+  // taitosj's copy_layer: two overloads, five and six parameters. Each call
+  // reaches the one its argument count selects; another object's is left.
+  const overloadAst = new MameAstIndex(parseMameAst([{ file: 'src/mame/test/ov.cpp', source: `
+class ov_state : public driver_device { };
+void ov_state::copy_layer(bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int *on, rectangle *areas) { }
+void ov_state::copy_layer(bitmap_ind16 &bitmap, const rectangle &cliprect, copy_layer_func_t f, int which, int *on, rectangle *areas)
+{
+  if (which == 0) draw(bitmap); else copy_layer(bitmap, cliprect, which - 1, on, areas);
+}
+void ov_state::draw(bitmap_ind16 &bitmap) { }
+` }]));
+  check('overloads: both arities found', overloadAst.overloadsInHierarchy('ov_state', 'copy_layer').length, 2);
+  check('overloads: a single definition is not one', overloadAst.overloadsInHierarchy('ov_state', 'draw').length, 0);
+  check('overloads: calls renamed by arity',
+    lowerOverloadedCalls('copy_layer(b, c, f, w, o, a); copy_layer(b, c, w - 1, o, a); m_x->copy_layer(1);', overloadAst, 'ov_state'),
+    'copy_layer__a6(b, c, f, w, o, a); copy_layer__a5(b, c, w - 1, o, a); m_x->copy_layer(1);');
 }
 
 console.log(`ast.spec: ${passed} passed, ${failed} failed`);

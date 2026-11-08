@@ -5,6 +5,7 @@ import {
   collectDynamicMacros,
   expandDynamicMacros,
   collectMemberAliasMacros,
+  collectMemberExpressionMacros,
   expandFunctionMacros,
   expandMemberAliasMacros,
 } from './preprocessor.ts';
@@ -120,6 +121,14 @@ check('an expression macro is not a member alias', () => {
   // The name is the interface for these; expanding one throws it away.
   assert.deepEqual(collectMemberAliasMacros('#define SGB_XOFFSET 48\n'), []);
   assert.deepEqual(collectMemberAliasMacros('#define SPAN (m_end - m_start)\n'), []);
+});
+
+check('a member-reading expression macro expands in a handler', () => {
+  // taitosj's flip bits: unexpanded, GLOBAL_FLIP_X read as 0.
+  const macros = collectMemberExpressionMacros(
+    '#define GLOBAL_FLIP_X (*m_video_mode & 0x01)\n#define SGB_XOFFSET 48\n#define SET_X(v) (m_x = (v))\n#define BUMP (m_x = 1)\n');
+  assert.deepEqual(macros.map(macro => macro.name), ['GLOBAL_FLIP_X']);
+  assert.equal(expandMemberAliasMacros('if (GLOBAL_FLIP_X) sx = 31 - sx;', macros), 'if ((*m_video_mode & 0x01)) sx = 31 - sx;');
 });
 
 check('a member alias reaches through a struct field chain', () => {

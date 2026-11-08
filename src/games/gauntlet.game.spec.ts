@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { lowerAuxiliaryAudioDevices } from '../gen/emit-machine.ts';
 import { gauntlet } from './gauntlet.game.ts';
@@ -78,11 +80,10 @@ assert.deepEqual(auxiliary[0]!.writeMethods, ['data_w']);
 
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video, 'gauntlet MAME video source must lower to executable video IR');
-const motionObjects = video.plan.motionObjects;
-assert.ok(motionObjects, 'the sprite engine is configured by the driver aggregate');
-assert.equal(motionObjects.paletteBase, 0x100);
-assert.equal(motionObjects.codeXor, 0x800);
-assert.equal(motionObjects.spriteShare, 'mob');
-assert.equal(motionObjects.slipShare, 'mob:slip');
+// The sprite engine is atarimo.cpp's device compiled whole, over sprite.h's
+// sprite_device; the driver's aggregate is its constructor configuration.
+const motionObjects = compileMameDevice(mameSourceRoot(), indexMameHardware(mameSourceRoot()).get('ATARI_MOTION_OBJECTS')!);
+assert.equal(motionObjects.summary.diagnostics, 0);
+assert.equal(motionObjects.summary.compiledMethods, motionObjects.summary.methods);
 
 console.log('gauntlet.spec: slapstic, tilemap/motion-object video and three-chip sound board passed');

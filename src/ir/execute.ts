@@ -1340,7 +1340,8 @@ function compileFastOperations(
         if (extents.some(extent => !extent)) return undefined;
         compiled.push(context => {
           context.localTypes[name] = valueType;
-          context.locals[name] = allocateLocalArray(valueType, extents.map(extent => toNumber(extent!(context))));
+          const sizes = extents.map(extent => toNumber(extent!(context)));
+          context.locals[name] = classArray(valueType, sizes[0]!, context.bindings) ?? allocateLocalArray(valueType, sizes);
           return undefined;
         });
         continue;
@@ -1826,6 +1827,18 @@ function allocateDeclaredArray(
 }
 
 /**
+ * A local array of a class the host constructs -- `rectangle sprite_areas[0x20]`
+ * in Taito SJ's sprite pass -- as that many default-constructed objects.
+ */
+function classArray(valueType: string | undefined, length: number, bindings: GeneratedHandlerBindings): unknown[] | undefined {
+  const type = valueType?.replace(/\bconst\b/g, '').trim();
+  if (!type || !/^[A-Za-z_]\w*$/.test(type) || allocateDeclaredArray(type, 0)) return undefined;
+  const construct = bindings.referenceCalls?.[type] ?? bindings.calls?.[type];
+  if (typeof construct !== 'function') return undefined;
+  return Array.from({ length: Math.max(0, Math.trunc(length)) }, () => (construct as (...args: number[]) => unknown)(0, 0, 0, 0));
+}
+
+/**
  * A local array of every declared dimension: `double r[3][18]` is three rows
  * of eighteen doubles, each row the array its declared type allocates.
  */
@@ -1993,12 +2006,13 @@ function executeOperations(
     if (operation.op === 'declare') {
       context.localTypes[operation.name] = operation.valueType;
       const arrayLength = declaredArrayLength(operation.value);
-      const typed = arrayLength
+      const objects = arrayLength ? classArray(operation.valueType, toNumber(evaluate(arrayLength, context)), context.bindings) : undefined;
+      const typed = objects ?? (arrayLength
         ? declaredInnerExtents(operation.value).length
           ? allocateLocalArray(operation.valueType, [arrayLength, ...declaredInnerExtents(operation.value)]
             .map(extent => toNumber(evaluate(extent, context))))
           : allocateDeclaredArray(operation.valueType, toNumber(evaluate(arrayLength, context)))
-        : undefined;
+        : undefined);
       context.locals[operation.name] = typed ?? wrapValue(operation.valueType, operation.value
         ? evaluate(operation.value, context)
         : 0);
@@ -2481,6 +2495,14 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOC32') return new Uint32Array(Math.max(0, toNumber(args[0])));
   if (name === 'ALLOCF') return new Float64Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
+  // A struct type a function declares for itself, and the variable it
+  // declares with it (cpu-compiler.ts lowerLocalStructs): popeye's sprite
+  // pass keeps `struct attribute_memory { ... } attributes[64]`. Each element
+  // is its own struct, built from the field/initial-value pairs.
+  if (name === 'STRUCT_VALUE') return generatedStruct(args);
+  if (name === 'STRUCT_ARRAY') {
+    return Array.from({ length: Math.max(0, toNumber(args[0])) }, () => generatedStruct(args.slice(1)));
+  }
   // <cmath>'s std:: spellings answer as the C ones: the speaker filter sums
   // `std::abs(m_ampl[c])`, and unbound that sum was 0 and every sample
   // divided by it.
@@ -3100,12 +3122,28 @@ function evaluateCall(
   return 0;
 }
 
+/** `*this`, as a cast's operand names the object itself. */
+export function isThisDereference(expression: GeneratedExpression): boolean {
+  return expression.kind === 'unary' && expression.operator === '*' &&
+    expression.operand.kind === 'identifier' && expression.operand.name === 'this';
+}
+
 function assign(
   target: GeneratedExpression,
   operator: string,
   value: unknown,
   context: ExecutionContext,
 ): void {
+  // `static_cast<base &>(*this) = config`: the object's own base subobject
+  // takes each field. Atari's motion-object device inherits its
+  // configuration struct and set_config copies the driver's aggregate in.
+  if (target.kind === 'cast' && isThisDereference(target.operand) && operator === '=') {
+    const source = isLValue(value) ? value.get() : value;
+    for (const [field, item] of Object.entries((source ?? {}) as Record<string, unknown>)) {
+      assign({ kind: 'identifier', name: field }, '=', item, context);
+    }
+    return;
+  }
   if (target.kind === 'identifier') {
     const local = context.locals[target.name];
     const localReference = isLValue(local) ? local : undefined;
@@ -3372,16 +3410,40 @@ function isBytePointerType(valueType: string | undefined): boolean {
   return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
 }
 
-function packedCastView(valueType: string | undefined): boolean | undefined {
+function packedCastView(valueType: string | undefined): boolean | 'u32' | 's32' | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
   if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
   if (/^(?:s16|int16_t)$/.test(pointee)) return true;
+  if (/^(?:u32|uint32_t)$/.test(pointee)) return 'u32';
+  if (/^(?:s32|int32_t)$/.test(pointee)) return 's32';
   return undefined;
 }
 
-function packedByteView(value: unknown, signed: boolean): unknown {
-  if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
-  return wordView(value, signed);
+function packedByteView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
+  // A pointer into bytes, `(uint32_t *)(&m_objectram[offs])`: the view starts
+  // at its element. Bubble Bobble skips an empty object by reading its four
+  // bytes as one word; read as one byte, every backdrop column at y = 0 was
+  // skipped too.
+  const pointer = value as { generatedPointer?: boolean; source?: unknown; offset?: number; target?: unknown };
+  const bytes = pointer?.generatedPointer && pointer.target === undefined &&
+    (pointer.source instanceof Uint8Array || pointer.source instanceof Int8Array)
+    ? (pointer.source as Uint8Array).subarray(Number(pointer.offset ?? 0))
+    : value;
+  if (!(bytes instanceof Uint8Array) && !(bytes instanceof Int8Array)) return value;
+  if (signed === 'u32' || signed === 's32') return dwordView(bytes, signed === 's32');
+  return wordView(bytes, signed);
+}
+
+/** Bytes read four at a time in the host's order, as MAME's little-endian host reads them. */
+function dwordView(bytes: Uint8Array | Int8Array, signed: boolean): unknown {
+  if ((bytes.byteOffset & 3) === 0) {
+    return signed
+      ? new Int32Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 2)
+      : new Uint32Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 2);
+  }
+  const copy = new Uint8Array(bytes.byteLength & ~3);
+  copy.set((bytes as Uint8Array).subarray(0, copy.length));
+  return signed ? new Int32Array(copy.buffer) : new Uint32Array(copy.buffer);
 }
 
 /**
@@ -3656,12 +3718,17 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
       // a pointer wrapper around an unresolved call expression.
       if (result && (typeof result === 'object' || typeof result === 'function')) return result;
     }
-    const reference = object && typeof object === 'object'
-      ? (object as Record<string, unknown>)[`${expression.callee.property}&`]
+    // Through a pointer, the object it points at: System 1's
+    // `&bgpixmaps[i]->pix(y)` is a row of the bitmap the slot holds. Asking
+    // the pointer itself found no `pix&`, called `pix(y)` and took the address
+    // of one pixel, and every background row read zeros.
+    const receiver = memberObject(object, expression.callee.property);
+    const reference = receiver && typeof receiver === 'object'
+      ? (receiver as Record<string, unknown>)[`${expression.callee.property}&`]
       : undefined;
     if (typeof reference === 'function') {
       const args = expression.args.map(argument => toNumber(evaluate(argument, context)));
-      const pointer = reference.apply(object, args);
+      const pointer = reference.apply(receiver, args);
       if (isGeneratedPointer(pointer)) return pointer;
     }
     // `&region->as_u8()` is MAME's way of saying "the first byte of this
@@ -4177,7 +4244,7 @@ export function generatedByteView(value: unknown): unknown {
   return bytes(value) ?? value;
 }
 
-export function generatedPackedView(value: unknown, signed: boolean): unknown {
+export function generatedPackedView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
   return packedByteView(value, signed);
 }
 

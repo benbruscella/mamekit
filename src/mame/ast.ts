@@ -779,6 +779,32 @@ export class MameAstIndex {
     return undefined;
   }
 
+  /**
+   * The overloads of `name` declared by the nearest class in `className`'s
+   * hierarchy that declares it, when there is more than one. A board handler
+   * is keyed by name, so each overload is its own handler, `name__aN` by its
+   * parameter count (overloadedName): taitosj's copy_layer has a five- and a
+   * six-parameter form, and keyed by name only one of them existed.
+   */
+  overloadsInHierarchy(className: string, name: string): MameFunction[] {
+    const visited = new Set<string>();
+    const find = (candidate: string): MameFunction[] => {
+      if (visited.has(candidate)) return [];
+      visited.add(candidate);
+      const own = this.ast.units.flatMap(unit => unit.functions)
+        .filter(fn => fn.className === candidate && fn.name === name);
+      if (own.length) return own;
+      const declaration = this.ast.units.flatMap(unit => unit.classes).find(cls => cls.name === candidate);
+      for (const base of declaration?.bases ?? []) {
+        const inherited = find(base.split('::').at(-1)!);
+        if (inherited.length) return inherited;
+      }
+      return [];
+    };
+    const found = find(className);
+    return new Set(found.map(functionArity)).size > 1 ? found : [];
+  }
+
   /** Find a method only when its declaring class is unambiguous in the AST. */
   findUniqueFunction(name: string): MameFunction | undefined {
     const matches = this.ast.units
@@ -960,6 +986,51 @@ function matchPair(source: string, open: number, left: string, right: string): n
     else if (c === right && --depth === 0) return i;
   }
   return -1;
+}
+
+/** A function's parameter count, `(void)` and `()` both none. */
+export function functionArity(fn: { parameters: string }): number {
+  const parameters = fn.parameters.trim();
+  return parameters === '' || parameters === 'void' ? 0 : splitMameArgs(parameters).length;
+}
+
+/** The handler name of one overload: `copy_layer__a6`. */
+export function overloadedName(name: string, arity: number): string {
+  return `${name}__a${arity}`;
+}
+
+/** `copy_layer__a6` back to its name and arity. */
+export function parseOverloadedName(method: string): { name: string; arity: number } | undefined {
+  const match = /^(\w+?)__a(\d+)$/.exec(method);
+  return match ? { name: match[1]!, arity: Number(match[2]) } : undefined;
+}
+
+/**
+ * Calls to an overloaded method of `className`, renamed to the overload their
+ * argument count selects. A member call (`x.f(`, `x->f(`) or a qualified one
+ * is another object's, and is left alone.
+ */
+export function lowerOverloadedCalls(body: string, ast: MameAstIndex, className: string): string {
+  let out = '';
+  let last = 0;
+  for (const match of body.matchAll(/\b([A-Za-z_]\w*)\s*\(/g)) {
+    const before = match.index ? body[match.index - 1] : '';
+    if (before === '.' || before === '>' || before === ':') continue;
+    const overloads = ast.overloadsInHierarchy(className, match[1]!);
+    if (!overloads.length) continue;
+    const open = match.index! + match[0].length - 1;
+    let close = open;
+    for (let depth = 0; close < body.length; close++) {
+      if (body[close] === '(') depth++;
+      else if (body[close] === ')' && --depth === 0) break;
+    }
+    const inner = body.slice(open + 1, close).trim();
+    const arity = inner === '' ? 0 : splitMameArgs(inner).length;
+    if (!overloads.some(fn => functionArity(fn) === arity)) continue;
+    out += body.slice(last, match.index) + overloadedName(match[1]!, arity) + body.slice(match.index! + match[1]!.length, open);
+    last = open;
+  }
+  return out + body.slice(last);
 }
 
 export function splitMameArgs(source: string): string[] {

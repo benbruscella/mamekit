@@ -2,12 +2,18 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { evalExpr, parseGfxLayouts, stripComments } from '../kg/parse.ts';
-import type { BoardSourceRef, GeneratedGfxLayout, GeneratedHandler, GeneratedMotionObjectsPlan, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
-import { compileAtariMotionObjects } from './atarimo-compiler.ts';
-import { MameAstIndex, parseMameAst, splitMameArgs, type MameFunction } from './ast.ts';
+import type { BoardSourceRef, GeneratedGfxLayout, GeneratedHandler, GeneratedProgramPalettePlan, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
+import {
+  functionArity, lowerOverloadedCalls, MameAstIndex, overloadedName, parseMameAst, parseOverloadedName, splitMameArgs,
+  type MameFunction,
+} from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
-import { expandStatementMacros } from './preprocessor.ts';
+import { lowerDriverMemberPointers } from './member-pointers.ts';
+import {
+  collectBitAliasMacros, collectMemberAliasMacros, collectMemberExpressionMacros, expandMemberAliasMacros,
+  expandStatementMacros,
+} from './preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { unboundIdentifiers } from '../ir/walk.ts';
 
@@ -129,52 +135,6 @@ export function compileMameVideo(
     }
   }
   if (
-    screen?.body.includes('video_update_common(bitmap, cliprect,') &&
-    source.includes('void taitosj_state::draw_layers()') &&
-    source.includes('m_gfxdecode->gfx(m_colorbank[0] & 0x08 ? 2 : 0)->transpen') &&
-    source.includes('void taitosj_state::draw_sprites(bitmap_ind16 &bitmap)') &&
-    source.includes('copyscrollbitmap_trans(bitmap, m_layer_bitmap[which]')
-  ) {
-    const handlers: GeneratedHandler[] = [];
-    addHandlerClosure(handlers, ast, [
-      `${screen.className}.${screen.name}`,
-      `${screen.className}.video_update_common`,
-      `${screen.className}.draw_layers`,
-      `${screen.className}.draw_sprites`,
-    ], constants);
-    return {
-      plan: {
-        gfx: [],
-        ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
-        tilemaps: [],
-        initialState: memberDefaults,
-        source: sourceRef(screen),
-      },
-      handlers,
-    };
-  }
-  // Sega Vic Dual boards draw characters from CPU-writable character RAM and
-  // therefore intentionally have no GFXDECODE table. Preserve the source
-  // screen handler and its ROM-region binding so the runtime's source-shaped
-  // direct executor can reproduce that dynamic raster.
-  if (
-    screen?.body.includes('m_videoram[offs]') &&
-    screen.body.includes('m_characterram[offs]') &&
-    screen.body.includes('m_palette_bank << 3') &&
-    screen.body.includes('color_prom[offs]')
-  ) {
-    return {
-      plan: {
-        gfx: [],
-        ...(Object.keys(regionBindings).length ? { regionBindings } : {}),
-        tilemaps: [],
-        initialState: memberDefaults,
-        source: sourceRef(screen),
-      },
-      handlers: [],
-    };
-  }
-  if (
     screen?.body.includes('uint8_t const *const source = &m_videoram[y]') &&
     screen.body.includes('source[(x / 2) * 256]') &&
     screen.body.includes('m_palette->pen_color(m_paletteram[x])')
@@ -266,7 +226,9 @@ export function compileMameVideo(
   // A device-drawn screen may have no GFXDECODE at all: the T-Unit blits
   // from ROM into VRAM and its screen update copies VRAM through the palette.
   const deviceDrawnScreen = !start && !screen && Boolean(screenCallback?.props.targetTag);
-  if (!decodes.length && !konamiGfx.length && !deviceDrawnScreen) {
+  // A screen update that draws every pixel itself needs no GFXDECODE: Sega's
+  // Vic Dual reads its character RAM straight into the bitmap.
+  if (!decodes.length && !konamiGfx.length && !deviceDrawnScreen && !screen) {
     return fail(`missing gfx decode in machine composition`);
   }
   const decodeBindings = compileDecodeBindings(graph, machineIds);
@@ -475,10 +437,9 @@ export function compileMameVideo(
   // at the palette's device_start (execution.paletteInits), against the
   // driver's state: MAME's resnet.cpp is in its call closure, and what it
   // assigns (`m_color_codes = color_prom`) lands where every other handler
-  // reads it. TNX1 re-banks its palette from its screen update
-  // (update_palette), which only runs once that update is executable IR
-  // (#240 item 22); until then its banked plan stays.
-  const singleCallback = ramPalette || palettes.length || namedByCallback || builtinPalette || palette?.dynamic
+  // reads it. A palette the driver re-banks at run time (TNX1's
+  // update_palette) is the same code again, called from its screen update.
+  const singleCallback = ramPalette || palettes.length || namedByCallback || builtinPalette
     ? undefined
     : callbackPalettes.find(callback => callback.handler && callback.member === 'm_palette') ??
       (callbackPalettes.length === 1 && callbackPalettes[0]!.handler ? callbackPalettes[0] : undefined);
@@ -505,7 +466,6 @@ export function compileMameVideo(
     machineIds,
     ramPalette?.entries ?? paletteProgram?.entries ?? paletteCallbacks[0]?.entries,
   );
-  const motionObjects = compileMotionObjects(graph, mameSrc, driver, start?.body);
   const runtimeGfxLayouts = compileRuntimeGfxLayouts(source);
   const needsClassDefaults = renderScale !== 1 ||
     Object.keys(delegates).length > 0;
@@ -524,7 +484,6 @@ export function compileMameVideo(
       ...(paletteProgram ? { paletteProgram } : {}),
       ...(paletteGroups ? { paletteGroups } : {}),
       tilemaps: executableTilemaps,
-      ...(motionObjects ? { motionObjects } : {}),
       ...(Object.keys(runtimeGfxLayouts).length ? { gfxLayouts: runtimeGfxLayouts } : {}),
       initialState: {
         ...arrayState(memberDefaults),
@@ -1320,59 +1279,6 @@ function compileDirectBitmap(
     white: 0xffffffff,
     source: sourceRef(screen),
   };
-}
-
-/**
- * The driver's `ATARI_MOTION_OBJECTS` sprite engine.
- *
- * The device is created with the driver's configuration aggregate as its last
- * constructor argument; the sprite RAM is the share named after the device tag
- * and the SLIP RAM, where the board has one, the `<tag>:slip` share beside it.
- */
-function compileMotionObjects(
-  graph: KnowledgeGraph,
-  mameSrc: string,
-  driverFile: string,
-  videoStartBody?: string,
-): GeneratedMotionObjectsPlan | undefined {
-  const device = graph.nodes.find(node =>
-    node.label === 'Device' && node.props.type === 'ATARI_MOTION_OBJECTS');
-  if (!device) return undefined;
-  const tag = String(device.props.tag ?? '');
-  const construction = (Array.isArray(device.props.config) ? device.props.config.map(String) : [])
-    .find(line => line.startsWith('ATARI_MOTION_OBJECTS('));
-  const configName = construction
-    ? splitMameArgs(construction.slice(
-        construction.indexOf('(') + 1,
-        construction.lastIndexOf(')'),
-      )).at(-1)?.trim()
-    : undefined;
-  if (!configName || !/^[\w:]+$/.test(configName)) return undefined;
-  const shares = new Set(graph.nodes
-    .filter(node => node.label === 'AddressRange')
-    .map(node => String(node.props.share ?? ''))
-    .filter(Boolean));
-  if (!shares.has(tag)) return undefined;
-  return compileAtariMotionObjects(mameSrc, {
-    tag,
-    configName,
-    driverFile,
-    spriteShare: tag,
-    ...(shares.has(`${tag}:slip`) ? { slipShare: `${tag}:slip` } : {}),
-    ...(videoStartBody ? { videoStartBody } : {}),
-    ...(typeof device.props.sourceFile === 'string' &&
-      typeof device.props.sourceLine === 'number'
-      ? {
-        source: {
-          file: device.props.sourceFile,
-          line: device.props.sourceLine,
-          ...(typeof device.props.sourceColumn === 'number'
-            ? { column: device.props.sourceColumn }
-            : {}),
-        },
-      }
-      : {}),
-  });
 }
 
 /**
@@ -3698,16 +3604,29 @@ function addHandler(
   constants: Record<string, number> = {},
   fallbackOwnerClass?: string,
   unitSource = '',
+  classNames: readonly string[] = [],
+  ast?: MameAstIndex,
+  /** The handler's name, when it is not the function's: one overload's `name__aN`. */
+  method = fn.name,
 ): void {
   const ownerClass = fn.className || fallbackOwnerClass || 'source_helper';
-  if (handlers.some(handler => handler.ownerClass === ownerClass && handler.method === fn.name)) {
+  if (handlers.some(handler => handler.ownerClass === ownerClass && handler.method === method)) {
     return;
   }
-  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(expandStatementMacros(fn.body, unitSource)));
+  // The same preparation the knowledge graph gives a handler (kg/build.ts
+  // handlerProps): the file's member-reading #defines -- taitosj's
+  // `GLOBAL_FLIP_X (*m_video_mode & 0x01)` -- and its overloads by arity.
+  // Without them this copy of draw_layers drew every layer unflipped.
+  const macros = [
+    ...collectMemberAliasMacros(unitSource), ...collectBitAliasMacros(unitSource), ...collectMemberExpressionMacros(unitSource)];
+  const prepared = lowerDriverMemberPointers(
+    expandMemberAliasMacros(expandStatementMacros(fn.body, unitSource), macros), classNames);
+  const executableBody = normalizeMameExecutionSource(lowerSequentialArrayPointers(
+    ast && fn.className ? lowerOverloadedCalls(prepared, ast, fn.className) : prepared));
   handlers.push({
-    id: `handler:${ownerClass}.${fn.name}`,
+    id: `handler:${ownerClass}.${method}`,
     ownerClass,
-    method: fn.name,
+    method,
     parameters: fn.parameters.trim(),
     body: fn.body.trim(),
     program: compileMameHandler(executableBody, fn.returnType ? { returnType: fn.returnType } : {}),
@@ -3761,13 +3680,26 @@ function addHandlerClosure(
     if (seen.has(key)) continue;
     seen.add(key);
     const [ownerClass, method] = splitHandlerKey(key);
+    // One overload, by the arity its name carries (`copy_layer__a6`).
+    const overload = parseOverloadedName(method);
     // The driver class the GAME macro selected owns every virtual call, even
     // the ones written inside a base class it inherited.
-    const fn = ast.findDispatchedFunction(driverClass, ownerClass, method);
+    const fn = overload
+      ? ast.overloadsInHierarchy(driverClass ?? ownerClass, overload.name).find(candidate => functionArity(candidate) === overload.arity) ??
+        ast.overloadsInHierarchy(ownerClass, overload.name).find(candidate => functionArity(candidate) === overload.arity)
+      : ast.findDispatchedFunction(driverClass, ownerClass, method);
     if (!fn) continue;
     addHandler(handlers, fn, constants, driverClass,
-      ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '');
-    queue.push(...calledSourceMethods(fn.body).map(name => `${fn.className}.${name}`));
+      ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '',
+      ast.ast.units.flatMap(unit => unit.classes.map(declaration => declaration.name)),
+      ast, overload ? method : fn.name);
+    // An overloaded callee is every one of its overloads, each its own handler.
+    queue.push(...calledSourceMethods(fn.body).flatMap(name => {
+      const overloads = ast.overloadsInHierarchy(fn.className, name);
+      return overloads.length
+        ? overloads.map(candidate => `${fn.className}.${overloadedName(name, functionArity(candidate))}`)
+        : [`${fn.className}.${name}`];
+    }));
   }
 }
 
@@ -4101,7 +4033,12 @@ function arrayState(
 }
 
 function calledSourceMethods(body: string): string[] {
-  return [...body.matchAll(/\b([A-Za-z_]\w*)\s*\(/g)].map(match => match[1]!);
+  return [
+    ...[...body.matchAll(/\b([A-Za-z_]\w*)\s*\(/g)].map(match => match[1]!),
+    // Named as a value through a member-function pointer (`&cls::method`),
+    // and called through it.
+    ...[...body.matchAll(/&\s*\w+\s*::\s*(\w+)\b(?!\s*\()/g)].map(match => match[1]!),
+  ];
 }
 
 function splitHandlerKey(key: string): [string, string] {

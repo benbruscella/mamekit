@@ -1145,60 +1145,6 @@ export interface GeneratedSpriteParameter {
   mask: number;
 }
 
-/**
- * MAME `atari_motion_objects_device` configured by one driver.
- *
- * The device is generic and the configuration is the hardware description, so
- * everything here is lowered from the driver's `atari_motion_objects_config`
- * aggregate and from `atarimo.h`'s own derivations of it.
- */
-export interface GeneratedMotionObjectsPlan {
-  /** Device tag. */
-  tag: string;
-  /** Index into the machine's gfx sets. */
-  gfxIndex: number;
-  bankCount: number;
-  /** Entries chain through the link field rather than running in order. */
-  linked: boolean;
-  /** The four words of an entry are strided across sprite RAM, not adjacent. */
-  split: boolean;
-  reverse: boolean;
-  swapXy: boolean;
-  nextNeighbor: boolean;
-  /** Pixels per SLIP entry; zero for a board with no SLIP RAM. */
-  slipHeight: number;
-  slipShift: number;
-  slipOffset: number;
-  maxPerLine: number;
-  paletteBase: number;
-  transparentPen: number;
-  specialValue: number;
-  /** Derived in device_start from the link/xpos/ypos masks. */
-  entryCount: number;
-  entryBits: number;
-  bitmapWidth: number;
-  bitmapHeight: number;
-  /** Memory shares holding sprite RAM and, when present, SLIP RAM. */
-  spriteShare: string;
-  slipShare?: string;
-  /** Whole-table XOR the driver's video_start applies to the code lookup. */
-  codeXor?: number;
-  link: GeneratedSpriteParameter;
-  code: GeneratedSpriteParameter;
-  color: GeneratedSpriteParameter;
-  xpos: GeneratedSpriteParameter;
-  ypos: GeneratedSpriteParameter;
-  width: GeneratedSpriteParameter;
-  height: GeneratedSpriteParameter;
-  hflip: GeneratedSpriteParameter;
-  vflip: GeneratedSpriteParameter;
-  priority: GeneratedSpriteParameter;
-  neighbor: GeneratedSpriteParameter;
-  absolute: GeneratedSpriteParameter;
-  special: GeneratedSpriteParameter;
-  source?: BoardSourceRef;
-}
-
 export interface GeneratedVideoPlan {
   /**
    * Rendering cadence required by the lowered video implementation. This is
@@ -1231,8 +1177,6 @@ export interface GeneratedVideoPlan {
    */
   paletteGroups?: { entries: number; shadows: boolean; highlights: boolean };
   tilemaps: GeneratedTilemapPlan[];
-  /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
-  motionObjects?: GeneratedMotionObjectsPlan;
   /** Layouts named by `std::make_unique<gfx_element>(...)`, by source name. */
   gfxLayouts?: Record<string, GeneratedGfxLayout>;
   initialState: Record<string, unknown>;
