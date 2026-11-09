@@ -17,12 +17,6 @@ import { DEVICE_ID, DEVICE_MAME_TYPES, DEVICE_PORTS } from './device/definition.
 import { extractDevices } from './device/extract.ts';
 import { extractCpus } from './cpu/extract.ts';
 import {
-  AY8910_ID,
-  AY8910_MAME_TYPES,
-  AY8910_PORTS,
-} from './ay8910/definition.ts';
-import { extractAy8910 } from './ay8910/extract.ts';
-import {
   NAMCO_WSG_ID,
   NAMCO_WSG_MAME_TYPES,
   NAMCO_WSG_PORTS,
@@ -78,12 +72,6 @@ import {
   POKEY_PORTS,
 } from './pokey/definition.ts';
 import { extractPokey } from './pokey/extract.ts';
-import {
-  DAC_ID,
-  DAC_MAME_TYPES,
-  DAC_PORTS,
-} from './dac/definition.ts';
-import { extractDac } from './dac/extract.ts';
 import {
   PHOENIX_SOUND_ID,
   PHOENIX_SOUND_MAME_TYPES,
@@ -176,24 +164,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: NAMCO_WSG_PORTS,
     extract: extractNamcoWsg,
   },
-  {
-    id: AY8910_ID,
-    mameTypes: AY8910_MAME_TYPES,
-    ports: AY8910_PORTS,
-    extract: extractAy8910,
-  },
   { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices },
   {
     id: POKEY_ID,
     mameTypes: POKEY_MAME_TYPES,
     ports: POKEY_PORTS,
     extract: extractPokey,
-  },
-  {
-    id: DAC_ID,
-    mameTypes: DAC_MAME_TYPES,
-    ports: DAC_PORTS,
-    extract: extractDac,
   },
   {
     id: PHOENIX_SOUND_ID,

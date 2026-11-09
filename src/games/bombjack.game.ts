@@ -10,7 +10,7 @@ export const bombjack = sourceTarget({
   driver: 'src/mame/tecmo/bombjack.cpp',
   machine: { className: 'bombjack_state', name: 'bombjack' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 2400,
   minimumFps: 30,
   checkpoints: [1, 300, 1200, 1500, 1800, 2100, 2400],

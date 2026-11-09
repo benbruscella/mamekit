@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileNetlist } from './netlist-compiler.ts';
-import { GeneratedNetlistSolver } from './netlist-solver.ts';
+import { GeneratedNetlistSolver } from '../hardware/speaker/netlist-solver.ts';
 
 const mameSrc = process.env.MAME_SRC ?? '../mame';
 

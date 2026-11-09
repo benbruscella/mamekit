@@ -57,7 +57,7 @@ const HOST_BOUNDARIES = {
       Setup: "reads MAME's netlist setup language into a device list, as nlparse_t does; " +
         'it runs nothing',
     },
-    'mame/netlist-solver.ts': {
+    'hardware/speaker/netlist-solver.ts': {
       GeneratedNetlistDiode: "MAME's generic_diode, which the solver's diode and BJT " +
         'elements share; every parameter comes from the netlist\'s own model',
       GeneratedNetlistGroup: 'one sparse LU over whatever nodes a netlist gives it',
@@ -92,16 +92,10 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'BerzerkProcessor', 'ExidyPit8253Core', 'ExidySoundCore', 'GeneratedBerzerkSoundCore',
     'GeneratedBerzerkSoundFrameRenderer', 'S14001aCore',
   ],
-  'hardware/dac/worklet-source.ts': [
-    'GeneratedBiquadFilter', 'GeneratedDacFrameRenderer', 'GeneratedDacMixer',
-    'GeneratedDacProcessor',
-  ],
   'hardware/nes/apu.ts': ['Dmc', 'Envelope', 'NesApu', 'Noise', 'Pulse', 'Triangle'],
   'mame/audio-compiler.ts': [
-    'GeneratedAy8910Core', 'GeneratedAy8910FrameRenderer', 'GeneratedAy8910Mixer',
-    'GeneratedAy8910Processor', 'GeneratedDac8Core',
-    'GeneratedMsm5205Core', 'GeneratedNamcoWsgCore', 'GeneratedNamcoWsgFrameRenderer',
-    'GeneratedNamcoWsgProcessor', 'GeneratedPoleposEngineCore',
+    'GeneratedNamcoWsgCore', 'GeneratedNamcoWsgFrameRenderer', 'GeneratedNamcoWsgProcessor',
+    'GeneratedPoleposEngineCore',
   ],
   'mame/nes-apu-compiler.ts': ['NesProcessor', 'Resampler'],
 };

@@ -68,7 +68,7 @@ import {
 import { portHandlers } from './input.ts';
 import { installSoundRuntime } from '../hardware/sound-runtime-registry.ts';
 import type { SoundRuntimeHooks } from '../hardware/sound-runtime.ts';
-import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE, type GeneratedSampleWindow } from '../ir/audio-protocol.ts';
+import type { GeneratedSampleWindow } from '../ir/audio-protocol.ts';
 import type {
   Board,
   BoardConfig,
@@ -3406,15 +3406,6 @@ class IrBoard implements Board {
           event.state,
           this.state,
         )) return;
-        if (machine.sound?.auxiliaryDevices?.some(device =>
-          device.deviceTag === event.ownerTag)) {
-          sinks.soundWrite(
-            0,
-            event.state,
-            this.soundFraction(),
-            `${event.ownerTag}.vck`,
-          );
-        }
         dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
       },
       onLine: (line, phase, framebuffer) => {
@@ -5049,11 +5040,6 @@ class IrBoard implements Board {
     registry: HandlerRegistry,
     sinks: BoardSinks,
   ): void {
-    // Banks a sound device reads its samples through (its own address map):
-    // the device runs in the audio engine, so a switch travels as a write.
-    const sampleBanks = new Set((machine.sound?.auxiliaryDevices ?? [])
-      .flatMap(device => device.sampleMap ?? [])
-      .flatMap(window => window.bank ? [window.bank.tag] : []));
     // The driver's own banks no plan describes: configured only by its code
     // as it runs. Each holds the region and offset it points at, which is what
     // a save keeps of it.
@@ -5127,9 +5113,6 @@ class IrBoard implements Board {
           );
         }
         selection.entry = value;
-        if (sampleBanks.has(bank.tag)) {
-          sinks.soundWrite(0, value, this.soundFraction(), `bank.${bank.tag}`);
-        }
         return value;
       };
       this.bankEntry.set(bank.tag, setEntry);

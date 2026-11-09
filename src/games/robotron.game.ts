@@ -5,7 +5,7 @@ export const robotron = sourceTarget({
   driver: 'src/mame/williams/williams.cpp',
   machine: { className: 'williams_state', name: 'williams_b1' },
   screen: { width: 292, height: 240 },
-  soundKind: 'dac',
+  soundKind: 'stream',
   minimumAudioRms: 0.05,
   audioRequirements: [{
     method: 'dac.data_w',

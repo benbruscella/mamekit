@@ -16,6 +16,7 @@ import type {
   GeneratedSampleWindow,
 } from './audio-protocol.ts';
 import type { GeneratedVideoExecution } from './video-execution.ts';
+import type { GeneratedNetlistPlanData } from './netlist-plan.ts';
 
 export interface BoardSourceRef {
   file: string;
@@ -1168,6 +1169,12 @@ export interface GeneratedSoundBinding {
   netlistLogicInputs?: { deviceTag: string; param: string; shift: number; members: string[] }[];
   /** The bound finders a handler can test on a netlist board. */
   netlistFinders?: string[];
+  /**
+   * The board's NETLIST_SOUND, compiled from its netlist and run in the
+   * stream mix: the streams routed to `netlistTag` are its stream inputs.
+   */
+  netlist?: GeneratedNetlistPlanData;
+  netlistTag?: string;
   auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
   /** RP2A03 internal APU plan, present only for the NES sound capability. */
   nesApu?: GeneratedNesApuPlan;

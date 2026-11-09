@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { lowerAuxiliaryAudioDevices } from '../gen/emit-machine.ts';
+import { lowerAudioRoutes } from '../gen/emit-machine.ts';
+import { STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   compileMameMcs48,
@@ -45,15 +46,13 @@ assert.equal(bank?.props.offset, 0x10000);
 assert.equal(bank?.props.stride, 0x1000);
 assert.equal(bank?.props.sourceFile, 'src/mame/konami/junofrst.cpp');
 
-assert.deepEqual(lowerAuxiliaryAudioDevices(graph, devices), [{
-  type: 'DAC_8BIT_R2R',
-  deviceTag: 'dac',
-  dac: { bits: 8, mapper: 'unsigned', gain: 1 },
-  clock: 0,
-  gain: 0.25,
-  target: 'speaker',
-  writeMethods: ['data_w', 'write'],
-}]);
+// The DAC and the AY's three RC stages are their MAME classes, each a stream
+// at its route's gain: the DAC straight to the speaker, the AY into its filters.
+assert.ok(STREAM_SOUND_TYPES.includes('DAC_8BIT_R2R') && STREAM_SOUND_TYPES.includes('FILTER_RC'));
+const dac = graph.nodes.find(node => node.label === 'Device' && node.props.type === 'DAC_8BIT_R2R')!;
+assert.deepEqual(lowerAudioRoutes(graph, [{ id: dac.id, tag: 'dac' }]).map(route => [route.target, route.gain]), [['speaker', 0.25]]);
+assert.deepEqual(graph.nodes.filter(node => node.label === 'Device' && node.props.type === 'FILTER_RC').map(node => node.props.tag),
+  ['filter.0.0', 'filter.0.1', 'filter.0.2']);
 
 const mcs48 = compileMameMcs48(mameSrc);
 assert.equal(mcs48.type, 'I8039');

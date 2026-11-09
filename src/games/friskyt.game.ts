@@ -5,7 +5,7 @@ export const friskyt = sourceTarget({
   driver: 'src/mame/nichibutsu/seicross.cpp',
   machine: { className: 'seicross_state', name: 'nvram' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1800,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200, 1500, 1800],

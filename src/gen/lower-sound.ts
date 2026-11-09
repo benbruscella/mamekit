@@ -2,10 +2,10 @@
 
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 
-import { lowerAudioRoutes, lowerAuxiliaryAudioDevices, lowerBiquadFilterChain, lowerDacChips, monoRoutes } from './emit-machine.ts';
+import { lowerAudioRoutes, lowerAuxiliaryAudioDevices, monoRoutes } from './emit-machine.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
 
-import { ayChipOutput, compileMameSpeakerFilter } from '../mame/audio-compiler.ts';
+import { compileMameSpeakerFilter } from '../mame/audio-compiler.ts';
 
 import { compileNesApu } from '../mame/nes-apu-compiler.ts';
 
@@ -17,7 +17,6 @@ import type { GenerateOptions } from './generate.ts';
 
 import { Graph } from '../kg/query.ts';
 import { configuredDeviceMember } from './machine-source.ts';
-import { lowerNetlistSound } from './lower-netlist.ts';
 
 export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph: KnowledgeGraph, opts: GenerateOptions, g: Graph, romset: KGNode, cpus: readonly { tag: string; clock: number }[]) {
   // --- clocks + sound -------------------------------------------------------------
@@ -29,17 +28,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const streamed = streamRoutedDevices(graph);
   const worklet = (device: KGNode) => !streamed.has(device.id);
   // sound device -> runtime SoundCore kind (device-library mapping, not game-specific)
-  const ayChips = devices.filter(d => worklet(d) &&
-    ['AY8910', 'AY8912', 'YM2149'].includes(String(d.props.type)));
-  const ayRoutes = lowerAudioRoutes(
-    graph,
-    ayChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
-  );
-  // Each chip's flags and pin loads pick the table it streams.
-  const ayChipOutputs = ayChips.map(chip => ayChipOutput(
-    opts.mameSrc,
-    Array.isArray(chip.props.config) ? chip.props.config.map(String) : [],
-  ));
   const auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
     graph,
     devices.filter(worklet).map(device => ({
@@ -52,10 +40,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
       ...(typeof device.props.clock === 'number' ? { clock: device.props.clock } : {}),
     })),
   );
-  const dacChips = devices.filter(d => worklet(d) &&
-    ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
-      'NETLIST_INT_INPUT']
-      .includes(String(d.props.type)));
   const berzerkSound = devices.find(d =>
     d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
   // The Atari TIA's sound half. It is the only chip on the board, so it owns
@@ -80,53 +64,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
           : {}),
         ...(auxiliaryAudioDevices.length ? { auxiliaryDevices: auxiliaryAudioDevices } : {}),
       }
-    : ayChips.length
-        ? {
-            kind: 'ay8910',
-            clock: Number(ayChips[0].props.clock),
-            chips: ayChips.length,
-            deviceTags: ayChips.map(chip => String(chip.props.tag)),
-            chipOutputs: ayChipOutputs,
-            ...(ayRoutes.length ? { routes: ayRoutes } : {}),
-            ...(auxiliaryAudioDevices.length
-              ? { auxiliaryDevices: auxiliaryAudioDevices }
-              : {}),
-          }
-        : dacChips.length && !(devices.some(device => device.props.type === 'SAMPLES') && dacChips.every(device =>
-              device.props.type === 'DAC_1BIT'))
-            ? {
-                kind: 'dac',
-                clock: cpus.find(cpu => /sound|audio/.test(cpu.tag))?.clock ?? cpus[0].clock,
-                chips: dacChips.length,
-                // Resolution and coding are per-chip MAME facts; the worklet
-                // resolves them from its lowered DAC_GENERATOR table.
-                deviceTypes: dacChips.map(device => String(device.props.type)),
-                dacs: lowerDacChips(opts.mameSrc, dacChips.map(device => ({
-                  tag: String(device.props.tag),
-                  type: String(device.props.type),
-                  config: Array.isArray(device.props.config)
-                    ? device.props.config.map(String)
-                    : [],
-                }))),
-                // MAME's op-amp stages between the DAC and the board output.
-                ...(lowerBiquadFilterChain(graph, dacChips.map(device => ({
-                  id: device.id, tag: String(device.props.tag),
-                }))).length
-                  ? {
-                      filterChain: lowerBiquadFilterChain(graph, dacChips.map(device => ({
-                        id: device.id, tag: String(device.props.tag),
-                      }))),
-                    }
-                  : {}),
-                routes: lowerAudioRoutes(
-                  graph,
-                  dacChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
-                ),
-                ...(auxiliaryAudioDevices.length
-                  ? { auxiliaryDevices: auxiliaryAudioDevices }
-                  : {}),
-              }
-        : berzerkSound
+    : berzerkSound
           ? {
               kind: berzerkSound.props.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
               deviceType: String(berzerkSound.props.type),
@@ -193,15 +131,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   // mean: a route to one channel counts that share.
   const mixRoutes = (sound as { routes?: GeneratedAudioRoute[] }).routes;
   if (mixRoutes) Object.assign(sound, { routes: monoRoutes(graph, mixRoutes) });
-  if (sound.kind === 'ay8910') {
-    const netlistDevice = devices.find(device => device.props.type === 'NETLIST_SOUND');
-    const routeGain = netlistDevice
-      ? lowerAudioRoutes(graph, [{ id: netlistDevice.id, tag: String(netlistDevice.props.tag) }])[0]?.gain ?? 1
-      : 1;
-    const netlist = lowerNetlistSound(graph, devices, opts.mameSrc, routeGain);
-    if (netlist.error) throw new Error(`${opts.game ?? graph.meta.driverFile}: ${netlist.error}`);
-    if (netlist.plan) Object.assign(sound, { netlist: netlist.plan });
-  }
   if (sound.kind !== 'none') {
     Object.assign(sound, {
       speakerFilter: compileMameSpeakerFilter(opts.mameSrc),

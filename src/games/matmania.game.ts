@@ -5,7 +5,7 @@ export const matmania = sourceTarget({
   driver: 'src/mame/technos/matmania.cpp',
   machine: { className: 'matmania_state', name: 'matmania' },
   screen: { width: 256, height: 240 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   golden: {
     regions: {
       audiocpu: '8192d9e2',

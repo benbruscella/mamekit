@@ -3,9 +3,7 @@
 // Ships to the browser, so it imports only each package's runtime.ts — never
 // its extract.ts, which belongs to the compiler.
 
-import { installAy8910Runtime } from './ay8910/runtime.ts';
 import { installNesRuntime } from './nes/runtime.ts';
-import { installDacRuntime } from './dac/runtime.ts';
 import { installNamcoWsgRuntime } from './namco-wsg/runtime.ts';
 import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
 import { installA2600Runtime } from './a2600/runtime.ts';
@@ -25,9 +23,7 @@ import {
  */
 const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   wsg: installNamcoWsgRuntime,
-  ay8910: installAy8910Runtime,
   nes: installNesRuntime,
-  dac: installDacRuntime,
   berzerk: installBerzerkSoundRuntime,
   exidy: installBerzerkSoundRuntime,
   tia: installA2600Runtime,

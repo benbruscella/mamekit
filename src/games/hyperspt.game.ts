@@ -23,7 +23,7 @@ export const hyperspt = sourceTarget({
   driver: 'src/mame/konami/hyperspt.cpp',
   machine: { className: 'hyperspt_state', name: 'hyperspt' },
   screen: { width: 256, height: 224 },
-  soundKind: 'dac',
+  soundKind: 'stream',
   frames: 3600,
   minimumFps: 30,
   checkpoints: [1, 300, 1200, 1500, 2400, 3000, 3600],

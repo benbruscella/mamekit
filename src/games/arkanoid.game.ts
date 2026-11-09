@@ -5,7 +5,7 @@ export const arkanoid = sourceTarget({
   driver: 'src/mame/taito/arkanoid.cpp',
   machine: { className: 'arkanoid_state', name: 'arkanoid' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   // Arkanoid boots into its own HARDWARE CHECK: the Z80 streams all 0xc000
   // program bytes through the 68705 and waits for the MCU's reply, which takes
   // about ten seconds of emulated time. Nothing before frame ~600 is sampled,

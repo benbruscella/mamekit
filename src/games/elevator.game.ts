@@ -5,7 +5,7 @@ export const elevator = sourceTarget({
   driver: 'src/mame/taito/taitosj.cpp',
   machine: { className: 'taitosj_state', name: 'mcu' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 900,
   checkpoints: [1, 60, 120, 180, 240, 300, 360, 480, 600, 720, 830, 900],
   minimumFps: 30,

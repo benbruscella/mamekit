@@ -23,7 +23,7 @@ export const spyhunt = sourceTarget({
   driver: 'src/mame/bally/mcr3.cpp',
   machine: { className: 'mcrsc_csd_state', name: 'spyhunt' },
   screen: { width: 480, height: 480 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },
     { atFrame: 340, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },

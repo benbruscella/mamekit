@@ -5,7 +5,7 @@ export const rocnrope = sourceTarget({
   driver: 'src/mame/konami/rocnrope.cpp',
   machine: { className: 'rocnrope_state', name: 'rocnrope' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 45,
   checkpoints: [1, 60, 300, 540, 720, 1200],

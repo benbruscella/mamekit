@@ -5,7 +5,7 @@ export const _1942 = sourceTarget({
   driver: 'src/mame/capcom/1942.cpp',
   machine: { className: '_1942_state', name: '_1942' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1200,
   // MAME's 1942 sprite renderer is per-scanline: 224 scanlines x 24 sprite
   // entries, so this board executes far more handler IR per frame than any

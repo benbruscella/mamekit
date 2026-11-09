@@ -5,7 +5,7 @@ export const junglek = sourceTarget({
   driver: 'src/mame/taito/taitosj.cpp',
   machine: { className: 'taitosj_state', name: 'nomcu' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   shareRequirements: [{ share: 'collision_reg', minimumNonzeroBytes: 1 }],
   frames: 900,
   minimumFps: 40,

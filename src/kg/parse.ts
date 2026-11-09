@@ -1680,6 +1680,21 @@ function regionPointer(
 export function parseMemberTags(src: string, strings = parseTextMacros(src).strings): Record<string, string> {
   const out: Record<string, string> = {};
   const counts = arrayFinderCounts(src);
+  // Finder arrays built in braces, one per outer element:
+  // `m_filter{{*this, "filter.0.%u", 0U}, {*this, "filter.1.%u", 0U}}`.
+  for (const braced of src.matchAll(/\bm_(\w+)\s*\{((?:\s*\{\s*\*this\s*,[^{}]*\}\s*,?)+)\s*\}/g)) {
+    const member = `m_${braced[1]}`;
+    const count = counts[member];
+    [...braced[2]!.matchAll(/\{\s*\*this\s*,\s*("[^"]+"|\w+)\s*(?:,\s*('?[\w']+'?)\s*)?\}/g)].forEach((inner, outer) => {
+      const format = inner[1]!.startsWith('"') ? unquote(inner[1]!) : strings[inner[1]!];
+      if (format === undefined) return;
+      if (inner[2] === undefined || !/%[-0-9.]*[a-z]/i.test(format) || !count) {
+        out[`${member}[${outer}]`] = format;
+        return;
+      }
+      for (let index = 0; index < count; index++) out[`${member}[${outer}][${index}]`] = formatFinderTag(format, inner[2]!, index);
+    });
+  }
   const re = /m_(\w+)\(\*this,\s*("[^"]+"|\w+)(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
@@ -1760,7 +1775,9 @@ function gfxDecodeTableNames(src: string): Set<string> {
 
 function arrayFinderCounts(src: string): Record<string, number> {
   const counts: Record<string, number> = {};
-  const re = /\b(?:required|optional)_\w*array\s*<([^<>]*)>\s+(m_\w+)\s*;/g;
+  // An array of finder arrays counts its inner dimension: timeplt_a.h's
+  // `required_device_array<filter_rc_device, 3> m_filter[2];`.
+  const re = /\b(?:required|optional)_\w*array\s*<([^<>]*)>\s+(m_\w+)\s*(?:\[\s*\d+\s*\])?\s*;/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const args = splitArgs(m[1]!);
@@ -1974,6 +1991,21 @@ export function parseMachineConfigs(
       const count = Number(loop[2]);
       for (let index = 0; index < count; index++) {
         statements.push(`${loop[3]}(config, ${loop[4]}[${index}])`);
+      }
+    }
+    // And over a finder array by reference, each element configured alike:
+    // timeplt_a.cpp's `for (required_device<filter_rc_device> &filter :
+    // m_filter[0]) FILTER_RC(config, filter).add_route(ALL_OUTPUTS, "mono", 1.0);`.
+    // The elements are the finder tags the array's constructor names.
+    for (const loop of stripComments(body).matchAll(
+      /for\s*\(\s*(?:(?:required|optional)_device\s*<[^<>]*>|auto)\s*&\s*(\w+)\s*:\s*(m_\w+(?:\s*\[\s*\d+\s*\])?)\s*\)\s*([^;{}]+;)/g,
+    )) {
+      const array = loop[2]!.replace(/\s+/g, '');
+      const elements = Object.keys(memberTags)
+        .map(key => key.replace(/^\w+::/, ''))
+        .filter(key => key.startsWith(`${array}[`) && /^\[\d+\]$/.test(key.slice(array.length)));
+      for (const element of [...new Set(elements)].sort((a, b) => Number(/\d+(?=\]$)/.exec(a)![0]) - Number(/\d+(?=\]$)/.exec(b)![0]))) {
+        statements.push(...splitStatements(loop[3]!.replace(new RegExp(`\\b${loop[1]}\\b`, 'g'), element)).flatMap(child => expandHelper(child)));
       }
     }
     for (const stmt of statements) {

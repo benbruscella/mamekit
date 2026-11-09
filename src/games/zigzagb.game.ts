@@ -5,7 +5,7 @@ export const zigzagb = sourceTarget({
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'zigzagb_state', name: 'zigzag' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 900,
   minimumFps: 60,
   checkpoints: [1, 60, 180, 300, 480, 600, 900],

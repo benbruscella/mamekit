@@ -5,7 +5,7 @@ export const frogger = sourceTarget({
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'galaxian_state', name: 'frogger' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 900,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 480, 600, 900],

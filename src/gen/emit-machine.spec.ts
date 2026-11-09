@@ -5,7 +5,6 @@ import {
   generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
-  lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
   resolveInputPortTag,
 } from './emit-machine.ts';
@@ -393,52 +392,6 @@ const allYmOutputs = lowerAudioRoutes(
 // speaker does: one route over all of them, at the route's gain.
 if (allYmOutputs.length !== 1 || allYmOutputs[0]!.channel !== -1 || allYmOutputs[0]!.gain !== 0.15) {
   throw new Error('YM2203 ALL_OUTPUTS did not lower to one route over every stream output');
-}
-
-const defaultClockDacGraph: KnowledgeGraph = {
-  meta: graph.meta,
-  nodes: [{
-    id: 'device:dac',
-    label: 'Device',
-    props: {
-      type: 'DAC_8BIT_R2R',
-      tag: 'dac',
-      config: ['DAC_8BIT_R2R(config, m_dac)'],
-    },
-  }, {
-    id: 'route:dac',
-    label: 'AudioRoute',
-    props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.15 },
-  }, {
-    id: 'device:dacvol',
-    label: 'Device',
-    props: { type: 'DISCRETE', tag: 'dacvol' },
-  }, {
-    id: 'route:dacvol',
-    label: 'AudioRoute',
-    props: { output: '0', target: 'dac', input: 0, gain: 1 },
-  }],
-  edges: [
-    { from: 'device:dac', to: 'route:dac', rel: 'HAS_AUDIO_ROUTE' },
-    { from: 'device:dacvol', to: 'route:dacvol', rel: 'HAS_AUDIO_ROUTE' },
-  ],
-};
-const defaultClockDac = lowerAuxiliaryAudioDevices(defaultClockDacGraph, [{
-  id: 'device:dac',
-  tag: 'dac',
-  type: 'DAC_8BIT_R2R',
-  member: 'm_dac',
-}, {
-  id: 'device:dacvol',
-  tag: 'dacvol',
-  type: 'DISCRETE',
-  member: 'm_dacvol',
-}]);
-if (
-  defaultClockDac[0]?.clock !== 0 ||
-  defaultClockDac[0]?.member !== 'm_dac'
-) {
-  throw new Error('clockless passive R2R DACs must lower as routed auxiliary streams');
 }
 
 const filterHandlers = [

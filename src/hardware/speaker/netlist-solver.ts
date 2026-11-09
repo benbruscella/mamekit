@@ -1,7 +1,9 @@
-// MAME's netlist solver in the form the worklets run it: one sparse LU per
-// group, each group on its own clock as MAME's matrix solvers are, backward
-// Euler, and Newton-Raphson only for the groups a diode or BJT is in. This file is read and emitted into the generated
-// worklet (src/mame/netlist-compiler.ts), so it imports nothing.
+// MAME's netlist solver as the stream mix runs it: one sparse LU per group,
+// each group on its own clock as MAME's matrix solvers are, backward Euler,
+// and Newton-Raphson only for the groups a diode or BJT is in. It runs a
+// compiled plan (src/ir/netlist-plan.ts) and models no circuit of its own.
+
+import type { GeneratedNetlistElementData, GeneratedNetlistPlanData } from '../../ir/netlist-plan.ts';
 
 const NETLIST_T0_VT = 300 * 1.38064852e-23 / 1.6021765314e-19;
 const NETLIST_DIODE_MIN_CUTOFF = -5;
@@ -48,33 +50,6 @@ class GeneratedNetlistDiode {
       this.g = ise * this.vtInv + this.gmin;
     }
   }
-}
-
-type GeneratedNetlistElementData =
-  | { kind: 'r'; a: number; b: number; g: number }
-  | { kind: 'streamR'; a: number; b: number; g: number; input: number }
-  | { kind: 'c'; a: number; b: number; c: number }
-  | { kind: 'd'; a: number; k: number; is: number; n: number }
-  | { kind: 'q'; b: number; c: number; e: number; polarity: number; is: number; bf: number; nf: number; br: number; nr: number }
-  | { kind: 'vccs'; ip: number; in: number; op: number; on: number; g: number; ri: number; ro?: number }
-  | { kind: 'switch'; a: number; b: number; ctl: number; vdd: number; vss: number; baseR: number }
-  | { kind: 'logic'; output: number; vcc: number; gnd: number; param?: string; state: number; rLow: number; rHigh: number; vLow: number; vHigh: number }
-  | { kind: 'gate'; input: number; output: number; vdd: number; vss: number; state: number; ivl: number; ivh: number; rLow: number; rHigh: number; vLow: number; vHigh: number };
-
-interface GeneratedNetlistPlanData {
-  nodes: number;
-  rails: { node: number; volts: number }[];
-  groups: number[][];
-  elements: GeneratedNetlistElementData[];
-  frontiers: { from: number; to: number }[];
-  gmin: number;
-  reltol: number;
-  vntol: number;
-  nrLoops: number;
-  frequency?: number;
-  inputs: { channel: number; kind: 'resistor' | 'volts'; element?: number; node?: number; mult: number; offset: number }[];
-  logicInputs: string[];
-  output: { node: number; mult: number; offset: number };
 }
 
 /** matrix_solver_params_t's MIN_TS_TS: a changed input is solved this long after it lands. */

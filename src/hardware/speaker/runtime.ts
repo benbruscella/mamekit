@@ -1,6 +1,7 @@
 import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks, type SoundStreamSurface } from '../sound-runtime.ts';
 import { STREAM_AUDIO_RATE, streamRouteGains } from './definition.ts';
 import { LOFI_INTERPOLATION } from './lofi-interpolation.ts';
+import { GeneratedNetlistSolver } from './netlist-solver.ts';
 
 /**
  * How many samples the mix waits for between the board's frame ends. A
@@ -137,13 +138,30 @@ function resampleChannel(channel: StreamChannel, start: number, count: number, g
  * `sound_stream_update`, and `emit` receives the routed sum one sample at a
  * time.
  */
+/**
+ * A compiled NETLIST_SOUND in the mix: the streams routed into its
+ * NETLIST_STREAM_INPUTs feed it, sample by sample at their own rates, and it
+ * is read at the speaker's.
+ */
+export interface StreamNetlist {
+  solver: GeneratedNetlistSolver;
+  /** One route into the netlist: which feeder output (-1, all), which input, at what gain. */
+  feeds: readonly StreamInput[];
+}
+
 export function createStreamMixer(
   context: SoundRuntimeContext,
-  sources: readonly StreamSource[],
+  allSources: readonly StreamSource[],
   emit: (sample: number, frac: number) => void,
-): SoundRuntimeHooks {
+  netlist?: StreamNetlist,
+): SoundRuntimeHooks & { renderTo?: (seconds: number) => void } {
   if (!context.time || !context.bindDeviceCall) throw new Error('stream sound requires scheduler and stream services');
   const time = context.time;
+  // A device that feeds the netlist is rendered by the netlist alone, at its
+  // native rate: MAME never resamples what a NETLIST_STREAM_INPUT takes, and
+  // rendering it twice would run the chip twice.
+  const netlistFeeders = new Set(netlist?.feeds.map(feed => feed.tag) ?? []);
+  const sources = allSources.filter(source => !netlistFeeders.has(source.tag));
   const driver = context.board.execution.cpus[0]?.tag;
   // `outputGain` is the device's set_output_gain, over its routed gain.
   const streams = sources.map(source => ({
@@ -331,6 +349,71 @@ export function createStreamMixer(
     }
   };
   const now = () => Math.floor(time() * STREAM_AUDIO_RATE);
+  // The netlist: each feeder renders at its own rate through the same stream
+  // surface, every sample lands in the solver at its own time, earliest
+  // first across the feeders, and the netlist is read once a speaker sample.
+  const netlistNode = netlist ? {
+    pending: [] as number[],
+    rendered: 0,
+    feeders: [...netlistFeeders].map(tag => ({
+      tag,
+      routes: netlist.feeds.filter(feed => feed.tag === tag),
+      native: 0,
+      lanes: [] as Float64Array[],
+      start: 0,
+      next: 0,
+    })),
+  } : undefined;
+  const renderNetlist = (target: number): void => {
+    if (!netlistNode || !netlist) return;
+    while (netlistNode.rendered < target) {
+      const count = Math.min(MAX_SAMPLES_PER_UPDATE, target - netlistNode.rendered);
+      const end = (netlistNode.rendered + count) / STREAM_AUDIO_RATE;
+      for (const feeder of netlistNode.feeders) {
+        const rate = context.deviceStreamRate?.(feeder.tag) || STREAM_AUDIO_RATE;
+        const last = Math.floor(end * rate);
+        const due = Math.max(0, last - feeder.native);
+        const { lanes } = update(feeder.tag, due, rate, undefined, undefined, feeder.native);
+        feeder.lanes = lanes;
+        feeder.start = feeder.native;
+        feeder.next = feeder.native;
+        feeder.native = last;
+      }
+      for (let index = 0; index < count; index++) {
+        const at = (netlistNode.rendered + index + 1) / STREAM_AUDIO_RATE;
+        for (;;) {
+          let earliest: typeof netlistNode.feeders[number] | undefined;
+          let earliestTime = Infinity;
+          for (const feeder of netlistNode.feeders) {
+            if (feeder.next >= feeder.native) continue;
+            const rate = context.deviceStreamRate?.(feeder.tag) || STREAM_AUDIO_RATE;
+            const when = (feeder.next + 1) / rate;
+            if (when <= at && when < earliestTime) { earliest = feeder; earliestTime = when; }
+          }
+          if (!earliest) break;
+          const offset = earliest.next - earliest.start;
+          for (const route of earliest.routes) {
+            let value = 0;
+            if (route.output >= 0) value = earliest.lanes[route.output]?.[offset] ?? 0;
+            else for (const lane of earliest.lanes) value += lane?.[offset] ?? 0;
+            netlist.solver.set(route.input, value * route.gain, earliestTime);
+          }
+          earliest.next++;
+        }
+        netlistNode.pending.push(netlist.solver.read(at));
+      }
+      netlistNode.rendered += count;
+    }
+  };
+  // A save takes the netlist's node voltages and its feeders' positions too.
+  if (netlistNode && netlist) Object.assign(state, { netlist: netlistNode, solver: netlist.solver });
+  for (const feeder of netlistNode?.feeders ?? []) {
+    // A feeder updates its stream before every write (an AY's register), as
+    // MAME's does: the netlist catches up to now first.
+    context.bindDeviceCall(feeder.tag, 'stream.update', () => { renderNetlist(now()); return 0; });
+    context.bindDeviceCall(feeder.tag, 'stream.end_time', () => (netlistNode?.rendered ?? 0) / STREAM_AUDIO_RATE);
+    context.bindDeviceCall(feeder.tag, 'stream.sample_rate', () => context.deviceStreamRate?.(feeder.tag) || STREAM_AUDIO_RATE);
+  }
   for (const stream of streams) {
     const streamIndex = (surface: unknown) => surfaces(stream.tag).indexOf(surface as SoundStreamSurface);
     context.bindDeviceCall(stream.tag, 'stream.update', (surface?: unknown) => {
@@ -405,6 +488,7 @@ export function createStreamMixer(
     const target = reached();
     if (target <= state.emitted) return;
     for (const stream of streams) render(stream, target);
+    if (netlistNode) renderNetlist(target);
     const frac = context.fraction();
     const muted = context.systemMuted?.() ?? false;
     for (const stream of observed) {
@@ -415,9 +499,11 @@ export function createStreamMixer(
     for (let index = 0; index < target - state.emitted; index++) {
       let sum = 0;
       for (const stream of streams) sum += stream.pending[index] ?? 0;
+      if (netlistNode) sum += netlistNode.pending[index] ?? 0;
       emit(muted ? 0 : sum, frac);
     }
     for (const stream of streams) stream.pending.splice(0, target - state.emitted);
+    netlistNode?.pending.splice(0, target - state.emitted);
     state.emitted = target;
     // A feeder's samples are read again only by readers that have not passed them.
     for (const stream of streams) {
@@ -433,6 +519,14 @@ export function createStreamMixer(
     state,
     reset: () => {
       state.emitted = 0;
+      if (netlistNode) {
+        netlistNode.pending.length = 0;
+        netlistNode.rendered = 0;
+        for (const feeder of netlistNode.feeders) {
+          feeder.native = feeder.start = feeder.next = 0;
+          feeder.lanes = [];
+        }
+      }
       for (const stream of streams) {
         stream.outputGain = 1;
         stream.rendered = 0;
@@ -446,22 +540,63 @@ export function createStreamMixer(
     },
     tickCpu: cpu => { if (cpu === driver && reached() - state.emitted >= MIX_BATCH) mix(); },
     endFrame: mix,
+    renderTo: seconds => renderNetlist(Math.floor(seconds * STREAM_AUDIO_RATE)),
   };
 }
 
 /** Sound kind `stream`: the streams are the whole mix, played by the shared stream worklet. */
 export function installStreamAudioRuntime(context: SoundRuntimeContext): SoundRuntimeHooks {
-  const tags = soundTags(context.sound);
+  const { sound } = context;
+  const tags = soundTags(sound);
+  const netlistTag = sound.netlist ? sound.netlistTag : undefined;
   const sources = tags.map((tag, chip): StreamSource => {
     // A route into another of the streams (POKEY into Battlezone's DISCRETE)
-    // is that device's input, not the speaker's.
-    const routes = (context.sound.routes ?? []).filter(route => route.chip === chip && !tags.includes(route.target));
-    const inputs = (context.sound.routes ?? []).filter(route => route.target === tag && tags[route.chip] !== undefined)
+    // is that device's input, not the speaker's; one into the netlist is the
+    // netlist's.
+    const routes = (sound.routes ?? []).filter(route => route.chip === chip && !tags.includes(route.target) && route.target !== netlistTag);
+    const inputs = (sound.routes ?? []).filter(route => route.target === tag && tags[route.chip] !== undefined)
       .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain }));
     const source = routes.length
       ? { tag, ...streamRouteGains(routes) }
-      : { tag, gain: context.sound.routes?.some(route => route.chip === chip) ? 0 : 1 };
+      : { tag, gain: sound.routes?.some(route => route.chip === chip) ? 0 : 1 };
     return inputs.length ? { ...source, inputs } : source;
   });
-  return createStreamMixer(context, sources, (sample, frac) => context.soundWrite(0, sample, frac, 'stream.pcm'));
+  // A slot card's own chips (an NES cartridge's VRC6), at their routes' gains.
+  for (const descendant of context.streamDescendants?.() ?? []) {
+    if (!sources.some(source => source.tag === descendant.tag)) sources.push({ tag: descendant.tag, gain: descendant.gain });
+  }
+  const netlist = sound.netlist && netlistTag ? {
+    solver: new GeneratedNetlistSolver(sound.netlist, STREAM_AUDIO_RATE),
+    feeds: (sound.routes ?? []).filter(route => route.target === netlistTag && tags[route.chip] !== undefined)
+      .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain })),
+  } : undefined;
+  const mixer = createStreamMixer(context, sources, (sample, frac) => context.soundWrite(0, sample, frac, 'stream.pcm'), netlist);
+  // The lines a driver writes into the netlist (`NETLIST_LOGIC_INPUT`), each
+  // landing once the netlist has caught up to the write's time. A finder is
+  // live once it is bound, which is what `if (m_audio_BD)` asks.
+  (sound.netlistLogicInputs ?? []).forEach((input, index) => {
+    const send = (value: number): number => {
+      const seconds = context.time?.() ?? 0;
+      mixer.renderTo?.(seconds);
+      netlist?.solver.writeLogic(index, value, seconds);
+      return 0;
+    };
+    const device = {
+      write: (data: number) => send((data >> input.shift) & 1),
+      write_line: (data: number) => send(data ? 1 : 0),
+    };
+    for (const alias of [input.deviceTag, ...input.members]) {
+      context.calls[`${alias}.write`] = device.write;
+      context.calls[`${alias}.write_line`] = device.write_line;
+      const element = /^(\w+)\[(\d+)\]$/.exec(alias);
+      if (element) ((context.state[element[1]!] ??= []) as unknown[])[Number(element[2])] = device;
+      else context.state[alias] = device;
+    }
+  });
+  for (const finder of sound.netlistFinders ?? []) {
+    const element = /^(\w+)\[(\d+)\]$/.exec(finder);
+    if (element) ((context.state[element[1]!] ??= []) as unknown[])[Number(element[2])] ??= 1;
+    else context.state[finder] ??= 1;
+  }
+  return mixer;
 }

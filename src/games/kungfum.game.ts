@@ -5,7 +5,7 @@ export const kungfum = sourceTarget({
   driver: 'src/mame/irem/m62.cpp',
   machine: { className: 'm62_state', name: 'kungfum' },
   screen: { width: 256, height: 256 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1800,
   minimumFps: 45,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],

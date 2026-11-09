@@ -24,6 +24,14 @@ export const SOUND_DEVICE_MAME_TYPES: readonly string[] = [
   // MAME's ymfm wrappers (ymopm.cpp, ymopn.cpp, ymopl.cpp) over 3rdparty/ymfm,
   // whose timers, IRQ and status the CPU reads back.
   'YM2151', 'YM2203', 'YM2610', 'YM3526', 'YM3812',
+  // ay8910.cpp: its resistor tables, flags and pin loads are its own.
+  'AY8910', 'AY8912', 'YM2149',
+  // dac.cpp's DAC_GENERATOR family: each DAC's resolution and coding is its class.
+  'DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
+  // The filters a board routes its chips through, each a stream device whose
+  // input is the chip's stream: flt_rc.cpp (Time Pilot's RC stages, set by the
+  // driver at run time) and flt_biquad.cpp (the Sounds Good op-amp stages).
+  'FILTER_RC', 'FILTER_BIQUAD',
 ];
 export const SOUND_DEVICE_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: "the chip's own handlers, through the bus or a device finder" },

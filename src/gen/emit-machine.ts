@@ -2,7 +2,7 @@ import { lowerVideoExecution } from '../mame/video-execution.ts';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
-import { lowerNetlistFinders, lowerNetlistLogicInputs } from './lower-netlist.ts';
+import { lowerNetlistFinders, lowerNetlistLogicInputs, lowerNetlistSound } from './lower-netlist.ts';
 import { evalExpr } from '../kg/parse.ts';
 import type {
   BoardIr,
@@ -105,10 +105,8 @@ import { indexMameHardware } from '../mame/hardware.ts';
 import { deviceTables, sourceFileAggregates } from '../mame/static-aggregate.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
-import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
 import { STREAM_SOUND_TYPES, streamRouteGains, streamRoutedDevices } from '../hardware/speaker/definition.ts';
-import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
 export function lowerGeneratedMachine(
   graph: KnowledgeGraph,
@@ -1010,11 +1008,6 @@ export function lowerGeneratedMachine(
   const nesCpu = nesApu && devices.find(device =>
     device.type === 'RP2A03' || device.type === 'RP2A03G');
   // A chip this machine renders as a compiled stream is not its worklet's.
-  const ayDevices = devices.filter(device => !device.stream &&
-    ['AY8910', 'AY8912', 'YM2149'].includes(device.type));
-  const dacDevices = devices.filter(device => !device.stream && [
-    'DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
-    'NETLIST_INT_INPUT'].includes(device.type));
   const berzerkSound = devices.find(device =>
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const tiaDevice = devices.find(device => device.type === 'TIA');
@@ -1043,19 +1036,28 @@ export function lowerGeneratedMachine(
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
   // A board whose chips render as streams is mixed as streams.
-  const generatedSoundboard = ayDevices.length || streamDevices.length
-    ? undefined
-    : devices.find(device =>
-        (device.type.endsWith('_AUDIO') || device.type.endsWith('_SOUND')) &&
-        mappedWriteKeys.some(key => key.startsWith(`${device.tag}.`)));
-  const audioRoutes = lowerAudioRoutes(graph, ayDevices);
-  const filterRank = inferredMemberIndexRank(handlers, 'm_filter');
   const auxiliaryDevices = lowerAuxiliaryAudioDevices(graph, devices.filter(device => !device.stream));
   const netlistLogicInputs = lowerNetlistLogicInputs(
     graph,
     reachableDevices.map(({ node }) => node),
     String(graph.meta.mameSrc),
   );
+  // The NETLIST_SOUND the streams feed, compiled from its netlist, with the
+  // lines its driver writes and the finders its handlers test. One that does
+  // not compile is left out (silent) rather than approximated.
+  const boardNetlist = () => {
+    const nodes = reachableDevices.map(({ node }) => node);
+    const netlistNode = nodes.find(node => node.props.type === 'NETLIST_SOUND');
+    if (!netlistNode) return {};
+    const routeGain = lowerAudioRoutes(graph, [{ id: netlistNode.id, tag: String(netlistNode.props.tag) }])[0]?.gain ?? 1;
+    const netlist = lowerNetlistSound(graph, nodes, String(graph.meta.mameSrc), routeGain);
+    if (netlist.error) console.warn(`${String(graph.meta.driverFile)}: netlist left out, silent: ${netlist.error}`);
+    return {
+      ...(netlist.plan ? { netlist: netlist.plan, netlistTag: String(netlistNode.props.tag) } : {}),
+      ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
+      ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
+    };
+  };
   const sound = nesCpu
     ? {
         kind: 'nes',
@@ -1087,47 +1089,6 @@ export function lowerGeneratedMachine(
         // beside it (the DISCRETE its 54xx drives) is relative to it.
         ...(lowerAudioRoutes(graph, [soundDevice]).length ? { routes: lowerAudioRoutes(graph, [soundDevice]) } : {}),
       }
-    : ayDevices.length
-      ? {
-          kind: 'ay8910',
-          deviceTag: ayDevices[0]!.tag,
-          deviceTags: ayDevices.map(device => device.tag),
-          deviceType: 'AY8910',
-          writeMethods: ['address_w', 'data_w'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(audioRoutes.length ? { routes: audioRoutes } : {}),
-          ...(audioRoutes.some(route => route.filter) && filterRank ? {
-            filterLayout: filterRank === 1 ? 'flat' as const : 'matrix' as const,
-          } : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-          ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
-          ...(netlistLogicInputs.length ? { netlistFinders: lowerNetlistFinders(graph, reachableDevices.map(({ node }) => node), String(graph.meta.mameSrc)) } : {}),
-        }
-    : dacDevices.length && !(devices.some(device => device.type === 'SAMPLES') && dacDevices.every(device =>
-        device.type === 'DAC_1BIT'))
-      ? {
-          kind: 'dac',
-          deviceTag: dacDevices[0]!.tag,
-          deviceTags: dacDevices.map(device => device.tag),
-          deviceType: dacDevices[0]!.type,
-          deviceTypes: dacDevices.map(device => device.type),
-          dacs: lowerDacChips(graph.meta.mameSrc, dacDevices.map(device => ({
-            tag: device.tag,
-            type: device.type,
-            config: deviceConfigLines(byId.get(device.id)?.props),
-          }))),
-          writeMethods: ['data_w', 'write'],
-          ...(lowerBiquadFilterChain(graph, dacDevices).length
-            ? { filterChain: lowerBiquadFilterChain(graph, dacDevices) }
-            : {}),
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, dacDevices).length
-            ? { routes: lowerAudioRoutes(graph, dacDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
     : berzerkSound
       ? {
           kind: berzerkSound.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
@@ -1139,21 +1100,6 @@ export function lowerGeneratedMachine(
           enableMethods: [],
           controlOffset: -1,
         }
-    : generatedSoundboard
-      ? (() => {
-          const writeMethods = [...new Set(maps.flatMap(map => map.ranges)
-            .map(range => range.write)
-            .filter((key): key is string => Boolean(key?.startsWith(`${generatedSoundboard.tag}.`)))
-            .map(key => key.slice(generatedSoundboard.tag.length + 1)))].sort();
-          return {
-            kind: generatedSoundboard.type.toLowerCase().replace(/_(?:audio|sound)$/, ''),
-            deviceTag: generatedSoundboard.tag,
-            deviceType: generatedSoundboard.type,
-            writeMethods,
-            enableMethods: [],
-            controlOffset: -1,
-          };
-        })()
         : sidDevice
           ? { kind: 'sid', deviceTag: sidDevice.tag, deviceType: sidDevice.type,
               writeMethods: [], enableMethods: [], controlOffset: -1,
@@ -1205,6 +1151,7 @@ export function lowerGeneratedMachine(
               enableMethods: [],
               controlOffset: -1,
               routes: monoRoutes(graph, scopedRoutes(streamDevices, lowerAudioRoutes(graph, streamDevices))),
+              ...boardNetlist(),
             }
         : undefined;
   // A speaker, cassette or POKEY routed beside a chip that owns the worklet.
@@ -1574,7 +1521,6 @@ export function lowerAudioRoutes(
   devices: { id: string; tag: string }[],
 ): GeneratedAudioRoute[] {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
-  const filters = new Map<string, number>();
   const routes: GeneratedAudioRoute[] = [];
   devices.forEach((device, chip) => {
     const sourceDevice = byId.get(device.id);
@@ -1612,24 +1558,6 @@ export function lowerAudioRoutes(
           : [0, 1, 2]
         : [singleOutput && Number(rawOutput) === 0 ? -1 : Number(rawOutput)];
       if (!Number.isFinite(gain)) continue;
-      const match = /^filter\.(\d+)\.(\d+)$/.exec(target);
-      let filter: GeneratedAudioRoute['filter'];
-      if (match) {
-        // The filter's own route is the rest of the way to the speaker.
-        const stage = graph.nodes.find(candidate => candidate.label === 'Device' && candidate.props.tag === target);
-        const onward = stage ? resolvedAudioRoute(graph, byId, stage.id) : undefined;
-        if (onward) gain *= onward.gain;
-        let index = filters.get(target);
-        if (index === undefined) {
-          index = filters.size;
-          filters.set(target, index);
-        }
-        filter = {
-          index,
-          bank: Number(match[1]),
-          channel: Number(match[2]),
-        };
-      }
       for (const channel of outputChannels) {
         if (!Number.isInteger(channel) || channel < -1) continue;
         routes.push({
@@ -1638,7 +1566,6 @@ export function lowerAudioRoutes(
           gain,
           target,
           ...(Number.isInteger(targetInput) ? { targetInput } : {}),
-          ...(filter ? { filter } : {}),
         });
       }
     }
@@ -1646,161 +1573,7 @@ export function lowerAudioRoutes(
   return routes;
 }
 
-/**
- * MAME's filter_biquad_device::opamp_mfb_lowpass_calc.
- *
- * The three op-amp stages between the MCR "Sounds Good" DAC and its speaker
- * are declared as resistor and capacitor values, not as a cutoff. Recovering
- * the cutoff means running MAME's own arithmetic over those components.
- */
-function opampMfbLowpassCalc(
-  components: readonly number[],
-): { type: GeneratedBiquadStage['type']; frequency: number; q: number; gain: number } | undefined {
-  const [r1, r2, r3, c1, c2] = components;
-  if (components.length !== 5) return undefined;
-  if (![r1, r2, r3, c1, c2].every(value => Number.isFinite(value))) return undefined;
-  // MAME fatalerrors on these: only c1 may be zero, and r2 with it.
-  if (r1 === 0 || (r2 === 0 && c1 !== 0) || r3 === 0 || c2 === 0) return undefined;
-  const gain = -r3! / r1!;
-  if (c1 === 0) {
-    return {
-      type: 'lowpass1p',
-      frequency: (r1! * r3!) /
-        (2 * Math.PI * ((r1! * r2!) + (r1! * r3!) + (r2! * r3!)) * r3! * c2!),
-      q: Math.SQRT2 / 2,
-      gain,
-    };
-  }
-  const root = Math.sqrt(r2! * r3! * c1! * c2!);
-  return {
-    type: 'lowpass',
-    frequency: 1 / (2 * Math.PI * root),
-    q: root / ((r3! * c2!) + (r2! * c2!) + ((r2! * c2!) * -gain)),
-    gain,
-  };
-}
-
-/**
- * Resolve every DAC on a board to the resolution, coding and gain MAME states
- * for it.
- *
- * A real DAC chip declares them in its DAC_GENERATOR line in dac.h. A netlist
- * integer input is not a DAC at all — its width is the mask its machine
- * configuration passes, `NETLIST_INT_INPUT(config, tag, "DAC.VAL", 0, 255)`.
- * Both are statements of fact in MAME source; neither may be inferred from the
- * values a game happens to write.
- */
-export function lowerDacChips(
-  mameSource: string,
-  devices: { tag: string; type: string; config?: readonly string[] }[],
-): GeneratedDacChip[] {
-  let table: DacGeneratorTable = {};
-  try {
-    table = dacGeneratorTable(mameSource);
-  } catch {
-    table = {};
-  }
-  return devices.flatMap(device => {
-    const generator = table[device.type];
-    if (generator) return [{ deviceTag: device.tag, ...generator }];
-    if (device.type !== 'NETLIST_INT_INPUT') return [];
-    // netlist_mame_int_input_device(param_name, shift, mask): the mask is the
-    // widest value the netlist parameter accepts.
-    const call = (device.config ?? [])
-      .map(line => /NETLIST_INT_INPUT\s*\([^,]+,[^,]+,[^,]+,\s*(\d+)\s*,\s*(\d+)\s*\)/.exec(line))
-      .find(match => match !== null);
-    const mask = call ? Number(call[2]) : Number.NaN;
-    if (!Number.isInteger(mask) || mask < 1) return [];
-    const bits = Math.floor(Math.log2(mask)) + 1;
-    return [{ deviceTag: device.tag, bits, mapper: 'unsigned', gain: 1 }];
-  });
-}
-
-/** The filter_biquad_device setup helpers this compiler can lower. */
-const BIQUAD_SETUPS: Record<string, (components: readonly number[]) => ReturnType<typeof opampMfbLowpassCalc>> = {
-  opamp_mfb_lowpass_setup: opampMfbLowpassCalc,
-};
-
-/** Split a C++ argument list on its top-level commas. */
-function splitArguments(source: string): string[] {
-  const args: string[] = [];
-  let depth = 0;
-  let current = '';
-  for (const character of source) {
-    if (character === '(') depth++;
-    if (character === ')') depth--;
-    if (character === ',' && depth === 0) {
-      args.push(current.trim());
-      current = '';
-      continue;
-    }
-    current += character;
-  }
-  if (current.trim()) args.push(current.trim());
-  return args;
-}
-
-function biquadStage(node: KGNode): GeneratedBiquadStage | undefined {
-  const config = Array.isArray(node.props.config) ? node.props.config.map(String) : [];
-  for (const line of config) {
-    const call = /\.(\w*_setup)\s*\(([\s\S]*)\)\s*$/.exec(line);
-    if (!call) continue;
-    const params = BIQUAD_SETUPS[call[1]!]?.(splitArguments(call[2]!).map(analogValue));
-    if (!params) return undefined;
-    return {
-      deviceTag: String(node.props.tag),
-      ...params,
-      source: {
-        file: String(node.props.sourceFile),
-        line: Number(node.props.sourceLine),
-      },
-    };
-  }
-  return undefined;
-}
-
-/**
- * Follow a sound device's add_route chain through the FILTER_BIQUAD stages
- * MAME puts between it and its board output, in source order.
- *
- * An unrecognised stage abandons the whole chain rather than emitting a
- * partial one: half of a three-pole filter is not a filter, and silently
- * shipping it would be worse than shipping none.
- */
-export function lowerBiquadFilterChain(
-  graph: KnowledgeGraph,
-  sources: { id: string; tag: string }[],
-): GeneratedBiquadStage[] {
-  const devices = graph.nodes.filter(node => node.label === 'Device');
-  const resolve = (reference: string): KGNode | undefined => devices.find(node =>
-    deviceMember(node.props) === reference ||
-    String(node.props.tag) === reference ||
-    String(node.props.tag).endsWith(`:${reference}`));
-  const stages: GeneratedBiquadStage[] = [];
-  const visited = new Set<string>();
-  let current = devices.find(node => node.id === sources[0]?.id);
-  while (current && !visited.has(current.id)) {
-    visited.add(current.id);
-    const config = Array.isArray(current.props.config) ? current.props.config.map(String) : [];
-    const route = config
-      .map(line => /add_route\s*\(\s*[^,]+,\s*([^,]+)\s*,/.exec(line))
-      .find(match => match !== null);
-    if (!route) break;
-    // "*this" leaves the device for its owner's mixer; a quoted tag is a speaker.
-    const next = resolve(route[1]!.trim());
-    if (!next || next.props.type !== 'FILTER_BIQUAD') break;
-    const stage = biquadStage(next);
-    if (!stage) return [];
-    stages.push(stage);
-    current = next;
-  }
-  return stages;
-}
-
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
-  DAC_4BIT_R2R: ['data_w', 'write'],
-  DAC_8BIT_R2R: ['data_w', 'write'],
-  AD7533: ['data_w', 'write'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
 };
 
@@ -1872,9 +1645,7 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'AD7533'].includes(device.type)
-        ? 0
-        : undefined;
+      : undefined;
     if (!writeMethods || clock === undefined) return [];
     const resolved = resolvedAudioRoute(graph, byId, device.id);
     if (!resolved) return [];
@@ -1889,11 +1660,6 @@ export function lowerAuxiliaryAudioDevices(
     const directSampleRegion = graph.nodes.find(node =>
       node.label === 'RomRegion' && node.props.tag === device.tag);
     const sampleRegion = directSampleRegion;
-    // A DAC mixed by another family's worklet still levels its codes from
-    // its own DAC_GENERATOR line in dac.h.
-    const [dac] = graph.meta.mameSrc
-      ? lowerDacChips(String(graph.meta.mameSrc), [{ tag: device.tag, type: device.type }])
-      : [];
     const sampleMap = sampleRegion
       ? lowerSampleMap(graph, device.id, String(sampleRegion.props.tag))
       : undefined;
@@ -1902,7 +1668,6 @@ export function lowerAuxiliaryAudioDevices(
       deviceTag: device.tag,
       ...(sampleMap?.length ? { sampleMap } : {}),
       ...(device.member ? { member: device.member } : {}),
-      ...(dac ? { dac: { bits: dac.bits, mapper: dac.mapper, gain: dac.gain } } : {}),
       clock,
       ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
       ...(initialMode ? { initialMode } : {}),

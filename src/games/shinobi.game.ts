@@ -11,7 +11,7 @@ export const shinobi = sourceTarget({
   driver: 'src/mame/sega/segas16a.cpp',
   machine: { className: 'segas16a_state', name: 'system16a' },
   screen: { width: 320, height: 224 },
-  soundKind: 'dac',
+  soundKind: 'stream',
   golden: {
     regions: {
       gfx1: '4c02aa74',

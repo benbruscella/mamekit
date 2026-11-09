@@ -5,7 +5,7 @@ export const tutankhm = sourceTarget({
   driver: 'src/mame/konami/tutankhm.cpp',
   machine: { className: 'tutankhm_state', name: 'tutankhm' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],
