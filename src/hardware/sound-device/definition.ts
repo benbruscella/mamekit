@@ -35,6 +35,11 @@ export const SOUND_DEVICE_MAME_TYPES: readonly string[] = [
   // namco.cpp's wavetable sound generators, which read their waveform PROM as
   // the region named after them, and Pole Position's engine sound (polepos_a.cpp).
   'NAMCO_WSG', 'POLEPOS_WSG', 'NAMCO_15XX', 'NAMCO_CUS30', 'POLEPOS_SOUND',
+  // Exidy's sound boards (exidysound.cpp: the 6840 effects and, on Venture's,
+  // the 8253 tones), whose RIOT, PIA, PIT and audio CPU the board holds;
+  // Berzerk's S14001A speech, whose BSY its CPU polls, and the volume stage
+  // after it.
+  'EXIDY', 'EXIDY_VENTURE', 'S14001A', 'FILTER_VOLUME',
 ];
 export const SOUND_DEVICE_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: "the chip's own handlers, through the bus or a device finder" },

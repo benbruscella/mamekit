@@ -14,7 +14,7 @@ import { validateGameContract } from './contract-validation.ts';
 
 const SOUND_KINDS = new Set<GameSoundKind>([
   'discrete',
-  'berzerk', 'exidy', 'stream', 'none',
+  'stream', 'none',
 ]);
 
 function mediaFor(

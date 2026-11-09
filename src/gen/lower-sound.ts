@@ -28,8 +28,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const streamed = streamRoutedDevices(graph);
   const worklet = (device: KGNode) => !streamed.has(device.id);
   // sound device -> runtime SoundCore kind (device-library mapping, not game-specific)
-  const berzerkSound = devices.find(d =>
-    d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
   // The Atari TIA's sound half. It is the only chip on the board, so it owns
   // the worklet; the DSP runs beside the CPU as a generated device because the
   // video half reaches it through a device finder (see the a2600 capability).
@@ -43,19 +41,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const rp2a03 = devices.find(d => String(d.props.type).startsWith('RP2A03'));
   const sound = rp2a03
     ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: 'nesapu' }
-    : berzerkSound
-          ? {
-              kind: berzerkSound.props.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
-              deviceType: String(berzerkSound.props.type),
-              clock: Number(berzerkSound.props.clock) ||
-                cpus.find(cpu => /sound|audio/.test(cpu.tag))?.clock ||
-                cpus[0].clock,
-              worklet: 'berzerk-sound',
-              ...(devices.some(device => device.props.type === 'S14001A')
-                ? { sampleRegion: 'speech' }
-                : {}),
-            }
-        : sidDevice
+    : sidDevice
           ? { kind: 'sid', clock: C64_AUDIO_RATE, deviceTag: String(sidDevice.props.tag) }
         : gameboyApu
           ? {

@@ -1046,8 +1046,6 @@ export function lowerGeneratedMachine(
     ? { ...device, id: nesApuCpuNode.id }
     : device;
   // A chip this machine renders as a compiled stream is not its worklet's.
-  const berzerkSound = devices.find(device =>
-    device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
   const tiaDevice = devices.find(device => device.type === 'TIA');
   // MAME's gameboy_sound_device renders through `sound_stream` like the TIA
   // does, but its registers ARE in the processor's map, so the writes already
@@ -1095,18 +1093,7 @@ export function lowerGeneratedMachine(
       ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
     };
   };
-  const sound = berzerkSound
-      ? {
-          kind: berzerkSound.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
-          deviceTag: berzerkSound.tag,
-          deviceType: berzerkSound.type,
-          writeMethods: berzerkSound.type === 'EXIDY_VENTURE'
-            ? ['sh8253_w', 'sh6840_w', 'sfxctrl_w']
-            : ['sh6840_w', 'sfxctrl_w'],
-          enableMethods: [],
-          controlOffset: -1,
-        }
-        : sidDevice
+  const sound = sidDevice
           ? { kind: 'sid', deviceTag: sidDevice.tag, deviceType: sidDevice.type,
               writeMethods: [], enableMethods: [], controlOffset: -1,
               routes: lowerAudioRoutes(graph, [sidDevice]) }

@@ -5,7 +5,7 @@ export const venture = sourceTarget({
   driver: 'src/mame/exidy/exidy.cpp',
   machine: { className: 'exidy_state', name: 'venture' },
   screen: { width: 256, height: 256 },
-  soundKind: 'exidy',
+  soundKind: 'stream',
   frames: 6200,
   checkpoints: [1, 60, 180, 300, 1200, 2400, 3000, 3600, 4200, 4800, 5400, 6000, 6200],
   actions: [

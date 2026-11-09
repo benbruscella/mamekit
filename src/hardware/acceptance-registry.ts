@@ -5,7 +5,6 @@
 // apart means the acceptance harness never pulls the compiler in.
 
 import type { AudioProbeFactory } from './audio-probe.ts';
-import { createBerzerkSoundProbe } from './berzerk-sound/acceptance.ts';
 import { createGameboyProbe } from './gameboy/acceptance.ts';
 import { createTiaProbe } from './a2600/acceptance.ts';
 import { createSidProbe } from './c64/acceptance.ts';
@@ -17,8 +16,6 @@ import { createStreamProbe } from './speaker/acceptance.ts';
  * audio contract.
  */
 export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
-  berzerk: createBerzerkSoundProbe,
-  exidy: createBerzerkSoundProbe,
   gameboy: createGameboyProbe,
   tia: createTiaProbe,
   sid: createSidProbe,

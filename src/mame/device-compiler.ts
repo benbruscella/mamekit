@@ -1785,6 +1785,37 @@ function compileMameDeviceSource(
         ...(tags ? { tags } : {}),
       });
     }
+    // A child added by its tag rather than its finder, which a finder array
+    // names by format: pit8253's `PIT_COUNTER(config, "counter0")` ...
+    // `"counter2"` are its `m_counter(*this, "counter%u", 0U)`. Each array
+    // is one child entry with the tags in order.
+    const byTag = new Map<string, { member: string; index: number; count: number }>();
+    for (const member of members) {
+      const tags = deviceArrayTags(member.valueType ?? '', constructorBindings[member.name] ?? [], constants);
+      tags?.forEach((tag, index) => byTag.set(tag, { member: member.name, index, count: tags.length }));
+    }
+    const tagged = new Map<string, { type: string; tags: string[] }>();
+    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*"([^"]+)"\s*\)/g)) {
+      const owner = byTag.get(match[2]!);
+      if (!owner || nested.has(match[1]!) || children.some(existing => existing.member === owner.member)) continue;
+      const entry = tagged.get(owner.member) ?? { type: match[1]!, tags: new Array<string>(owner.count) };
+      if (entry.type !== match[1]) continue;
+      entry.tags[owner.index] = match[2]!;
+      tagged.set(owner.member, entry);
+    }
+    for (const [member, { type: childType, tags }] of tagged) {
+      if (tags.some(tag => tag === undefined)) continue;
+      const childDefinition = known.get(childType);
+      if (!childDefinition) continue;
+      const child = compileMameDevice(mameSrc, childDefinition, childType, nested);
+      if (child.summary.diagnostics) {
+        omittedChildren.push({ member, type: childType, diagnostics: child.summary.diagnostics });
+        console.warn(`  ! ${type}: child ${childType} (${member}) left out, ${child.summary.diagnostics} compiler diagnostics`);
+        continue;
+      }
+      // No clock argument: the owner sets each one up in device_resolve_objects.
+      children.push({ member, type: childType, definition: child, clock: 0, tags });
+    }
     configureChildren(mconfig, children);
   }
   inlineReferenceCallees(methods);

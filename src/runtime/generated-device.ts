@@ -2220,6 +2220,9 @@ class IrDevice implements Device {
           // `nes_slot:vrc7:vrc7snd:internal`.
           deviceTag: `${this.ownTag}:${tag}`,
           slot: undefined,
+          // The owner's machine-config setters are the owner's: pit8253's
+          // `set_clk<N>` is not its counters'.
+          configure: undefined,
           // What device_add_mconfig set on this one (`m_channel[ch]->m_index = ch`).
           members: child.configured?.[index],
           ...(targets.length ? {
@@ -2276,6 +2279,10 @@ class IrDevice implements Device {
     if (definition.clockConstructor) this.invoke(definition.clockConstructor.method, 0, 0, 0, constructorArgument);
     options.configure?.(this);
     const start = (): void => {
+      // device_t::resolve_objects, which MAME runs once every device exists
+      // and before any starts: pit8253 sets each counter's index, clock and
+      // period there. Never run, Venture's PIT counted at no clock at all.
+      if (this.methods.has('device_resolve_objects')) this.call('device_resolve_objects');
       if (definition.start) this.call(definition.start);
       this.deviceStarted = true;
       // MAME mounts the images it was started with once every device has

@@ -408,5 +408,14 @@ assert.deepEqual(
   [1_789_772.5, 1_789_773.5, 1_789_774.5],
   'set_clk<N> sets channel N clock',
 );
+// Its three counters are the PIT_COUNTERs device_add_mconfig adds by tag
+// (`"counter0"`...), matched to `m_counter(*this, "counter%u", 0U)`, and
+// device_resolve_objects hands each its index and clock before the PIT starts.
+assert.deepEqual(generatedPit.children?.map(child => [child.member, child.type, child.tags]),
+  [['m_counter', 'PIT_COUNTER', ['counter0', 'counter1', 'counter2']]]);
+const counters = (pit.instance!() as { m_counter: { m_index: number; m_clockin: number }[] }).m_counter;
+assert.deepEqual(counters.map(counter => [counter.m_index, counter.m_clockin]),
+  [[0, 1_789_772.5], [1, 1_789_773.5], [2, 1_789_774.5]],
+  'each counter takes its index and clock in device_resolve_objects');
 
 console.log('device-compiler.spec: source-derived latch, ER2055, MB8844, TMS9928A and AY-3-8910 devices passed');

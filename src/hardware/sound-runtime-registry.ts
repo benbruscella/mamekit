@@ -3,7 +3,6 @@
 // Ships to the browser, so it imports only each package's runtime.ts — never
 // its extract.ts, which belongs to the compiler.
 
-import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
 import { installA2600Runtime } from './a2600/runtime.ts';
 import { installC64AudioRuntime } from './c64/runtime.ts';
 import { installGameboyRuntime } from './gameboy/runtime.ts';
@@ -20,8 +19,6 @@ import {
  * to the sink by method name, which is what the generated worklets expect.
  */
 const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
-  berzerk: installBerzerkSoundRuntime,
-  exidy: installBerzerkSoundRuntime,
   tia: installA2600Runtime,
   gameboy: installGameboyRuntime,
   sid: installC64AudioRuntime,

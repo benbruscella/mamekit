@@ -97,7 +97,7 @@ export interface GameAcceptanceGolden {
 
 export type GameSoundKind =
   | 'sid' | 'stream' | 'discrete'
-  | 'berzerk' | 'exidy' | 'gameboy'
+  | 'gameboy'
   | 'tia' | 'none';
 
 export type MediaKind =

@@ -88,10 +88,6 @@ const SPECIALIZED_COMPILERS: string[] = [];
 // processor that host it, or a chip model under another name. Paths are
 // relative to src.
 const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
-  'hardware/berzerk-sound/berzerk-sound-worklet.ts': [
-    'BerzerkProcessor', 'ExidyPit8253Core', 'ExidySoundCore', 'GeneratedBerzerkSoundCore',
-    'GeneratedBerzerkSoundFrameRenderer', 'S14001aCore',
-  ],
 };
 
 const deviceTypeBranch =

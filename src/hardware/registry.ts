@@ -78,12 +78,6 @@ import {
   SAMPLES_PORTS,
 } from './samples/definition.ts';
 import { extractSamples } from './samples/extract.ts';
-import {
-  BERZERK_SOUND_ID,
-  BERZERK_SOUND_MAME_TYPES,
-  BERZERK_SOUND_PORTS,
-} from './berzerk-sound/definition.ts';
-import { extractBerzerkSound } from './berzerk-sound/extract.ts';
 import { VECTOR_ID, VECTOR_MAME_TYPES, VECTOR_PORTS } from './vector/definition.ts';
 import {
   ADDRESS_MAP_BANK_ID,
@@ -176,12 +170,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DISCRETE_MAME_TYPES,
     ports: DISCRETE_PORTS,
     extract: extractDiscrete,
-  },
-  {
-    id: BERZERK_SOUND_ID,
-    mameTypes: BERZERK_SOUND_MAME_TYPES,
-    ports: BERZERK_SOUND_PORTS,
-    extract: extractBerzerkSound,
   },
   { id: SN76477_ID, mameTypes: SN76477_MAME_TYPES, ports: SN76477_PORTS, extract: extractSn76477 },
   { id: TMS36XX_ID, mameTypes: TMS36XX_MAME_TYPES, ports: TMS36XX_PORTS, extract: extractTms36xx },
