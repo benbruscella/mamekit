@@ -83,3 +83,75 @@ The #237 commits are split per item from one working tree. Only the final
 tree was generated and swept, and a few hunks that touched two items went in
 the later commit. An earlier commit in the range may not pass on its own, so
 bisect in whole-PR steps.
+
+## 2. FROM #240 (PR #241)
+
+Measured against baseline `64d391a1`.
+
+### 2.1 Venture's RAM drifts further from MAME
+
+Total bytes off MAME over 6,200 frames went from 32,188 to 38,250. The first
+divergence is unchanged (frame 2, `maincpu:54`). Pixels are exact on 7 of 7
+checkpoints with no input, audio is the same, and the maintainer rates it fine
+as played. Venture already diverges through its silent RIOT IRQ (#63). Not
+root-caused.
+
+### 2.2 Candidate machines regress unnoticed
+
+spectrum and spec128 broke on `main` after #239 (three stacked gaps, fixed in
+#240), and nothing caught it. They are candidate contracts, so only the oracle
+runs them. No issue is filed yet.
+
+### 2.3 CI runs at about half local speed
+
+Work that moves into the interpreter, wherever codegen declines it, costs fps
+that a local run hides. Removing the direct-screen shapes dropped dkong,
+dkongjr, elevator and junglek below their CI fps floors while local runs
+still showed 80+ fps. Seven general codegen fixes landed in #241. Any change
+that moves work into compiled code should check fps on CI, not only locally.
+
+## 3. FROM EARLIER ITEMS
+
+### 3.1 Centipede's round placement between timers (from #200)
+
+Centipede is pixel-exact at frame 1, but its first RANDOM read after a 4.3 ms
+gap lands where MAME's round boundary is not. The attract demo drifts (930
+pixels differ at frame 300), and its contract audio onsets are worse.
+
+### 3.2 Marble Madness drift (from #200, larger since #225)
+
+It first differs from MAME at frames 4, 84, 194 and 245, the same as before
+#225, then its game logic flips at frame 819. Against baseline `105af76f`,
+RAM over all frames went from 54,130 to 373,333 bytes at offset 0. In play it
+loses the exact checkpoints at 1800, 2100 and 2400, and contract audio went
+from 2.07 to 8.49 dB off MAME across the bands. Its no-input pixels stay
+exact, and the maintainer rates the game fine as played. Not root-caused.
+
+### 3.3 Spy Hunter is silent with no input (from #221)
+
+With no input, our attract-mode audio is silent: −39.5 dB against MAME,
+which plays 0.13 sound onsets a second. It was the same in the #204 baseline,
+so this is old. With contract input it plays, at −6.1 dB. Not traced.
+
+### 3.4 Q\*bert's speech (from #228)
+
+Its Votrax isn't lowered, so its speech doesn't play.
+
+### 3.5 Too few sound onsets with contract input (baseline `105af76f`)
+
+Galaga plays 0.07 onsets a second against MAME's 1.00, and Tutankham 0.51
+against 4.95. Not traced.
+
+### 3.6 Phoenix's tune bands (from #236)
+
+With contract input, Phoenix's level is 0.62 dB off MAME, but its 250 Hz band
+is −14 dB and its 500 Hz band −9 dB, and it plays 4.4 onsets a second against
+MAME's 2.65. One candidate, not established: MAME reads past `tune4`'s end
+(its `m_tune_max` is a fixed 96, for a 13-note tune), where we read zeros.
+
+### 3.7 Onsets on AY-fed DISCRETE boards (from #236)
+
+With contract input, gyruss is 1.68 onsets a second off MAME, travrusa 0.63,
+junglek 0.59 and btime 0.43, while level and bands match. The AYs render at
+their native rate and are averaged to 48 kHz on the way into the table, where
+MAME's resampler sits. That is the likely difference, unconfirmed.
