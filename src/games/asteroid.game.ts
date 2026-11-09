@@ -21,12 +21,12 @@ export const asteroid = sourceTarget({
     },
     checkpoints: {
       1: { video: '436e59b7', state: 'f4729215' },
-      60: { video: '7b2b41bf', state: '3b2a63af' },
-      180: { video: 'd4e4f32a', state: 'a5817021' },
-      300: { video: '367ff377', state: '91f1cde4' },
-      600: { video: 'a9153a39', state: 'd913563a' },
-      900: { video: '910e57ab', state: '533335b3' },
-      1200: { video: 'fe023c59', state: '7cb23cb4' },
+      60: { video: 'd6867274', state: '3b2a63af' },
+      180: { video: 'ab279d96', state: 'a5817021' },
+      300: { video: '7743676c', state: '91f1cde4' },
+      600: { video: '393f3948', state: 'd913563a' },
+      900: { video: 'e9141962', state: '533335b3' },
+      1200: { video: 'dc526bb3', state: '7cb23cb4' },
     },
     audio: {
       writes: 936228,
