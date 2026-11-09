@@ -12,33 +12,11 @@
  * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
  */
 import type { GeneratedAudioRoute } from '../ir/board.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
-  readonly deviceType?: string;
-  readonly waveRom?: Uint8Array;
-  readonly sampleRom?: Uint8Array;
   readonly clock?: number;
-  readonly voices?: number;
-  /** number of chip instances the worklet should host (ay8910 bank) */
-  readonly chips?: number;
-  /** MAME device tags in chip-index order, used by dynamic gain writes. */
-  readonly deviceTags?: string[];
-  /** MAME device type in chip-index order, when a bank mixes several chips. */
-  readonly deviceTypes?: string[];
-  /** Per-chip clock in chip-index order, when a bank clocks them differently. */
-  readonly clocks?: number[];
-  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
-  readonly dacs?: GeneratedDacChip[];
-  readonly routes?: GeneratedAudioRoute[];
-  readonly auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
-  /** FILTER_BIQUAD stages between the sound core and the board output. */
-  readonly filterChain?: GeneratedBiquadStage[];
-  /** Per AY chip, what its set_flags and set_resistors_load configure. */
-  readonly chipOutputs?: GeneratedAyChipOutput[];
-  /** The NETLIST_SOUND its routes land in, compiled from MAME's netlist. */
-  readonly netlist?: unknown;
   readonly speakerFilter?: GeneratedSpeakerFilterPlan;
   /** video refresh rate (Hz) — paces the worklet's write scheduler */
   readonly refresh?: number;
@@ -84,7 +62,7 @@ export class AudioOutput {
    * relative to dist), wires node -> gain -> destination and sends the
    * init message.
    */
-  async start(core: WorkletCoreConfig, workletUrl: string, processorName = 'wsg'): Promise<void> {
+  async start(core: WorkletCoreConfig, workletUrl: string, processorName = 'stream'): Promise<void> {
     if (this.ctx) return; // already started
 
     const ctx = new AudioContext();
@@ -113,21 +91,7 @@ export class AudioOutput {
 
     node.port.postMessage({
       type: 'init',
-      deviceType: core.deviceType,
-      waveRom: core.waveRom ?? new Uint8Array(0x100),
-      sampleRom: core.sampleRom,
       clock: core.clock ?? core.sampleRate,
-      voices: core.voices,
-      chips: core.chips,
-      deviceTags: core.deviceTags,
-      deviceTypes: core.deviceTypes,
-      clocks: core.clocks,
-      dacs: core.dacs,
-      routes: core.routes,
-      auxiliaryDevices: core.auxiliaryDevices,
-      filterChain: core.filterChain,
-      chipOutputs: core.chipOutputs,
-      netlist: core.netlist,
       refresh: core.refresh,
       debug: core.debug,
     });

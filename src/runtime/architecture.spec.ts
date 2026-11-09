@@ -236,6 +236,30 @@ const SAVED_BOARD_FIELDS = [
   );
 }
 
+// Sound kinds that name a chip family or a board rather than the stream mix,
+// as an exact list that may only shrink (#242). Each was a hand engine and a
+// worklet of its own; every chip is now its MAME class compiled whole and
+// played through the stream mix, so the list is empty. A kind is read from
+// every place one could come back: the runtime installers, the acceptance
+// probes, the contracts' kind union and the app plan's kind literals.
+const SOUND_KINDS: string[] = [];
+{
+  const read = (file: string) => readFileSync(join(root, file), 'utf8');
+  const keys = (source: string, table: string) =>
+    [...(new RegExp(`const ${table}[^=]*=\\s*\\{([^}]*)\\}`).exec(source)?.[1] ?? '').matchAll(/^\s*(\w+)\s*:/gm)].map(match => match[1]!);
+  const kinds = new Set([
+    ...keys(read('../hardware/sound-runtime-registry.ts'), 'INSTALLERS'),
+    ...keys(read('../hardware/acceptance-registry.ts'), 'AUDIO_PROBES'),
+    ...[...(/export type GameSoundKind =([^;]*);/.exec(read('../games/types.ts'))?.[1] ?? '').matchAll(/'(\w+)'/g)].map(match => match[1]!),
+    ...[...read('../gen/lower-sound.ts').matchAll(/\bkind:\s*'(\w+)'/g)].map(match => match[1]!),
+  ]);
+  kinds.delete('stream');
+  kinds.delete('none');
+  assert.deepEqual([...kinds].sort(), [...SOUND_KINDS].sort(),
+    'a sound kind that names a chip family is a hand engine; compile the chip and play it through the stream mix ' +
+    '(or, if one was removed, delete it from SOUND_KINDS)');
+}
+
 // A list keyed by a file that is gone would pass silently forever.
 for (const [list, files, scanned] of [
   ['DEVICE_TYPE_BRANCHES', DEVICE_TYPE_BRANCHES, sharedRuntime],

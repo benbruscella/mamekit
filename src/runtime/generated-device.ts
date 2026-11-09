@@ -931,6 +931,22 @@ export class IrSoundStream {
     this.bindings = bindings;
   }
 
+  // The rest of sound_stream's write surface, through `put`, which the mixer
+  // binds for the span it asks for: an OKIM6295 renders with put_int.
+  put_int(channel: number, index: number, value: number, max: number): number {
+    return this.put(channel, index, Number(max) ? Number(value) / Number(max) : 0);
+  }
+  put_int_clamp(channel: number, index: number, value: number, max: number): number {
+    const limit = Number(max);
+    return this.put(channel, index, limit ? Math.max(-limit, Math.min(limit - 1, Number(value))) / limit : 0);
+  }
+  fill(channel: number, value: number, start = 0, count = this.samples() - Number(start)): number {
+    for (let index = Number(start); index < Number(start) + Number(count); index++) this.put(channel, index, Number(value));
+    return 0;
+  }
+  output_count(): number { return 1; }
+  input_count(): number { return 0; }
+  get(): number { return 0; }
   // Bound in the host's mixer; the speaker places each edge against end_time.
   update(): unknown { return this.bindings.calls?.['stream.update']?.(this) ?? 0; }
   end_time(): unknown { return this.bindings.calls?.['stream.end_time']?.(this) ?? 0; }
@@ -1803,9 +1819,15 @@ class IrDevice implements Device {
         // device_t::type: the number its own DECLARE_DEVICE_TYPE name compiled to.
         type: () => definition.constants?.[definition.type] ?? 0,
         name: () => definition.description ?? definition.type,
-        stream_alloc: (_inputs, _outputs, rate) => {
-          if (Number(rate) > 0) this.members.__stream_rate = Number(rate);
-          const stream = new IrSoundStream(Number(rate), this.bindings);
+        stream_alloc: (_inputs, _outputs, requested) => {
+          // SAMPLE_RATE_INPUT_ADAPTIVE, _OUTPUT_ADAPTIVE and _ADAPTIVE
+          // (0xffffffff down to 0xfffffffd) take the rate of what the stream
+          // connects to, which in this mix is the speaker's: the Game Boy
+          // APU's and every FILTER_RC's. Read as a rate, they asked for four
+          // billion samples a second.
+          const rate = Number(requested) >= 0xfffffffd ? 48000 : Number(requested);
+          if (rate > 0) this.members.__stream_rate = rate;
+          const stream = new IrSoundStream(rate, this.bindings);
           stream.onRate = next => { this.members.__stream_rate = next; };
           this.soundStreams.push(stream);
           return stream as unknown as number;

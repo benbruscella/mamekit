@@ -135,12 +135,8 @@ function processBody(source: string): string {
   return body
     .replace(/^\s*tia\s*\*\s*chip\s*=\s*\(tia\s*\*\)_chip;\s*$/m, '')
     .replace(/\bchip->/g, '')
-    // The stream is the host's: how many samples it wants, and where they go.
-    .replace(/\bstream\.samples\(\)/g, 'samples')
-    // `sound_stream::put_int(channel, index, value, max)` on the mono
-    // stream MAME allocates for this chip; the channel is the literal 0
-    // in the call itself, so only the sample and its scale survive.
-    .replace(/\bstream\.put_int\s*\(\s*0\s*,/g, 'stream_put_int(');
+    // The stream is MAME's sound_stream, which the stream mix hands the chip:
+    // `stream.samples()` and `stream.put_int(0, ...)` are kept as written.
 }
 
 export interface GeneratedTiaAudio extends GeneratedDeviceDefinition {
@@ -170,7 +166,11 @@ export function compileTiaAudio(mameSource: string): GeneratedTiaAudio {
   if (gain === null) throw new Error('MAME no longer names the TIA sound gain');
 
   const lower = (body: string) => compileMameHandler(normalizeMameExecutionSource(body));
-  const start = lower(startBody(classBody, gain));
+  // tiaintf.cpp's device_start allocates the chip's one stream at its clock,
+  // which is the rate the stream mix renders and resamples it at.
+  const allocation = /\bm_channel\s*=\s*(stream_alloc\s*\([^;]*\))\s*;/.exec(interfaceSource)?.[1];
+  if (!allocation) throw new Error('MAME TIA: tiaintf.cpp allocates no stream');
+  const start = lower(`${startBody(classBody, gain)}\n${allocation};`);
   const write = lower(blockAt(classBody, required(
     classBody, 'void write(offs_t offset, uint8_t data)', 'the TIA sound write')));
   const process = lower(processBody(source));
@@ -252,7 +252,7 @@ export function compileTiaAudio(mameSource: string): GeneratedTiaAudio {
       {
         // `tia_device::sound_stream_update` is `tia_process(m_chip, stream)`.
         name: 'sound_stream_update',
-        parameters: 'int samples',
+        parameters: 'sound_stream &stream',
         program: process,
         source: at(SOURCE_FILE, 'void tia_process'),
       },

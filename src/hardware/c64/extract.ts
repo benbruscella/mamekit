@@ -2,7 +2,7 @@ import { addSourceConstructor, compileMameDevice } from '../../mame/device-compi
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
-import { C64_AUDIO_WORKLET_ARTIFACT, C64_MAME_TYPES } from './definition.ts';
+import { C64_MAME_TYPES } from './definition.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseMameConstructors, parseMameSource } from '../../mame/ast.ts';
@@ -10,10 +10,10 @@ import { normalizeMameExecutionSource } from '../../mame/cpu-compiler.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import { compilePla } from '../../mame/pla-compiler.ts';
 import { compileSid } from '../../mame/sid-compiler.ts';
-import { generatedStreamWorkletSource } from '../../mame/stream-worklet.ts';
 import { compileDatassetteOptions } from '../../mame/cassette-compiler.ts';
 import { indexMameHardware } from '../../mame/hardware.ts';
 import type { GeneratedDeviceDefinition } from '../../mame/device-compiler.ts';
+import { streamWorkletArtifact } from '../speaker/extract.ts';
 
 /** MAME's own file for the C64 expansion port and the cards it accepts. */
 const EXPANSION_FILE = 'src/devices/bus/c64/exp.cpp';
@@ -161,11 +161,7 @@ export function extractC64(input: CapabilityInput): CapabilityExtraction | undef
       { path: `${stem}.device.ir.json`, contents: JSON.stringify(device, null, 2) },
       { path: `${stem}.ts`, contents: generatedDeviceExecutableSource(device, `${entry.type.toLowerCase()}.device.ir.json`) },
     );
-    if (['MOS6581', 'MOS8580'].includes(entry.type)) result.artifacts.push({
-      path: C64_AUDIO_WORKLET_ARTIFACT, contents: generatedStreamWorkletSource({
-        kind: 'sid', sourceFiles: device.sourceFiles, methods: device.methods.map(method => method.name),
-      }),
-    });
+    if (['MOS6581', 'MOS8580'].includes(entry.type)) result.artifacts.push(streamWorkletArtifact());
     result.entrySourceFiles![entry.type] = device.sourceFiles;
     result.entryMethods![entry.type] = device.methods.map(method => ({
       name: method.name, parameters: method.parameters, sourceFile: method.source.file,

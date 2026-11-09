@@ -14,7 +14,7 @@ export const gameboy = {
     driver: 'src/mame/nintendo/gb.cpp',
     machine: { className: 'gb_state', name: 'gameboy' },
     screen: { width: 160, height: 144 },
-    soundKind: 'gameboy',
+    soundKind: 'stream',
     media: [
       { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'accepted', softwareLists: ['gameboy'] },

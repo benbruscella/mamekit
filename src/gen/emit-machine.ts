@@ -84,10 +84,7 @@ export function generatedCpuAddressSpace(type: string | undefined, ownerTag: str
   };
 }
 import type {
-  GeneratedAuxiliaryAudioDevice,
   GeneratedSampleWindow,
-  GeneratedBiquadStage,
-  GeneratedDacChip,
   GeneratedNesApuPlan,
 } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
@@ -1045,13 +1042,6 @@ export function lowerGeneratedMachine(
   const routeSource = (device: GeneratedDevice) => nesApu && nesApuCpuNode && device.tag === nesApu.tag
     ? { ...device, id: nesApuCpuNode.id }
     : device;
-  // A chip this machine renders as a compiled stream is not its worklet's.
-  const tiaDevice = devices.find(device => device.type === 'TIA');
-  // MAME's gameboy_sound_device renders through `sound_stream` like the TIA
-  // does, but its registers ARE in the processor's map, so the writes already
-  // reach the chip and only the sample pull needs wiring.
-  const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(device.type));
-  const gameboyApu = devices.find(device => device.type === 'DMG_APU');
   // A speaker the board drives or a POKEY, with whatever else renders a
   // routed stream beside it. A cassette alone is only heard beside one.
   const rendersStream = (device: GeneratedDevice) => device.stream || STREAM_SOUND_TYPES.includes(device.type);
@@ -1093,45 +1083,7 @@ export function lowerGeneratedMachine(
       ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
     };
   };
-  const sound = sidDevice
-          ? { kind: 'sid', deviceTag: sidDevice.tag, deviceType: sidDevice.type,
-              writeMethods: [], enableMethods: [], controlOffset: -1,
-              routes: lowerAudioRoutes(graph, [sidDevice]) }
-        : gameboyApu
-          ? {
-              kind: 'gameboy',
-              deviceTag: gameboyApu.tag,
-              deviceType: gameboyApu.type,
-              // Its registers are in the LR35902's own address map, so the
-              // board routes every write to the device already; the sound
-              // binding exists purely to pump the renderer.
-              writeMethods: [],
-              enableMethods: [],
-              controlOffset: -1,
-              // `m_apu->add_route(0, "speaker", 0.50, 0)` and its right-hand
-              // twin. The renderer's own full scale is the whole four-channel
-              // mix, so without the routed gain the console came out at
-              // exactly twice MAME's level.
-              ...(lowerAudioRoutes(graph, [gameboyApu]).length
-                ? { routes: lowerAudioRoutes(graph, [gameboyApu]) }
-                : {}),
-            }
-        : tiaDevice
-          ? {
-              kind: 'tia',
-              deviceTag: tiaDevice.tag,
-              deviceType: tiaDevice.type,
-              // The chip is in no address map: tia_video_device calls
-              // `tia_sound_w` on it through a device finder, so there is no
-              // bus write for the board to route.
-              writeMethods: [],
-              enableMethods: [],
-              controlOffset: -1,
-              ...(lowerAudioRoutes(graph, [tiaDevice]).length
-                ? { routes: lowerAudioRoutes(graph, [tiaDevice]) }
-                : {}),
-            }
-        : streamDevices.length
+  const sound = streamDevices.length
           ? {
               // Devices rendering their own stream beside the processor (the
               // Spectrum's beeper and its cassette, a POKEY), mixed by routed

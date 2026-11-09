@@ -5,7 +5,6 @@ import {
   type GeneratedDeviceDefinition,
   type GeneratedDeviceMethod,
 } from '../../mame/device-compiler.ts';
-import { generatedStreamWorkletSource } from '../../mame/stream-worklet.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import {
   indexMameHardware,
@@ -23,8 +22,8 @@ import {
   gameboyDeviceIrArtifact,
   gameboyDeviceModuleArtifact,
   GAMEBOY_APU_TYPE,
-  GAMEBOY_AUDIO_WORKLET_ARTIFACT,
 } from './definition.ts';
+import { streamWorkletArtifact } from '../speaker/extract.ts';
 
 /** MAME's own file for the Game Boy cartridge slot interface. */
 const SLOT_INTERFACE_FILE = 'src/devices/bus/gameboy/slot.h';
@@ -111,19 +110,8 @@ export function extractGameboy(input: CapabilityInput): CapabilityExtraction | u
         path: gameboyDeviceModuleArtifact(type),
         contents: generatedDeviceExecutableSource(device, ir.replace('devices/', '')),
       },
-      // The APU renders beside the processor; this is only what plays the
-      // result. Without it the shell has no worklet to load for this sound
-      // kind and the console plays nothing at all.
-      ...(type === GAMEBOY_APU_TYPE
-        ? [{
-            path: GAMEBOY_AUDIO_WORKLET_ARTIFACT,
-            contents: generatedStreamWorkletSource({
-              kind: 'gameboy',
-              sourceFiles: device.sourceFiles,
-              methods: device.methods.map(method => method.name),
-            }),
-          }]
-        : []),
+      // The APU renders in the stream mix; the shared worklet plays it.
+      ...(type === GAMEBOY_APU_TYPE ? [streamWorkletArtifact()] : []),
     );
     executable[type] = { kind: 'device', artifact: ir };
     entrySourceFiles[type] = device.sourceFiles;

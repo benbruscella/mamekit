@@ -244,7 +244,12 @@ export function createStreamMixer(
   // other stream keeps the plain path below.
   const channelsOf = (stream: typeof streams[number]): StreamChannel[] | undefined => {
     const allocated = surfaces(stream.tag);
-    if (allocated.length < 2 && !stream.resampled) return undefined;
+    // A stream below the speaker's rate from the start (an OKIM6295 at
+    // clock/132, the TIA at its clock) is resampled to it as MAME's mixer
+    // does, not rendered a sample per speaker sample: that played the OKI
+    // six times too fast.
+    const slow = allocated.length === 1 && allocated[0]!.rate > 0 && allocated[0]!.rate < STREAM_AUDIO_RATE;
+    if (allocated.length < 2 && !stream.resampled && !slow) return undefined;
     while (stream.channels.length < allocated.length) {
       const rate = allocated[stream.channels.length]!.rate;
       // Updated through the current sample, as a stream that starts here has

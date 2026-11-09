@@ -19,7 +19,7 @@ export const c64p = {
     driver: 'src/mame/commodore/c64.cpp',
     machine: { className: 'c64_state', name: 'pal' },
     screen: { width: 403, height: 284 },
-    soundKind: 'sid',
+    soundKind: 'stream',
     media: [
       { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'accepted', softwareLists: ['c64_cart', 'vic10'] },

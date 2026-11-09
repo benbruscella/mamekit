@@ -8,13 +8,7 @@
 // Values here are serialized verbatim into each target's generated board.json.
 
 import { BOARD_IR_SCHEMA_VERSION } from './version.ts';
-import type {
-  GeneratedAuxiliaryAudioDevice,
-  GeneratedBiquadStage,
-  GeneratedDacChip,
-  GeneratedNesApuPlan,
-  GeneratedSampleWindow,
-} from './audio-protocol.ts';
+import type { GeneratedSampleWindow } from './audio-protocol.ts';
 import type { GeneratedVideoExecution } from './video-execution.ts';
 import type { GeneratedNetlistPlanData } from './netlist-plan.ts';
 
@@ -1170,14 +1164,10 @@ export interface GeneratedSoundBinding {
   deviceType: string;
   /** MAME device type per chip index, when a bank mixes several chips. */
   deviceTypes?: string[];
-  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
-  dacs?: GeneratedDacChip[];
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;
   routes?: GeneratedAudioRoute[];
-  /** Index rank inferred from MAME handler IR for the routed filter member. */
-  filterLayout?: 'flat' | 'matrix';
   /** A netlist's `NETLIST_LOGIC_INPUT` lines, as handlers reach them. */
   netlistLogicInputs?: { deviceTag: string; param: string; shift: number; members: string[] }[];
   /** The bound finders a handler can test on a netlist board. */
@@ -1188,11 +1178,6 @@ export interface GeneratedSoundBinding {
    */
   netlist?: GeneratedNetlistPlanData;
   netlistTag?: string;
-  auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
-  /** RP2A03 internal APU plan, present only for the NES sound capability. */
-  nesApu?: GeneratedNesApuPlan;
-  /** FILTER_BIQUAD stages MAME places between this core and its board output. */
-  filterChain?: GeneratedBiquadStage[];
   /**
    * Devices on the same speaker that render their own stream on the main
    * thread (sound_stream_update at machine().sample_rate()), with the gain

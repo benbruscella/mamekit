@@ -1644,9 +1644,10 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
           browseUrl('cpu', family));
       }
       if (cfg.sound && cfg.sound.kind !== 'none') {
-        const sound = `${cfg.sound.kind.toUpperCase()}${cfg.sound.chips ? ` × ${cfg.sound.chips}` : ''}`;
-        row(hw, 'Sound', sound + (cfg.sound.clock ? ` @ ${(cfg.sound.clock / 1e6).toFixed(3)} MHz` : ''),
-          browseUrl('sound', sound));
+        // Every chip is its MAME class in the stream mix; the chips themselves
+        // are listed with the machine's devices.
+        const sound = cfg.sound.kind.toUpperCase();
+        row(hw, 'Sound', sound, browseUrl('sound', sound));
       }
       const sc = cfg.board.screen;
       const screen = `${sc.width}×${sc.height} @ ${sc.refresh.toFixed(2)} Hz${sc.rotate ? ` · rotated ${sc.rotate}°` : ''}`;

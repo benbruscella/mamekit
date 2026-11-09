@@ -23,8 +23,6 @@ export const A2600_MAME_TYPES = [
 /** The tag the a2600 driver gives the TIA's sound half. */
 export const A2600_TIA_AUDIO_TAG = 'tia';
 
-/** The worklet that plays what the generated sound device renders. */
-export const A2600_AUDIO_WORKLET_ARTIFACT = 'audio/tia-worklet.ts';
 
 /**
  * The tag the a2600 driver gives its cartridge slot.

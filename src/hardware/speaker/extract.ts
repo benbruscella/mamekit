@@ -46,6 +46,18 @@ export function extractStreamVariants(input: CapabilityInput): CapabilityExtract
 }
 
 /**
+ * The one worklet every board plays through, whichever capability compiled
+ * its sound devices: its text names none of them, so every emitter writes the
+ * same file.
+ */
+export function streamWorkletArtifact(): CapabilityExtraction['artifacts'][number] {
+  return {
+    path: STREAM_AUDIO_WORKLET_ARTIFACT,
+    contents: generatedStreamWorkletSource({ kind: 'stream', sourceFiles: ['src/emu/sound.cpp'], methods: ['sound_stream_update'] }),
+  };
+}
+
+/**
  * A device that renders its own `sound_stream_update` beside the processor
  * (sound kind `stream`), compiled whole from its MAME class, with the shared
  * stream worklet that plays what the mix posts.
@@ -75,10 +87,7 @@ export function extractStreamDevice(
         { path: `${stem}.device.ir.json`, contents: JSON.stringify(device, null, 2) },
         { path: `${stem}.ts`, contents: generatedDeviceExecutableSource(device, `${type.toLowerCase()}.device.ir.json`) },
       ]),
-      // One worklet for every stream device, so its text names none of them.
-      { path: STREAM_AUDIO_WORKLET_ARTIFACT, contents: generatedStreamWorkletSource({
-        kind: 'stream', sourceFiles: ['src/emu/sound.cpp'], methods: ['sound_stream_update'],
-      }) },
+      streamWorkletArtifact(),
     ],
     entrySourceFiles: Object.fromEntries(compiled.map(({ type, device }) => [type, device.sourceFiles])),
     entryMethods: Object.fromEntries(compiled.map(({ type, device }) => [type, device.methods.map(method => ({

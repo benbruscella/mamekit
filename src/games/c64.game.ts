@@ -15,7 +15,7 @@ export const c64 = {
     driver: 'src/mame/commodore/c64.cpp',
     machine: { className: 'c64_state', name: 'ntsc' },
     screen: { width: 418, height: 235 },
-    soundKind: 'sid',
+    soundKind: 'stream',
     media: [
       { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'accepted', softwareLists: ['c64_cart', 'vic10'] },

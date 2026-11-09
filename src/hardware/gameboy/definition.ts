@@ -40,14 +40,6 @@ export const GAMEBOY_PORTS: readonly PortDeclaration[] = [
 /** MAME's own type for the console's sound half. */
 export const GAMEBOY_APU_TYPE = 'DMG_APU';
 
-/**
- * The worklet that plays what the generated APU renders.
- *
- * The chip runs beside the processor -- a game reads its status register back
- * within the frame -- so it renders on the main thread and this only plays the
- * result. See [[audio-engine-placement]] for which side a chip belongs on.
- */
-export const GAMEBOY_AUDIO_WORKLET_ARTIFACT = 'audio/gameboy-worklet.ts';
 
 /**
  * Output rate for the APU's stream.
