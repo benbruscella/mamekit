@@ -6,7 +6,7 @@ export const ghouls = {
     driver: 'src/mame/capcom/cps1.cpp',
     machine: { className: 'cps_state', name: 'cps1_10MHz' },
     screen: { width: 384, height: 224 },
-    soundKind: 'ym2151',
+    soundKind: 'stream',
   }),
   // The original board deliberately spends more than twenty seconds testing
   // all CPS1 graphics/work RAM. Exercise coin, start and controls only after

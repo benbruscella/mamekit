@@ -2435,6 +2435,20 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // with these, one power-of-two chunk at a time; unbound they answered zero,
   // which turns the decode loop into one that never terminates.
   if (name === 'std::bit_width') return 32 - Math.clz32(toNumber(args[0]) >>> 0);
+  // GCC's bit builtins, which ymfm's count_leading_zeros calls under
+  // __GNUC__: its roundtrip_fp sizes every YM2151 sample's mantissa by it,
+  // and unbound it answered 0, an exponent of 7 on every sample.
+  if (name === '__builtin_clz') return Math.clz32(toNumber(args[0]) >>> 0);
+  if (name === '__builtin_ctz') {
+    const value = toNumber(args[0]) >>> 0;
+    return value ? 31 - Math.clz32(value & -value) : 32;
+  }
+  if (name === '__builtin_popcount') {
+    let value = toNumber(args[0]) >>> 0;
+    let count = 0;
+    for (; value; value &= value - 1) count++;
+    return count;
+  }
   if (name === 'std::bit_ceil') {
     const value = toNumber(args[0]) >>> 0;
     return value <= 1 ? 1 : 2 ** (32 - Math.clz32(value - 1));

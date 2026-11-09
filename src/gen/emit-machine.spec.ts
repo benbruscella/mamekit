@@ -389,11 +389,10 @@ const allYmOutputs = lowerAudioRoutes(
   allYmOutputsGraph,
   [{ id: 'device:ym1', tag: 'ym1' }],
 );
-if (
-  allYmOutputs.length !== 4 ||
-  allYmOutputs.some((route, channel) => route.channel !== channel || route.gain !== 0.15)
-) {
-  throw new Error('YM2203 ALL_OUTPUTS did not expand to all four routed streams');
+// A stream device sums every output its ALL_OUTPUTS route names, as MAME's
+// speaker does: one route over all of them, at the route's gain.
+if (allYmOutputs.length !== 1 || allYmOutputs[0]!.channel !== -1 || allYmOutputs[0]!.gain !== 0.15) {
+  throw new Error('YM2203 ALL_OUTPUTS did not lower to one route over every stream output');
 }
 
 const defaultClockDacGraph: KnowledgeGraph = {

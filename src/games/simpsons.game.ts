@@ -5,7 +5,7 @@ export const simpsons = sourceTarget({
   driver: 'src/mame/konami/simpsons.cpp',
   machine: { className: 'simpsons_state', name: 'simpsons' },
   screen: { width: 320, height: 224 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   golden: {
     regions: {
       audiocpu: '7e18466f',

@@ -104,17 +104,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedNamcoWsgProcessor', 'GeneratedPoleposEngineCore',
   ],
   'mame/nes-apu-compiler.ts': ['NesProcessor', 'Resampler'],
-  'mame/opm-compiler.ts': [
-    'GeneratedK007232Core', 'GeneratedK053260Core', 'GeneratedMsm5205Core',
-    'GeneratedSampleSpace', 'GeneratedUpd7759Core',
-    'GeneratedYm2151Chip', 'GeneratedYm2151FrameRenderer', 'GeneratedYm2151Mixer',
-    'GeneratedYm2151Processor', 'OkiCore', 'OkiVoice',
-  ],
-  'mame/opn-compiler.ts': [
-    'GeneratedMsm5205Core', 'GeneratedYm2203Chip', 'GeneratedYm2203FrameRenderer',
-    'GeneratedYm2203Mixer', 'GeneratedYm2203Processor', 'GeneratedYm2610AdpcmA',
-    'GeneratedYm3526Chip',
-  ],
 };
 
 const deviceTypeBranch =

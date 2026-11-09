@@ -564,7 +564,20 @@ function functionTemplateParameters(
 ): string[] {
   const header = masked.slice(functionIndex, masked.indexOf('{', functionIndex));
   const escapedClass = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  if (new RegExp(`\\b${escapedClass}\\s*<`).test(header)) return [];
+  if (new RegExp(`\\b${escapedClass}\\s*<`).test(header)) {
+    // A member template of a class template, defined out of line under two
+    // heads: the class's, then its own (`template<typename OutputType, ...>
+    // template<int Multiplier> void ssg_resampler<...>::resample_n_1(...)`).
+    // The second head is the method's.
+    const qualifier = header.search(new RegExp(`\\b${escapedClass}\\s*<`));
+    const heads = /template\s*<([^<>]*)>\s*template\s*<([^<>]*)>/.exec(header.slice(0, qualifier)) ??
+      /template\s*<([^<>]*)>\s*template\s*<([^<>]*)>\s*(?:[\w:<>,*&\s]*?)$/.exec(
+        masked.slice(Math.max(0, functionIndex - 2048), functionIndex));
+    return heads ? splitMameArgs(heads[2]!).flatMap(parameter => {
+      const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(parameter.trim())?.[1];
+      return name ? [name] : [];
+    }) : [];
+  }
   // A template parameter type can itself be scoped through the owner class
   // (`device::op_type_t Zero`). The member qualifier is the final occurrence
   // before the method name; selecting the first truncates the template list.

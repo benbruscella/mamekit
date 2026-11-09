@@ -13,8 +13,8 @@ import type {
 import { validateGameContract } from './contract-validation.ts';
 
 const SOUND_KINDS = new Set<GameSoundKind>([
-  'wsg', 'ay8910', 'dac', 'discrete', 'ym2203',
-  'ym2151', 'berzerk', 'exidy', 'stream', 'none',
+  'wsg', 'ay8910', 'dac', 'discrete',
+  'berzerk', 'exidy', 'stream', 'none',
 ]);
 
 function mediaFor(

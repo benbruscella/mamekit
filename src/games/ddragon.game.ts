@@ -5,7 +5,7 @@ export const ddragon = sourceTarget({
   driver: 'src/mame/technos/ddragon.cpp',
   machine: { className: 'ddragon_state', name: 'ddragon' },
   screen: { width: 256, height: 240 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   golden: {
     regions: {
       adpcm1: '34755de3',

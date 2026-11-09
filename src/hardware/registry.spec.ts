@@ -54,7 +54,7 @@ check('no two capabilities claim the same MAME type', () => {
 });
 
 check('a MAME type resolves to its capability', () => {
-  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2203')?.id, 'ym2203');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2203')?.id, 'sound-device');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2149')?.id, 'ay8910');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'AY8912')?.id, 'ay8910');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'I8035')?.id, 'cpu');

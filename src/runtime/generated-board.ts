@@ -4920,12 +4920,6 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (deviceType === 'YM3812') {
-        // Primary-board audio remains live; this auxiliary chip still exposes
-        // its register bus so the unmodified sound CPU can progress.
-        registry.write[key] = () => {};
-        continue;
-      }
       if (/^K0\d+/.test(deviceType)) {
         const bytes = this.generatedResources[`registers:${deviceTag}`] as Uint8Array |
           undefined ?? new Uint8Array(0x10000);
@@ -4955,10 +4949,6 @@ class IrBoard implements Board {
           undefined ?? new Uint8Array(0x800).fill(0xff);
         this.generatedResources[`eeprom:${deviceTag}`] = bytes;
         registry.read[key] = (_address, offset) => bytes[offset % bytes.length]!;
-        continue;
-      }
-      if (deviceType === 'YM3812') {
-        registry.read[key] = () => 0xff;
         continue;
       }
       if (/^K0\d+/.test(deviceType)) {

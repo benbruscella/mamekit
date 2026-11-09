@@ -5,7 +5,7 @@ export const rygar = sourceTarget({
   driver: 'src/mame/tecmo/tecmo.cpp',
   machine: { className: 'tecmo_state', name: 'rygar' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   // Rygar's attract cycle reaches "PUSH ONLY 1PLAYER BUTTON" around frame 600,
   // and a start pressed before that is simply not sampled. The credit then
   // opens a ~700-frame story crawl, so Round 1 does not begin until ~1400;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { compileMameDevice } from '../mame/device-compiler.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
-import { compileYm2203 } from '../mame/opn-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { gng } from './gng.game.ts';
 import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
@@ -119,57 +119,11 @@ assert.deepEqual(
   { kind: 'owned', elementBytes: 1 },
 );
 
-// The OPN plan carries the die-extracted ymfm tables and the fidelity and
-// prescale ratios MAME's device wrapper selects.
-const opn = compileYm2203(mameSrc, {
-  type: 'YM2203',
-  className: 'ym2203_device',
-  sourceFile: 'src/devices/sound/ymopn.cpp',
-  sourceLine: 12,
-  sourceColumn: 1,
-  macro: '',
-});
-assert.equal(opn.sampleRateDivider, 12);
-assert.equal(opn.fmSamplesPerOutput, 6);
-assert.deepEqual(opn.ssgResample, [4, 3]);
-assert.deepEqual(opn.prescale.selectors, [
-  { address: 0x2d, prescale: 6 },
-  { address: 0x2e, prescale: 3, requiresPrescale: 6 },
-  { address: 0x2f, prescale: 2 },
-]);
-assert.deepEqual(opn.prescale.ratios, {
-  2: { fmSamplesPerOutput: 2, ssgResample: [1, 3] },
-  3: { fmSamplesPerOutput: 3, ssgResample: [2, 3] },
-  6: { fmSamplesPerOutput: 6, ssgResample: [4, 3] },
-});
-assert.equal(opn.fm.channels, 3);
-assert.equal(opn.fm.operators, 12);
-assert.equal(opn.fm.egClockDivider, 3);
-assert.equal(opn.fm.waveformLength, 0x400);
-assert.deepEqual(opn.fm.operatorMap, [[0, 6, 3, 9], [1, 7, 4, 10], [2, 8, 5, 11]]);
-assert.equal(opn.fm.sinTable.length, 256);
-assert.equal(opn.fm.sinTable[0], 0x859);
-assert.equal(opn.fm.powerTable.length, 256);
-// X(a) folds in the implied leading bit and the two-bit DAC shift.
-assert.equal(opn.fm.powerTable[0], (0x3fa | 0x400) << 2);
-assert.equal(opn.fm.incrementTable.length, 64);
-assert.deepEqual(opn.fm.detuneTable[16], [0, 2, 5, 8]);
-assert.deepEqual(opn.ssg.noiseTaps, [0, 3]);
-assert.equal(opn.ssg.amplitudes.length, 32);
-assert.equal(opn.ssg.amplitudes.at(-1), 16382);
-
-// Register bitfields come from opn_registers_base/ssg_registers accessors.
-assert.deepEqual(opn.fm.fields.ch_algorithm, {
-  parts: [{ offset: 0xb0, offsetStride: 1, shift: 0, shiftStride: 0, width: 3 }],
-});
-assert.deepEqual(opn.ssg.fields.ch_tone_period, {
-  parts: [
-    { offset: 0x01, offsetStride: 2, shift: 0, shiftStride: 0, width: 4 },
-    { offset: 0x00, offsetStride: 2, shift: 0, shiftStride: 0, width: 8 },
-  ],
-});
-assert.deepEqual(opn.ssg.fields.ch_noise_enable_n, {
-  parts: [{ offset: 0x07, offsetStride: 0, shift: 3, shiftStride: 1, width: 1 }],
-});
+// The YM2203 is MAME's ymfm wrapper compiled whole: ymopn.cpp over ymfm's OPN
+// engine and SSG, every method lowered, rendering its own stream.
+const opn = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('YM2203')!);
+assert.equal(opn.summary.diagnostics, 0);
+assert.ok(opn.sourceFiles.includes('3rdparty/ymfm/src/ymfm_opn.cpp'));
+assert.ok(opn.methods.some(method => method.name === 'sound_stream_update'));
 
 console.log('gng source spec passed');

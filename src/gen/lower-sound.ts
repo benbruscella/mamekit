@@ -52,16 +52,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
       ...(typeof device.props.clock === 'number' ? { clock: device.props.clock } : {}),
     })),
   );
-  const ymChips = devices.filter(d =>
-    d.props.type === 'YM2203' || d.props.type === 'YM2610');
-  const ym2610SampleRegion = g.out(romset.id, 'HAS_REGION')
-    .map(({ node: region }) => String(region.props.tag))
-    .find(region => region.endsWith(':ymsnd:adpcma'));
-  const opmChips = devices.filter(d => d.props.type === 'YM2151');
-  // OPL parts hosted by the same generated FM worklet. YM3812 is a YM3526
-  // plus OPL2's waveform select, and Wardner's only sound chip is one.
-  const oplChips = devices.filter(d =>
-    d.props.type === 'YM3526' || d.props.type === 'YM3812');
   const dacChips = devices.filter(d => worklet(d) &&
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT']
@@ -90,47 +80,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
           : {}),
         ...(auxiliaryAudioDevices.length ? { auxiliaryDevices: auxiliaryAudioDevices } : {}),
       }
-    : opmChips.length
-      ? {
-          kind: 'ym2151',
-          clock: Number(opmChips[0]!.props.clock),
-          chips: opmChips.length,
-          // set_output_gain names a chip by tag (Gauntlet's mixer_w).
-          deviceTags: opmChips.map(device => String(device.props.tag)),
-          ...(lowerAudioRoutes(
-            graph,
-            opmChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
-          ).length ? {
-              routes: lowerAudioRoutes(
-                graph,
-                opmChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
-              ),
-            } : {}),
-          ...(auxiliaryAudioDevices.length
-            ? { auxiliaryDevices: auxiliaryAudioDevices }
-            : {}),
-        }
-    : ymChips.length || oplChips.length
-      ? (() => {
-          const ymRoutes = lowerAudioRoutes(
-            graph,
-            ymChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
-          );
-          return {
-            kind: 'ym2203',
-            clock: Number((ymChips[0] ?? oplChips[0]).props.clock),
-            chips: ymChips.length,
-            ...(ymChips.length ? { deviceType: String(ymChips[0]!.props.type) } : {}),
-            ...(ymChips.some(chip => chip.props.type === 'YM2610') && ym2610SampleRegion
-              ? { sampleRegion: ym2610SampleRegion }
-              : {}),
-            ...(ymRoutes.length ? { routes: ymRoutes } : {}),
-            ...(auxiliaryAudioDevices.length
-              ? { auxiliaryDevices: auxiliaryAudioDevices }
-              : {}),
-          };
-        })()
-      : ayChips.length
+    : ayChips.length
         ? {
             kind: 'ay8910',
             clock: Number(ayChips[0].props.clock),
@@ -240,10 +190,9 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   if (outputGain !== undefined) Object.assign(sound, { outputGain });
 
   // MAME keeps each speaker channel apart, and the browser plays one, their
-  // mean: a route to one channel counts that share. The YM2151 does this in
-  // its worklet.
+  // mean: a route to one channel counts that share.
   const mixRoutes = (sound as { routes?: GeneratedAudioRoute[] }).routes;
-  if (sound.kind !== 'ym2151' && mixRoutes) Object.assign(sound, { routes: monoRoutes(graph, mixRoutes) });
+  if (mixRoutes) Object.assign(sound, { routes: monoRoutes(graph, mixRoutes) });
   if (sound.kind === 'ay8910') {
     const netlistDevice = devices.find(device => device.props.type === 'NETLIST_SOUND');
     const routeGain = netlistDevice

@@ -17,7 +17,7 @@ export const mslug = sourceTarget({
   driver: 'src/mame/snk/neogeo.cpp',
   machine: { className: 'mvs_led_state', name: 'neobase' },
   screen: { width: 320, height: 224 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   // The MVS BIOS runs its RAM, calendar and cartridge checks for roughly the
   // first 780 frames, then hands over to the game's own attract loop. Coin and
   // start are exercised after that unmodified handoff, and each needs a press

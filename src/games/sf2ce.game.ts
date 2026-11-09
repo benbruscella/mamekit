@@ -5,7 +5,7 @@ export const sf2ce = sourceTarget({
   driver: 'src/mame/capcom/cps1.cpp',
   machine: { className: 'cps_state', name: 'cps1_12MHz' },
   screen: { width: 384, height: 224 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   // Issue #77: wired-hot handler codegen (bus handlers, tile-info callbacks)
   // took this board from 48 to ~97 fps in Node, and this floor holds that
   // gain. It is deliberately well under real time rather than at it: this is

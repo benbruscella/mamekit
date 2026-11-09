@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { compileMameM6801U4 } from '../mame/cpu-compiler.ts';
-import { compileYm3526 } from '../mame/opl-compiler.ts';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { bublbobl } from './bublbobl.game.ts';
 import {
@@ -58,17 +59,11 @@ assert.deepEqual(
   [[0x00, 0x02], [0x01, 0x03], [0x04, 0x06], [0x05, 0x07]],
 );
 
-const opl = compileYm3526(mameSrc, {
-  type: 'YM3526',
-  className: 'ym3526_device',
-  sourceFile: 'src/devices/sound/ymopl.cpp',
-  sourceLine: 12,
-  sourceColumn: 1,
-  macro: '',
-});
-assert.equal(opl.channels, 9);
-assert.equal(opl.operators, 18);
-assert.equal(opl.sampleRateDivider, 72);
+// The YM3526 is MAME's ymfm wrapper compiled whole, over ymfm's OPL engine.
+const opl = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('YM3526')!);
+assert.equal(opl.summary.diagnostics, 0);
+assert.ok(opl.sourceFiles.includes('3rdparty/ymfm/src/ymfm_opl.cpp'));
+assert.ok(opl.methods.some(method => method.name === 'sound_stream_update'));
 
 for (const method of [
   'bublbobl_bankswitch_w',

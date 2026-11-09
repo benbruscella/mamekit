@@ -4,11 +4,9 @@
 // its extract.ts, which belongs to the compiler.
 
 import { installAy8910Runtime } from './ay8910/runtime.ts';
-import { installYm2203Runtime } from './ym2203/runtime.ts';
 import { installNesRuntime } from './nes/runtime.ts';
 import { installDacRuntime } from './dac/runtime.ts';
 import { installNamcoWsgRuntime } from './namco-wsg/runtime.ts';
-import { installYm2151Runtime } from './ym2151/runtime.ts';
 import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
 import { installA2600Runtime } from './a2600/runtime.ts';
 import { installC64AudioRuntime } from './c64/runtime.ts';
@@ -28,10 +26,8 @@ import {
 const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
   wsg: installNamcoWsgRuntime,
   ay8910: installAy8910Runtime,
-  ym2203: installYm2203Runtime,
   nes: installNesRuntime,
   dac: installDacRuntime,
-  ym2151: installYm2151Runtime,
   berzerk: installBerzerkSoundRuntime,
   exidy: installBerzerkSoundRuntime,
   tia: installA2600Runtime,

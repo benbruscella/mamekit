@@ -5,7 +5,7 @@ export const tmnt = sourceTarget({
   driver: 'src/mame/konami/tmnt.cpp',
   machine: { className: 'tmnt_state', name: 'tmnt' },
   screen: { width: 320, height: 224 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   golden: {
     regions: {
       audiocpu: '41ac7e19',

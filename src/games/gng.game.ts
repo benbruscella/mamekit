@@ -5,7 +5,7 @@ export const gng = sourceTarget({
   driver: 'src/mame/capcom/gng.cpp',
   machine: { className: 'gng_state', name: 'gng' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   frames: 3000,
   minimumFps: 45,
   // 2400 and 3000 land in scrolling gameplay: a background scroll is what

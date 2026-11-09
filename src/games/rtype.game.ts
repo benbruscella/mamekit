@@ -20,7 +20,7 @@ export const rtype = sourceTarget({
   driver: 'src/mame/irem/m72.cpp',
   machine: { className: 'm72_state', name: 'rtype' },
   screen: { width: 384, height: 256 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   // The generated V30 completes R-Type's destructive power-on RAM tests at
   // roughly frame 550. Inputs from the standard frame-300 schedule are gone
   // before the game starts polling its ports, leaving attract mode silent.

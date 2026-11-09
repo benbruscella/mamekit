@@ -5,7 +5,7 @@ export const gunsmoke = sourceTarget({
   driver: 'src/mame/capcom/gunsmoke.cpp',
   machine: { className: 'gunsmoke_state', name: 'gunsmoke' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   // Gunsmoke ignores the fire buttons until its level intro finishes around
   // frame 1640, so the earlier schedule pressed them where the game discards
   // them: swapping BUTTON1 and BUTTON2 (issue #60) moved no hash at all. The

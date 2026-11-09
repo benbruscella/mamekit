@@ -23,7 +23,7 @@ export const nbajam = sourceTarget({
   driver: 'src/mame/williams/midtunit.cpp',
   machine: { className: 'midtunit_adpcm_state', name: 'tunit_adpcm' },
   screen: { width: 400, height: 254 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   frames: 2400,
   minimumFps: 30,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1800, 2400],

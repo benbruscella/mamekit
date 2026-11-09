@@ -1012,13 +1012,6 @@ export function lowerGeneratedMachine(
   // A chip this machine renders as a compiled stream is not its worklet's.
   const ayDevices = devices.filter(device => !device.stream &&
     ['AY8910', 'AY8912', 'YM2149'].includes(device.type));
-  const ymDevices = devices.filter(device =>
-    device.type === 'YM2203' || device.type === 'YM2610');
-  const opmDevices = devices.filter(device => device.type === 'YM2151');
-  // Both OPL parts the generated FM worklet hosts; YM3812 is a YM3526 plus
-  // OPL2's waveform select.
-  const oplDevices = devices.filter(device =>
-    device.type === 'YM3526' || device.type === 'YM3812');
   const dacDevices = devices.filter(device => !device.stream && [
     'DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
     'NETLIST_INT_INPUT'].includes(device.type));
@@ -1094,35 +1087,6 @@ export function lowerGeneratedMachine(
         // beside it (the DISCRETE its 54xx drives) is relative to it.
         ...(lowerAudioRoutes(graph, [soundDevice]).length ? { routes: lowerAudioRoutes(graph, [soundDevice]) } : {}),
       }
-    : opmDevices.length
-      ? {
-          kind: 'ym2151',
-          deviceTag: opmDevices[0]!.tag,
-          deviceTags: opmDevices.map(device => device.tag),
-          deviceType: 'YM2151',
-          writeMethods: ['write'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, opmDevices).length
-            ? { routes: lowerAudioRoutes(graph, opmDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
-    : ymDevices.length || oplDevices.length
-      ? {
-          kind: 'ym2203',
-          deviceTag: (ymDevices[0] ?? oplDevices[0])!.tag,
-          deviceTags: ymDevices.map(device => device.tag),
-          deviceType: ymDevices.length ? ymDevices[0]!.type : oplDevices[0]!.type,
-          // ym2203_device maps a two-byte address/data port pair.
-          writeMethods: ymDevices.length ? ['write'] : [],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, ymDevices).length
-            ? { routes: lowerAudioRoutes(graph, ymDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
     : ayDevices.length
       ? {
           kind: 'ay8910',
@@ -1642,12 +1606,10 @@ export function lowerAudioRoutes(
       const targetInput = Number(node.props.input);
       const rawOutput = chipOutput;
       const outputChannels = rawOutput === 'ALL_OUTPUTS'
-        ? sourceDevice?.props.type === 'YM2203' || sourceDevice?.props.type === 'YM2610'
-          ? [0, 1, 2, 3]
-          // A stream device sums however many outputs it has.
-          : singleOutput || STREAM_SOUND_TYPES.includes(String(sourceDevice?.props.type))
-            ? [-1]
-            : [0, 1, 2]
+        // A stream device sums however many outputs it has.
+        ? singleOutput || STREAM_SOUND_TYPES.includes(String(sourceDevice?.props.type))
+          ? [-1]
+          : [0, 1, 2]
         : [singleOutput && Number(rawOutput) === 0 ? -1 : Number(rawOutput)];
       if (!Number.isFinite(gain)) continue;
       const match = /^filter\.(\d+)\.(\d+)$/.exec(target);
@@ -1668,18 +1630,12 @@ export function lowerAudioRoutes(
           channel: Number(match[2]),
         };
       }
-      // MAME's YM2610 streams are [SSG, FM left, FM right], the SSG write_to_output
-      // folding its three channels at 2/3; the engine holds them as the YM2203's.
-      const opnb = sourceDevice?.props.type === 'YM2610';
-      const opnbOutput = opnb && rawOutput !== 'ALL_OUTPUTS' ? Number(rawOutput) : undefined;
-      const channels = opnbOutput === undefined ? outputChannels : opnbOutput === 0 ? [0, 1, 2] : [3];
-      const channelGain = opnbOutput === 0 ? gain * 2 / 3 : gain;
-      for (const channel of channels) {
+      for (const channel of outputChannels) {
         if (!Number.isInteger(channel) || channel < -1) continue;
         routes.push({
           chip,
           channel,
-          gain: channelGain,
+          gain,
           target,
           ...(Number.isInteger(targetInput) ? { targetInput } : {}),
           ...(filter ? { filter } : {}),
@@ -1845,8 +1801,6 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_4BIT_R2R: ['data_w', 'write'],
   DAC_8BIT_R2R: ['data_w', 'write'],
   AD7533: ['data_w', 'write'],
-  YM3526: ['write'],
-  YM3812: ['write'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
 };
 

@@ -5,7 +5,7 @@ export const bublbobl = sourceTarget({
   driver: 'src/mame/taito/bublbobl.cpp',
   machine: { className: 'bublbobl_state', name: 'bublbobl' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   frames: 1800,
   minimumFps: 25,
   checkpoints: [1, 120, 240, 360, 600, 900, 1200, 1800],

@@ -21,6 +21,9 @@ export const SOUND_DEVICE_MAME_TYPES: readonly string[] = [
   'OKIM6295', 'MSM5205', 'TMS5220', 'TMS5220C', 'HC55516',
   // The Williams ADPCM board's DAC.
   'AD7524',
+  // MAME's ymfm wrappers (ymopm.cpp, ymopn.cpp, ymopl.cpp) over 3rdparty/ymfm,
+  // whose timers, IRQ and status the CPU reads back.
+  'YM2151', 'YM2203', 'YM2610', 'YM3526', 'YM3812',
 ];
 export const SOUND_DEVICE_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: "the chip's own handlers, through the bus or a device finder" },

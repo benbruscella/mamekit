@@ -29,12 +29,6 @@ import {
 } from './namco-wsg/definition.ts';
 import { extractNamcoWsg } from './namco-wsg/extract.ts';
 import {
-  YM2203_ID,
-  YM2203_MAME_TYPES,
-  YM2203_PORTS,
-} from './ym2203/definition.ts';
-import { extractYm2203 } from './ym2203/extract.ts';
-import {
   NES_ID,
   NES_MAME_TYPES,
   NES_PORTS,
@@ -102,12 +96,6 @@ import {
   SAMPLES_PORTS,
 } from './samples/definition.ts';
 import { extractSamples } from './samples/extract.ts';
-import {
-  YM2151_ID,
-  YM2151_MAME_TYPES,
-  YM2151_PORTS,
-} from './ym2151/definition.ts';
-import { extractYm2151 } from './ym2151/extract.ts';
 import {
   BERZERK_SOUND_ID,
   BERZERK_SOUND_MAME_TYPES,
@@ -194,12 +182,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: AY8910_PORTS,
     extract: extractAy8910,
   },
-  {
-    id: YM2203_ID,
-    mameTypes: YM2203_MAME_TYPES,
-    ports: YM2203_PORTS,
-    extract: extractYm2203,
-  },
   { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices },
   {
     id: POKEY_ID,
@@ -230,12 +212,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DISCRETE_MAME_TYPES,
     ports: DISCRETE_PORTS,
     extract: extractDiscrete,
-  },
-  {
-    id: YM2151_ID,
-    mameTypes: YM2151_MAME_TYPES,
-    ports: YM2151_PORTS,
-    extract: extractYm2151,
   },
   {
     id: BERZERK_SOUND_ID,

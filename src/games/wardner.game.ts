@@ -38,7 +38,7 @@ export const wardner = sourceTarget({
   driver: 'src/mame/toaplan/wardner.cpp',
   machine: { className: 'wardner_state', name: 'wardner' },
   screen: { width: 320, height: 240 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   frames: 3600,
   checkpoints: [1, 60, 600, 1500, 2400, 3000, 3300, 3600],
   actions: [

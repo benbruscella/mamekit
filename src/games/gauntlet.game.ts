@@ -17,7 +17,7 @@ export const gauntlet = sourceTarget({
   driver: 'src/mame/atari/gauntlet.cpp',
   machine: { className: 'gauntlet_state', name: 'gauntlet' },
   screen: { width: 336, height: 240 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   // The board answers one speaker with three chips, and the YM2151 is only
   // the one that names the sound kind. Without a gate per chip, a TMS5220C
   // that silently stopped producing anything would still pass on the overall

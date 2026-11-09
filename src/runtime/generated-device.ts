@@ -353,6 +353,8 @@ export interface GeneratedDeviceDefinition {
      * EPROM. The host runs it against a map builder, as MAME does.
      */
     map?: string;
+    /** A space with no map, which the device fills at start with install_rom. */
+    installed?: true;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
   /** the host call names those methods reach, resolved once into `links` */
@@ -1243,7 +1245,8 @@ class IrDevice implements Device {
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
       // its map tests state the constructor sets (the 68705's port masks).
-      if (!config.map) this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
+      if (config.installed) this.spaces.set(config.index, installableDeviceSpace(config.addressBits));
+      else if (!config.map) this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
     }
     const resourceCache = options.resourceCache ?? {};
     const resourceOptions = { ...options, resourceCache };
@@ -1304,6 +1307,15 @@ class IrDevice implements Device {
             if (!bindings) {
               const own = STRUCT_METHODS.get(definition.structs!)?.[type] ?? {};
               const calls = Object.create(device.bindings.calls ?? null) as Record<string, unknown>;
+              // A free function the device compiled, which the struct calls by
+              // name: `ymfm_output::roundtrip_fp()` runs
+              // `ymfm::roundtrip_fp(data[index])`. Emitted struct methods
+              // reach it through invoke; interpreted, it was an unresolved
+              // reference in every YM2151 sample.
+              for (const name of device.methods.keys()) {
+                if (name in calls || Object.hasOwn(own, name)) continue;
+                calls[name] = (...args: unknown[]) => device.call(name, ...args as number[]);
+              }
               for (const [name, fn] of Object.entries(own)) calls[name] = (fn as (...args: unknown[]) => unknown).bind(this);
               STRUCT_BINDINGS.set(this, bindings = {
                 members: this, constants: device.bindings.constants, calls,
@@ -1879,6 +1891,10 @@ class IrDevice implements Device {
         // device_memory_interface hands it out. Every declared space is flat
         // RAM (the extractor records no other shape), so the map is the buffer.
         space: index => this.deviceSpace(Number(index)) ?? 0,
+        // device_memory_interface::has_configured_map: whether the owner gave
+        // the space a map of its own. Nothing here configures one, so a device
+        // maps its regions itself (the YM2610's ADPCM ROM).
+        has_configured_map: () => 0,
         // A source handler named in an address map, `FUNC(cls::method)`,
         // and a lambda given a name for the debugger, `NAME([this]() {...})`.
         FUNC: (handler: unknown) => handler,
@@ -4133,6 +4149,39 @@ function pairValue(): Record<string, unknown> {
     w: { value: lanes(16, ['l', 'h'], false), enumerable: true },
     sw: { value: lanes(16, ['l', 'h'], true), enumerable: true },
   });
+}
+
+/**
+ * A device space with no map, filled by the device at start:
+ * `space(0).install_rom(start, end, base)` puts a region's bytes there, and
+ * `read_byte` reads whatever is installed (open bus elsewhere reads 0).
+ */
+function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
+  install_rom(start: number, end: number, base: unknown): number;
+} {
+  const mask = addressBits >= 32 ? 0xffffffff : (2 ** addressBits) - 1;
+  const entries: { start: number; end: number; bytes: ArrayLike<number>; offset: number }[] = [];
+  const read = (address: number): number => {
+    const at = address & mask;
+    for (const entry of entries) {
+      if (at >= entry.start && at <= entry.end) return entry.bytes[entry.offset + at - entry.start] ?? 0;
+    }
+    return 0;
+  };
+  return {
+    memory: new Uint8Array(0),
+    read_byte: read,
+    write_byte: () => 0,
+    install_rom: (start, end, base) => {
+      const pointer = isGeneratedPointer(base) ? base : undefined;
+      const bytes = pointer ? pointer.source : base as ArrayLike<number>;
+      if (bytes && typeof bytes.length === 'number') {
+        // A later install over the same range replaces the earlier one.
+        entries.unshift({ start: Number(start) & mask, end: Number(end) & mask, bytes, offset: pointer?.offset ?? 0 });
+      }
+      return 0;
+    },
+  };
 }
 
 function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {

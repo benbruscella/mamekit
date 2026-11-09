@@ -7,9 +7,7 @@
 import type { AudioProbeFactory } from './audio-probe.ts';
 import { createAy8910Probe } from './ay8910/acceptance.ts';
 import { createNamcoWsgProbe } from './namco-wsg/acceptance.ts';
-import { createYm2203Probe } from './ym2203/acceptance.ts';
 import { createDacProbe } from './dac/acceptance.ts';
-import { createYm2151Probe } from './ym2151/acceptance.ts';
 import { createBerzerkSoundProbe } from './berzerk-sound/acceptance.ts';
 import { createNesProbe } from './nes/acceptance.ts';
 import { createGameboyProbe } from './gameboy/acceptance.ts';
@@ -25,9 +23,7 @@ import { createStreamProbe } from './speaker/acceptance.ts';
 export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
   wsg: createNamcoWsgProbe,
   ay8910: createAy8910Probe,
-  ym2203: createYm2203Probe,
   dac: createDacProbe,
-  ym2151: createYm2151Probe,
   berzerk: createBerzerkSoundProbe,
   exidy: createBerzerkSoundProbe,
   nes: createNesProbe,
