@@ -79,7 +79,7 @@ Fix the earliest stage that has lost or misrepresented the MAME fact.
 | CPU instruction or state semantics differ from MAME | CPU compiler, opcode DSL, or code generator |
 | Device method cannot execute | generic device compiler or handler lowering |
 | Palette, bitmap, tile, sprite, crop, or rotation is wrong | video compiler and generated video plan |
-| Audio ports, topology, clocks, components, routing, or gain are wrong | audio compiler and generated audio IR/worklet |
+| Audio ports, topology, clocks, components, routing, or gain are wrong | the chip's compiled device, its routes, or the stream mix |
 | Correct IR executes incorrectly for multiple machines | generic runtime |
 | Only one game appears to need a shared-code branch | graph or IR is missing a source-derived fact |
 
@@ -591,7 +591,7 @@ Keep these as separate milestones:
 
 1. command/handshake reaches the sound CPU or device;
 2. source registers receive writes during **gameplay**, not only boot;
-3. the worklet renders non-silent PCM;
+3. the stream mix renders non-silent PCM;
 4. pitch, duration, waveform, envelope, filtering, gain, mute, and speech match
    MAME credibly.
 

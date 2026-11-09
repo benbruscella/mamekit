@@ -505,7 +505,10 @@ export function createStreamMixer(
       let sum = 0;
       for (const stream of streams) sum += stream.pending[index] ?? 0;
       if (netlistNode) sum += netlistNode.pending[index] ?? 0;
-      emit(muted ? 0 : sum, frac);
+      // MAME's speaker stage clamps the summed mix to 16 bits (sound.cpp), on
+      // the raw sum, DC and all: boards that sum past full scale clip as
+      // MAME's do (bankp's three SN76489As).
+      emit(muted ? 0 : Math.max(-1, Math.min(1, sum)), frac);
     }
     for (const stream of streams) stream.pending.splice(0, target - state.emitted);
     netlistNode?.pending.splice(0, target - state.emitted);

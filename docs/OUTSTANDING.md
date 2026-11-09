@@ -9,21 +9,23 @@ or `oracle:baseline compare`.
 
 Measured against baseline `5a11f2aa`.
 
-### 1.1 Mario's netlist is not compiled
+### 1.1 Mario's netlist is not compiled, so Mario is silent
 
-`netlist_mario` (`src/mame/nintendo/nl_mario.cpp`) never compiles. Netlists
-are lowered only behind an AY8910 sound plan (`lowerNetlistSound` in
-`src/gen/lower-sound.ts`), and Mario has no AY8910: its sound is the M58715's
-DAC feeding the netlist. So the board plays the raw DAC.
+`netlist_mario` (`src/mame/nintendo/nl_mario.cpp`) does not compile: it holds
+devices the netlist compiler does not have (`TTL_74123`, `SN74LS629` VCOs,
+`CD4020`, `R2R_DAC`, `CCCS`/`CCVS`/`CS` controlled sources). Since #242 a
+netlist that does not compile is left out with a warning rather than
+approximated, and Mario's only sound device is that netlist, so the board is
+silent (`soundKind: 'none'`). Before #242 it played the raw DAC through a hand
+DAC engine, 6.8 dB under MAME with the bands up to 55 dB low.
 
 - The DAC stream is right: 375,844 writes, all zero, the same as a Lua tap on
   MAME's `:audiocpu` I/O space.
-- Audio is 6.8 dB under MAME, with the bands up to 55 dB low.
 - `m_audio_snd[0].write` and `m_audio_snd[1].write` (the netlist's `SOUND0.IN`
   and `SOUND1.IN`, set by `sound_reset`) are in `KNOWN_UNRESOLVED_CALLS`.
 
-Start by lowering a `NETLIST_SOUND` that has no AY8910, with
-`NETLIST_INT_INPUT` (`DAC.VAL`) as a stream input.
+Start by lowering the missing devices, then `NETLIST_INT_INPUT` (`DAC.VAL`) as
+the netlist's input; the stream mix already runs netlists on the main thread.
 
 ### 1.2 Unresolved-call entries match by name, not by game
 

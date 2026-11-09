@@ -562,13 +562,15 @@ Each required non-host hardware type must be executable. A type may be:
 - generated machine composition;
 - explicitly declarative browser-host service.
 
-Audio machines may compose several generated cores. Preserve MAME
-`add_route` output, target, gain, and destination-input facts in the graph and
-machine IR; route secondary stream devices through the primary generated
-worklet. A source-declared `AY8910 + MSM5205 + DISCRETE` chain renders as
-compiled streams, each chip feeding the table's inputs as MAME routes it; do not
+Audio machines compose several sound devices, each its MAME class compiled
+whole and mixed in the stream mix. Preserve MAME `add_route` output, target,
+gain, and destination-input facts in the graph and machine IR. A
+source-declared `AY8910 + FILTER_RC` or `AY8910 + MSM5205 + DISCRETE` chain
+renders as compiled streams, each feeding the next as MAME routes it; do not
 replace it with a game-specific mixer or silently select only the first
-supported chip.
+supported chip. A new sound chip is a type in `sound-device/definition.ts`,
+never an engine or a sound kind of its own (`SOUND_KINDS` in
+`architecture.spec.ts` is empty).
 
 Do not mark unsupported hardware as executable to make the catalog button
 appear. The runtime report and manifest are honesty contracts.
@@ -614,15 +616,13 @@ A MAME device family is one package under `src/hardware/<family>/`:
 | `definition.ts` | neutral | id, MAME types, typed ports, browser constants |
 | `extract.ts` | compile time | MAME source to IR plus emitted artifacts |
 | `acceptance.ts` | tooling | probe against the emitted artifact in `dist` |
-| `runtime.ts` | browser | optional: wires the generated IR into the running board (15 packages have one) |
+| `runtime.ts` | browser | optional: wires the generated IR into the running board |
 
-Register it in `src/hardware/registry.ts` (compile time) and, for audio, in
-`src/hardware/acceptance-registry.ts`. An audio family whose registers need
-explicit wiring also adds its `runtime.ts` installer to
-`src/hardware/sound-runtime-registry.ts`, keyed by the sound kind the
-generator emits; that registry ships to the browser and imports only each
-package's `runtime.ts`. `registry.spec.ts` fails if a package
-directory exists but is not registered.
+Register it in `src/hardware/registry.ts` (compile time). Sound needs no
+package of its own: a sound chip is compiled by the `sound-device`
+capability (or the capability that owns its composition) and plays through
+the stream mix, the one installer in `src/hardware/sound-runtime-registry.ts`.
+`registry.spec.ts` fails if a package directory exists but is not registered.
 
 `extract.ts` must return undefined when it cannot lower the family, so the
 manifest leaves the type unresolved rather than claiming an executable core
@@ -646,7 +646,7 @@ Choose the layer from evidence, not from the visible symptom.
 | CPU opcode expansion/semantics missing | opcode DSL or CPU compiler/codegen |
 | Device method cannot lower | device compiler or generic handler vocabulary |
 | Palette/tile/sprite/bitmap plan incomplete | video compiler and generated video IR |
-| Audio control/topology/component plan incomplete | audio compiler and generated worklet |
+| Audio control/topology/component plan incomplete | the chip's compiled device, its routes, or the stream mix |
 | IR is correct but execution is wrong for every target | generic runtime |
 | Only one game needs a hardcoded branch | source/graph/IR model is still missing a fact |
 | A callback does nothing at run time | connection lowering in `src/ir/lower-connections.ts` |
@@ -654,9 +654,8 @@ Choose the layer from evidence, not from the visible symptom.
 | A two-CPU handshake half-works | the frame quantum, before the device (both directions) |
 | A board runs a fixed workload slow or fast | cycle charges the opcode body makes itself, not the decode table |
 | A CPU core reads a source name it never declares | the CPU definition's constants; codegen fails rather than emitting 0 |
-| A board is audible but one chip is silent | `sound.auxiliaryDevices`; the kind names one chip only |
-| A sound chip's pin is polled by a CPU | its engine belongs on the main thread, not the worklet |
-| A main-thread chip runs at double or half speed | `tickCpu` fires per processor; drive it from one, and not one that can be held in reset |
+| A board is audible but one chip is silent | its type missing from `STREAM_SOUND_TYPES`, or a route that never reaches a speaker |
+| A sound chip plays at the wrong pitch | its stream rate: below the speaker's it is resampled, adaptive rates are the speaker's |
 | A machine's SCREEN carries no geometry | the video device that claimed it with `set_screen`, whose `device_config_complete` sets the raw params |
 | A compiled board is slow with a flat profile | `%HasFastProperties` on what its hot path reads; a dictionary-mode table wants a resolved links table, not a faster hardware model. An object literal with a getter is born in dictionary mode, and so is a table built one key at a time |
 | A small emitted method still costs a call per use | its bytecode size (`node --print-bytecode --print-bytecode-filter=<method>`) against V8's 460-byte inlining limit; a cold path spelled inline belongs in a runtime helper |
