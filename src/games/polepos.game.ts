@@ -27,7 +27,7 @@ export const polepos = sourceTarget({
   driver: 'src/mame/namco/polepos.cpp',
   machine: { className: 'polepos_state', name: 'polepos' },
   screen: { width: 256, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   actions: [
     // Pole Position ignores an early coin while its board test is running.
     // Keep actions non-overlapping: the acceptance harness replays each pulse

@@ -5,7 +5,6 @@
 // apart means the acceptance harness never pulls the compiler in.
 
 import type { AudioProbeFactory } from './audio-probe.ts';
-import { createNamcoWsgProbe } from './namco-wsg/acceptance.ts';
 import { createBerzerkSoundProbe } from './berzerk-sound/acceptance.ts';
 import { createNesProbe } from './nes/acceptance.ts';
 import { createGameboyProbe } from './gameboy/acceptance.ts';
@@ -19,7 +18,6 @@ import { createStreamProbe } from './speaker/acceptance.ts';
  * audio contract.
  */
 export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
-  wsg: createNamcoWsgProbe,
   berzerk: createBerzerkSoundProbe,
   exidy: createBerzerkSoundProbe,
   nes: createNesProbe,

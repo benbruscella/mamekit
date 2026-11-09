@@ -5,7 +5,7 @@ export const xevious = sourceTarget({
   driver: 'src/mame/namco/galaga.cpp',
   machine: { className: 'xevious_state', name: 'xevious' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   minimumFps: 45,
   // The three-CPU Namco board keeps inputs and WSG data quiet through its
   // lengthy power-on test. Exercise the 51xx controls after that test and

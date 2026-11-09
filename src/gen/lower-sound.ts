@@ -2,7 +2,7 @@
 
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 
-import { lowerAudioRoutes, lowerAuxiliaryAudioDevices, monoRoutes } from './emit-machine.ts';
+import { lowerAudioRoutes, monoRoutes } from './emit-machine.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
 
 import { compileMameSpeakerFilter } from '../mame/audio-compiler.ts';
@@ -28,18 +28,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const streamed = streamRoutedDevices(graph);
   const worklet = (device: KGNode) => !streamed.has(device.id);
   // sound device -> runtime SoundCore kind (device-library mapping, not game-specific)
-  const auxiliaryAudioDevices = lowerAuxiliaryAudioDevices(
-    graph,
-    devices.filter(worklet).map(device => ({
-      id: device.id,
-      tag: String(device.props.tag),
-      type: String(device.props.type),
-      ...(configuredDeviceMember(device.props)
-        ? { member: configuredDeviceMember(device.props) }
-        : {}),
-      ...(typeof device.props.clock === 'number' ? { clock: device.props.clock } : {}),
-    })),
-  );
   const berzerkSound = devices.find(d =>
     d.props.type === 'EXIDY' || d.props.type === 'EXIDY_VENTURE');
   // The Atari TIA's sound half. It is the only chip on the board, so it owns
@@ -54,16 +42,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const sound = devices.some(d => String(d.props.type).startsWith('RP2A03'))
     // the NES APU lives on the CPU die — the RP2A03 is its own sound device
     ? { kind: 'nes', clock: cpus[0].clock }
-    : devices.some(d => ['NAMCO_WSG', 'POLEPOS_WSG', 'NAMCO'].includes(String(d.props.type)))
-    ? {
-        kind: 'wsg',
-        clock: Number(byTag.get('namco')?.props.clock ?? 96000),
-        waveRegion: 'namco',
-        ...(devices.some(device => device.props.type === 'POLEPOS_SOUND')
-          ? { sampleRegion: 'engine', worklet: 'polepos-wsg' }
-          : {}),
-        ...(auxiliaryAudioDevices.length ? { auxiliaryDevices: auxiliaryAudioDevices } : {}),
-      }
     : berzerkSound
           ? {
               kind: berzerkSound.props.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
@@ -120,11 +98,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
       .filter(device => types.some(type => String(device.props.type).startsWith(type)))
       .map(device => ({ id: device.id, tag: String(device.props.tag) })),
   )[0]?.gain;
-  const outputGain = sound.kind === 'wsg'
-    ? singleRoute(['NAMCO', 'POLEPOS_WSG'])
-    : sound.kind === 'nes'
-      ? singleRoute(['RP2A03'])
-      : undefined;
+  const outputGain = sound.kind === 'nes' ? singleRoute(['RP2A03']) : undefined;
   if (outputGain !== undefined) Object.assign(sound, { outputGain });
 
   // MAME keeps each speaker channel apart, and the browser plays one, their

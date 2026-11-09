@@ -13,7 +13,7 @@ import type {
 import { validateGameContract } from './contract-validation.ts';
 
 const SOUND_KINDS = new Set<GameSoundKind>([
-  'wsg', 'discrete',
+  'discrete',
   'berzerk', 'exidy', 'stream', 'none',
 ]);
 

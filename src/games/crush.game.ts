@@ -5,7 +5,7 @@ export const crush = sourceTarget({
   driver: 'src/mame/pacman/pacman.cpp',
   machine: { className: 'pacman_state', name: 'korosuke' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   frames: 2400,
   minimumFps: 45,
   checkpoints: [1, 60, 300, 600, 900, 1200, 1800, 2400],

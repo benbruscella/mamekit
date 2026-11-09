@@ -5,7 +5,7 @@ export const galaga = sourceTarget({
   driver: 'src/mame/namco/galaga.cpp',
   machine: { className: 'galaga_state', name: 'galaga' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   // Galaga's three-CPU self-test runs ~12 s before the game will take a coin,
   // and the WSG is silent until then (matches real hardware: the boot boom is
   // the 54xx discrete circuit, not the WSG) — so all actions land post-boot.

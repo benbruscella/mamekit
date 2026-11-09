@@ -32,6 +32,9 @@ export const SOUND_DEVICE_MAME_TYPES: readonly string[] = [
   // input is the chip's stream: flt_rc.cpp (Time Pilot's RC stages, set by the
   // driver at run time) and flt_biquad.cpp (the Sounds Good op-amp stages).
   'FILTER_RC', 'FILTER_BIQUAD',
+  // namco.cpp's wavetable sound generators, which read their waveform PROM as
+  // the region named after them, and Pole Position's engine sound (polepos_a.cpp).
+  'NAMCO_WSG', 'POLEPOS_WSG', 'NAMCO_15XX', 'NAMCO_CUS30', 'POLEPOS_SOUND',
 ];
 export const SOUND_DEVICE_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: "the chip's own handlers, through the bus or a device finder" },

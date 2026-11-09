@@ -1003,8 +1003,6 @@ export function lowerGeneratedMachine(
     // a palette_device built-in init, or a palette the driver banks at run time.
     ...(paletteInits.length ? { paletteInits } : {}),
   };
-  const soundDevice = devices.find(device =>
-    device.type === 'NAMCO_WSG' || device.type === 'POLEPOS_WSG');
   const nesCpu = nesApu && devices.find(device =>
     device.type === 'RP2A03' || device.type === 'RP2A03G');
   // A chip this machine renders as a compiled stream is not its worklet's.
@@ -1036,7 +1034,6 @@ export function lowerGeneratedMachine(
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
   // A board whose chips render as streams is mixed as streams.
-  const auxiliaryDevices = lowerAuxiliaryAudioDevices(graph, devices.filter(device => !device.stream));
   const netlistLogicInputs = lowerNetlistLogicInputs(
     graph,
     reachableDevices.map(({ node }) => node),
@@ -1070,24 +1067,6 @@ export function lowerGeneratedMachine(
         // The APU's own route (`maincpu.add_route(ALL_OUTPUTS, "mono",
         // 0.90)`): a cartridge's sound chip is mixed relative to it.
         ...(lowerAudioRoutes(graph, [nesCpu]).length ? { routes: lowerAudioRoutes(graph, [nesCpu]) } : {}),
-      }
-    : soundDevice
-    ? {
-        kind: 'wsg',
-        deviceTag: soundDevice.tag,
-        deviceType: soundDevice.type,
-        writeMethods: [...new Set(maps.flatMap(map => map.ranges)
-          .map(range => range.write)
-          .filter((key): key is string => Boolean(key?.startsWith(`${soundDevice.tag}.`)))
-          .map(key => key.slice(soundDevice.tag.length + 1)))],
-        enableMethods: [...new Set(callbacks
-          .filter(callback => callback.targetTag === soundDevice.tag && callback.targetMethod)
-          .map(callback => callback.targetMethod!))],
-        controlOffset: -1,
-        ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        // The shell applies the WSG's route after the worklet; a stream mixed
-        // beside it (the DISCRETE its 54xx drives) is relative to it.
-        ...(lowerAudioRoutes(graph, [soundDevice]).length ? { routes: lowerAudioRoutes(graph, [soundDevice]) } : {}),
       }
     : berzerkSound
       ? {
@@ -1196,12 +1175,6 @@ export function lowerGeneratedMachine(
           soundWriteMethods: new Set(sound.writeMethods),
           soundEnableMethods: new Set(sound.enableMethods),
           soundControlOffset: sound.controlOffset,
-          auxiliaryAudio: new Map(
-            ('auxiliaryDevices' in sound ? sound.auxiliaryDevices ?? [] : []).map(
-              (device: GeneratedAuxiliaryAudioDevice) =>
-                [device.deviceTag, new Set(device.writeMethods)] as const,
-            ),
-          ),
         }
       : {}),
   });
@@ -1573,9 +1546,6 @@ export function lowerAudioRoutes(
   return routes;
 }
 
-const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
-  POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
-};
 
 /**
  * Lower routed secondary sound devices independently of the game using them.
@@ -1612,6 +1582,20 @@ function resolvedAudioRoute(
   return undefined;
 }
 
+
+/**
+ * A sound chip's own address space 0 over its ROM region, which its
+ * `device_rom_interface` reads through: the Williams ADPCM board's OKI sees a
+ * banked low half and a fixed upper half. Nothing when it reads its region
+ * directly.
+ */
+function deviceRomMap(graph: KnowledgeGraph, node: KGNode): { romMap?: GeneratedSampleWindow[] } {
+  if (!STREAM_SOUND_TYPES.includes(String(node.props.type))) return {};
+  const region = graph.nodes.find(candidate => candidate.label === 'RomRegion' && candidate.props.tag === node.props.tag);
+  const romMap = region ? lowerSampleMap(graph, node.id, String(region.props.tag)) : undefined;
+  return romMap?.length ? { romMap } : {};
+}
+
 /**
  * The device a `*this` ('^') or DEVICE_SELF_OWNER ('^^') route lands on. A
  * sub-device is declared in its owner's device_add_mconfig, which the node id
@@ -1628,68 +1612,6 @@ function routeOwner(graph: KnowledgeGraph, deviceId: string, ownersOwner: boolea
   const tag = String(owner.props.tag);
   const parent = tag.includes(':') ? tag.slice(0, tag.lastIndexOf(':')) : undefined;
   return parent ? graph.nodes.find(node => node.label === 'Device' && node.props.tag === parent) : undefined;
-}
-
-export function lowerAuxiliaryAudioDevices(
-  graph: KnowledgeGraph,
-  devices: {
-    id: string;
-    tag: string;
-    type: string;
-    member?: string;
-    clock?: number;
-  }[],
-): GeneratedAuxiliaryAudioDevice[] {
-  const byId = new Map(graph.nodes.map(node => [node.id, node]));
-  return devices.flatMap(device => {
-    const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
-    const clock = Number.isFinite(device.clock)
-      ? device.clock!
-      : undefined;
-    if (!writeMethods || clock === undefined) return [];
-    const resolved = resolvedAudioRoute(graph, byId, device.id);
-    if (!resolved) return [];
-    const { route, gain } = resolved;
-    if (!Number.isFinite(gain)) return [];
-    const sourceDevice = byId.get(device.id);
-    const config = Array.isArray(sourceDevice?.props.config)
-      ? sourceDevice.props.config.map(String).join('\n')
-      : '';
-    const initialMode = /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1];
-    const targetInput = Number(route.props.input);
-    const directSampleRegion = graph.nodes.find(node =>
-      node.label === 'RomRegion' && node.props.tag === device.tag);
-    const sampleRegion = directSampleRegion;
-    const sampleMap = sampleRegion
-      ? lowerSampleMap(graph, device.id, String(sampleRegion.props.tag))
-      : undefined;
-    return [{
-      type: device.type,
-      deviceTag: device.tag,
-      ...(sampleMap?.length ? { sampleMap } : {}),
-      ...(device.member ? { member: device.member } : {}),
-      clock,
-      ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
-      ...(initialMode ? { initialMode } : {}),
-      gain,
-      target: String(route.props.target),
-      ...(Number.isInteger(targetInput) ? { targetInput } : {}),
-      writeMethods,
-    }];
-  });
-}
-
-/**
- * A sound chip's own address space 0 over its ROM region, which its
- * `device_rom_interface` reads through: the Williams ADPCM board's OKI sees a
- * banked low half and a fixed upper half. Nothing when it reads its region
- * directly.
- */
-function deviceRomMap(graph: KnowledgeGraph, node: KGNode): { romMap?: GeneratedSampleWindow[] } {
-  if (!STREAM_SOUND_TYPES.includes(String(node.props.type))) return {};
-  const region = graph.nodes.find(candidate => candidate.label === 'RomRegion' && candidate.props.tag === node.props.tag);
-  const romMap = region ? lowerSampleMap(graph, node.id, String(region.props.tag)) : undefined;
-  return romMap?.length ? { romMap } : {};
 }
 
 /**

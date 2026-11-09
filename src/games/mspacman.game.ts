@@ -5,7 +5,7 @@ export const mspacman = sourceTarget({
   driver: 'src/mame/pacman/pacman.cpp',
   machine: { className: 'pacman_state', name: 'mspacman' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   // The cabinet is a four-way joystick and nothing else: no button to press.
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

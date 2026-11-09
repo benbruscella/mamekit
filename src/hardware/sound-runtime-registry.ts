@@ -4,7 +4,6 @@
 // its extract.ts, which belongs to the compiler.
 
 import { installNesRuntime } from './nes/runtime.ts';
-import { installNamcoWsgRuntime } from './namco-wsg/runtime.ts';
 import { installBerzerkSoundRuntime } from './berzerk-sound/runtime.ts';
 import { installA2600Runtime } from './a2600/runtime.ts';
 import { installC64AudioRuntime } from './c64/runtime.ts';
@@ -22,7 +21,6 @@ import {
  * to the sink by method name, which is what the generated worklets expect.
  */
 const INSTALLERS: Readonly<Record<string, SoundRuntimeInstaller>> = {
-  wsg: installNamcoWsgRuntime,
   nes: installNesRuntime,
   berzerk: installBerzerkSoundRuntime,
   exidy: installBerzerkSoundRuntime,

@@ -96,7 +96,7 @@ export interface GameAcceptanceGolden {
 }
 
 export type GameSoundKind =
-  | 'sid' | 'stream' | 'wsg' | 'discrete'
+  | 'sid' | 'stream' | 'discrete'
   | 'berzerk' | 'exidy' | 'nes' | 'gameboy'
   | 'tia' | 'none';
 

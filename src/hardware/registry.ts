@@ -17,12 +17,6 @@ import { DEVICE_ID, DEVICE_MAME_TYPES, DEVICE_PORTS } from './device/definition.
 import { extractDevices } from './device/extract.ts';
 import { extractCpus } from './cpu/extract.ts';
 import {
-  NAMCO_WSG_ID,
-  NAMCO_WSG_MAME_TYPES,
-  NAMCO_WSG_PORTS,
-} from './namco-wsg/definition.ts';
-import { extractNamcoWsg } from './namco-wsg/extract.ts';
-import {
   NES_ID,
   NES_MAME_TYPES,
   NES_PORTS,
@@ -158,12 +152,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     extract: extractGameboy,
   },
   // Audio
-  {
-    id: NAMCO_WSG_ID,
-    mameTypes: NAMCO_WSG_MAME_TYPES,
-    ports: NAMCO_WSG_PORTS,
-    extract: extractNamcoWsg,
-  },
   { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices },
   {
     id: POKEY_ID,
