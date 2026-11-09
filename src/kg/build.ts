@@ -3988,7 +3988,7 @@ function recordPaletteInit(
     // palette RAM write (palette_device::write8), so it is a handler too, with
     // MAME's resnet.cpp in its closure. palette_device's own formats are
     // named constants, not functions, and are decoded as data.
-    const converter = config.join('\n').match(/\bset_format\s*\(\s*[^,]+,\s*(\w+)::(\w+)\s*,/);
+    const converter = config.join('\n').match(/\bset_format\s*\(\s*[^,]+,\s*&?\s*(\w+)::(\w+)\s*,/);
     if (converter && converter[1] !== 'palette_device') {
       const converterId = emitSourceHandlerClosure(
         g, ast, converter[1]!, converter[2]!, constants, { file: driverFile, start: 0, end: 0, line: 0, column: 0, endLine: 0, endColumn: 0 },

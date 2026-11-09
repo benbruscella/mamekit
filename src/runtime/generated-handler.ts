@@ -40,6 +40,7 @@ export {
   generatedStringCall,
   generatedByteView,
   generatedPackedView,
+  isBigEndianWords,
   generatedPeriodicLines,
   generatedAdd,
   generatedPointerStore,

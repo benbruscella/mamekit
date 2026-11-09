@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
-import { evalExpr, parseGfxLayouts, stripComments } from '../kg/parse.ts';
+import { evalExpr, parseGfxLayouts, parseIncludes, stripComments } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedGfxLayout, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedVideoPlan } from '../ir/board.ts';
 import {
-  functionArity, lowerOverloadedCalls, MameAstIndex, overloadedName, parseMameAst, parseOverloadedName, splitMameArgs,
+  functionArity, lowerOverloadedCalls, MameAstIndex, overloadedName, parseMameAst, parseMameSource, parseOverloadedName, splitMameArgs,
   type MameFunction,
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
@@ -70,6 +70,21 @@ export function compileMameVideo(
     }
   }
   if (!files.includes(driver) && existsSync(join(mameSrc, driver))) files.push(driver);
+  // A library header of MAME's own core (`video/resnet.h`): src/emu is on
+  // every driver's include path, and the KG joins the header when its family
+  // calls one of the header's free functions. Video code the KG's family
+  // never read (taitosj_v.cpp) calls them too, so join the header here by the
+  // same test: combine_weights is a template the header defines, and without
+  // its definition the call has no instance.
+  const videoText = files.map(file => stripComments(readFileSync(join(mameSrc, file), 'utf8'))).join('\n');
+  const included = files.flatMap(file => parseIncludes(readFileSync(join(mameSrc, file), 'utf8')));
+  for (const candidate of new Set([...candidates, ...included])) {
+    const header = join('src/emu', candidate);
+    if (!/\.h$/.test(candidate) || files.includes(header) || !existsSync(join(mameSrc, header))) continue;
+    const names = parseMameSource(header, stripComments(readFileSync(join(mameSrc, header), 'utf8')))
+      .functions.filter(fn => fn.className === '').map(fn => fn.name);
+    if (names.some(name => new RegExp(`\\b${name}\\s*(?:<[^;{}()]*>)?\\s*\\(`).test(videoText))) files.push(header);
+  }
   const ast = new MameAstIndex(parseMameAst(
     [...new Set(files)].map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') })),
   ));

@@ -86,6 +86,7 @@ import {
 } from './generated-board-shape.ts';
 import { hasDeviceType } from './generated-source-shape.ts';
 import { GeneratedRectangle, isEncodedRectangle } from './rectangle.ts';
+import { presentVectorDisplay } from './vector-display.ts';
 
 export type BoardFactory = (
   config: BoardConfig,
@@ -1921,7 +1922,13 @@ class IrBoard implements Board {
       // test passed every frame and the screen stayed black.
       if (self && typeof self === 'object') {
         for (const name of Object.getOwnPropertyNames(self)) {
-          if (name in referent || !/^m_\w+$/.test(name) || typeof self[name] === 'function') continue;
+          // Values only: a device pointer a device holds (the NES slot's
+          // m_cart) stays unexposed, as it was. Exposed, nes_state's
+          // machine_start took its cartridge branch, whose PPU-space installs
+          // the NES family already applies from source (nes/extract.ts) and a
+          // device space cannot take at run time.
+          if (name in referent || !/^m_\w+$/.test(name) || typeof self[name] === 'function' ||
+            (self[name] !== null && typeof self[name] === 'object' && !ArrayBuffer.isView(self[name]))) continue;
           Object.defineProperty(referent, name, {
             get: () => self[name],
             set: (value: unknown) => { self[name] = value; },
@@ -3111,7 +3118,14 @@ class IrBoard implements Board {
       // generated device's update instead of a driver handler to execute.
       const deviceTag = machine.execution.screenUpdate.deviceTag;
       const updateMethod = machine.execution.screenUpdate.handler.split('.').pop()!;
-      const deviceUpdate: DeviceScreenUpdate | undefined = deviceTag
+      // MAME's vector_device is the display, not hardware: what its
+      // screen_update does is hand the generators' beam list to the render
+      // system, which is presentation (vector-display.ts).
+      const vectorDisplay = deviceTag !== undefined &&
+        machine.devices?.some(device => device.tag === deviceTag && device.type === 'VECTOR');
+      const deviceUpdate: DeviceScreenUpdate | undefined = vectorDisplay
+        ? (screen, bitmap) => presentVectorDisplay(this.vectorPoints.points, screen, bitmap)
+        : deviceTag
         ? (screen, bitmap, cliprect) => {
             const device = this.devices.get(deviceTag);
             // A processor can own the screen: the TMS34010 draws each line

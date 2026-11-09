@@ -12,7 +12,7 @@ export const popeye = sourceTarget({
       gfx2: '38b5a50c',
       maincpu: 'ea72ef37',
       proms: '62ec4acb',
-      sprpal: 'fd9bfe68',
+      sprpal: 'bd21f577',
       timing: 'a4655e2e',
     },
     checkpoints: {

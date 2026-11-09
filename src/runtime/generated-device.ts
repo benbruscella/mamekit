@@ -9,6 +9,7 @@ import {
   dereferenceGeneratedFast,
   generatedByteView,
   generatedPackedView,
+  isBigEndianWords,
   generatedContainerAccessor,
   generatedVectorMethod,
   generatedStringCall,
@@ -3397,7 +3398,13 @@ function resolveDeviceResource(
     // 68000's big-endian region (ROM_REGION16_BE) word by word as MAME's
     // byte-swapped copy does. Read in the host's order instead, System 16's
     // sprite rows missed their end-of-row nibble and drew three times over.
-    const view = generatedPackedView(bytes, width === 2 ? false : 'u32') as object;
+    // A region is ROM, so its big-endian words are decoded once into a real
+    // Uint16Array rather than through the per-read Proxy a writable
+    // big-endian view needs: read through the Proxy, shinobi's sprite loop
+    // took minutes a frame.
+    const view = (width === 2 && isBigEndianWords(bytes)
+      ? Uint16Array.from({ length: bytes.length >>> 1 }, (_, index) => (bytes[index * 2]! << 8) | bytes[index * 2 + 1]!)
+      : generatedPackedView(bytes, width === 2 ? false : 'u32')) as object;
     // `bytes()` is the region's size in bytes, whatever the element width.
     Object.defineProperty(view, 'bytes', { value: () => bytes.byteLength, configurable: true });
     return view;

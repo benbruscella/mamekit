@@ -1730,6 +1730,13 @@ function emitCall(
       delegate && ['identifier', 'index', 'member'].includes(argument.kind)
         ? emitReferenceArgument(argument, context)
         : emitExpression(argument, context));
+    // A lambda the body holds in a local (`auto const TOTAL_COLORS = [this]
+    // (int gfxn) {...}`, Xevious's palette): the interpreter calls the local
+    // first, so the emitted call does too, not the board's call table.
+    if (context.locals.has(name)) {
+      return `(typeof ${localName(name)} === 'function' ? ${localName(name)}(${args.join(', ')}) : ` +
+        `runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
+    }
     if (name === 'COMBINE_DATA') {
       // The interpreter reads data/mem_mask from the handler's locals; emitted
       // code passes its own parameters, with MAME's full-mask default.

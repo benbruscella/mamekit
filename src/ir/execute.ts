@@ -3485,7 +3485,7 @@ export function markBigEndianWords(bytes: Uint8Array): void {
   Object.defineProperty(bytes, BIG_ENDIAN_WORDS, { value: true });
 }
 
-function isBigEndianWords(bytes: object): boolean {
+export function isBigEndianWords(bytes: object): boolean {
   return (bytes as { [BIG_ENDIAN_WORDS]?: boolean })[BIG_ENDIAN_WORDS] === true;
 }
 
