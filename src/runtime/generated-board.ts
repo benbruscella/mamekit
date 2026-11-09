@@ -1547,24 +1547,41 @@ class IrBoard implements Board {
     // A call through a member-function pointer, which holds its method's name
     // (member-pointers.ts): Cosmic's screen update colours each pixel through
     // `(this->*m_map_color)(x, y)`, set to panic_map_color by its palette.
-    calls['CALL_METHOD'] = (method: unknown, ...args: unknown[]) => {
-      const name = String(method);
+    // The pointer is called per pixel there, so each name and arity resolves
+    // to its handler and parameter names once.
+    const methodTargets = new Map<string, { handler: NonNullable<typeof machine.handlers>[number]; names: string[] } | null>();
+    const methodTarget = (name: string, arity: number) => {
+      const key = `${name}/${arity}`;
+      let target = methodTargets.get(key);
+      if (target !== undefined) return target;
       // An overloaded method is one handler per arity (`copy_layer__a5`), and
       // the pointer's own signature is what the call's arguments are.
       const leaf = name.split(/[.:]+/).at(-1)!;
       const usable = (candidate: NonNullable<typeof machine.handlers>[number]) =>
         Boolean(candidate.program && !candidate.program.diagnostics.length);
-      const handler = machine.handlers?.find(candidate => candidate.method === `${leaf}__a${args.length}` && usable(candidate)) ??
+      const handler = machine.handlers?.find(candidate => candidate.method === `${leaf}__a${arity}` && usable(candidate)) ??
         machine.handlers?.find(candidate => candidate.method === name && usable(candidate));
-      if (!handler) {
+      target = handler
+        ? {
+          handler,
+          names: (handler.parameters ?? '').split(',')
+            .map(parameter => /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1])
+            .filter((parameter): parameter is string => Boolean(parameter)),
+        }
+        : null;
+      methodTargets.set(key, target);
+      return target;
+    };
+    calls['CALL_METHOD'] = (method: unknown, ...args: unknown[]) => {
+      const name = String(method);
+      const target = methodTarget(name, args.length);
+      if (!target) {
         noteUnresolvedCall(`CALL_METHOD ${name}`);
         return 0;
       }
-      const names = (handler.parameters ?? '').split(',')
-        .map(parameter => /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1])
-        .filter((parameter): parameter is string => Boolean(parameter));
-      return executeGeneratedMachineHandler(machine, handler, this.bindings,
-        Object.fromEntries(names.map((parameter, index) => [parameter, args[index]]))) ?? 0;
+      const locals: Record<string, unknown> = {};
+      for (let index = 0; index < target.names.length; index++) locals[target.names[index]!] = args[index];
+      return executeGeneratedMachineHandler(machine, target.handler, this.bindings, locals) ?? 0;
     };
     // `ioport("VIDHW")`, the port by tag, or null where the machine has none:
     // dkong's check_palette reads its board revision this way.
@@ -1695,12 +1712,13 @@ class IrBoard implements Board {
     // the board spun in its own video timing with a black screen.
     for (const timer of machine.execution.genericTimers ?? []) {
       if (timer.driver && timer.precise) this.preciseTimerMembers.add(timer.member);
+      // Resolved once: a scanline timer fires 264 times a frame.
+      const handler = machine.handlers?.find(candidate =>
+        `${candidate.ownerClass}.${candidate.method}` === timer.handler);
       const fire = (): void => {
         const pending = this.pendingTimers.get(timer.member);
         if (!pending) return;
         this.pendingTimers.delete(timer.member);
-        const handler = machine.handlers?.find(candidate =>
-          `${candidate.ownerClass}.${candidate.method}` === timer.handler);
         if (!handler?.program || handler.program.diagnostics.length) return;
         const run = () => executeGeneratedMachineHandler(machine, handler, this.bindings, {
           param: pending.param,

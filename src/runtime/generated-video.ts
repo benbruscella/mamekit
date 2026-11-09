@@ -1,6 +1,7 @@
 import type { VideoRenderer } from './types.ts';
 import type { Regions, VideoRenderer as Renderer } from './types.ts';
 import type { BoardIr, GeneratedGfxEntry, GeneratedGfxLayout, GeneratedHandler, GeneratedPromPalettePlan, GeneratedRamPalettePlan, GeneratedTilemapPlan } from '../ir/board.ts';
+import { TILEMAP_SET_FLIP_ALL } from '../ir/board.ts';
 import {
   executeGeneratedCallbackHandler,
   executeGeneratedMachineHandler,
@@ -2865,7 +2866,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       // three playfields this way.
       copyscrollbitmap: (...args) => copyScrollBitmap(args, false),
       copyscrollbitmap_trans: (...args) => copyScrollBitmap(args, true),
-      'machine().tilemap().set_flip_all': (...args) => {
+      [TILEMAP_SET_FLIP_ALL]: (...args) => {
         const flags = Number(generatedArgumentValue(args[0]) ?? 0);
         for (const plan of machine.video?.tilemaps ?? []) {
           (state[plan.member] as GeneratedTilemap | undefined)?.set_flip(flags);

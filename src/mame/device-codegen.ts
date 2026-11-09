@@ -1,6 +1,6 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
 import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDereference, STRING_MUTATORS } from '../ir/execute.ts';
-import { HOST_SERVICE_CALLS } from '../ir/board.ts';
+import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
@@ -610,10 +610,19 @@ export function supportsMethod(
   ]);
   const callees = calledIdentifiers(method.program.operations);
   const addressOnly = addressOnlyLocals(method.program.operations, locals);
+  const scalarLocals = integerScalarLocals(method.program.operations);
+  // The receiver of a bound framework chain is never emitted on its own.
+  const chainReceivers = new Set<GeneratedExpression>();
+  visitOperations(method.program.operations, operation => {
+    visitOperationExpressions(operation, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'member' &&
+          videoFrameworkChainName(expression, definition)) chainReceivers.add(expression.callee.object);
+    });
+  });
   let supported = true;
   visitOperations(method.program.operations, operation => {
     visitOperationExpressions(operation, expression => {
-      if (!supported) return;
+      if (!supported || chainReceivers.has(expression)) return;
       if (expression.kind === 'identifier') {
         // A constant written with its declaring class (`lr35902_cpu_device::
         // VBL_INT`) is recorded under its leaf name, and `emitExpression`
@@ -658,6 +667,14 @@ export function supportsMethod(
               // interpreter -- The Simpsons' sprite DMA compiled that way and
               // its attract drifted from the golden.
               members.has(expression.operand.name) ||
+              // `&sx` on a local every declaration types as an integer
+              // scalar: the same get/set pointer as `&m_value`, narrowed by
+              // the local's declared width. MAME's out-parameter idiom --
+              // Taito SJ's `get_sprite_xy(which, &sx, &sy)` -- is how its
+              // sprite and collision loops read each sprite's position, and
+              // declining it left them interpreted every frame. A pointer
+              // local (`&dst` above) is still declined.
+              scalarLocals.has(expression.operand.name) ||
               // A local whose address is all the method ever uses: what the
               // callee does through it no emitted code here can observe, and
               // the callee is handed the same lvalue-backed pointer the
@@ -1931,6 +1948,11 @@ function emitCall(
         `typeof (${object})?.isnull === 'function' ? (${object}).isnull() : ` +
         `(${fallbackLink(context, name)}?.() ?? 0))`;
     }
+    const chain = videoFrameworkChainName(expression, context);
+    if (chain) {
+      const chainArgs = expression.args.map(argument => emitExpression(argument, context));
+      return `(${fallbackLink(context, chain)}?.(${chainArgs.join(', ')}) ?? 0)`;
+    }
     // An argument the receiver's class takes by non-const reference is passed
     // as storage it writes back to (`m_regs.write(..., keyon_channel, ...)`).
     const args = expression.args.map((argument, index) =>
@@ -2289,6 +2311,22 @@ function linkedMemberCallName(
     return undefined;
   }
   return `${object.callee.name}().${expression.callee.property}`;
+}
+
+/**
+ * `machine().tilemap().set_flip_all(...)`: a board video framework call the
+ * video package binds by its whole chain (VIDEO_FRAMEWORK_CHAIN_CALLS).
+ */
+function videoFrameworkChainName(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  context: { boardScope?: boolean },
+): string | undefined {
+  if (!context.boardScope || expression.callee.kind !== 'member') return undefined;
+  const object = expression.callee.object;
+  if (object.kind !== 'call' || object.args.length) return undefined;
+  const inner = linkedMemberCallName(object);
+  const name = inner && `${inner}().${expression.callee.property}`;
+  return name && VIDEO_FRAMEWORK_CHAIN_CALLS.includes(name) ? name : undefined;
 }
 
 /**
@@ -2935,6 +2973,20 @@ function addressOnlyLocals(
     });
   });
   return new Set([...addressed].filter(([name, count]) => named.get(name) === count).map(([name]) => name));
+}
+
+const INTEGER_SCALAR_TYPE = /^(?:(?:const|unsigned|signed|long|short)\s+)*(?:u?int(?:8|16|32)_t|[us](?:8|16|32)|int|char|bool|short|unsigned|offs_t)$/;
+
+/** Locals whose every declaration is an integer scalar (`uint8_t sx`). */
+function integerScalarLocals(operations: GeneratedHandlerOperation[]): Set<string> {
+  const scalar = new Set<string>();
+  const other = new Set<string>();
+  visitOperations(operations, operation => {
+    if (operation.op !== 'declare') return;
+    if (INTEGER_SCALAR_TYPE.test(operation.valueType?.trim() ?? '')) scalar.add(operation.name);
+    else other.add(operation.name);
+  });
+  return new Set([...scalar].filter(name => !other.has(name)));
 }
 
 function collectLocalNames(

@@ -340,6 +340,18 @@ export interface GeneratedHandler {
  * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
  */
 
+/**
+ * `tilemap_manager::set_flip_all`, reached as `machine().tilemap()`: the video
+ * package binds it for a board's screen update, and the emitter calls it by
+ * this name. Donkey Kong's screen update starts with it and runs once per
+ * partial update, 224 times a frame, so declining it kept that update
+ * interpreted.
+ */
+export const TILEMAP_SET_FLIP_ALL = 'machine().tilemap().set_flip_all';
+
+/** Board video framework calls reached through a two-call chain. */
+export const VIDEO_FRAMEWORK_CHAIN_CALLS: readonly string[] = [TILEMAP_SET_FLIP_ALL];
+
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',
   // The scheduler's clock, bound on every device; a chip that measures time

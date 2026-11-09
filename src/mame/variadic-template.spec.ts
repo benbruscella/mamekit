@@ -71,12 +71,13 @@ check('a call names the fixed-arity instance of the overload C++ picks', () => {
 
 check('the pack is spelled out and the template arguments folded', () => {
   const [outer, first, second, last] = call(4)!.instances;
-  assert.equal(outer!.parameters, 'U const (&tab)[N], auto w_0, auto w_1, auto w_2');
+  // U and N are deduced from the caller's array, so tab takes its argument's type.
+  assert.equal(outer!.parameters, 'auto tab, auto w_0, auto w_1, auto w_2');
   assert.match(outer!.body, /return int\(emu_detail__combine_weights__0__2\(tab, w_0, w_1, w_2\) \+ 0\.5\);/);
   assert.match(first!.body, /\(tab\[0\] \* w0\) \+ emu_detail__combine_weights__1__1\(tab, w_0, w_1\)/);
   assert.match(second!.body, /\(tab\[1\] \* w0\) \+ emu_detail__combine_weights__2__0\(tab, w_0\)/);
   // Two arguments left: the overload without a pack is the more specialized.
-  assert.equal(last!.parameters, 'T const (&tab)[N], U w');
+  assert.equal(last!.parameters, 'auto tab, auto w');
   assert.match(last!.body, /return tab\[2\] \* w;/);
 });
 
@@ -141,7 +142,7 @@ check('parsing gives each call in a translation unit its instance, from MAME\'s 
   assert.equal(three.span.file, header, 'an instance is sourced at its template');
   assert.match(three.body, /emu_detail__combine_weights__0__2\(tab, w_0, w_1, w_2\)/);
   assert.ok(ast.findUniqueFunction('emu_detail__combine_weights__2__0'));
-  assert.equal(ast.findUniqueFunction('emu_detail__combine_weights__1__0')?.parameters, 'T const (&tab)[N], U w',
+  assert.equal(ast.findUniqueFunction('emu_detail__combine_weights__1__0')?.parameters, 'auto tab, auto w',
     'the arity-2 call reaches the pack-free overload one weight in');
 });
 

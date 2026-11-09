@@ -44,6 +44,12 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const cpu of machine.execution.cpus) {
     for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
       if (range.share) names.set(`m_${range.share}`, memory);
+      // An indexed share (`share(m_videoram[0])`) is one element of a
+      // shared_ptr_array, whose finder member the board binds as the array
+      // of those buffers (bindGeneratedShareState). Unknown here, Taito SJ's
+      // draw_layers -- three tilemaps a frame -- stayed interpreted.
+      const indexed = range.share ? /^(.+)\[\d+\]$/.exec(range.share) : null;
+      if (indexed) names.set(`m_${indexed[1]}`, '');
     }
   }
   for (const binding of machine.execution.shareBindings ?? []) {
@@ -268,6 +274,9 @@ function wiredHotMethods(machine: BoardIr, ownerClass: string): string[] {
   for (const connection of machine.connections ?? []) {
     if (connection.effect.kind === 'handler') claim(connection.effect.handler);
   }
+  // A driver timer's callback is an entry point too: Donkey Kong's
+  // scanline_callback fires on every line, 264 times a frame.
+  for (const timer of machine.execution.genericTimers ?? []) claim(timer.handler);
   for (const callback of machine.callbacks ?? []) {
     if (callback.targetClass && callback.targetMethod) {
       claim(`${callback.targetClass}.${callback.targetMethod}`);
@@ -357,9 +366,19 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     ...(machine.execution.banks ?? []).map(bank => bank.member.replace(/\[\d+\]$/, '')),
     ...(machine.execution.spaceAccessors ?? []).map(accessor => accessor.member),
   ].filter(name => !bound.has(name) && !cardMembers.includes(name));
+  // A member the driver class declares is in the board's state from the
+  // start (stateMembers), whether or not a lowered handler ever writes it.
+  // Donkey Kong Jr.'s `m_hardware_type` is set in a machine_start no handler
+  // carries, and leaving it out kept its per-line screen update and scanline
+  // timer interpreted.
+  const declaredMembers = (machine.stateMembers ?? [])
+    .filter(member => !member.delegate)
+    .map(member => member.name)
+    .filter(name => !bound.has(name));
   const members = [
     ...bound,
-    ...[...new Set([...assignedMemberNames(handlers), ...cardMembers, ...hostMembers])].map(name => [name, ''] as const),
+    ...[...new Set([...assignedMemberNames(handlers), ...declaredMembers, ...cardMembers, ...hostMembers])]
+      .map(name => [name, ''] as const),
   ];
   return {
     hotMethods: wiredHotMethods(machine, ownerClass),

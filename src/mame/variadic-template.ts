@@ -211,8 +211,19 @@ export function instantiateTemplateCall(
       elements.length ? `${comma ?? ''}${elements.join(', ')}` : '');
     return expanded;
   };
+  // A template parameter the call never names is deduced from its argument
+  // (`U const (&tab)[N]` takes the caller's array), so a parameter whose
+  // type still names one takes its argument's own type, as a pack element
+  // does. Left as written, the declaration was one no parser reads, and
+  // every caller of the instance -- Taito SJ's per-frame set_pens -- stayed
+  // interpreted with it.
+  const deduced = declared.filter(parameter => !parameter.pack && !(parameter.name in values)).map(parameter => parameter.name);
+  const dependsOnDeduced = (text: string) =>
+    deduced.some(parameter => new RegExp(`\\b${parameter}\\b`).test(text));
   const instanceParameters = [
-    ...fixed.map(parameter => substitute(parameter.text)),
+    ...fixed.map(parameter => dependsOnDeduced(substitute(parameter.text))
+      ? `auto ${parameter.name}`
+      : substitute(parameter.text)),
     // A deduced pack element takes its argument's own type.
     ...elements.map(element => `auto ${element}`),
   ].join(', ');
