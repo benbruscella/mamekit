@@ -64,6 +64,12 @@ export interface BoardSinks {
    */
   soundWrite: (offset: number, data: number, frac?: number, method?: string) => void;
   /**
+   * Stream devices whose own rendered samples are also reported, one
+   * `<tag>.stream` write a sample: an acceptance gate on one chip of a mix (a
+   * TMS5220C's speech under a YM2151's music). The browser asks for none.
+   */
+  observeStreams?: readonly string[];
+  /**
    * Bulk sample-data push to the worklet (NES DMC: the APU DSP runs in the
    * worklet and cannot read CPU memory, so the board snapshots the sample
    * bytes at trigger time and ships them). `id` names the buffer slot the

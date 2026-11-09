@@ -357,6 +357,12 @@ export interface GeneratedDeviceDefinition {
     installed?: true;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
+  /**
+   * Emitted code for the inline methods of the structs the device declares,
+   * by struct type: ymfm's `output->clear()` and `output->roundtrip_fp()` run
+   * once a sample, and interpreted they were a sixth of a CPS1 board's time.
+   */
+  compiledStructMethods?: Record<string, GeneratedDeviceMethodMap>;
   /** the host call names those methods reach, resolved once into `links` */
   compiledMethodLinks?: string[];
   start?: string;
@@ -1275,13 +1281,21 @@ class IrDevice implements Device {
           // Compiled methods are keyed by name, so an overloaded one is left
           // to the interpreter, which picks the overload by its arguments.
           const overloaded = methods.filter(candidate => candidate.name === method.name).length > 1;
-          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name];
+          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name] ??
+            definition.compiledStructMethods?.[type]?.[method.name];
           if (compiled) {
             // Four check_borrow calls a clock: no rest array, no mapped copy.
             const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;
             return [method.name, function (this: Record<string | symbol, unknown>, a?: unknown, b?: unknown, c?: unknown): unknown {
-              const runtime = (this[STRUCT_RUNTIME] as GeneratedDeviceExecutionContext | undefined) ??
-                (this[STRUCT_RUNTIME] = { ...device.executionContext, members: this, links: undefined }) as GeneratedDeviceExecutionContext;
+              let runtime = this[STRUCT_RUNTIME] as GeneratedDeviceExecutionContext | undefined;
+              if (!runtime) {
+                // `return *this;` reads `this` from the members it runs on,
+                // which are the struct: ymfm's `output->clear()` hands the
+                // struct on as the output to fill. Not enumerable, so a save
+                // walks past it.
+                if (!Object.hasOwn(this, 'this')) Object.defineProperty(this, 'this', { value: this, enumerable: false });
+                runtime = this[STRUCT_RUNTIME] = { ...device.executionContext, members: this, links: undefined } as GeneratedDeviceExecutionContext;
+              }
               switch (arguments.length) {
                 case 0: return compiled(runtime);
                 case 1: return compiled(runtime, referent(a));
@@ -1895,6 +1909,12 @@ class IrDevice implements Device {
         // the space a map of its own. Nothing here configures one, so a device
         // maps its regions itself (the YM2610's ADPCM ROM).
         has_configured_map: () => 0,
+        // device_t::started(): the OKI asserts it before configuring PIN7.
+        started: () => this.deviceStarted ? 1 : 0,
+        // device_t::reset(), which a device calls on itself: a TMS5220C
+        // resets when the board pulls its /RS (rsq_w). A class with a reset
+        // method of its own keeps it (the method is found first).
+        reset: () => { this.reset(); return 0; },
         // A source handler named in an address map, `FUNC(cls::method)`,
         // and a lambda given a name for the debugger, `NAME([this]() {...})`.
         FUNC: (handler: unknown) => handler,
@@ -2257,6 +2277,7 @@ class IrDevice implements Device {
     options.configure?.(this);
     const start = (): void => {
       if (definition.start) this.call(definition.start);
+      this.deviceStarted = true;
       // MAME mounts the images it was started with once every device has
       // started, and resets after: the cartridge is in the card before the
       // C64's KERNAL looks for one.
@@ -2282,6 +2303,8 @@ class IrDevice implements Device {
 
   /** device_start held back by `deferStart`, run once when the host is ready. */
   private pendingStart?: () => void;
+  /** device_t::started(): set once device_start has run. */
+  private deviceStarted = false;
 
   startDeferred(): void {
     const start = this.pendingStart;
@@ -2733,6 +2756,12 @@ class IrDevice implements Device {
   }
 
   hostedCalls(): Readonly<Record<string, (...args: never[]) => unknown>> {
+    // device_memory_interface::space(n), which the owner's driver reaches
+    // through its finder: Neo Geo's init_ym takes `m_ym->space(0)` and
+    // installs the cartridge's ADPCM ROM there.
+    if (this.definition.spaces?.length && !this.hostedSurface.space) {
+      this.hostedSurface.space = ((index: number) => this.deviceSpace(Number(index)) ?? 0) as (...args: never[]) => unknown;
+    }
     return this.hostedSurface;
   }
 
@@ -4158,9 +4187,24 @@ function pairValue(): Record<string, unknown> {
  */
 function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
   install_rom(start: number, end: number, base: unknown): number;
+  unmap_readwrite(start: number, end: number): number;
+  unmap_read(start: number, end: number): number;
 } {
   const mask = addressBits >= 32 ? 0xffffffff : (2 ** addressBits) - 1;
   const entries: { start: number; end: number; bytes: ArrayLike<number>; offset: number }[] = [];
+  // What an unmap leaves: the parts of each entry outside the range.
+  const unmap = (start: number, end: number): number => {
+    const from = start & mask;
+    const to = end & mask;
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const entry = entries[index]!;
+      if (entry.end < from || entry.start > to) continue;
+      entries.splice(index, 1);
+      if (entry.start < from) entries.splice(index, 0, { ...entry, end: from - 1 });
+      if (entry.end > to) entries.splice(index, 0, { ...entry, start: to + 1, offset: entry.offset + to + 1 - entry.start });
+    }
+    return 0;
+  };
   const read = (address: number): number => {
     const at = address & mask;
     for (const entry of entries) {
@@ -4181,6 +4225,10 @@ function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
       }
       return 0;
     },
+    // `unmap_readwrite(start, end)`: Neo Geo's init_ym clears the YM2610's
+    // ADPCM spaces before installing the cartridge's ROM in them.
+    unmap_readwrite: (start, end) => unmap(Number(start), Number(end)),
+    unmap_read: (start, end) => unmap(Number(start), Number(end)),
   };
 }
 

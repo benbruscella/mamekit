@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { indexMameHardware } from './hardware.ts';
 import { compileMameDevice, type GeneratedDeviceDefinition } from './device-compiler.ts';
-import { generatedDeviceMethodsSource } from './device-codegen.ts';
+import { generatedDeviceMethodsSource, generatedStructMethodsSources } from './device-codegen.ts';
 import { clearGeneratedDevices, createDevice, registerGeneratedDevice } from '../runtime/generated-device.ts';
 
 // MAME 0.289's YM2151, YM2203, YM3526 and YM3812 are thin wrappers over
@@ -80,6 +80,9 @@ const emit = (definition: GeneratedDeviceDefinition): GeneratedDeviceDefinition 
     ...definition,
     compiledMethods: new Function(`return ${emitted.source}`)(),
     ...(emitted.links.length ? { compiledMethodLinks: emitted.links } : {}),
+    // And the structs' own methods (`output->clear()`), as the module emits them.
+    compiledStructMethods: Object.fromEntries(Object.entries(generatedStructMethodsSources(definition, false))
+      .map(([type, source]) => [type, new Function(`return ${source}`)()])),
     ...(definition.allocations
       ? { allocations: Object.fromEntries(Object.entries(definition.allocations).map(([name, allocated]) => [name, emit(allocated)])) }
       : {}),

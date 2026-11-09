@@ -28,9 +28,10 @@ export const gauntlet = sourceTarget({
   // writes, which AUDCTL alone satisfied.
   audioRequirements: [
     {
-      // Speech. The idle chip drives -1 every sample, so a live stream is not
-      // evidence of speech by itself; the value diversity is.
-      method: 'tms.pcm',
+      // Speech: the TMS5220C's own stream, before the mix. The idle chip
+      // drives -1 every sample, so a live stream is not evidence of speech by
+      // itself; the value diversity is.
+      method: 'tms.stream',
       fromFrame: 500,
       minimumNonzeroWrites: 5000,
       minimumDistinctValues: 32,

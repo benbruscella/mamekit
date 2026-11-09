@@ -458,7 +458,52 @@ function generatedDeviceAssignments(
       `${target}.allocations![${JSON.stringify(name)}]!`,
     ));
   }
+  const structs = generatedStructMethodsSources(definition);
+  if (Object.keys(structs).length) {
+    assignments.push(`${target}.compiledStructMethods = {\n${Object.entries(structs)
+      .map(([type, source]) => `  ${JSON.stringify(type)}: ${source} as GeneratedDeviceMethodMap,`).join('\n')}\n};`);
+  }
   return assignments;
+}
+
+/**
+ * The inline methods of each struct the device declares, emitted as a
+ * device's methods are, with the struct's fields as the members they run on:
+ * ymfm's `ymfm_output::clear()` and `roundtrip_fp()` run once a sample. A
+ * struct the device also allocates is emitted with its allocation instead.
+ */
+export function generatedStructMethodsSources(definition: GeneratedDeviceDefinition, typed = true): Record<string, string> {
+  const sources: Record<string, string> = {};
+  for (const [type, methods] of Object.entries(definition.structMethods ?? {})) {
+    if (definition.allocations?.[type] || !methods.length) continue;
+    // An overloaded method is left to the interpreter, which picks by arguments.
+    const single = methods.filter(method => methods.filter(other => other.name === method.name).length === 1 &&
+      !method.program.diagnostics.length);
+    if (!single.length) continue;
+    const fields = definition.structs?.[type] ?? [];
+    const scope = {
+      ...definition,
+      type,
+      className: type,
+      // The device's free functions the methods call (`ymfm::roundtrip_fp`)
+      // come along by name; only the struct's own methods are entry points.
+      methods: [
+        ...single.map(method => ({ ...method, source: { file: '', line: 0 } })),
+        ...definition.methods.filter(method => !single.some(own => own.name === method.name)),
+      ],
+      members: fields.map(field => ({
+        name: field.name,
+        valueType: field.valueType ?? `${field.signed === false ? 'u' : ''}int${field.bits ?? 32}_t`,
+        ...(field.length ? { arrayLength: field.length } : {}),
+      })),
+      hotMethods: single.map(method => method.name),
+      allocations: undefined,
+      children: undefined,
+    } as unknown as GeneratedDeviceDefinition;
+    const emitted = generatedDeviceMethodsSource(scope, typed);
+    if (emitted.methods.length) sources[type] = emitted.source;
+  }
+  return sources;
 }
 
 function methodClosure(

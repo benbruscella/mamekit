@@ -618,7 +618,7 @@ function memberMacroTemplateParameters(masked: string, macroIndex: number): stri
   });
 }
 
-function memberMacroParameters(name: string): string {
+export function memberMacroParameters(name: string): string {
   if (name === 'INTERRUPT_GEN_MEMBER') return 'device_t &device';
   if (name === 'IRQ_CALLBACK_MEMBER') return 'int irqline';
   if (name === 'TILEMAP_MAPPER_MEMBER') {

@@ -155,6 +155,8 @@ export function createStreamMixer(
     resampled: false, channels: [] as StreamChannel[],
   }));
   const state = { emitted: 0, streams };
+  // The devices an acceptance gate watches, each reported as it renders.
+  const observed = streams.filter(stream => context.observeStreams?.includes(stream.tag));
   // MAME's `sound_stream` surface, one output, over `due` samples at `rate`.
   const byTag = new Map(streams.map(stream => [stream.tag, stream]));
   const update = (
@@ -405,6 +407,11 @@ export function createStreamMixer(
     for (const stream of streams) render(stream, target);
     const frac = context.fraction();
     const muted = context.systemMuted?.() ?? false;
+    for (const stream of observed) {
+      for (let index = 0; index < target - state.emitted; index++) {
+        context.soundWrite(0, stream.pending[index] ?? 0, frac, `${stream.tag}.stream`);
+      }
+    }
     for (let index = 0; index < target - state.emitted; index++) {
       let sum = 0;
       for (const stream of streams) sum += stream.pending[index] ?? 0;

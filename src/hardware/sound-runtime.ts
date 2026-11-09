@@ -35,6 +35,8 @@ export interface SoundRuntimeContext {
   state: Record<string, unknown>;
   /** Forward a register write to the generated worklet. */
   soundWrite(offset: number, data: number, frac?: number, method?: string): void;
+  /** Stream devices whose own samples are reported as `<tag>.stream` (acceptance gates). */
+  observeStreams?: readonly string[];
   /** Push bulk sample bytes to a worklet (the NES DMC cannot read the CPU bus there). */
   soundData(id: number, bytes: Uint8Array): void;
   /** Position within the current video frame, so writes keep their timing. */

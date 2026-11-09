@@ -332,6 +332,10 @@ export async function runGameAcceptance(
       mute: (muted, frac = 0) => {
         if (!replayWrites) pendingMutes.push({ muted, frac });
       },
+      // A gate on one chip of the mix names its stream: `tms.stream`.
+      observeStreams: (contract.audioRequirements ?? [])
+        .filter(requirement => requirement.method.endsWith('.stream'))
+        .map(requirement => requirement.method.slice(0, -'.stream'.length)),
     },
   );
   assert.equal(board.fbWidth, contract.screen.width);

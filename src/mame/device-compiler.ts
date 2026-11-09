@@ -3,6 +3,7 @@ import { basename, dirname, extname, join, relative } from 'node:path';
 import { evalExpr, parseAddressMaps, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
+  memberMacroParameters,
   parseMameAst,
   parseMameConstructors,
   splitMameArgs,
@@ -3963,6 +3964,34 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
       },
     });
     pattern.lastIndex = braceEnd + 1;
+  }
+  // A member macro defined in the class body, as a header does for a short
+  // callback: sn76496.h's `TIMER_CALLBACK_MEMBER(delayed_ready) {
+  // set_ready_state(1); }`. Missed, the READY timer named a method no
+  // device had, and the first SN76489 write that armed it threw.
+  const macroMember = /(?:^|\n|[;{}])\s*(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|INPUT_CHANGED_MEMBER)\s*\(\s*(\w+)\s*\)\s*\{/g;
+  for (let match; (match = macroMember.exec(masked)) !== null;) {
+    const braceStart = masked.indexOf('{', match.index + match[0].length - 1);
+    const braceEnd = matchingBrace(masked, braceStart);
+    if (braceEnd < 0 || methods.some(method => method.name === match![2])) continue;
+    const line = declaration.bodySpan.line + source.slice(0, match.index).split('\n').length - 1;
+    const span = {
+      file: declaration.span.file,
+      start: declaration.bodySpan.start + match.index,
+      end: declaration.bodySpan.start + braceEnd + 1,
+      line, column: 1, endLine: line, endColumn: 1,
+    };
+    methods.push({
+      kind: 'function',
+      className: declaration.name,
+      name: match[2]!,
+      parameters: memberMacroParameters(match[1]!),
+      body: source.slice(braceStart + 1, braceEnd),
+      statements: [],
+      span,
+      bodySpan: { ...span, start: declaration.bodySpan.start + braceStart + 1, end: declaration.bodySpan.start + braceEnd },
+    });
+    macroMember.lastIndex = braceEnd + 1;
   }
   return methods;
 }
