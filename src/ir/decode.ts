@@ -186,7 +186,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
     for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement', 'quantumSeconds', 'slots']) {
       reader.optionalNumber(callback[field], `${path}.${field}`, source);
     }
-    for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'inputLine']) {
+    for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'targetSpace', 'inputLine']) {
       reader.optionalString(callback[field], `${path}.${field}`, source);
     }
     if (callback.delivery !== undefined && !DELIVERIES.has(callback.delivery as string)) {
@@ -212,12 +212,12 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
 }
 
 const EFFECT_KINDS = new Set([
-  'cpu-line', 'device-method', 'handler', 'port-read', 'constant',
+  'cpu-line', 'device-method', 'handler', 'port-read', 'cpu-space-read', 'constant',
   'video-control', 'audio-control', 'audio-write', 'perfect-quantum', 'unconnected',
 ]);
 const CPU_LINES = new Set([
   'irq', 'irq1', 'irq2', 'irq3', 'irq4', 'irq5', 'irq6', 'irq7',
-  'firq', 'nmi', 'reset', 'halt', 'busreq',
+  'firq', 'nmi', 'reset', 'halt', 'busreq', 'core',
 ]);
 const DELIVERIES = new Set(['hold', 'assert', 'pulse', 'level']);
 const TRANSFORM_KINDS = new Set(['invert', 'mask', 'bit', 'rshift', 'lshift']);
@@ -246,7 +246,7 @@ function decodeConnections(reader: Reader, value: unknown): void {
       if (!CPU_LINES.has(effect.line as string)) {
         reader.fail(`${path}.effect.line`, `unknown CPU line ${describe(effect.line)}`, source);
       }
-      if (effect.line === 'busreq') reader.string(effect.input, `${path}.effect.input`, source);
+      if (effect.line === 'busreq' || effect.line === 'core') reader.string(effect.input, `${path}.effect.input`, source);
       else reader.optionalString(effect.input, `${path}.effect.input`, source);
       if (!DELIVERIES.has(effect.delivery as string)) {
         reader.fail(
@@ -262,6 +262,9 @@ function decodeConnections(reader: Reader, value: unknown): void {
       reader.string(effect.handler, `${path}.effect.handler`, source);
     } else if (kind === 'port-read') {
       reader.string(effect.port, `${path}.effect.port`, source);
+    } else if (kind === 'cpu-space-read') {
+      reader.string(effect.tag, `${path}.effect.tag`, source);
+      if (effect.space !== 'program') reader.fail(`${path}.effect.space`, `unknown CPU space ${describe(effect.space)}`, source);
     } else if (kind === 'constant') {
       reader.number(effect.value, `${path}.effect.value`, source);
     } else if (kind === 'video-control') {

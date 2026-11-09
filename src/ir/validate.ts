@@ -44,6 +44,8 @@ export function callbackEndpointKey(callback: GeneratedCallback): string | undef
   if (callback.targetPort) return `port.${callback.targetPort}`;
   if (callback.constant !== undefined) return `constant.${callback.constant}`;
   if (callback.targetTag && callback.inputLine) return `${callback.targetTag}.${callback.inputLine}`;
+  // A read a CPU's own space answers (the RP2A03 APU's DMC fetch).
+  if (callback.targetTag && callback.targetSpace) return `${callback.targetTag}.space.${callback.targetSpace}`;
   if (!callback.targetMethod) return undefined;
   if (callback.targetTag) return `${callback.targetTag}.${callback.targetMethod}`;
   if (callback.targetClass) return `${callback.targetClass}.${callback.targetMethod}`;
