@@ -167,10 +167,8 @@ check('standalone OPL and MSM5205 boards expose both auxiliary write surfaces', 
   ];
   installYm2203Runtime(ctx);
   ctx.calls['ymsnd.write']!(0, 0x20);
-  ctx.calls['m_msm.data_w']!(0x0f);
   assert.deepEqual(ctx.writes, [
     [0, 0x20, 'ymsnd.write'],
-    [2, 0x0f, 'msm.data_w'],
   ]);
 });
 

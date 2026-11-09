@@ -15,6 +15,12 @@ export const SOUND_DEVICE_ID = 'sound-device';
 export const SOUND_DEVICE_MAME_TYPES: readonly string[] = [
   // sn76496.cpp: one class, its variants told apart by constructor arguments.
   'SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3', 'GAMEGEAR', 'SEGAPSG',
+  // ADPCM and speech chips a CPU reads back (the OKI's voice status, the
+  // TMS5220's /READY) or feeds a sample at a time from the chip's own timer
+  // (the MSM5205's VCK), and the delta-modulation decoder Sinistar talks through.
+  'OKIM6295', 'MSM5205', 'TMS5220', 'TMS5220C', 'HC55516',
+  // The Williams ADPCM board's DAC.
+  'AD7524',
 ];
 export const SOUND_DEVICE_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: "the chip's own handlers, through the bus or a device finder" },

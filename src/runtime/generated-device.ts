@@ -635,6 +635,11 @@ export interface GeneratedDeviceOptions {
    */
   finder?: (tag: string, member?: string, kind?: 'space' | 'bank') => unknown;
   regions?: Record<string, Uint8Array>;
+  /**
+   * `device_rom_interface::read_byte` through the device's own address space
+   * 0, when its configuration installs one over its region.
+   */
+  romRead?: (address: number) => number;
   /** MAME's `machine().basename()`: the machine's short name. */
   machineName?: string;
   /** MAME's -samplepath: the sample sets the host found (BoardConfig.samplePath). */
@@ -1754,6 +1759,8 @@ class IrDevice implements Device {
         // MAME `device_rom_interface::read_byte`: the device's own region.
         ...(definition.romInterface ? {
           read_byte: (address: number) => {
+            // A space of its own over the region (a banked OKI) answers first.
+            if (options.romRead) return options.romRead(address & (2 ** definition.romInterface!.addressBits - 1));
             const rom = options.regions?.[options.tag ?? ''];
             return rom?.length ? rom[(address & (2 ** definition.romInterface!.addressBits - 1)) % rom.length]! : 0;
           },

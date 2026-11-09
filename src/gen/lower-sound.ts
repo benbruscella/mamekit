@@ -109,10 +109,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
           ...(auxiliaryAudioDevices.length
             ? { auxiliaryDevices: auxiliaryAudioDevices }
             : {}),
-          ...(auxiliaryAudioDevices.some(device => device.type === 'OKIM6295')
-            ? { sampleRegion: auxiliaryAudioDevices.find(device =>
-                device.type === 'OKIM6295')!.deviceTag }
-            : {}),
         }
     : ymChips.length || oplChips.length
       ? (() => {

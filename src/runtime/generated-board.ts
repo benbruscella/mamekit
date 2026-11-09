@@ -68,7 +68,7 @@ import {
 import { portHandlers } from './input.ts';
 import { installSoundRuntime } from '../hardware/sound-runtime-registry.ts';
 import type { SoundRuntimeHooks } from '../hardware/sound-runtime.ts';
-import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
+import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE, type GeneratedSampleWindow } from '../ir/audio-protocol.ts';
 import type {
   Board,
   BoardConfig,
@@ -1187,6 +1187,7 @@ class IrBoard implements Board {
             }),
           },
           regions,
+          ...(specification.romMap?.length ? { romRead: this.deviceRomRead(specification.tag, specification.romMap, regions) } : {}),
           configuration: config,
           // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
           // lowered from the driver's constant arguments. MAME makes them
@@ -4934,12 +4935,6 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (deviceType === 'UPD7759') {
-        // Keep the real command/control bus executable while the media
-        // decoder remains a separately reported hardware gap.
-        registry.write[key] = () => {};
-        continue;
-      }
     }
     for (const key of usedHandlers(machine, 'read')) {
       if (registry.read[key]) continue;
@@ -4971,10 +4966,6 @@ class IrBoard implements Board {
           undefined ?? new Uint8Array(0x10000);
         this.generatedResources[`registers:${deviceTag}`] = bytes;
         registry.read[key] = (_address, offset) => bytes[offset & 0xffff]!;
-        continue;
-      }
-      if (deviceType === 'UPD7759') {
-        registry.read[key] = () => 0;
         continue;
       }
       const custom = config.customs?.find(candidate => candidate.member === key.split('.').at(-1));
@@ -5042,6 +5033,24 @@ class IrBoard implements Board {
         }
       };
     }
+  }
+
+  /**
+   * A sound chip's `device_rom_interface` reads through its own address space
+   * 0 (the Williams ADPCM OKI's banked low half): each window is a fixed region
+   * offset or the bank's selected entry, read when the chip reads.
+   */
+  private deviceRomRead(tag: string, windows: readonly GeneratedSampleWindow[], regions: Regions): (address: number) => number {
+    return address => {
+      const region = regions[tag];
+      if (!region) return 0;
+      const window = windows.find(candidate => address >= candidate.start && address <= candidate.end);
+      if (!window) return 0;
+      const base = window.bank
+        ? window.bank.entryOffsets[this.bankSelection.get(window.bank.tag)?.entry ?? window.bank.initialEntry] ?? 0
+        : window.regionOffset ?? 0;
+      return region[base + address - window.start] ?? 0;
+    };
   }
 
   private installMemoryBanks(

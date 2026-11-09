@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { compileMameDevice } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
-import { lowerAuxiliaryAudioDevices } from '../gen/emit-machine.ts';
+import { lowerAudioRoutes } from '../gen/emit-machine.ts';
+import { STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
 import { gauntlet } from './gauntlet.game.ts';
 import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
@@ -55,28 +56,16 @@ const bank = graph.nodes.find(node => node.label === 'MemoryBank');
 assert.ok(bank);
 assert.equal(bank.props.tag, 'slapstic_bank');
 
-// The sound board answers one speaker with three chips. The YM2151 is the
-// board's primary sound kind; the TMS5220C reaches the same speaker as a
-// routed auxiliary, carrying the gain the driver's own add_route gave it or
-// the mix is not the board's mix. The POKEY renders its own stream beside the
-// processor, so it is not an auxiliary of the worklet.
-const auxiliary = lowerAuxiliaryAudioDevices(
-  graph,
-  devices.map(node => ({
-    id: node.id,
-    tag: String(node.props.tag),
-    type: String(node.props.type),
-    ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
-  })),
-);
-assert.deepEqual(
-  auxiliary.map(device => [device.type, device.deviceTag, device.gain]),
-  [['TMS5220C', 'tms', 0.8]],
-);
+// The sound board answers one speaker with three chips, each its MAME class
+// rendering its own stream: the TMS5220C carries the gain the driver's own
+// add_route gave it, or the mix is not the board's mix.
+const tms = devices.find(node => node.props.type === 'TMS5220C');
+assert.ok(tms && STREAM_SOUND_TYPES.includes('TMS5220C'));
+const tmsRoutes = lowerAudioRoutes(graph, [{ id: tms.id, tag: String(tms.props.tag) }]);
+assert.ok(tmsRoutes.length && tmsRoutes.every(route => route.gain === 0.8), 'one route a speaker channel, each at 0.8');
 // 14.318181 MHz over 2*11; the speech clock is what its sample rate is
 // derived from, and the driver retunes it while the chip talks.
-assert.equal(Math.round(auxiliary[0]!.clock), 650826);
-assert.deepEqual(auxiliary[0]!.writeMethods, ['data_w']);
+assert.equal(Math.round(Number(tms.props.clock)), 650826);
 
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video, 'gauntlet MAME video source must lower to executable video IR');

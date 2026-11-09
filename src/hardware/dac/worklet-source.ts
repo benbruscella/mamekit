@@ -51,59 +51,11 @@ export function generatedDacWorkletSource(): string {
 export interface GeneratedDacWrite { offset: number; data: number; frac?: number; method?: string }
 
 ${DAC_VALUE_MAP_SOURCE}
-class GeneratedHc55516Core {
-  private digit = false;
-  private clock = false;
-  private shift = 0;
-  private syllabic = 0x3f;
-  private integrator = 0;
-  private output = 0;
-
-  private signed10(value: number): number {
-    const masked = value & 0x3ff;
-    return masked & 0x200 ? masked - 0x400 : masked;
-  }
-
-  write(method: string, data: number): void {
-    if (method.endsWith('.digit_w')) {
-      this.digit = Boolean(data);
-      return;
-    }
-    if (!method.endsWith('.clock_w')) return;
-    const clock = Boolean(data);
-    if (clock === this.clock) return;
-    const bit = this.digit;
-    const frozen = (this.integrator >= 0x180 && !bit) ||
-      (this.integrator <= -0x180 && bit);
-    let sum: number;
-    if (clock) {
-      this.shift = (this.shift << 1) | Number(bit);
-      const coincident = (this.shift & 7) === 0 || (this.shift & 7) === 7;
-      if (!frozen) {
-        this.syllabic += ((~this.syllabic & 0xfc0) >>> 6) + (coincident ? 0 : 0xfc1);
-        this.syllabic &= 0xfff;
-      }
-      sum = this.signed10(((~this.integrator) >> 4) + 1);
-    } else {
-      const step = Math.max(2, this.syllabic >>> 6);
-      sum = this.shift & 1 ? this.signed10((~step) + 1) : this.signed10(step);
-    }
-    if (!frozen) this.integrator = this.signed10(this.integrator + sum);
-    this.output = ((this.integrator << 6) |
-      (((this.integrator & 0x3ff) ^ 0x200) >>> 4)) / 32768;
-    this.clock = clock;
-  }
-
-  sample(): number { return this.output; }
-}
-
 export class GeneratedDacMixer {
   private readonly values: Float64Array;
   private readonly seen: Uint8Array;
   private readonly maps: Float64Array[];
   private readonly gains: Float64Array;
-  private readonly cvsd = new GeneratedHc55516Core();
-  private readonly cvsdGain: number;
   /**
    * What the main thread's stream mixer posts (Q*bert's knocker): finished
    * samples at their rate, already weighted by their routes, held to this rate.
@@ -133,9 +85,6 @@ export class GeneratedDacMixer {
       routes.some(route => route.chip === chip)
         ? Math.max(0, ...routes.filter(route => route.chip === chip).map(route => route.gain))
         : 1);
-    this.cvsdGain = Math.max(0, ...auxiliary
-      .filter(device => device.type === 'HC55516')
-      .map(device => device.gain));
   }
 
   write(chip: number, data: number, method?: string): void {
@@ -143,10 +92,6 @@ export class GeneratedDacMixer {
       this.stream.rate = chip;
       // A stalled consumer must not grow the queue without bound.
       if (this.stream.queue.length < 8192) this.stream.queue.push(data);
-      return;
-    }
-    if (method?.includes('cvsd.')) {
-      this.cvsd.write(method, data);
       return;
     }
     if (chip < 0 || chip >= this.values.length) return;
@@ -161,7 +106,6 @@ export class GeneratedDacMixer {
     for (let chip = 0; chip < this.values.length; chip++) {
       if (this.seen[chip]) mixed += this.values[chip]! * this.gains[chip]!;
     }
-    if (this.cvsdGain) mixed += this.cvsd.sample() * this.cvsdGain;
     this.stream.phase += this.stream.rate / this.outputRate;
     while (this.stream.phase >= 1) {
       this.stream.phase -= 1;

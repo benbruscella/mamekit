@@ -7,7 +7,6 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
 import { deviceDefinitionsFromSource } from '../../mame/hardware.ts';
-import { compileMsm5205 } from '../../mame/audio-compiler.ts';
 import { compileYm3526 } from '../../mame/opl-compiler.ts';
 import { compileYm2203, generatedYm2203WorkletSource } from '../../mame/opn-compiler.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
@@ -43,10 +42,6 @@ export function extractYm2203(input: CapabilityInput): CapabilityExtraction | un
         oplEntry.definition as MameHardwareDefinition,
       )
     : undefined;
-  const msmEntry = input.entries.find(candidate => candidate.type === 'MSM5205');
-  const msm5205Plan = msmEntry?.definition
-    ? compileMsm5205(input.mameSource, msmEntry.definition as MameHardwareDefinition)
-    : undefined;
   return {
     executableTypes: [
       ...opnEntries.filter(candidate => candidate.definition).map(candidate => candidate.type),
@@ -68,7 +63,7 @@ export function extractYm2203(input: CapabilityInput): CapabilityExtraction | un
         : []),
       {
         path: YM2203_WORKLET_ARTIFACT,
-        contents: generatedYm2203WorkletSource(plan, oplPlan, msm5205Plan),
+        contents: generatedYm2203WorkletSource(plan, oplPlan),
       },
     ],
   };

@@ -109,18 +109,6 @@ import {
 } from './ym2151/definition.ts';
 import { extractYm2151 } from './ym2151/extract.ts';
 import {
-  TMS5220_ID,
-  TMS5220_MAME_TYPES,
-  TMS5220_PORTS,
-} from './tms5220/definition.ts';
-import { extractTms5220 } from './tms5220/extract.ts';
-import {
-  OKIM6295_ID,
-  OKIM6295_MAME_TYPES,
-  OKIM6295_PORTS,
-} from './okim6295/definition.ts';
-import { extractOkim6295 } from './okim6295/extract.ts';
-import {
   BERZERK_SOUND_ID,
   BERZERK_SOUND_MAME_TYPES,
   BERZERK_SOUND_PORTS,
@@ -248,18 +236,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: YM2151_MAME_TYPES,
     ports: YM2151_PORTS,
     extract: extractYm2151,
-  },
-  {
-    id: TMS5220_ID,
-    mameTypes: TMS5220_MAME_TYPES,
-    ports: TMS5220_PORTS,
-    extract: extractTms5220,
-  },
-  {
-    id: OKIM6295_ID,
-    mameTypes: OKIM6295_MAME_TYPES,
-    ports: OKIM6295_PORTS,
-    extract: extractOkim6295,
   },
   {
     id: BERZERK_SOUND_ID,

@@ -360,6 +360,7 @@ export function lowerGeneratedMachine(
         : {}),
       ...(node.props.imageInterface === true ? { imageInterface: true as const } : {}),
       ...(hostTag ? { hostTag } : {}),
+      ...deviceRomMap(graph, node),
       ...(node.props.startHandler
         ? { startHandler: String(node.props.startHandler) }
         : {}),
@@ -374,7 +375,6 @@ export function lowerGeneratedMachine(
         : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
-      ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),
       ...(deviceConfiguration(node.props, String(graph.meta.mameSrc ?? '')).length
         ? { configuration: deviceConfiguration(node.props, String(graph.meta.mameSrc ?? '')) }
         : {}),
@@ -1844,19 +1844,10 @@ export function lowerBiquadFilterChain(
 const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   DAC_4BIT_R2R: ['data_w', 'write'],
   DAC_8BIT_R2R: ['data_w', 'write'],
-  AD7524: ['data_w', 'write'],
   AD7533: ['data_w', 'write'],
-  MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
   YM3526: ['write'],
   YM3812: ['write'],
-  HC55516: ['digit_w', 'clock_w'],
   POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
-  OKIM6295: ['write', 'set_pin7'],
-  UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
-  K007232: ['write', 'read', 'set_volume', 'set_bank'],
-  K053260: ['write'],
-  TMS5220: ['data_w'],
-  TMS5220C: ['data_w'],
 };
 
 /**
@@ -1927,11 +1918,9 @@ export function lowerAuxiliaryAudioDevices(
     const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
     const clock = Number.isFinite(device.clock)
       ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'AD7533', 'HC55516'].includes(device.type)
+      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'AD7533'].includes(device.type)
         ? 0
-        : device.type === 'UPD7759'
-          ? 640_000
-          : undefined;
+        : undefined;
     if (!writeMethods || clock === undefined) return [];
     const resolved = resolvedAudioRoute(graph, byId, device.id);
     if (!resolved) return [];
@@ -1941,11 +1930,7 @@ export function lowerAuxiliaryAudioDevices(
     const config = Array.isArray(sourceDevice?.props.config)
       ? sourceDevice.props.config.map(String).join('\n')
       : '';
-    const initialMode =
-      /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1] ??
-      (device.type === 'OKIM6295'
-        ? /okim6295_device::(PIN7_(?:HIGH|LOW))/.exec(config)?.[1]
-        : undefined);
+    const initialMode = /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1];
     const targetInput = Number(route.props.input);
     const directSampleRegion = graph.nodes.find(node =>
       node.label === 'RomRegion' && node.props.tag === device.tag);
@@ -1973,6 +1958,19 @@ export function lowerAuxiliaryAudioDevices(
       writeMethods,
     }];
   });
+}
+
+/**
+ * A sound chip's own address space 0 over its ROM region, which its
+ * `device_rom_interface` reads through: the Williams ADPCM board's OKI sees a
+ * banked low half and a fixed upper half. Nothing when it reads its region
+ * directly.
+ */
+function deviceRomMap(graph: KnowledgeGraph, node: KGNode): { romMap?: GeneratedSampleWindow[] } {
+  if (!STREAM_SOUND_TYPES.includes(String(node.props.type))) return {};
+  const region = graph.nodes.find(candidate => candidate.label === 'RomRegion' && candidate.props.tag === node.props.tag);
+  const romMap = region ? lowerSampleMap(graph, node.id, String(region.props.tag)) : undefined;
+  return romMap?.length ? { romMap } : {};
 }
 
 /**
@@ -2280,23 +2278,6 @@ function lowerFrameEvents(
       }
       continue;
     }
-    // vck_legacy_callback shares vck_callback's timing: the MSM5205 clocks
-    // itself at clock/prescaler and fires the driver's per-sample feeder.
-    if (callback.signal === 'vck_callback' || callback.signal === 'vck_legacy_callback') {
-      const frequency = devices.find(device => device.tag === callback.ownerTag)?.callbackHz;
-      if (frequency) {
-        events.push({
-          callbackId: callback.id,
-          ownerTag: callback.ownerTag,
-          signal: callback.signal,
-          line: 0,
-          state: 1,
-          frequency,
-          ...(callback.source ? { source: callback.source } : {}),
-        });
-      }
-      continue;
-    }
     if (callback.signal === 'screen_vblank' || callback.signal === 'set_vblank_int') {
       events.push({
         callbackId: callback.id,
@@ -2436,13 +2417,6 @@ function scanlineConditionValues(
     return new Set([...left, ...right]);
   }
   return undefined;
-}
-
-function deviceCallbackHz(props: Record<string, unknown>): number | undefined {
-  if (props.type !== 'MSM5205' || typeof props.clock !== 'number') return undefined;
-  const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
-  const divisor = /set_prescaler_selector\([^)]*::S(\d+)_/.exec(config)?.[1];
-  return divisor ? props.clock / Number(divisor) : undefined;
 }
 
 export function generatedBoardSource(machine: BoardIr): string {

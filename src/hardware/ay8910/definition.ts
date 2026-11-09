@@ -18,12 +18,10 @@ export const AY8910_MAME_TYPES = [
   'AY8910',
   'AY8912',
   'YM2149',
-  'MSM5205',
 ] as const;
 
 export const AY8910_IR_ARTIFACT = 'audio/ay8910.audio.ir.json';
 export const AY8910_WORKLET_ARTIFACT = 'audio/ay8910-worklet.ts';
-export const MSM5205_IR_ARTIFACT = 'audio/msm5205.audio.ir.json';
 
 
 export const AY8910_PORTS: readonly PortDeclaration[] = [

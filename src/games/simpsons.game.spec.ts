@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { simpsons } from './simpsons.game.ts';
 import { gameSourceGraph } from './test-support.ts';
-import { lowerAuxiliaryAudioDevices } from '../gen/emit-machine.ts';
+import { STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
 
 const graph = gameSourceGraph(simpsons);
 const playerOneTypes = graph.edges
@@ -19,19 +19,11 @@ assert.deepEqual(playerOneTypes, [
   'IPT_START1',
 ]);
 
-const devices = graph.nodes
-  .filter(node => node.label === 'Device')
-  .map(node => ({
-    id: node.id,
-    tag: String(node.props.tag),
-    type: String(node.props.type),
-    ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
-  }));
-const auxiliary = lowerAuxiliaryAudioDevices(graph, devices);
-assert.ok(
-  auxiliary.some(device =>
-    device.type === 'K053260' && device.sampleRegion === 'k053260'),
-  'Simpsons must route its K053260 fight-sample ROM into the YM2151 mixer',
-);
+// The K053260 plays its fight samples as its own class, reading the ROM region
+// named after it through device_rom_interface.
+assert.ok(STREAM_SOUND_TYPES.includes('K053260'));
+assert.ok(graph.nodes.some(node => node.label === 'Device' && node.props.type === 'K053260' && node.props.tag === 'k053260'));
+assert.ok(graph.nodes.some(node => node.label === 'RomRegion' && node.props.tag === 'k053260'),
+  'Simpsons must carry its K053260 fight-sample ROM');
 
 console.log('simpsons.spec: source machine graph and Konami player controls passed');

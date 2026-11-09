@@ -13,6 +13,7 @@ import type {
   GeneratedBiquadStage,
   GeneratedDacChip,
   GeneratedNesApuPlan,
+  GeneratedSampleWindow,
 } from './audio-protocol.ts';
 import type { GeneratedVideoExecution } from './video-execution.ts';
 
@@ -274,10 +275,14 @@ export interface GeneratedDevice {
    * members of the card's scope that none of its own handlers assign.
    */
   cardMembers?: string[];
+  /**
+   * The device's own address space 0 over its ROM region, which its
+   * `device_rom_interface` reads through (a banked OKI). Absent when it reads
+   * its region directly.
+   */
+  romMap?: GeneratedSampleWindow[];
   member?: string;
   clock?: number;
-  /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
-  callbackHz?: number;
   /** Setter calls from the machine config: numbers, and tags as strings. */
   /**
    * A table the constructor took is data of its own shape: DISCRETE's node

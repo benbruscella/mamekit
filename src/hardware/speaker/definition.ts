@@ -27,8 +27,10 @@ export const STREAM_AUDIO_RATE = 48000;
  */
 export const STREAM_SOUND_TYPES: readonly string[] = [
   'SPEAKER_SOUND', 'CASSETTE', 'POKEY', 'SAMPLES', 'DISCRETE', 'SN76477', 'TMS36XX', 'PHOENIX_SOUND',
-  // A speech chip whose BSY a sound CPU polls, compiled by the device capability.
-  'VLM5030',
+  // Compiled by the device capability, which also builds their bus ports: a
+  // speech chip whose BSY a sound CPU polls, the uPD7759 whose BUSY the TMNT
+  // sound CPU polls, and Konami's two PCM chips.
+  'VLM5030', 'UPD7759', 'K007232', 'K053260',
   ...SOUND_DEVICE_MAME_TYPES,
 ];
 

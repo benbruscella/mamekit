@@ -79,14 +79,10 @@ const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {};
 const DIRECT_SCREEN_SHAPES: string[] = [];
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
 // for a hand-written body, keyed by the compiler that makes it.
-const REPLACED_METHODS = [
-  'compileUpd7759: sound_stream_update',
-];
+const REPLACED_METHODS: string[] = [];
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
-const SPECIALIZED_COMPILERS = [
-  'UPD7759',
-];
+const SPECIALIZED_COMPILERS: string[] = [];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
 // processor that host it, or a chip model under another name. Paths are
@@ -98,14 +94,9 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
   ],
   'hardware/dac/worklet-source.ts': [
     'GeneratedBiquadFilter', 'GeneratedDacFrameRenderer', 'GeneratedDacMixer',
-    'GeneratedDacProcessor', 'GeneratedHc55516Core',
+    'GeneratedDacProcessor',
   ],
   'hardware/nes/apu.ts': ['Dmc', 'Envelope', 'NesApu', 'Noise', 'Pulse', 'Triangle'],
-  'hardware/okim6295/okim6295-worklet.ts': [
-    'GeneratedOkim6295Core', 'GeneratedOkim6295FrameRenderer', 'GeneratedOkim6295Processor',
-    'OkiVoice',
-  ],
-  'hardware/ym2151/runtime.ts': ['Upd7759Runtime'],
   'mame/audio-compiler.ts': [
     'GeneratedAy8910Core', 'GeneratedAy8910FrameRenderer', 'GeneratedAy8910Mixer',
     'GeneratedAy8910Processor', 'GeneratedDac8Core',
@@ -124,7 +115,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedYm2203Mixer', 'GeneratedYm2203Processor', 'GeneratedYm2610AdpcmA',
     'GeneratedYm3526Chip',
   ],
-  'mame/tms5220-compiler.ts': ['GeneratedTms5220Core'],
 };
 
 const deviceTypeBranch =
