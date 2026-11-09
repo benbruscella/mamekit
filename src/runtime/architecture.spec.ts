@@ -92,8 +92,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'BerzerkProcessor', 'ExidyPit8253Core', 'ExidySoundCore', 'GeneratedBerzerkSoundCore',
     'GeneratedBerzerkSoundFrameRenderer', 'S14001aCore',
   ],
-  'hardware/nes/apu.ts': ['Dmc', 'Envelope', 'NesApu', 'Noise', 'Pulse', 'Triangle'],
-  'mame/nes-apu-compiler.ts': ['NesProcessor', 'Resampler'],
 };
 
 const deviceTypeBranch =

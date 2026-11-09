@@ -148,10 +148,22 @@ export function lowerCallbackEffect(
   // set_ioport pulls a value from a port; targetTag repeats the port name.
   if (callback.targetPort) return { kind: 'port-read', port: callback.targetPort };
 
+  // A read a CPU's own space answers (the RP2A03 APU's DMC fetch).
+  if (callback.targetSpace && callback.targetTag) {
+    const tag = resolveScopedTag(context.cpuTags, callback.targetTag);
+    if (tag) return { kind: 'cpu-space-read', tag, space: callback.targetSpace };
+  }
+
   // An explicit CPU input line: mainlatch bit -> audiocpu RESET.
   if (callback.targetTag && callback.inputLine) {
-    const line = CPU_INPUT_LINES[callback.inputLine];
+    // A line the board does not name is the core's own (`APU_IRQ_LINE`),
+    // which the generated core numbers from its header.
+    const line = CPU_INPUT_LINES[callback.inputLine] ??
+      (/^[A-Z][A-Z0-9_]*_LINE$/.test(callback.inputLine.replace(/^\w+::/, '')) ? 'core' as const : undefined);
     const tag = resolveScopedTag(context.cpuTags, callback.targetTag);
+    if (line === 'core' && tag) {
+      return { kind: 'cpu-line', tag, line, delivery: 'level', input: callback.inputLine.replace(/^\w+::/, '') };
+    }
     if (line && tag) {
       return {
         kind: 'cpu-line',

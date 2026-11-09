@@ -6,7 +6,6 @@
 
 import type { AudioProbeFactory } from './audio-probe.ts';
 import { createBerzerkSoundProbe } from './berzerk-sound/acceptance.ts';
-import { createNesProbe } from './nes/acceptance.ts';
 import { createGameboyProbe } from './gameboy/acceptance.ts';
 import { createTiaProbe } from './a2600/acceptance.ts';
 import { createSidProbe } from './c64/acceptance.ts';
@@ -20,7 +19,6 @@ import { createStreamProbe } from './speaker/acceptance.ts';
 export const AUDIO_PROBES: Readonly<Record<string, AudioProbeFactory>> = {
   berzerk: createBerzerkSoundProbe,
   exidy: createBerzerkSoundProbe,
-  nes: createNesProbe,
   gameboy: createGameboyProbe,
   tia: createTiaProbe,
   sid: createSidProbe,

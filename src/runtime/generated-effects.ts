@@ -17,6 +17,8 @@ export interface EffectBindings {
   deviceMethod(tag: string, method: string, ownerClass?: string): EffectExecutor | undefined;
   handler(key: string, deviceTag?: string): EffectExecutor | undefined;
   portRead(port: string): EffectExecutor | undefined;
+  /** A read from a CPU's own space at the offset the device passes. */
+  cpuSpaceRead(tag: string, space: 'program'): EffectExecutor | undefined;
   videoControl(control: 'flip-screen' | 'flip-screen-x' | 'flip-screen-y'): EffectExecutor | undefined;
   audioControl(tag: string, control: 'mute' | 'enable', offset?: number): EffectExecutor | undefined;
   audioWrite(tag: string, method: string): EffectExecutor | undefined;
@@ -45,6 +47,7 @@ function executorFor(effect: BoardEffect, bindings: EffectBindings): EffectExecu
     case 'device-method': return bindings.deviceMethod(effect.tag, effect.method, effect.ownerClass);
     case 'handler': return bindings.handler(effect.handler, effect.deviceTag);
     case 'port-read': return bindings.portRead(effect.port);
+    case 'cpu-space-read': return bindings.cpuSpaceRead(effect.tag, effect.space);
     case 'constant': { const value = effect.value; return () => value; }
     case 'video-control': return bindings.videoControl(effect.control);
     case 'audio-control': return bindings.audioControl(effect.tag, effect.control, effect.offset);

@@ -39,9 +39,10 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   // A cassette alone is only heard beside a stream that owns the worklet.
   const speakerDevice = devices.find(device => device.props.type !== 'CASSETTE' &&
     (STREAM_SOUND_TYPES.includes(String(device.props.type)) || streamed.has(device.id)));
-  const sound = devices.some(d => String(d.props.type).startsWith('RP2A03'))
-    // the NES APU lives on the CPU die — the RP2A03 is its own sound device
-    ? { kind: 'nes', clock: cpus[0].clock }
+  // The RP2A03's APU is a device its own device_add_mconfig builds: a stream.
+  const rp2a03 = devices.find(d => String(d.props.type).startsWith('RP2A03'));
+  const sound = rp2a03
+    ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: 'nesapu' }
     : berzerkSound
           ? {
               kind: berzerkSound.props.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
@@ -89,17 +90,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
           // rendering its own stream at machine().sample_rate().
           ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: String(speakerDevice.props.tag) }
     : { kind: 'none' };
-  const nesApu = sound.kind === 'nes' ? compileNesApu(opts.mameSrc) : undefined;
-  // A mix that goes through one gain carries MAME's route here, for the shell to
-  // apply after the worklet: a WSG's, or the APU's route out of the RP2A03.
-  const singleRoute = (types: readonly string[]): number | undefined => lowerAudioRoutes(
-    graph,
-    devices
-      .filter(device => types.some(type => String(device.props.type).startsWith(type)))
-      .map(device => ({ id: device.id, tag: String(device.props.tag) })),
-  )[0]?.gain;
-  const outputGain = sound.kind === 'nes' ? singleRoute(['RP2A03']) : undefined;
-  if (outputGain !== undefined) Object.assign(sound, { outputGain });
+  const nesApu = rp2a03 ? compileNesApu(opts.mameSrc, String(rp2a03.props.type)) : undefined;
 
   // MAME keeps each speaker channel apart, and the browser plays one, their
   // mean: a route to one channel counts that share.

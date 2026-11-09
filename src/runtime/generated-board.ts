@@ -217,8 +217,10 @@ export function generatedCompositeCallbackBindings(
         );
       }
       const reads = effect.reads || /(?:^|_)(?:r|read)(?:_cb|_callback)?$/.test(callback.signal);
+      // A read callback's argument is the offset it asks for (the APU's DMC
+      // address), which a space read takes and a port read ignores.
       return reads
-        ? applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms)
+        ? applyBoardTransforms(Number(effect.run(0, value)) || 0, effect.transforms)
         : (effect.run(applyBoardTransforms(value, effect.transforms)), 0);
     };
     calls[`m_${callback.signal}`] ??= emit;
@@ -5675,7 +5677,7 @@ class IrBoard implements Board {
         // a signal from inside its own constructor (the I8039 resets on
         // create), so the target may not be instantiated yet at bind time.
         if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
-        if (line === 'busreq') {
+        if (line === 'busreq' || line === 'core') {
           // The core's own pin: its execute_set_input takes the request and
           // its next instruction boundary grants it through busack_cb, which
           // the machine wired to the bus master (z80dma bai_w, i8257
@@ -5852,6 +5854,9 @@ class IrBoard implements Board {
       },
       portRead: port => () =>
         registry.read[`port.${port}`]?.(0, 0) ?? this.bindings.inputs?.read(port) ?? 0xff,
+      // The CPU's own space, at the offset the device's read callback passes
+      // (the RP2A03 APU's DMC sample fetch).
+      cpuSpaceRead: tag => (_value, offset = 0) => this.cpuBuses.get(tag)?.read(Number(offset) & 0xffff) ?? 0,
       videoControl: control => {
         const setter = control === 'flip-screen'
           ? this.bindings.calls?.flip_screen_set

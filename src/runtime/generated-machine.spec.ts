@@ -105,6 +105,7 @@ const bindings: EffectBindings = {
           parallelSources.push(sourceArgs);
         }
       : undefined,
+  cpuSpaceRead: () => undefined,
   portRead: () => undefined,
   videoControl: () => undefined,
   audioControl: () => undefined,

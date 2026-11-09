@@ -8,13 +8,6 @@ import {
   createDevice,
   registerGeneratedDevice,
 } from '../../runtime/generated-device.ts';
-import {
-  DUTY,
-  NES_DMC_RATES,
-  NES_LENGTH_TABLE,
-  NES_NOISE_PERIODS,
-  NesApu,
-} from './apu.ts';
 
 const mameSource = process.env.MAME_SRC ??
   new URL('../../../../mame/', import.meta.url).pathname;
@@ -30,8 +23,9 @@ const extraction = await extractNes({
 });
 
 assert.ok(extraction);
-assert.deepEqual(extraction.executableTypes.sort(), [...types].sort());
-for (const type of types) {
+// With the RP2A03 present, its own APU is compiled beside the board devices.
+assert.deepEqual(extraction.executableTypes.sort(), [...types, 'NES_APU'].sort());
+for (const type of [...types, 'NES_APU']) {
   assert.equal(extraction.executable[type]?.kind, 'device');
 }
 const ppu = extraction.artifacts.find(artifact =>
@@ -208,43 +202,35 @@ for (const [key, type, gain] of [
   assert.equal(chip.definition.summary.diagnostics, 0);
 }
 
+// The RP2A03 holds nes_apu.cpp's device as rp2a03.cpp composes it: built at
+// the CPU's clock, reached through the CPU's internal map with MAME's own
+// handler bodies, its irq() on the core's APU line and its DMC reading the
+// CPU's program space.
 const apuPlan = compileNesApu(mameSource);
+assert.equal(apuPlan.type, 'NES_APU');
+assert.equal(apuPlan.member, 'm_apu');
+assert.equal(apuPlan.irqLine, 'APU_IRQ_LINE');
+assert.equal(apuPlan.memReadSpace, 'program');
 assert.deepEqual(
-  apuPlan.internalMap.ranges.map(range => ({
-    start: range.start,
-    end: range.end,
-    read: range.read,
-    write: range.write,
-  })),
+  apuPlan.internalMap.ranges.map(range => [range.start, range.end, range.read?.body, range.write?.body]),
   [
-    { start: 0x4000, end: 0x4013, read: undefined, write: 'nesapu.write' },
-    { start: 0x4015, end: 0x4015, read: 'nesapu.status_r', write: 'nesapu.write' },
-    { start: 0x4017, end: 0x4017, read: undefined, write: 'nesapu.write' },
+    [0x4000, 0x4013, undefined, 'm_apu->write(offset, data);'],
+    [0x4015, 0x4015, 'return m_apu->status_r();', 'm_apu->write(0x15, data);'],
+    [0x4017, 0x4017, undefined, 'm_apu->write(0x17, data);'],
   ],
 );
-assert.deepEqual(apuPlan.lengthTable, NES_LENGTH_TABLE);
-assert.deepEqual(apuPlan.noisePeriods.ntsc, NES_NOISE_PERIODS);
-assert.deepEqual(apuPlan.dmcPeriods.ntsc, NES_DMC_RATES);
-assert.deepEqual(
-  apuPlan.dutyPatterns,
-  DUTY.map(row => row.reduce((value, bit) => (value << 1) | bit, 0)),
-);
-assert.ok(extraction.artifacts.some(artifact =>
-  artifact.path === 'audio/nes-apu.audio.ir.json'));
-assert.ok(extraction.artifacts.some(artifact =>
-  artifact.path === 'audio/nes-worklet.ts' &&
-  artifact.contents.includes("registerProcessor('nes'")));
-
-const apu = new NesApu(apuPlan.clocks.ntsc);
-apu.write(0x15, 0x01);
-apu.write(0x00, 0x1f);
-apu.write(0x02, 0x20);
-apu.write(0x03, 0x08);
-assert.equal(apu.read4015() & 1, 1, '$4015 must report an active pulse length counter');
-apu.tick(apuPlan.frameClocks.ntsc);
-assert.equal(apu.irqAsserted(), true, 'four-step frame counter must assert the APU IRQ');
-assert.equal(apu.read4015() & 0x40, 0x40);
-assert.equal(apu.irqAsserted(), false, '$4015 status read must acknowledge frame IRQ');
+// And the APU is nes_apu.cpp compiled whole, which answers $4015 itself.
+const apuArtifact = extraction.artifacts.find(artifact => artifact.path === 'devices/nes_apu.device.ir.json');
+assert.ok(apuArtifact, 'the NES capability compiles the RP2A03\'s APU');
+clearGeneratedDevices();
+registerGeneratedDevice(JSON.parse(apuArtifact.contents));
+const apu = createDevice('NES_APU', { clock: 1_789_773 }) as unknown as { invoke(name: string, ...args: number[]): unknown };
+apu.invoke('write', 0x15, 0x01);
+apu.invoke('write', 0x00, 0x1f);
+apu.invoke('write', 0x02, 0x20);
+apu.invoke('write', 0x03, 0x08);
+assert.equal(Number(apu.invoke('status_r')) & 1, 1, '$4015 reports the pulse length counter running');
+clearGeneratedDevices();
 assert.ok(
   txromMethods.some(method => method.name === 'write_h' && method.source.file.endsWith('/mmc3.h')),
   'MMC3 inline write_h override must replace the base no-op',

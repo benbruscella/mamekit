@@ -82,6 +82,11 @@ export interface GeneratedCallback {
   targetClass?: string;
   targetMethod?: string;
   targetPort?: string;
+  /**
+   * A read devcb a CPU's own space answers (the RP2A03's `apu_read_mem`,
+   * `m_program.read_interruptible(offset)`): the space it reads.
+   */
+  targetSpace?: 'program';
   /** The value a `set_constant` read answers. */
   constant?: number;
   /**
@@ -152,7 +157,9 @@ export interface GeneratedCallback {
  */
 export type CpuLine =
   | 'irq' | 'irq1' | 'irq2' | 'irq3' | 'irq4' | 'irq5' | 'irq6' | 'irq7'
-  | 'firq' | 'nmi' | 'reset' | 'halt' | 'busreq';
+  | 'firq' | 'nmi' | 'reset' | 'halt' | 'busreq'
+  /** A line the core names itself (`APU_IRQ_LINE`), carried in `input`, held at its level. */
+  | 'core';
 
 /**
  * How a source drives the pin. MAME's driver_device interrupt generators
@@ -182,6 +189,12 @@ export type BoardEffect =
   | { kind: 'handler'; handler: string; deviceTag?: string }
   /** Read an input port back to the caller (MAME set_ioport). */
   | { kind: 'port-read'; port: string }
+  /**
+   * Answer a read devcb from a CPU's own space at the offset the device asks:
+   * the RP2A03's `apu_read_mem`, `m_program.read_interruptible(offset)`, which
+   * the DMC fetches its samples through.
+   */
+  | { kind: 'cpu-space-read'; tag: string; space: 'program' }
   /** Answer a read with a fixed value (MAME set_constant). */
   | { kind: 'constant'; value: number }
   /** Board-level video control lowered from MAME's flip_screen helpers. */

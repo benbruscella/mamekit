@@ -446,6 +446,42 @@ export function lowerGeneratedMachine(
         ...(finderAliases.has(node.id) ? { finderAliases: [...finderAliases.get(node.id)!].sort() } : {}),
       };
     });
+  // The RP2A03's internal APU, as rp2a03.cpp composes it: nes_apu.cpp's device
+  // under the CPU at its clock, reached through the CPU's internal map (each
+  // range a handler with MAME's own body, `m_apu->write(0x15, data);`), its
+  // irq() on the core's APU line and its mem_read() on the CPU's program space.
+  const nesApuCpuNode = nesApu ? graph.nodes.find(node => node.label === 'Device' && /^RP2A03/.test(String(node.props.type))) : undefined;
+  const nesApuCpu = nesApuCpuNode ? { tag: String(nesApuCpuNode.props.tag), clock: Number(nesApuCpuNode.props.clock) } : undefined;
+  if (nesApu && nesApuCpu) {
+    devices.push({
+      id: `device:${nesApuCpu.tag}/${nesApu.tag}`,
+      tag: nesApu.tag,
+      type: nesApu.type,
+      member: nesApu.member,
+      clock: nesApuCpu.clock,
+    });
+    for (const range of nesApu.internalMap.ranges) {
+      for (const handler of [range.read, range.write]) {
+        if (!handler) continue;
+        handlers.push({
+          id: `handler:${nesApu.cpuClass}.${handler.method}`,
+          ownerClass: nesApu.cpuClass,
+          method: handler.method,
+          parameters: handler.parameters,
+          body: handler.body,
+          program: compileMameHandler(handler.body, handler.method.endsWith('_r') ? { returnType: 'u8' } : {}),
+          source: range.source,
+        });
+      }
+    }
+    callbacks.push({
+      id: `callback:${nesApu.tag}.irq`, ownerTag: nesApu.tag, signal: 'irq', member: 'm_irq_handler',
+      operation: 'set', targetTag: nesApuCpu.tag, inputLine: nesApu.irqLine,
+    }, {
+      id: `callback:${nesApu.tag}.mem_read`, ownerTag: nesApu.tag, signal: 'mem_read', member: 'm_mem_read_cb',
+      operation: 'set', targetTag: nesApuCpu.tag, targetSpace: nesApu.memReadSpace,
+    });
+  }
   // A driver constant spelled in a device header's macro-made enum
   // (`QIX_DAC_DATA = NODE_01`) is known only after the preprocessor the
   // device's table was lowered through; a handler that names one writes
@@ -1003,8 +1039,12 @@ export function lowerGeneratedMachine(
     // a palette_device built-in init, or a palette the driver banks at run time.
     ...(paletteInits.length ? { paletteInits } : {}),
   };
-  const nesCpu = nesApu && devices.find(device =>
-    device.type === 'RP2A03' || device.type === 'RP2A03G');
+  // The RP2A03's APU reaches the speaker through its CPU's own route
+  // (`m_apu->add_route(ALL_OUTPUTS, *this, 1.0)`, then the driver's
+  // `maincpu.add_route(ALL_OUTPUTS, "mono", 0.90)`).
+  const routeSource = (device: GeneratedDevice) => nesApu && nesApuCpuNode && device.tag === nesApu.tag
+    ? { ...device, id: nesApuCpuNode.id }
+    : device;
   // A chip this machine renders as a compiled stream is not its worklet's.
   const berzerkSound = devices.find(device =>
     device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
@@ -1020,7 +1060,7 @@ export function lowerGeneratedMachine(
   const streamDevices = devices.some(device =>
     rendersStream(device) && device.type !== 'CASSETTE')
     ? devices.filter(device => rendersStream(device) &&
-      lowerAudioRoutes(graph, [device]).length > 0)
+      lowerAudioRoutes(graph, [routeSource(device)]).length > 0)
     : [];
   // A route names a tag in its own machine config: a child of a sound board
   // (Irem's `filtermix`) is the board's `irem_audio:filtermix`.
@@ -1055,20 +1095,7 @@ export function lowerGeneratedMachine(
       ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
     };
   };
-  const sound = nesCpu
-    ? {
-        kind: 'nes',
-        deviceTag: 'nesapu',
-        deviceType: nesApu.type,
-        writeMethods: [nesApu.writeMethod],
-        enableMethods: [],
-        controlOffset: -1,
-        nesApu,
-        // The APU's own route (`maincpu.add_route(ALL_OUTPUTS, "mono",
-        // 0.90)`): a cartridge's sound chip is mixed relative to it.
-        ...(lowerAudioRoutes(graph, [nesCpu]).length ? { routes: lowerAudioRoutes(graph, [nesCpu]) } : {}),
-      }
-    : berzerkSound
+  const sound = berzerkSound
       ? {
           kind: berzerkSound.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
           deviceTag: berzerkSound.tag,
@@ -1129,7 +1156,7 @@ export function lowerGeneratedMachine(
               writeMethods: [],
               enableMethods: [],
               controlOffset: -1,
-              routes: monoRoutes(graph, scopedRoutes(streamDevices, lowerAudioRoutes(graph, streamDevices))),
+              routes: monoRoutes(graph, scopedRoutes(streamDevices, lowerAudioRoutes(graph, streamDevices.map(routeSource)))),
               ...boardNetlist(),
             }
         : undefined;
@@ -2150,11 +2177,13 @@ function mergeInternalRanges(
 ): NonNullable<BoardConfig['cpus'][number]['ranges']> {
   const merged = ranges.map(range => ({ ...range }));
   for (const internal of plan.internalMap.ranges) {
+    const read = internal.read ? `${plan.cpuClass}.${internal.read.method}` : undefined;
+    const write = internal.write ? `${plan.cpuClass}.${internal.write.method}` : undefined;
     const existing = merged.find(range =>
       range.start === internal.start && range.end === internal.end);
     if (existing) {
-      if (internal.read) existing.read = internal.read;
-      if (internal.write) existing.write = internal.write;
+      if (read) existing.read = read;
+      if (write) existing.write = write;
       existing.kind = 'handler';
       continue;
     }
@@ -2162,8 +2191,8 @@ function mergeInternalRanges(
       start: internal.start,
       end: internal.end,
       kind: 'handler',
-      ...(internal.read ? { read: internal.read } : {}),
-      ...(internal.write ? { write: internal.write } : {}),
+      ...(read ? { read } : {}),
+      ...(write ? { write } : {}),
     });
   }
   return merged.sort((left, right) => left.start - right.start || left.end - right.end);

@@ -15,7 +15,7 @@ export const nes = {
     driver: 'src/mame/nintendo/nes.cpp',
     machine: { className: 'nes_state', name: 'nes' },
     screen: { width: 256, height: 240 },
-    soundKind: 'nes',
+    soundKind: 'stream',
     media: [{ kind: 'cartridge', status: 'accepted', softwareLists: ['nes'] }],
   },
   scenarios: [{
