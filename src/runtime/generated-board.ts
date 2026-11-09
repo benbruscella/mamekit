@@ -1227,13 +1227,8 @@ class IrBoard implements Board {
         this.devices.set(specification.tag, device);
         if (hostBound) this.hostBoundStarts.push(device);
         if (specification.member) {
-          const indexed = /^(m_\w+)\[(\d+)\]$/.exec(specification.member);
-          if (indexed) {
-            const values = Array.isArray(this.state[indexed[1]!])
-              ? this.state[indexed[1]!] as unknown[]
-              : [];
-            values[Number(indexed[2])] = device;
-            this.state[indexed[1]!] = values;
+          if (finderElement(specification.member)) {
+            placeFinderElement(this.state, specification.member, device);
           } else {
             // Required/optional device finders are pointer-like in driver
             // handlers. Binding the live generated object preserves nullable
@@ -1962,12 +1957,8 @@ class IrBoard implements Board {
         this.state[flatMember] = referent;
         // A finder array indexed at run time (`m_slots[m_curr_slot]`) holds
         // its fitted devices; the rest read as the null MAME's finder holds.
-        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(flatMember);
-        if (indexed) {
-          const values = Array.isArray(this.state[indexed[1]!]) ? this.state[indexed[1]!] as unknown[] : [];
-          const slot = Number(indexed[2]);
-          if (values[slot] === undefined || values[slot] === device) values[slot] = referent;
-          this.state[indexed[1]!] = values;
+        if (finderElement(flatMember)) {
+          placeFinderElement(this.state, flatMember, referent, held => held === undefined || held === device);
         }
       }
     }
@@ -2711,13 +2702,8 @@ class IrBoard implements Board {
         // state and therefore needs the finder array to contain live targets.
         // Populate an adapter from the same generic CPU call package so every
         // required_device_array works without a board/game exception.
-        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(member);
-        if (indexed) {
-          const values = Array.isArray(this.state[indexed[1]!])
-            ? this.state[indexed[1]!] as unknown[]
-            : [];
-          values[Number(indexed[2])] = adapter;
-          this.state[indexed[1]!] = values;
+        if (finderElement(member)) {
+          placeFinderElement(this.state, member, adapter);
         } else {
           // A required_device CPU finder is a live object in source, not only
           // a qualified call spelling. Composite handlers such as
@@ -5878,6 +5864,40 @@ class IrBoard implements Board {
 }
 
 /** The CPU a device class's conventional `m_cpu` finder names: its own child. */
+/**
+ * A finder array's element, as a device's member names it: `m_slots[2]`, or
+ * one of an array of finder arrays, `m_filter[1][2]` (timeplt_a.h's
+ * `required_device_array<filter_rc_device, 3> m_filter[2]`).
+ */
+function finderElement(member: string): { root: string; indexes: number[] } | undefined {
+  const match = /^(m_\w+)((?:\[\d+\])+)$/.exec(member);
+  return match
+    ? { root: match[1]!, indexes: [...match[2]!.matchAll(/\d+/g)].map(index => Number(index[0])) }
+    : undefined;
+}
+
+/**
+ * Put a device in the finder array its member indexes, building the nested
+ * arrays on the way; `replace` says whether the element already held may go.
+ */
+function placeFinderElement(
+  state: Record<string, unknown>,
+  member: string,
+  value: unknown,
+  replace: (held: unknown) => boolean = () => true,
+): void {
+  const element = finderElement(member)!;
+  let values = (Array.isArray(state[element.root]) ? state[element.root] : []) as unknown[];
+  state[element.root] = values;
+  for (const index of element.indexes.slice(0, -1)) {
+    const inner = (Array.isArray(values[index]) ? values[index] : []) as unknown[];
+    values[index] = inner;
+    values = inner;
+  }
+  const slot = element.indexes.at(-1)!;
+  if (replace(values[slot])) values[slot] = value;
+}
+
 export function hostedCpuTagForClass(
   machine: BoardIr,
   ownerClass: string,

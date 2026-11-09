@@ -40,9 +40,11 @@ export const simpsons = sourceTarget({
     { atFrame: 850, code: 'KeyZ', heldFrames: 30, releasedFrames: 20 },
   ],
   audioRequirements: [{
-    method: 'k053260.write',
-    offset: 0x28,
+    // The K053260's own stream, before the mix: its PCM channels keyed on
+    // (register 0x28 under the old gate) are what make it vary at all.
+    method: 'k053260.stream',
     fromFrame: 120,
     minimumNonzeroWrites: 20,
+    minimumDistinctValues: 32,
   }],
 });

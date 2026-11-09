@@ -90,6 +90,8 @@ interface StructField {
   bits?: 8 | 16 | 32;
   signed?: boolean;
   fields?: StructField[];
+  /** A union: `fields` overlap, each laid out from the union's first byte. */
+  union?: true;
 }
 
 interface DeviceCallback {
@@ -924,11 +926,16 @@ export class IrSoundStream {
   onRate?: (rate: number) => void;
   samples: () => number = () => 0;
   put: (channel: number, index: number, value: number) => number = () => 0;
+  /** The outputs and inputs `stream_alloc` asked for. */
+  readonly outputs: number;
+  readonly inputs: number;
   private readonly bindings: { calls?: Record<string, (...args: any[]) => unknown> };
 
-  constructor(rate: number, bindings: { calls?: Record<string, (...args: any[]) => unknown> }) {
+  constructor(rate: number, bindings: { calls?: Record<string, (...args: any[]) => unknown> }, outputs = 1, inputs = 0) {
     this.rate = rate;
     this.bindings = bindings;
+    this.outputs = Math.max(0, Math.trunc(Number(outputs) || 0));
+    this.inputs = Math.max(0, Math.trunc(Number(inputs) || 0));
   }
 
   // The rest of sound_stream's write surface, through `put`, which the mixer
@@ -944,8 +951,8 @@ export class IrSoundStream {
     for (let index = Number(start); index < Number(start) + Number(count); index++) this.put(channel, index, Number(value));
     return 0;
   }
-  output_count(): number { return 1; }
-  input_count(): number { return 0; }
+  output_count(): number { return this.outputs; }
+  input_count(): number { return this.inputs; }
   get(): number { return 0; }
   // Bound in the host's mixer; the speaker places each edge against end_time.
   update(): unknown { return this.bindings.calls?.['stream.update']?.(this) ?? 0; }
@@ -1819,7 +1826,7 @@ class IrDevice implements Device {
         // device_t::type: the number its own DECLARE_DEVICE_TYPE name compiled to.
         type: () => definition.constants?.[definition.type] ?? 0,
         name: () => definition.description ?? definition.type,
-        stream_alloc: (_inputs, _outputs, requested) => {
+        stream_alloc: (inputs, outputs, requested) => {
           // SAMPLE_RATE_INPUT_ADAPTIVE, _OUTPUT_ADAPTIVE and _ADAPTIVE
           // (0xffffffff down to 0xfffffffd) take the rate of what the stream
           // connects to, which in this mix is the speaker's: the Game Boy
@@ -1827,7 +1834,7 @@ class IrDevice implements Device {
           // billion samples a second.
           const rate = Number(requested) >= 0xfffffffd ? 48000 : Number(requested);
           if (rate > 0) this.members.__stream_rate = rate;
-          const stream = new IrSoundStream(rate, this.bindings);
+          const stream = new IrSoundStream(rate, this.bindings, Number(outputs), Number(inputs));
           stream.onRate = next => { this.members.__stream_rate = next; };
           this.soundStreams.push(stream);
           return stream as unknown as number;
@@ -4363,6 +4370,12 @@ function structMember(
     // a number, the first assignment into one had nothing to assign to.
     // A field of a named struct type is one too: MMC5's `square_t squ[2]` is
     // a `mmc5_sound_t::square_t`, declared beside the struct that holds it.
+    if (field.union && field.fields) {
+      value[field.name] = field.length
+        ? Array.from({ length: field.length }, () => unionMember(field.fields!))
+        : unionMember(field.fields);
+      continue;
+    }
     const nested = field.fields ?? (field.valueType ? structs?.[field.valueType] : undefined);
     if (nested) {
       value[field.name] = field.length
@@ -4402,6 +4415,74 @@ function structMember(
     Object.defineProperty(struct, name, { value: method, enumerable: false, configurable: true, writable: true });
   }
   return struct;
+}
+
+/** A plain field's size in bytes, as a union lays it out (no padding: MAME's are byte-packed lanes). */
+function unionFieldBytes(field: StructField): number {
+  const each = field.fields ? field.fields.reduce((total, inner) => total + unionFieldBytes(inner), 0) : (field.bits ?? 32) / 8;
+  return each * (field.length ?? 1);
+}
+
+/**
+ * A union's storage: one little-endian byte store every member views from
+ * its first byte, so a write through one member reads back through the
+ * others. exidysound.h's 6840 counter is `union { struct { uint8_t l, h; } b;
+ * uint16_t w; }`: the timer reload writes `b.h` and `b.l` and counts `w` down.
+ * Only the widest member is enumerable, so a copy or a save state carries the
+ * bytes once.
+ */
+function unionMember(fields: readonly StructField[]): Record<string, unknown> {
+  const size = Math.max(1, ...fields.map(unionFieldBytes));
+  const bytes = new Uint8Array(size);
+  const view = (inner: readonly StructField[], base: number): Record<string, unknown> => {
+    const target: Record<string, unknown> = {};
+    let offset = base;
+    for (const field of inner) {
+      define(target, field, offset, true);
+      offset += unionFieldBytes(field);
+    }
+    return target;
+  };
+  const scalar = (field: StructField, at: number) => {
+    const width = (field.bits ?? 32) / 8;
+    return {
+      get: () => {
+        let word = 0;
+        for (let index = width - 1; index >= 0; index--) word = (word * 256) + bytes[at + index]!;
+        if (field.signed && word >= 2 ** (width * 8 - 1)) word -= 2 ** (width * 8);
+        return word;
+      },
+      set: (next: unknown) => {
+        let word = Number(next) || 0;
+        for (let index = 0; index < width; index++) {
+          bytes[at + index] = word & 0xff;
+          word = Math.floor(word / 256);
+        }
+      },
+    };
+  };
+  const define = (target: Record<string, unknown>, field: StructField, at: number, enumerable: boolean) => {
+    if (field.fields) {
+      const nested = field.length
+        ? Array.from({ length: field.length }, (_, index) => view(field.fields!, at + index * unionFieldBytes({ ...field, length: 1 })))
+        : view(field.fields, at);
+      Object.defineProperty(target, field.name, { value: nested, enumerable, configurable: true });
+    } else if (field.length) {
+      const width = (field.bits ?? 32) / 8;
+      const elements: Record<number, unknown> & { length: number } = { length: field.length };
+      for (let index = 0; index < field.length; index++) Object.defineProperty(elements, index, { ...scalar(field, at + index * width), enumerable: true });
+      Object.defineProperty(target, field.name, { value: elements, enumerable, configurable: true });
+    } else {
+      Object.defineProperty(target, field.name, { ...scalar(field, at), enumerable, configurable: true });
+    }
+  };
+  const union: Record<string, unknown> = {};
+  // The widest member, a plain one where two are as wide (`w` over `b`).
+  const rank = (field: StructField) => unionFieldBytes(field) * 2 + (field.fields || field.length ? 0 : 1);
+  const widest = fields.reduce((best, field) => rank(field) > rank(best) ? field : best, fields[0]!);
+  for (const field of fields) define(union, field, 0, field === widest);
+  Object.defineProperty(union, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
+  return union;
 }
 
 /** A C array member's storage, one level of nesting per declarator bound. */

@@ -845,7 +845,11 @@ export async function runGameAcceptance(
           : undefined,
       })})`,
   );
+  // A board MAME's own code leaves silent (`soundKind: 'none'`, Mario's
+  // uncompiled netlist) makes no sound to prove; every other board must.
+  const silentBoard = config.sound.kind === 'none';
   assert.ok(
+    silentBoard ||
     result.audio.writes > 0,
     `${contract.game}: generated sound has no writes ` +
       `(${JSON.stringify({
@@ -857,6 +861,7 @@ export async function runGameAcceptance(
       })})`,
   );
   assert.ok(
+    silentBoard ||
     audio.audibleRms() > 0.001,
     `${contract.game}: generated sound is silent ` +
       `(${JSON.stringify({
@@ -1124,6 +1129,14 @@ async function createAudioProbe(
   outRoot: string,
 ): Promise<AudioProbe> {
   installWorkletGlobals();
+  // A silent board renders nothing: its result is the empty mix.
+  if (config.sound.kind === 'none') {
+    return {
+      render() {},
+      finish: writes => audioResult(writes, []).result,
+      audibleRms: () => 0,
+    };
+  }
   const factory = AUDIO_PROBES[config.sound.kind];
   assert.ok(
     factory,

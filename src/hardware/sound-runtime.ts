@@ -14,6 +14,8 @@ import type { BoardIr } from '../ir/board.ts';
 /** The `sound_stream` a device allocated, which the mixer renders. */
 export interface SoundStreamSurface {
   rate: number;
+  /** The outputs the device's `stream_alloc` asked for. */
+  outputs?: number;
   samples: () => number;
   put: (channel: number, index: number, value: number) => number;
 }

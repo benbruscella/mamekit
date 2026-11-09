@@ -1044,7 +1044,10 @@ export function lowerGeneratedMachine(
     : device;
   // A speaker the board drives or a POKEY, with whatever else renders a
   // routed stream beside it. A cassette alone is only heard beside one.
-  const rendersStream = (device: GeneratedDevice) => device.stream || STREAM_SOUND_TYPES.includes(device.type);
+  // The NETLIST_SOUND is the mixer's own netlist node (boardNetlist), never a
+  // stream beside the chips that feed it.
+  const rendersStream = (device: GeneratedDevice) => device.type !== 'NETLIST_SOUND' &&
+    (device.stream || STREAM_SOUND_TYPES.includes(device.type));
   const streamDevices = devices.some(device =>
     rendersStream(device) && device.type !== 'CASSETTE')
     ? devices.filter(device => rendersStream(device) &&
@@ -1074,11 +1077,14 @@ export function lowerGeneratedMachine(
     const nodes = reachableDevices.map(({ node }) => node);
     const netlistNode = nodes.find(node => node.props.type === 'NETLIST_SOUND');
     if (!netlistNode) return {};
+    // Its tag as the routes into it name it: under a sound board, the board's
+    // (kungfum's `irem_audio:snd_nl`).
+    const netlistTag = reachableDevices.find(({ node }) => node === netlistNode)?.tag ?? String(netlistNode.props.tag);
     const routeGain = lowerAudioRoutes(graph, [{ id: netlistNode.id, tag: String(netlistNode.props.tag) }])[0]?.gain ?? 1;
     const netlist = lowerNetlistSound(graph, nodes, String(graph.meta.mameSrc), routeGain);
     if (netlist.error) console.warn(`${String(graph.meta.driverFile)}: netlist left out, silent: ${netlist.error}`);
     return {
-      ...(netlist.plan ? { netlist: netlist.plan, netlistTag: String(netlistNode.props.tag) } : {}),
+      ...(netlist.plan ? { netlist: netlist.plan, netlistTag } : {}),
       ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
       ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
     };
@@ -1643,7 +1649,9 @@ function deviceConfigLines(props?: Record<string, unknown>): string[] {
 function deviceMember(props: Record<string, unknown>): string | undefined {
   if (typeof props.member === 'string') return props.member;
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
-  return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
+  // An element of a finder array, or of an array of them: timeplt_a.h's
+  // `required_device_array<filter_rc_device, 3> m_filter[2]` is `m_filter[1][2]`.
+  return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\]){0,2})/.exec(config)?.[1];
 }
 
 /**

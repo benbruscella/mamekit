@@ -481,6 +481,18 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_DRAW_OPAQUE: 0x80,
   // <numbers>: the speaker's sinc kernel steps by `std::numbers::pi / 2 / 4`.
   'std::numbers::pi': Math.PI,
+  // The flt_biquad MFB setups take Q = `std::numbers::sqrt2 / 2.0`; unbound
+  // it was 0 and Sounds Good's three biquads rendered NaN.
+  'std::numbers::sqrt2': Math.SQRT2,
+  'std::numbers::e': Math.E,
+  'std::numbers::ln2': Math.LN2,
+  'std::numbers::ln10': Math.LN10,
+  'std::numbers::log2e': Math.LOG2E,
+  'std::numbers::log10e': Math.LOG10E,
+  'std::numbers::inv_pi': 1 / Math.PI,
+  'std::numbers::inv_sqrtpi': 1 / Math.sqrt(Math.PI),
+  'std::numbers::sqrt3': Math.sqrt(3),
+  'std::numbers::inv_sqrt3': 1 / Math.sqrt(3),
   'attotime::never': Infinity,
   // emu/attotime.h: attoseconds are carried as plain numbers.
   ATTOSECONDS_PER_SECOND: 1e18,
@@ -2522,6 +2534,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     const bits = Math.max(0, Math.min(32, toNumber(args[0])));
     return bits >= 32 ? 0xffffffff : (2 ** bits) - 1;
   }
+  // util::sext(value, width) (coretmpl.h): the low `width` bits as a signed
+  // number. The HC55516's process_bit sign-extends its shift register with it.
+  if (/(?:^|::)sext$/.test(name)) {
+    const width = Math.max(1, Math.min(32, toNumber(args[1])));
+    const shift = 32 - width;
+    return (toNumber(args[0]) << shift) >> shift;
+  }
   if (name === 'std::make_unsigned_t') return toNumber(args[0]) >>> 0;
   if (name === 'std::make_signed_t') return toNumber(args[0]) | 0;
   if (name === 'ALLOC' || name === 'make_unique_clear') {
@@ -2931,6 +2950,14 @@ function applyIdentifierCall(
   if (handler) return handler(...args.map(callArgument));
   const member = context.bindings.members?.[name];
   if (typeof member === 'function') return member(...args.map(callArgument));
+  // device_finder::target(): the device the finder holds, or null. Irem's
+  // m52_soundc_audio picks an MSM5205 with `(offset & 1) ? m_adpcm2.target()
+  // : m_adpcm1.target()` and then writes through the pointer.
+  const finder = /^(m_\w+)\.target$/.exec(name);
+  if (finder && args.length === 0) {
+    const held = context.bindings.members?.[finder[1]!];
+    return held !== undefined && held !== null ? held : reference(finder[1]!);
+  }
   noteUnresolvedCall(name);
   return reference(`${name}()`);
 }

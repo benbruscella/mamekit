@@ -196,7 +196,10 @@ export function createStreamMixer(
     context.callDevice(tag, 'sound_stream_update', {
       samples: () => due,
       sample_rate: () => rate,
-      output_count: () => outputGains?.length ?? 1,
+      // As many as the device allocated (a YM2203's four: ymfm renders only
+      // `output_count()` of them, so an ALL_OUTPUTS route that answered one
+      // heard the FM and none of the SSG), or as many as its routes name.
+      output_count: () => surfaces(tag)[0]?.outputs ?? Math.max(1, outputGains?.length ?? 1),
       input_count: () => inputs?.length ?? 0,
       get: (input: number, index: number) => {
         let sum = 0;
@@ -380,6 +383,16 @@ export function createStreamMixer(
         const due = Math.max(0, last - feeder.native);
         const { lanes } = update(feeder.tag, due, rate, undefined, undefined, feeder.native);
         feeder.lanes = lanes;
+        // A gate on a feeder (kungfum's MSM5205s into its netlist) watches
+        // what it renders, at its own rate, before the netlist.
+        if (context.observeStreams?.includes(feeder.tag)) {
+          const frac = context.fraction();
+          for (let index = 0; index < due; index++) {
+            let sample = 0;
+            for (const lane of lanes) sample += lane?.[index] ?? 0;
+            context.soundWrite(0, sample, frac, `${feeder.tag}.stream`);
+          }
+        }
         feeder.start = feeder.native;
         feeder.next = feeder.native;
         feeder.native = last;
@@ -407,6 +420,10 @@ export function createStreamMixer(
         }
         netlistNode.pending.push(netlist.solver.read(at));
       }
+      // Every sample the feeders rendered is in the solver now; what is left
+      // is scratch, and a save must not carry a buffer whose length is only
+      // how far this chunk happened to reach.
+      for (const feeder of netlistNode.feeders) feeder.lanes = [];
       netlistNode.rendered += count;
     }
   };

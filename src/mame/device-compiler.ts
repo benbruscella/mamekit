@@ -146,6 +146,8 @@ export interface GeneratedStructField {
   bits?: 8 | 16 | 32;
   signed?: boolean;
   fields?: GeneratedStructField[];
+  /** A union: `fields` overlap, each laid out from the union's first byte. */
+  union?: true;
 }
 
 export interface GeneratedDeviceCallback {
@@ -5343,7 +5345,9 @@ function deviceAddressSpaces(
   // it itself at start (a YM2610's ADPCM ROM, `space(0).install_rom(...)`).
   const unmapped = new Map<string, { name: string; dataBits: number; addressBits: number }>();
   for (const match of source.matchAll(
-    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_\w+\s*,\s*([^,()]+),\s*([^,()]+),\s*([^,()]+)\)/g,
+    // The address shift is optional: `m_data_config("data", ENDIANNESS_BIG, 8, 8)`
+    // is the Namco WSG's waveform space, which it fills from its own region.
+    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_\w+\s*,\s*([^,()]+),\s*([^,()]+)(?:,\s*([^,()]+))?\)/g,
   )) {
     if (configs.has(match[1]!)) continue;
     const dataBits = evalExpr(match[3]!.trim(), constants);
@@ -5548,7 +5552,7 @@ export function structDeclarations(
     // Comments out first: flopimg.h annotates each field of a grouped
     // declaration (`int type, //!< An opcode`), and read with them the struct
     // lost every field after the first comment.
-    for (const declaration of structBlocks(stripCppComments(source))) {
+    for (const declaration of structBlocks(littleEndianLayout(stripCppComments(source)))) {
       if (!declaration.name || structs.has(declaration.name)) continue;
       const fields = structFieldList(declaration.body, constants, declaration.name);
       if (fields.length) structs.set(declaration.name, fields);
@@ -5668,7 +5672,22 @@ function structBlocks(
   return blocks;
 }
 
-/** The fields of one struct body, recursing into nested anonymous structs. */
+/**
+ * A layout MAME spells per host byte order, as a little-endian host builds it:
+ * exidysound.h's 6840 channel keeps its counter as `union { #ifdef LSB_FIRST
+ * struct { uint8_t l, h; } b; #else struct { uint8_t h, l; } b; #endif
+ * uint16_t w; }`. Every host this runs on is little-endian, so LSB_FIRST is
+ * defined, and both branches read as fields gave `b` twice.
+ */
+function littleEndianLayout(source: string): string {
+  if (!/\bLSB_FIRST\b/.test(source)) return source;
+  return resolveLiteralConditionals(source
+    .replace(/^(\s*)#\s*ifdef\s+LSB_FIRST\b.*$/gm, '$1#if 1')
+    .replace(/^(\s*)#\s*ifndef\s+LSB_FIRST\b.*$/gm, '$1#if 0')
+    .replace(/^(\s*)#\s*if\s+defined\s*\(?\s*LSB_FIRST\s*\)?\s*$/gm, '$1#if 1'));
+}
+
+/** The fields of one struct body, recursing into nested anonymous structs and unions. */
 function structFieldList(
   body: string,
   constants: Record<string, number>,
@@ -5687,7 +5706,7 @@ function structFieldList(
   };
   let cursor = 0;
   while (cursor < body.length) {
-    const nested = /\bstruct\s*(?:\w+\s*)?\{/g;
+    const nested = /\b(struct|union)\s*(?:\w+\s*)?\{/g;
     nested.lastIndex = cursor;
     const start = nested.exec(body);
     const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
@@ -5754,13 +5773,19 @@ function structFieldList(
     const declarator = /^\s*(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/.exec(body.slice(close + 1));
     // A named nested struct with no declarator is a type, recorded on its
     // own by structBlocks; it adds no field here.
+    const union = start[1] === 'union';
     if (declarator) {
       const length = bound(declarator[2]);
       fields.push({
         name: declarator[1]!,
         ...(length !== undefined ? { length } : {}),
         fields: structFieldList(body.slice(open + 1, close), constants),
+        // Its members share one storage, each from its first byte.
+        ...(union ? { union: true } : {}),
       });
+    } else if (union) {
+      // An anonymous union's members are the enclosing struct's own.
+      fields.push(...structFieldList(body.slice(open + 1, close), constants));
     }
     cursor = close + 1 + (declarator?.[0].length ?? 0);
   }

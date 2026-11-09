@@ -8,9 +8,13 @@ export const robotron = sourceTarget({
   soundKind: 'stream',
   minimumAudioRms: 0.05,
   audioRequirements: [{
-    method: 'dac.data_w',
+    // The DAC's own stream, before the mix: the sound CPU's writes are what
+    // move it, so the gate is how many different levels it reached, not
+    // whether it is non-zero (an idle DAC holds one constant level).
+    method: 'dac.stream',
     fromFrame: 700,
     minimumNonzeroWrites: 100,
+    minimumDistinctValues: 16,
   }],
   actions: [
     // Robotron shares Williams' blank-CMOS operator initialization flow.

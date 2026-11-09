@@ -1086,16 +1086,25 @@ function parseAudioRoute(
   args: readonly string[],
   consts: Record<string, number>,
   raw: string,
+  /**
+   * The tag a finder names, where the config's class declares it: Sounds
+   * Good's `m_dac->add_route(ALL_OUTPUTS, m_dac_filter[0], 1.0)` chains its
+   * DAC through three biquads by finder, and dropped, the DAC reached nothing.
+   */
+  finderTag?: (member: string) => string | undefined,
 ): NonNullable<DeviceDef['audioRoutes']>[number] | undefined {
   const [output = '', target = '', gain = '', input = ''] = args;
   const parsedGain = evalExpr(gain, consts);
   const parsedInput = input ? evalExpr(input, consts) : null;
   const owned = /^\*\s*this$/.test(target.trim());
   const ownerOwned = target.trim() === 'DEVICE_SELF_OWNER';
-  if ((!target.trim().startsWith('"') && !owned && !ownerOwned) || parsedGain === null) return undefined;
+  const finder = /^m_\w+(?:\s*\[\s*\d+\s*\])?$/.test(target.trim())
+    ? finderTag?.(target.trim().replace(/\s+/g, ''))
+    : undefined;
+  if ((!target.trim().startsWith('"') && !owned && !ownerOwned && finder === undefined) || parsedGain === null) return undefined;
   return {
     output: output.trim(),
-    target: owned ? '^' : ownerOwned ? '^^' : unquote(target),
+    target: owned ? '^' : ownerOwned ? '^^' : finder ?? unquote(target),
     gain: parsedGain,
     ...(parsedInput !== null ? { input: parsedInput } : {}),
     raw,
@@ -1106,12 +1115,13 @@ function parseAudioRoute(
 export function statementAudioRoutes(
   statement: string,
   consts: Record<string, number>,
+  finderTag?: (member: string) => string | undefined,
 ): NonNullable<DeviceDef['audioRoutes']> {
   const at = statement.indexOf('add_route');
   if (at < 0) return [];
   return parseChain(`.${statement.slice(at)}`)
     .filter(chain => chain.method === 'add_route')
-    .flatMap(chain => parseAudioRoute(chain.args, consts, statement) ?? []);
+    .flatMap(chain => parseAudioRoute(chain.args, consts, statement, finderTag) ?? []);
 }
 
 /**
@@ -1958,6 +1968,12 @@ export function parseMachineConfigs(
       }
       return (memberTags[`${cls}::${r}`] ?? memberTags[r] ?? tagConstants[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
     };
+    // Only a finder the class declares names a route target; anything else
+    // stays unresolved rather than guessed from its spelling.
+    const finderTag = (member: string): string | undefined => {
+      const tag = memberTags[`${cls}::${member}`] ?? memberTags[member];
+      return tag === undefined ? undefined : tag.replace(/^:/, '');
+    };
 
     const expandHelper = (statement: string, depth = 0): string[] => {
       const call = /^(?:(\w+)::)?(\w+)\s*\(\s*config\s*,([\s\S]*)\)$/.exec(statement.trim());
@@ -2175,7 +2191,7 @@ export function parseMachineConfigs(
             continue;
           }
           if (chain.method !== 'add_route') continue;
-          const route = parseAudioRoute(chain.args, consts, s);
+          const route = parseAudioRoute(chain.args, consts, s, finderTag);
           if (route) (dev.audioRoutes ??= []).push(route);
         }
         cfg.devices.push(dev);
@@ -2240,7 +2256,7 @@ export function parseMachineConfigs(
           // A derived config rewires the base's device: Popeye's tpp2_state
           // resets the AY's route to the speaker and routes it into a netlist.
           if (method === 'reset_routes') (patch.routeEdits ??= []).push('reset');
-          else if (method === 'add_route') (patch.routeEdits ??= []).push(...statementAudioRoutes(s, consts));
+          else if (method === 'add_route') (patch.routeEdits ??= []).push(...statementAudioRoutes(s, consts, finderTag));
           const open = s.indexOf('(', s.indexOf(method));
           const close = matchParen(s, open);
           const args = splitArgs(s.slice(open + 1, close));
@@ -2288,7 +2304,7 @@ export function parseMachineConfigs(
             const at = s.indexOf(method);
             for (const chain of parseChain(`.${s.slice(at)}`)) {
               if (chain.method !== 'add_route') continue;
-              const route = parseAudioRoute(chain.args, consts, s);
+              const route = parseAudioRoute(chain.args, consts, s, finderTag);
               if (route) (dev.audioRoutes ??= []).push(route);
             }
           } else if (method === 'set_samples_names') {
