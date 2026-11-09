@@ -24,6 +24,11 @@ export interface DriverAggregates {
   /** Whether the file declares a constant aggregate of this name. */
   has(name: string): boolean;
   /**
+   * Whether the aggregate is a class's static member, which the class's
+   * methods see from any translation unit, not only the one defining it.
+   */
+  isMember(name: string): boolean;
+  /**
    * The file's numeric constants after its preprocessor: qix_a.cpp's
    * `QIX_DAC_DATA = NODE_01` names an enumerator discrete.h only declares
    * through NODE_DEF, which the graph reads as written cannot evaluate.
@@ -38,6 +43,8 @@ interface Declaration {
   type: string;
   array: boolean;
   initializer: string;
+  /** Defined through its class (`tnx1_state::txt_mb7051_net_info`): a static member. */
+  member: boolean;
 }
 
 /**
@@ -53,7 +60,7 @@ export function driverAggregates(
   const own = dirname(file);
   const preprocessor = new CPreprocessor({
     read: (path, from) => {
-      for (const full of [join(dirname(from), path), join(mameSrc, 'src/devices', path), join(mameSrc, 'src/mame', path)]) {
+      for (const full of [join(dirname(from), path), join(mameSrc, 'src/devices', path), join(mameSrc, 'src/mame', path), join(mameSrc, 'src/emu', path)]) {
         const candidate = relative(mameSrc, full);
         if (!existsSync(full) || !/\.(?:h|hxx|ipp)$/.test(candidate)) continue;
         if (dirname(candidate) !== own && !headers(candidate)) continue;
@@ -95,7 +102,22 @@ export function driverAggregates(
     // A literal may lead with its point: phoenix's `CAP_U(.001)`.
     // A class's enumerator spelled through its class is the enumerator:
     // `discrete_dss_inverter_osc_node::IS_TYPE1`.
-    const unqualified = expression.replace(/\b\w+::([A-Z_][A-Z0-9_]*)\b/g, (whole, name: string) => constants[name] !== undefined ? name : whole);
+    // An rgb_t is the packed word the interpreter makes of palette.h's
+    // constexpr constructors (execute.ts), in the host framebuffer's byte
+    // order -- alpha, blue, green, red from the top: vicdual's pens_from_color_prom
+    // is a table of `rgb_t(0x00, 0xff, 0x00)` and `rgb_t::black()`, and
+    // unlowered every Sega VIC Dual colour screen drew nothing but black.
+    const packed = expression
+      .replace(/\brgb_t\s*::\s*black\s*\(\s*\)/g, 'rgb_t(0, 0, 0)')
+      .replace(/\brgb_t\s*::\s*white\s*\(\s*\)/g, 'rgb_t(255, 255, 255)')
+      .replace(/\brgb_t\s*\(([^()]*)\)/g, (whole, inner: string) => {
+        const channels = inner.split(',').map(channel => channel.trim());
+        const [a, r, g, b] = channels.length === 3 ? ['255', ...channels] : channels;
+        return channels.length === 3 || channels.length === 4
+          ? `((((${a}) & 255) * 16777216) + (((${b}) & 255) * 65536) + (((${g}) & 255) * 256) + ((${r}) & 255))`
+          : whole;
+      });
+    const unqualified = packed.replace(/\b\w+::([A-Z_][A-Z0-9_]*)\b/g, (whole, name: string) => constants[name] !== undefined ? name : whole);
     let substituted = expandConstexprCalls(unqualified.replace(/\.\s*d?value\s*\(\s*\)/g, '').replace(/(?<![\w.])\.(?=\d)/g, '0.'), functions)
       // An integral cast truncates: `static_cast<int>(RES_K(1.5))`, `int(x)`.
       .replace(/\bstatic_cast\s*<\s*(?:unsigned\s+)?(?:int|long|u?int(?:8|16|32|64)_t|[us](?:8|16|32))\s*>\s*\(/g, 'int(')
@@ -197,22 +219,60 @@ export function driverAggregates(
   };
 
   macroValues();
-  return { has: name => declarations.has(name), lower, diagnostics, constants };
+  return { has: name => declarations.has(name), isMember: name => Boolean(declarations.get(name)?.member), lower, diagnostics, constants };
 }
 
 /** File-scope `const T name[] = { ... };` and `const T name = { ... };`. */
 function aggregateDeclarations(text: string): Map<string, Declaration> {
   const declarations = new Map<string, Declaration>();
+  const fileScope = fileScopeOffsets(text);
   // `const T name`, or `T const name` as mw8080bw_a.cpp spells its descriptors.
-  const opener = /(?:^|[;}\n])\s*(?:static\s+)?(?:(?:const|constexpr)\s+)*(?:struct\s+)?([\w:]+)\s+(?:const\s+)?(\w+)\s*(\[[^\]]*\])?\s*=\s*\{/g;
+  // A class's static member is defined the same way, through its class
+  // (`const res_net_info tnx1_state::txt_mb7051_net_info = { ... }`), and its
+  // methods name it unqualified.
+  const opener = /(?:^|[;}\n])\s*(?:static\s+)?(?:(?:const|constexpr)\s+)*(?:struct\s+)?([\w:]+)\s+(?:const\s+)?((?:\w+::)*)(\w+)\s*(\[[^\]]*\])?\s*=\s*\{/g;
   for (let match; (match = opener.exec(text));) {
     const open = match.index + match[0].length - 1;
     const close = matchingBrace(text, open);
     if (close < 0) continue;
-    declarations.set(match[2]!, { type: match[1]!, array: Boolean(match[3]), initializer: text.slice(open, close + 1) });
+    // A file's own tables only: not a class member's initialiser (midtunit's
+    // `m_nbajam_prot_queue[5] = { ... }`) nor a function's local.
+    if (!fileScope(match.index + match[0].length - match[0].trimStart().length)) {
+      opener.lastIndex = close + 1;
+      continue;
+    }
+    declarations.set(match[3]!, { type: match[1]!, array: Boolean(match[4]), initializer: text.slice(open, close + 1), member: Boolean(match[2]) });
     opener.lastIndex = close + 1;
   }
   return declarations;
+}
+
+/**
+ * Whether an offset is at file scope: outside every brace but a namespace's,
+ * which MAME drivers wrap their tables in (`namespace { ... }`).
+ */
+function fileScopeOffsets(text: string): (offset: number) => boolean {
+  const depth = new Uint16Array(text.length + 1);
+  const scopes: boolean[] = [];
+  let level = 0;
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index];
+    if (character === '"' || character === "'") {
+      const quote = character;
+      for (depth[index] = level, index++; index < text.length && text[index] !== quote; index++) {
+        depth[index] = level;
+        if (text[index] === '\\') depth[++index] = level;
+      }
+    } else if (character === '{') {
+      const opensNamespace = /\bnamespace\b[\w:\s]*$/.test(text.slice(Math.max(0, index - 128), index));
+      scopes.push(!opensNamespace);
+      if (!opensNamespace) level++;
+    } else if (character === '}') {
+      if (scopes.pop()) level--;
+    }
+    depth[index] = level;
+  }
+  return offset => depth[offset] === 0;
 }
 
 /** The comma-separated items of `{ ... }`, a trailing comma allowed. */
@@ -265,6 +325,24 @@ export function deviceTable(
   return { value, diagnostics: aggregates.diagnostics.slice(before), constants: aggregates.constants };
 }
 
+/**
+ * The constant aggregates a driver source file declares at file scope, which
+ * its own functions read: dkong_v.cpp's `static const res_net_info
+ * dkong_net_info = { ... }`, handed to resnet.cpp's compute_res_net. The
+ * structs come from the driver's directory and from the libraries of MAME's
+ * core it includes by path (`video/resnet.h`). Each file is preprocessed once
+ * a process.
+ */
+export function sourceFileAggregates(mameSrc: string, file: string): DriverAggregates {
+  const key = `${mameSrc}\0${file}\0source`;
+  let aggregates = DRIVER_AGGREGATES.get(key);
+  if (!aggregates) {
+    aggregates = driverAggregates(mameSrc, file, header => /^src\/emu\/\w+\/[\w.]+\.h$/.test(header));
+    DRIVER_AGGREGATES.set(key, aggregates);
+  }
+  return aggregates;
+}
+
 /** The class-template function instances a table names (`discrete_node_factory<C>::create`). */
 export function aggregateFunctionReferences(value: AggregateValue | undefined): string[] {
   const found = new Set<string>();
@@ -304,15 +382,23 @@ export function deviceTables(
     if (call && !lowered.has(call[1])) named.push([call[1]!, call[2]!, false]);
   }
   type Table = { setter: string; name: string; file?: string; value: AggregateValue | undefined; diagnostics: string[]; constants?: Readonly<Record<string, number>> };
-  return named.flatMap(([setter, name, required]): Table[] => {
+  return named.flatMap(([setter, qualified, required]): Table[] => {
+    // `atarisy1_state::s_mob_config`: a class's own table, found where that
+    // class defines it. Matched by leaf alone, Marble Madness took the first
+    // Atari driver's `s_mob_config` in the directory instead of its own.
+    const owner = qualified.includes('::') ? qualified.split('::').slice(0, -1).join('::') : undefined;
+    const name = qualified.split('::').at(-1)!;
     // Read as written first: preprocessing a driver for every setter that
     // takes a name would cost seconds a board for nothing. The table may be
     // in another file of the driver: galaga.cpp adds the device, and
     // galaga_a.cpp holds galaga_discrete.
     const declares = (candidate: string) => {
       const path = join(mameSrc, candidate);
-      return existsSync(path) && new RegExp(`(?:\\bconst\\b[^;=(){}]*\\b${name}\\s*(?:\\[[^\\]]*\\])?\\s*=|^\\s*(?:static\\s+)?[A-Z][A-Z0-9_]*\\s*\\(\\s*${name}\\s*\\))`, 'm')
-        .test(readFileSync(path, 'utf8'));
+      if (!existsSync(path)) return false;
+      const text = readFileSync(path, 'utf8');
+      if (owner) return new RegExp(`\\b${owner}\\s*::\\s*${name}\\s*(?:\\[[^\\]]*\\])?\\s*=`).test(text);
+      return new RegExp(`(?:\\bconst\\b[^;=(){}]*\\b${name}\\s*(?:\\[[^\\]]*\\])?\\s*=|^\\s*(?:static\\s+)?[A-Z][A-Z0-9_]*\\s*\\(\\s*${name}\\s*\\))`, 'm')
+        .test(text);
     };
     const directory = dirname(file);
     const siblings = existsSync(join(mameSrc, directory))

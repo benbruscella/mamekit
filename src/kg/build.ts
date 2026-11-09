@@ -3,13 +3,15 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { GraphBuilder, type KnowledgeGraph, type PropValue } from './types.ts';
 import {
-  MameAstIndex, parseCallChain, parseMameAst, parseMameSource, spanProps, splitMameArgs,
+  MameAstIndex, functionArity, lowerOverloadedCalls, overloadedName, parseCallChain, parseMameAst, parseMameConstructors,
+  parseMameSource, parseOverloadedName, spanProps, splitMameArgs,
   type MameClass, type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { lowerDriverMemberPointers } from '../mame/member-pointers.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
-import { collectBitAliasMacros, collectMemberAliasMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasMacros, collectMemberExpressionMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -20,6 +22,7 @@ import {
   coreAddressSpaces,
   integerBits,
   constructorInitialValues,
+  headerFunctionNames,
   integerSigned,
   memberDeclarations,
 } from '../mame/device-compiler.ts';
@@ -112,6 +115,28 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ]) {
         if (existsSync(extra) && !family.includes(extra)) family.push(extra);
       }
+    }
+  }
+
+  // A library of MAME's own core the driver calls into (`video/resnet.h`,
+  // whose compute_resistor_weights and combine_weights colour most PROM
+  // palettes): src/emu is on every driver's include path, and the header and
+  // its .cpp join for their free functions when the family calls one. A
+  // function the header defines counts too: combine_weights is a template.
+  const familyText = family.map(file => stripComments(readFileSync(file, 'utf8'))).join('\n');
+  for (const file of [...family]) {
+    for (const inc of parseIncludes(readFileSync(file, 'utf8'))) {
+      if (!inc.includes('/') || !inc.endsWith('.h')) continue;
+      const header = join(mameSrc, 'src/emu', inc);
+      const implementation = header.replace(/\.h$/, '.cpp');
+      if (family.includes(implementation) || !existsSync(header) || !existsSync(implementation)) continue;
+      const declared = readFileSync(header, 'utf8');
+      const names = [
+        ...headerFunctionNames(declared),
+        ...parseMameSource(inc, declared).functions.filter(fn => fn.className === '').map(fn => fn.name),
+      ];
+      if (!names.some(name => new RegExp(`\\b${name}\\s*(?:<[^;{}()]*>)?\\s*\\(`).test(familyText))) continue;
+      family.push(header, implementation);
     }
   }
 
@@ -807,12 +832,15 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // sound_start comes between them: Mario's writes its MCU bootstrap there.
     const soundStart = ast.findFunctionInHierarchy(cfg.cls, 'sound_start');
     const machineStarts = resolveMachineLifecycle(ast, cfg.cls, cfg.name, 'start');
+    const constructed = driverConstructorCalls(ast, cfg.cls);
     const startFunctions = [
+      ...constructed,
       ...machineStarts,
       ...(soundStart ? [soundStart] : []),
       ...(videoStart ? [videoStart] : []),
     ];
     const startHandlers = [
+      ...constructed,
       ...machineStarts.slice(-1),
       ...(soundStart ? [soundStart] : []),
       ...(videoStart ? [videoStart] : []),
@@ -1331,7 +1359,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         : undefined;
       if (aggregate) {
         props.constructorAggregate = [aggregate.setter, aggregate.name];
-        if (dev.clockExpr === aggregate.name) delete dev.clockExpr;
+        if (dev.clockExpr === aggregate.name || dev.clockExpr === aggregate.name.split('::').at(-1)) delete dev.clockExpr;
       }
       if (configCalls.length) props.configCalls = configCalls;
       // A third argument a setter took is the constructor's, not a clock: the
@@ -1610,6 +1638,36 @@ export function derivedDeviceClock(
   return numerator !== null && denominator !== null && denominator !== 0
     ? parentClock * numerator / denominator
     : undefined;
+}
+
+/**
+ * What a driver's constructors call, base class first, as MAME constructs the
+ * driver before starting it: sega_16bit_common_base's constructor runs
+ * palette_init(), which fills the resistor-weighted tables every System 16
+ * palette write reads. Never run, they stayed zero and every colour was black.
+ *
+ * Only bare member calls (`palette_init();`) are taken: a constructor's
+ * member values come from its initializers, which are lowered elsewhere. A
+ * call in a constructor reaches the constructing class's own override.
+ */
+export function driverConstructorCalls(ast: MameAstIndex, className: string): MameFunction[] {
+  const constructors = ast.ast.units.flatMap(unit => parseMameConstructors(unit.file, unit.source));
+  const classes = ast.ast.units.flatMap(unit => unit.classes);
+  const ordered: MameFunction[] = [];
+  const seen = new Set<string>();
+  const visit = (name: string): void => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    for (const base of classes.find(candidate => candidate.name === name)?.bases ?? []) visit(base.split('::').at(-1)!);
+    for (const constructor of constructors.filter(candidate => candidate.className === name)) {
+      for (const call of constructor.body.matchAll(/(?:^|[;{}])\s*([A-Za-z_]\w*)\s*\(\s*\)\s*;/g)) {
+        const target = ast.findFunctionInHierarchy(name, call[1]!);
+        if (target && !ordered.includes(target)) ordered.push(target);
+      }
+    }
+  };
+  visit(className);
+  return ordered;
 }
 
 /** Resolve a MAME lifecycle override in base-first execution order. */
@@ -2662,9 +2720,7 @@ function handlerProps(
   // A numeric suffix is our encoding for a bound function-template argument,
   // but it can also be part of a literal MAME method name (clock_14024). An
   // exact definition must therefore win before attempting specialization.
-  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
-  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
-  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
+  const { fn } = handlerFunction(ast, ownerClass, method);
   let body = inline?.inlineBody ?? fn?.body;
   if (body && fn) {
     const source = ast.ast.units.map(unit => unit.source).join('\n');
@@ -2673,8 +2729,17 @@ function handlerProps(
     // The name stands for nothing but the subscript, so it has to become the
     // subscript before lowering -- unexpanded, the Game Boy's joypad register
     // was never written and every button read as held down.
-    body = expandMemberAliasMacros(body, [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
+    body = expandMemberAliasMacros(body, [
+      ...collectMemberAliasMacros(source), ...collectBitAliasMacros(source), ...collectMemberExpressionMacros(source)]);
     body = expandFunctionMacros(body, collectParameterCallMacros(source));
+    body = expandStatementMacros(body, ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '');
+    body = lowerDriverMemberPointers(body, ast.ast.units.flatMap(unit => unit.classes.map(declaration => declaration.name)));
+    body = lowerOverloadedCalls(body, ast, fn.className);
+    // An array of driver timers, one timer_alloc per element -- Exidy's
+    // `m_collision_timer[i] = timer_alloc(FUNC(...), this)` -- holds real
+    // timers, which the board makes from the callback's name.
+    body = body.replace(/(\b\w+\s*\[[^\]]+\]\s*=\s*)timer_alloc\s*\(\s*FUNC\s*\(\s*(\w+)::(\w+)\s*\)\s*,\s*this\s*\)/g,
+      (_all, target: string, owner: string, method: string) => `${target}timer_alloc("${owner}.${method}")`);
     // A time constant the driver spells as an expression, `#define
     // NEOGEO_VBLANK_IRQ_HTIM (attotime::from_ticks(56+2, NEOGEO_MASTER_CLOCK))`:
     // its value is that expression, where unexpanded it named nothing and the
@@ -2686,17 +2751,39 @@ function handlerProps(
     // name: `ymfm::decode_fp(...)`.
     body = body.replace(/\b\w+::(\w+)(?=\s*\()/g, (all, name: string) =>
       ast.findUniqueFunction(name)?.className === '' ? name : all);
-    for (const table of source.matchAll(
-      /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g,
-    )) {
+    // A table is visible where C++ sees it: declared in this body, or at file
+    // scope in this function's own translation unit -- and not where the
+    // function names something else that way. pacman_palette's local
+    // `static constexpr int resistances[3]` once folded into resnet.cpp's
+    // compute_resistor_weights, whose `resistances` is its own pointer to
+    // whichever network it is reading, and every blue weight came out of
+    // pacman's red resistors.
+    const tablePattern =
+      /\bstatic\s+(?:(?:const|constexpr)\s+)+([\w:]+)\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{((?:[^{}]|\{[^{}]*\})*?)\}\s*;/g;
+    const visibleTables = [
+      ...body.matchAll(tablePattern),
+      // The function's own unit and the headers the family includes.
+      ...ast.ast.units
+        .filter(unit => unit.file === fn.span.file || /\.(?:h|hpp|hxx|ipp)$/.test(unit.file))
+        .flatMap(unit => [...unit.source.matchAll(tablePattern)].filter(table =>
+          !unit.functions.some(other => table.index! >= other.bodySpan.start && table.index! < other.bodySpan.end))),
+    ];
+    for (const table of visibleTables) {
       const [, valueType, name, declared] = table;
       if (!new RegExp(`\\b${name}\\s*\\[`).test(body)) continue;
+      if (new RegExp(`\\b${name}\\b`).test(fn.parameters)) continue;
+      const shadowed = new RegExp(`(?:^|[;{}(]\\s*)(?:const\\s+)?[\\w:]+(?:\\s*\\*+\\s*(?:const\\s+)?|\\s+)${name}\\s*[\\[;=,]`);
+      if (shadowed.test(body.replace(table[0], ''))) continue;
       // A table handed on whole stays the declared array it is: Neo Geo's
       // create_rgb_lookups passes `resistances` to compute_resistor_weights,
       // and with its declaration rewritten away the name meant nothing and
       // every palette weight came out zero.
-      if (body.includes(table[0]) &&
-          new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(body.replace(table[0], ''))) continue;
+      // So does one whose element's address is taken: pacman_palette hands
+      // compute_resistor_weights `&resistances[1]`, the blue network's two
+      // resistors, which a folded `&TABLE(1, ...)` points at nothing.
+      if (body.includes(table[0]) && (
+        new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(body.replace(table[0], '')) ||
+        new RegExp(`&\\s*${name}\\s*\\[`).test(body))) continue;
       // MAME annotates its tables, and comments out alternatives it kept:
       // `palette_gb` carries a whole disused black-and-white palette inside
       // `/* ... */`. Read as data those numbers become the table.
@@ -2716,8 +2803,10 @@ function handlerProps(
           })
         : splitMameArgs(entries).map(value => value.trim());
       if (body.includes(table[0])) body = body.replace(table[0], '');
+      // An index may itself subscript (`pens[(color_prom[offs] >> 1) & 0x07]`
+      // in vicdual's screen update); stopping at its first `]` cut it in two.
       body = body.replace(
-        new RegExp(`\\b${name}\\s*\\[([^\\]]+)\\]`, 'g'),
+        new RegExp(`\\b${name}\\s*\\[((?:[^\\[\\]]|\\[[^\\]]*\\])*)\\]`, 'g'),
         (_entry, index: string) => `TABLE(${index}, ${values.join(', ')})`,
       );
     }
@@ -2848,7 +2937,11 @@ export function constructorConfigCalls(
         else if (body[end] === ')') level--;
       }
       const parameters = splitMameArgs(body.slice(start, end - 1));
-      if (parameters.length < 3 + extra.length) continue;
+      // The overload C++ picks for this many arguments: every parameter past
+      // them has a default. atarimo declares `(..., clock, screen_tag,
+      // config)` beside `(..., screen_tag, config)`.
+      if (parameters.length < 3 + extra.length ||
+        parameters.slice(3 + extra.length).some(parameter => !parameter.includes('='))) continue;
       // `const char *tag` or `char const *tag`: MAME spells it both ways.
       if (!/machine_config/.test(parameters[0] ?? '') || !/\bchar\b[\w\s]*\*/.test(parameters[1] ?? '') ||
         !/device_t\s*\*/.test(parameters[2] ?? '')) continue;
@@ -2958,8 +3051,14 @@ export function constructorAggregate(
       for (const [position, argument] of extra.entries()) {
         const parameter = own[position]!;
         const name = /(\w+)\s*(?:=.*)?$/.exec(parameter)?.[1];
-        if (!name || !/\*/.test(parameter) || !/^[A-Za-z_]\w*$/.test(argument) || evalExpr(argument, constants) !== null) continue;
+        // A pointer, or a struct taken by const reference -- Atari's
+        // `const atari_motion_objects_config &config`, handed
+        // `gauntlet_state::s_mob_config`, a class's static member.
+        const table = /\*/.test(parameter) || /\bconst\s+[\w:]+\s*&\s*\w+\s*$/.test(parameter);
+        if (!name || !table || !/^(?:\w+::)*[A-Za-z_]\w*$/.test(argument) || evalExpr(argument, constants) !== null) continue;
         const setter = new RegExp(`(?:^|;)\\s*(\\w+)\\s*\\(\\s*${name}\\s*\\)\\s*;`).exec(after[1]!)?.[1];
+        // Kept qualified: several Atari drivers each define their own
+        // `s_mob_config`, and the class says whose (static-aggregate.ts).
         if (setter) return { setter, name: argument };
       }
     }
@@ -2998,6 +3097,22 @@ function configArgument(text: string, sources: readonly string[], constants: Rec
   return number === null ? undefined : String(number);
 }
 
+/**
+ * The function a handler name stands for: one overload when the name carries
+ * its arity (`copy_layer__a6`), else the method itself or, with a numeric
+ * suffix, the function template it specializes.
+ */
+function handlerFunction(ast: MameAstIndex, ownerClass: string, method: string): { fn?: MameFunction; exact: boolean } {
+  const overload = parseOverloadedName(method);
+  if (overload) {
+    const fn = ast.overloadsInHierarchy(ownerClass, overload.name).find(candidate => functionArity(candidate) === overload.arity);
+    if (fn) return { fn, exact: true };
+  }
+  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
+  if (exactFunction) return { fn: exactFunction, exact: true };
+  return { fn: ast.findFunctionInHierarchy(ownerClass, method.replace(/_-?\d+$/, '')), exact: false };
+}
+
 function emitSourceHandlerClosure(
   g: GraphBuilder,
   ast: MameAstIndex,
@@ -3007,9 +3122,7 @@ function emitSourceHandlerClosure(
   fallbackSource?: SourceSpan,
   visited = new Set<string>(),
 ): string {
-  const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
-  const sourceName = exactFunction ? method : method.replace(/_-?\d+$/, '');
-  const fn = exactFunction ?? ast.findFunctionInHierarchy(ownerClass, sourceName);
+  const { fn } = handlerFunction(ast, ownerClass, method);
   const handlerId = `handler:${ownerClass}.${method}`;
   if (visited.has(handlerId)) return handlerId;
   visited.add(handlerId);
@@ -3124,6 +3237,10 @@ function emitSourceHandlerClosure(
     const named = ast.findUniqueFunction(match[1]!);
     if (named && named.className === '') callNames.add(match[1]!);
   }
+  // A method named as a value, through a member-function pointer -- Cosmic's
+  // palette stores `m_map_color = &cosmic_state::panic_map_color` -- is called
+  // through that pointer later, so it is as much a dependency.
+  for (const match of fn.body.matchAll(/&\s*\w+\s*::\s*(\w+)\b(?!\s*\()/g)) callNames.add(match[1]!);
   // A library's free function, called by its namespace: `ymfm::decode_fp(...)`.
   for (const match of fn.body.matchAll(/\b\w+::(\w+)\s*\(/g)) {
     if (ast.findUniqueFunction(match[1]!)?.className === '') callNames.add(match[1]!);
@@ -3135,6 +3252,19 @@ function emitSourceHandlerClosure(
     if (accessor && isSourceAccessor(accessor.body)) callNames.add(callName);
   }
   for (const callName of callNames) {
+    // Each overload is its own handler (lowerOverloadedCalls renames the
+    // calls to match), and every one is a dependency: a member pointer names
+    // the method without saying which.
+    const overloads = ast.overloadsInHierarchy(fn.className, callName);
+    if (overloads.length) {
+      for (const overload of overloads) {
+        if (overload === fn) continue;
+        const overloadId = emitSourceHandlerClosure(
+          g, ast, overload.className, overloadedName(callName, functionArity(overload)), constants, overload.span, visited);
+        g.edge(handlerId, overloadId, 'CALLS_HANDLER');
+      }
+      continue;
+    }
     // Calls through a required_device member may enter a composed device
     // class (tutankhm_state::sound_on_w ->
     // timeplt_audio_device::sh_irqtrigger_w). Preserve that source method when
@@ -3853,9 +3983,32 @@ function recordPaletteInit(
       ?? (construction && /,\s*([^,()]+)\s*\)\s*$/.exec(construction)?.[1]?.trim());
     const paletteEntries = entryCount !== undefined ? evalExpr(entryCount, constants) : null;
     if (paletteEntries !== null && paletteEntries > 0) device.props.paletteEntries = paletteEntries;
+    // A set_format converter the driver writes itself --
+    // `set_format(1, tutankhm_state::raw_to_rgb_func, 16)` -- runs for every
+    // palette RAM write (palette_device::write8), so it is a handler too, with
+    // MAME's resnet.cpp in its closure. palette_device's own formats are
+    // named constants, not functions, and are decoded as data.
+    const converter = config.join('\n').match(/\bset_format\s*\(\s*[^,]+,\s*&?\s*(\w+)::(\w+)\s*,/);
+    if (converter && converter[1] !== 'palette_device') {
+      const converterId = emitSourceHandlerClosure(
+        g, ast, converter[1]!, converter[2]!, constants, { file: driverFile, start: 0, end: 0, line: 0, column: 0, endLine: 0, endColumn: 0 },
+      );
+      g.edge(device.id, converterId, 'CALLS_HANDLER');
+    }
     const func = construction && /FUNC\s*\(\s*(\w+)::(\w+)\s*\)/.exec(construction);
     if (!func) continue;
-    const entries = /,\s*([^,()]+)\s*\)\s*$/.exec(construction!)?.[1]?.trim();
+    // PALETTE(config, tag, init, entries [, indirect_entries]), or the counts
+    // set after it: System 1's `.set_entries(2048, 256)`.
+    const open = construction!.indexOf('(');
+    const [, , , constructed, constructedIndirect] = splitMameArgs(construction!.slice(open + 1, matchingParenthesis(construction!, open)))
+      .map(argument => argument.trim());
+    const setEntries = config.join('\n').match(/\bset_entries\s*\(/);
+    const setOpen = setEntries ? config.join('\n').indexOf('(', setEntries.index!) : -1;
+    const [setCount, setIndirect] = setOpen >= 0
+      ? splitMameArgs(config.join('\n').slice(setOpen + 1, matchingParenthesis(config.join('\n'), setOpen))).map(argument => argument.trim())
+      : [];
+    const entries = constructed ?? setCount;
+    const indirectEntries = constructedIndirect ?? setIndirect;
     const callbackId = `${device.id}/callback:palette_init`;
     g.node('Callback', callbackId, {
       signal: 'palette_init',
@@ -3866,6 +4019,9 @@ function recordPaletteInit(
       targetMethod: func[2]!,
       ...(entries !== undefined && evalExpr(entries, constants) !== null
         ? { entries: evalExpr(entries, constants)! }
+        : {}),
+      ...(indirectEntries !== undefined && evalExpr(indirectEntries, constants) !== null
+        ? { indirectEntries: evalExpr(indirectEntries, constants)! }
         : {}),
       ...(device.props.sourceFile ? { sourceFile: device.props.sourceFile } : {}),
       ...(device.props.sourceLine ? { sourceLine: device.props.sourceLine } : {}),

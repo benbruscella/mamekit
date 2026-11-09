@@ -3904,7 +3904,32 @@ function compileOpcodeOperations(
   return compileMameHandler(normalizeMameExecutionSource(source));
 }
 
+/**
+ * A struct type a function body declares together with its variable --
+ * `struct attribute_memory { int row = 0; uint8_t color = 0; } attributes[64];`
+ * in popeye's sprite pass -- as that variable built from the fields' initial
+ * values (STRUCT_ARRAY / STRUCT_VALUE). A field with no initializer is zero,
+ * as value-initialization leaves it.
+ */
+export function lowerLocalStructs(source: string): string {
+  return source.replace(
+    /\bstruct\s+\w*\s*\{([^{}]*)\}\s*(\w+)\s*(?:\[\s*([^\]]+?)\s*\])?\s*;/g,
+    (whole, fields: string, name: string, count?: string) => {
+      const pairs: string[] = [];
+      for (const field of fields.split(';').map(item => item.trim()).filter(Boolean)) {
+        const declared = /^(?:[\w:]+\s+)+?(\w+)\s*(?:\[[^\]]*\])?\s*(?:=\s*([\s\S]+)|\{\s*([\s\S]*)\s*\})?$/.exec(field);
+        if (!declared) return whole;
+        pairs.push(JSON.stringify(declared[1]), (declared[2] ?? declared[3] ?? '').trim() || '0');
+      }
+      return count === undefined
+        ? `auto ${name} = STRUCT_VALUE(${pairs.join(', ')});`
+        : `auto ${name} = STRUCT_ARRAY(${count}${pairs.length ? `, ${pairs.join(', ')}` : ''});`;
+    },
+  );
+}
+
 export function normalizeMameExecutionSource(source: string): string {
+  source = lowerLocalStructs(source);
   // A variadic template pack is always empty here: mamekit specializes only
   // the argument lists its call sites name, and it cannot expand a pack. C++
   // discards the branch in that case, so the text goes before parsing --
@@ -4019,9 +4044,11 @@ export function normalizeMameExecutionSource(source: string): string {
     // A move hands over its operand, which is all a value here is:
     // `m_buffers.emplace_back(std::move(buf))`.
     .replace(/\bstd::move\s*\(/g, '(')
-    // Built in place or copied in, a vector's new last element is the same:
-    // discrete's tasks buffer their outputs with `emplace_back(std::move(buf))`.
-    .replace(/\.emplace_back\s*\(/g, '.push(');
+    // Copied in, a vector's new last element is the value: discrete's tasks
+    // buffer their outputs with `emplace_back(std::move(buf))`. Built in place
+    // from several constructor arguments it stays emplace_back, which makes
+    // the element and answers it (generatedVector).
+    .replace(/\.emplace_back\s*\(((?:[^(),]|\([^()]*\))*)\)/g, '.push($1)');
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {
@@ -4050,6 +4077,11 @@ export function normalizeMameExecutionSource(source: string): string {
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
   )) {
     const name = match[1]!;
+    // A table handed on stays the array it is: as a whole, or by an element's
+    // address, as pacman_palette hands compute_resistor_weights
+    // `&resistances[1]`. Folded, that pointed at a number.
+    const rest = normalized.replace(match[0], '');
+    if (new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(rest) || new RegExp(`&\\s*${name}\\s*\\[`).test(rest)) continue;
     // Comments go before the split, as the two-dimensional folder above already
     // does. MAME annotates hand-aligned tables per entry -- TIA's write-delay
     // table names the register on every line -- and folding the comment into

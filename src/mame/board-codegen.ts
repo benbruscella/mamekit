@@ -44,6 +44,12 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const cpu of machine.execution.cpus) {
     for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
       if (range.share) names.set(`m_${range.share}`, memory);
+      // An indexed share (`share(m_videoram[0])`) is one element of a
+      // shared_ptr_array, whose finder member the board binds as the array
+      // of those buffers (bindGeneratedShareState). Unknown here, Taito SJ's
+      // draw_layers -- three tilemaps a frame -- stayed interpreted.
+      const indexed = range.share ? /^(.+)\[\d+\]$/.exec(range.share) : null;
+      if (indexed) names.set(`m_${indexed[1]}`, '');
     }
   }
   for (const binding of machine.execution.shareBindings ?? []) {
@@ -64,12 +70,31 @@ function boardMemberNames(machine: BoardIr): Map<string, string> {
   for (const member of Object.keys(machine.execution.regionBindings ?? {})) {
     names.set(member, memory);
   }
+  // And the ones the video plan binds into the same state before any handler
+  // runs: System 1's `m_spriterom` and `m_lookup_prom` kept its whole
+  // renderer interpreted at 5 fps.
+  for (const member of Object.keys(machine.video?.regionBindings ?? {})) {
+    names.set(member, memory);
+  }
   // A memory_view the board composes. `m_boot_view.disable()` resolves through
   // the board's own call table, which emitted code consults first.
   for (const cpu of machine.execution.cpus) {
     for (const range of cpu.ranges ?? []) {
       if (range.viewTag) names.set(range.viewTag, '');
     }
+  }
+  // A bitmap the driver allocates or registers is a host object the board
+  // materialises before video_start (videoExecution.bitmapMembers). Unknown
+  // here, every renderer that composes through one -- Exidy's background and
+  // motion-object bitmaps -- stayed interpreted at a quarter of full speed.
+  for (const bitmap of machine.videoExecution?.bitmapMembers ?? []) {
+    names.set(bitmap.member, '');
+  }
+  // A file-scope constant table the handlers name (BoardIr.staticTables) is
+  // installed into the same state under its own name: vicdual's
+  // pens_from_color_prom, read per pixel by its colour screen update.
+  for (const name of Object.keys(machine.staticTables ?? {})) {
+    names.set(name, '');
   }
   // Video-plan initial state (CPS-B configuration, scroll registers, size
   // constants) is written into the board's members before any handler runs,
@@ -249,6 +274,9 @@ function wiredHotMethods(machine: BoardIr, ownerClass: string): string[] {
   for (const connection of machine.connections ?? []) {
     if (connection.effect.kind === 'handler') claim(connection.effect.handler);
   }
+  // A driver timer's callback is an entry point too: Donkey Kong's
+  // scanline_callback fires on every line, 264 times a frame.
+  for (const timer of machine.execution.genericTimers ?? []) claim(timer.handler);
   for (const callback of machine.callbacks ?? []) {
     if (callback.targetClass && callback.targetMethod) {
       claim(`${callback.targetClass}.${callback.targetMethod}`);
@@ -338,9 +366,19 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     ...(machine.execution.banks ?? []).map(bank => bank.member.replace(/\[\d+\]$/, '')),
     ...(machine.execution.spaceAccessors ?? []).map(accessor => accessor.member),
   ].filter(name => !bound.has(name) && !cardMembers.includes(name));
+  // A member the driver class declares is in the board's state from the
+  // start (stateMembers), whether or not a lowered handler ever writes it.
+  // Donkey Kong Jr.'s `m_hardware_type` is set in a machine_start no handler
+  // carries, and leaving it out kept its per-line screen update and scanline
+  // timer interpreted.
+  const declaredMembers = (machine.stateMembers ?? [])
+    .filter(member => !member.delegate)
+    .map(member => member.name)
+    .filter(name => !bound.has(name));
   const members = [
     ...bound,
-    ...[...new Set([...assignedMemberNames(handlers), ...cardMembers, ...hostMembers])].map(name => [name, ''] as const),
+    ...[...new Set([...assignedMemberNames(handlers), ...declaredMembers, ...cardMembers, ...hostMembers])]
+      .map(name => [name, ''] as const),
   ];
   return {
     hotMethods: wiredHotMethods(machine, ownerClass),

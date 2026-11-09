@@ -66,7 +66,14 @@ export function sourceNvramInitializers(
 export function handlerOwnsSharedRam(sourceBody: string, share: string): boolean {
   if (!share) return false;
   const member = `m_${share.replace(/[^A-Za-z0-9_]/g, '_')}`;
-  return new RegExp(`\\b${member}\\s*\\[[^\\]]+\\]\\s*[-+*/&|^]?=`).test(sourceBody);
+  // `m_x[offset] = data`, or MAME's COMBINE_DATA on the share (`&m_x[offset]`,
+  // or the share itself for a one-word register), or a store through it:
+  // Gauntlet's yscroll_w is `COMBINE_DATA(m_yscroll)` and tests the old value
+  // first. Storing before it ran, the bus left it nothing to change, and the
+  // playfield never scrolled vertically.
+  return new RegExp(`\\b${member}\\s*\\[[^\\]]+\\]\\s*[-+*/&|^]?=`).test(sourceBody) ||
+    new RegExp(`\\bCOMBINE_DATA\\s*\\(\\s*&?\\s*${member}\\b`).test(sourceBody) ||
+    new RegExp(`\\*\\s*${member}\\s*[-+*/&|^]?=(?!=)`).test(sourceBody);
 }
 
 /**

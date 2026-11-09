@@ -11,7 +11,6 @@ import { GAME_CATEGORIES, gameOutputDir } from './output-layout.ts';
 import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { isRuntimeCertified } from './runtime-certification.ts';
 import type { BoardIr } from '../ir/board.ts';
-import { generatedDirectScreenShape } from '../mame/video-execution.ts';
 
 interface RuntimeRange {
   kind: string;
@@ -299,16 +298,6 @@ export function buildRuntimeReport(
   const screenUpdateDevice = screenUpdateTag
     ? deviceRequirementByTag.get(String(screenUpdateTag))
     : undefined;
-  const directScreenUpdateCompiled = screenUpdate
-    ? generatedDirectScreenShape({
-        execution: { screenUpdate: { handler: screenUpdate } },
-        handlers: sourceHandlers.map(handler => ({
-          ownerClass: String(handler.node.props.ownerClass),
-          method: String(handler.node.props.method),
-          body: String(handler.node.props.sourceBody),
-        })),
-      } as unknown as BoardIr) !== undefined
-    : false;
   const frameCallbacks = graph.nodes.filter(node =>
     node.label === 'Callback' &&
     [
@@ -329,12 +318,11 @@ export function buildRuntimeReport(
     .map(item => item.name)
     .sort();
   const boardMode = config.board.cpus.length ? 'generated' : 'missing';
-  // Packed/vector plans and source-matched direct screen executors run through
-  // the generated video renderer and therefore do not require every C++
-  // statement in the configured screen-update method to lower independently.
+  // Packed/vector plans run through the generated video renderer and
+  // therefore do not require every C++ statement in the configured
+  // screen-update method to lower independently.
   const screenUpdateCompiled = config.board.videoMode === 'bitmap' ||
     config.board.videoMode === 'vector' ||
-    directScreenUpdateCompiled ||
     screenUpdateDevice?.status === 'executable' ||
     Boolean(screenProgram && screenProgram.diagnostics.length === 0);
   const handlerGaps = handlers

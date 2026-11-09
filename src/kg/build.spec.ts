@@ -7,6 +7,7 @@ import {
   fromHzExpression,
   gameSubgraph,
   parseIoportMembers,
+  driverConstructorCalls,
   resolveMachineLifecycle,
 } from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
@@ -282,6 +283,31 @@ assert.deepEqual(
     .map(fn => `${fn.className}.${fn.name}`),
   ['base_state.machine_start', 'derived_state.machine_start'],
   'qualified base lifecycle calls must retain inherited setup in base-first order',
+);
+
+// MAME constructs the driver before starting it: a constructor body's own
+// calls (sega_16bit_common_base's palette_init) run first, base class first.
+const constructorAst = new MameAstIndex(parseMameAst([{
+  file: 'src/mame/test/ctor.cpp',
+  source: `
+class base_state : public driver_device { };
+class derived_state : public base_state { };
+base_state::base_state(const machine_config &mconfig, device_type type, const char *tag)
+  : driver_device(mconfig, type, tag)
+{
+  palette_init();
+}
+void base_state::palette_init() { m_ready = 1; }
+derived_state::derived_state(const machine_config &mconfig, device_type type, const char *tag)
+  : base_state(mconfig, type, tag)
+{
+}
+`,
+}]));
+assert.deepEqual(
+  driverConstructorCalls(constructorAst, 'derived_state').map(fn => `${fn.className}.${fn.name}`),
+  ['base_state.palette_init'],
+  'a base constructor body call must run as part of constructing the driver',
 );
 
 console.log('build.spec: derived callback shadowing and device patch composition passed');

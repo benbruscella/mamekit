@@ -3,11 +3,7 @@ import { compileMameVideo } from '../mame/video-compiler.ts';
 import { lowerAudioRoutes } from '../gen/emit-machine.ts';
 import { executeGeneratedProgram } from '../runtime/generated-handler.ts';
 import { timeplt } from './timeplt.game.ts';
-import {
-  assertGameContract,
-  gameSourceGraph,
-  mameSourceRoot,
-} from './test-support.ts';
+import { assertGameContract, assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 assertGameContract(timeplt);
 const graph = gameSourceGraph(timeplt);
@@ -24,20 +20,7 @@ const machine = graph.nodes.find(node =>
 assert.ok(machine);
 const compiled = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(compiled, 'Time Pilot MAME video source must lower to executable video IR');
-assert.ok(compiled.plan.palette);
-assert.deepEqual(compiled.plan.palette.channels.map(channel => ({
-  channel: channel.channel,
-  offsets: channel.offsets,
-  weights: channel.weights,
-})), [
-  { channel: 'r', offsets: [32, 32, 32, 32, 32], weights: [25, 36, 53, 64, 77] },
-  { channel: 'g', offsets: [32, 32, 0, 0, 0], weights: [25, 36, 53, 64, 77] },
-  { channel: 'b', offsets: [0, 0, 0, 0, 0], weights: [25, 36, 53, 64, 77] },
-]);
-assert.deepEqual(compiled.plan.palette.banks, [
-  { penOffset: 128, colorOr: 0, lookupOffset: 64, lookupCount: 256 },
-  { penOffset: 0, colorOr: 16, lookupOffset: 320, lookupCount: 128 },
-]);
+assertPaletteCallback(compiled, { handler: 'timeplt_state.palette', entries: 384 });
 assert.equal(compiled.plan.tilemaps[0]?.mapper, 'TILEMAP_SCAN_ROWS');
 assert.ok(compiled.handlers.every(handler => !handler.program?.diagnostics.length));
 const screen = graph.nodes.find(node =>

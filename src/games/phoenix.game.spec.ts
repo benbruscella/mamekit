@@ -3,7 +3,7 @@ import { compileMameDevice } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { phoenix } from './phoenix.game.ts';
-import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
+import { assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 const graph = gameSourceGraph(phoenix);
 const machine = graph.nodes.find(node =>
@@ -12,7 +12,7 @@ const machine = graph.nodes.find(node =>
   node.props.name === phoenix.machine.name);
 assert.ok(machine);
 const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
-assert.equal(video?.plan.palette?.colorCount, 256);
+assertPaletteCallback(video, { handler: 'phoenix_state.phoenix_palette', entries: 256 });
 assert.equal(video?.plan.tilemaps?.length, 2);
 
 // The effects board and the MM6221AA are their MAME classes compiled whole.
@@ -22,4 +22,4 @@ const index = indexMameHardware(mameSourceRoot());
 for (const type of ['PHOENIX_SOUND', 'TMS36XX']) {
   assert.equal(compileMameDevice(mameSourceRoot(), index.get(type)!, type).summary.diagnostics, 0, type);
 }
-console.log('phoenix.spec: PROM palette, two-page video and compiled sound passed');
+console.log('phoenix.spec: executed palette callback, two-page video and compiled sound passed');

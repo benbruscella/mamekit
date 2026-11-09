@@ -111,6 +111,8 @@ export interface GeneratedCallback {
   scanlineIncrement?: number;
   /** Palette size, from `palette_device`'s own constructor argument. */
   entries?: number;
+  /** The palette's indirect_entries, its constructor's argument after `entries`. */
+  indirectEntries?: number;
   /** A screen update that writes palette indices rather than colours. */
   indexed?: boolean;
   /**
@@ -338,6 +340,18 @@ export interface GeneratedHandler {
  * `screen().vpos()` on its first line, which took the ColecoVision to 17 fps.
  */
 
+/**
+ * `tilemap_manager::set_flip_all`, reached as `machine().tilemap()`: the video
+ * package binds it for a board's screen update, and the emitter calls it by
+ * this name. Donkey Kong's screen update starts with it and runs once per
+ * partial update, 224 times a frame, so declining it kept that update
+ * interpreted.
+ */
+export const TILEMAP_SET_FLIP_ALL = 'machine().tilemap().set_flip_all';
+
+/** Board video framework calls reached through a two-call chain. */
+export const VIDEO_FRAMEWORK_CHAIN_CALLS: readonly string[] = [TILEMAP_SET_FLIP_ALL];
+
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',
   // The scheduler's clock, bound on every device; a chip that measures time
@@ -380,6 +394,9 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   'palette().shadows_enabled',
   'palette().highlights_enabled',
   'palette().shadow_table',
+  // device_t::owner()->memshare(tag()): a sprite device finds its sprite RAM
+  // as the share named for its own tag (sprite.h's device_start).
+  'owner().memshare',
 ];
 
 export type GeneratedExpression =
@@ -805,15 +822,20 @@ export interface GeneratedExecutionPlan {
     source?: BoardSourceRef;
   };
   /**
-   * The routine that fills the palette, for a machine whose colours come from
-   * code rather than from a colour PROM. MAME passes it to `palette_device`'s
-   * constructor; the host runs it once and keeps the pens it sets.
+   * The routine that fills each palette: the init callback MAME passes to
+   * `palette_device`'s constructor. The host runs each once, at that palette's
+   * device_start, and keeps the pens it sets.
    */
-  paletteInit?: {
-    handler: string;
+  paletteInits?: {
+    /** The palette's finder member (`m_palette`, `m_spr_palette`). */
+    member: string;
+    /** Absent when the driver's own code colours the palette as it starts. */
+    handler?: string;
     entries?: number;
+    /** indirect_entries: the callback sets indirect colours and points pens at them. */
+    indirectEntries?: number;
     source?: BoardSourceRef;
-  };
+  }[];
   /**
    * A `palette_device` with no init routine and no decoded plan: its pens are
    * set by the driver's own code (`set_pen_color`) as the machine runs.
@@ -852,17 +874,12 @@ export interface GeneratedGfxEntry {
   layout: GeneratedGfxLayout;
 }
 
+/**
+ * A palette_device decoded by one of MAME's builtin PROM init routines
+ * (palette_device::RRRRGGGGBBBB_proms and kin): fixed weights of PROM bits.
+ * Every other palette is the driver's own init callback, run as a handler.
+ */
 export interface GeneratedPromPalettePlan {
-  /**
-   * A source-defined palette that switches multiple PROM-backed resistor
-   * networks at runtime.  TNX1 hardware exposes background/text and sprite
-   * PROMs through one palette_device and selects their banks from DMA state.
-   */
-  dynamic?: {
-    kind: 'tnx1-banked';
-    colorRegion: string;
-    spriteRegion: string;
-  };
   region: string;
   /** Lookup PROM when it is separate from the RGB PROM. */
   lookupRegion?: string;
@@ -882,60 +899,6 @@ export interface GeneratedPromPalettePlan {
     resistances: number[];
     pulldown: number;
     pullup: number;
-  }[];
-  /** Exact MAME res_net electrical model when the source declares one. */
-  resNet?: {
-    input: 'ttl';
-    monitor: 'sanyo';
-    amplifiers: ('darlington' | 'emitter' | 'none')[];
-  };
-  /** palette_t::normalize_range applied after PROM decoding/overrides. */
-  normalize?: { start: number; end: number; lumMin: number; lumMax: number };
-  /** Destination pen -> decoded PROM color permutation applied by the driver. */
-  colorIndexMap?: number[];
-  /**
-   * PROM indices overridden to electrical black after resistor decoding.
-   * Some boards tri-state their palette outputs for a masked subset of
-   * colors (for example the Donkey Kong background).
-   */
-  forceBlack?: { mask: number; value: number };
-  /**
-   * Indirect-color sections computed from the color INDEX bits rather than a
-   * PROM (e.g. the 05xx starfield palette): each channel's bits select bits
-   * of the index and feed a resistor network of its own.
-   */
-  computedColors?: {
-    base: number;
-    count: number;
-    min: number;
-    max: number;
-    scaler: number;
-    channels: {
-      channel: 'r' | 'g' | 'b';
-      bits: number[];
-      resistances: number[];
-      pulldown: number;
-      pullup: number;
-    }[];
-  }[];
-  /**
-   * Indirect-color sections computed entirely from the palette index with
-   * fixed MAME helpers/expressions (for example pal1bit and conditional
-   * resistor pulls). Values are packed in the runtime's native RGBA word
-   * order and do not depend on a PROM byte.
-   */
-  indexedColors?: {
-    base: number;
-    colors: number[];
-  }[];
-  /**
-   * Additional indirect-color sections read from a different range of the
-   * same PROM with their own fixed bit weights.
-   */
-  promColors?: {
-    base: number;
-    count: number;
-    channels: GeneratedPromPalettePlan['channels'];
   }[];
   lookupOffset: number;
   lookupCount: number;
@@ -972,29 +935,6 @@ export interface GeneratedPromPalettePlan {
     direct?: boolean;
   }[];
   transparentIndirect: number;
-  source?: BoardSourceRef;
-}
-
-/**
- * A palette init callback MAME wrote as ordinary code rather than as one of the
- * resistor-network idioms the declarative plan above recognizes. Mr. Do! builds
- * its own 16-entry weight table from parallel resistances and a diode drop, so
- * there is no compute_resistor_weights call to read the network out of.
- *
- * The callback is lowered to handler IR and executed once at machine start
- * against the same palette_device operations MAME's callback calls. It is the
- * fallback, not the preferred form: a declarative plan stays inspectable data,
- * while this preserves behavior no fixed vocabulary covers.
- */
-export interface GeneratedProgramPalettePlan {
-  /** palette_device pen count from the machine configuration. */
-  entries: number;
-  /** indirect_entries, or 0 when the device colors its pens directly. */
-  indirectEntries: number;
-  /** Callback parameter naming the palette_device (`palette_device &palette`). */
-  deviceParameter: string;
-  program: GeneratedHandlerProgram;
-  constants?: Record<string, number>;
   source?: BoardSourceRef;
 }
 
@@ -1104,6 +1044,12 @@ export interface GeneratedBitmapPlan {
       pulldown: number;
       pullup: number;
     }[];
+    /**
+     * The driver's own set_format converter, `Class.method` (a board
+     * handler taking the raw entry): Tutankham's raw_to_rgb_func, run as
+     * palette_device::write8 runs it, resnet.cpp and all.
+     */
+    converter?: string;
     /** Direct source table used by palette formats such as Qix R2G2B2I2. */
     lookup?: {
       values: number[];
@@ -1138,60 +1084,6 @@ export interface GeneratedSpriteParameter {
   mask: number;
 }
 
-/**
- * MAME `atari_motion_objects_device` configured by one driver.
- *
- * The device is generic and the configuration is the hardware description, so
- * everything here is lowered from the driver's `atari_motion_objects_config`
- * aggregate and from `atarimo.h`'s own derivations of it.
- */
-export interface GeneratedMotionObjectsPlan {
-  /** Device tag. */
-  tag: string;
-  /** Index into the machine's gfx sets. */
-  gfxIndex: number;
-  bankCount: number;
-  /** Entries chain through the link field rather than running in order. */
-  linked: boolean;
-  /** The four words of an entry are strided across sprite RAM, not adjacent. */
-  split: boolean;
-  reverse: boolean;
-  swapXy: boolean;
-  nextNeighbor: boolean;
-  /** Pixels per SLIP entry; zero for a board with no SLIP RAM. */
-  slipHeight: number;
-  slipShift: number;
-  slipOffset: number;
-  maxPerLine: number;
-  paletteBase: number;
-  transparentPen: number;
-  specialValue: number;
-  /** Derived in device_start from the link/xpos/ypos masks. */
-  entryCount: number;
-  entryBits: number;
-  bitmapWidth: number;
-  bitmapHeight: number;
-  /** Memory shares holding sprite RAM and, when present, SLIP RAM. */
-  spriteShare: string;
-  slipShare?: string;
-  /** Whole-table XOR the driver's video_start applies to the code lookup. */
-  codeXor?: number;
-  link: GeneratedSpriteParameter;
-  code: GeneratedSpriteParameter;
-  color: GeneratedSpriteParameter;
-  xpos: GeneratedSpriteParameter;
-  ypos: GeneratedSpriteParameter;
-  width: GeneratedSpriteParameter;
-  height: GeneratedSpriteParameter;
-  hflip: GeneratedSpriteParameter;
-  vflip: GeneratedSpriteParameter;
-  priority: GeneratedSpriteParameter;
-  neighbor: GeneratedSpriteParameter;
-  absolute: GeneratedSpriteParameter;
-  special: GeneratedSpriteParameter;
-  source?: BoardSourceRef;
-}
-
 export interface GeneratedVideoPlan {
   /**
    * Rendering cadence required by the lowered video implementation. This is
@@ -1209,12 +1101,6 @@ export interface GeneratedVideoPlan {
   /** Byte offset applied to a region pointer assigned inside a source callback. */
   regionBindingOffsets?: Record<string, number>;
   palette?: GeneratedPromPalettePlan;
-  palettes?: {
-    member: string;
-    plan: GeneratedPromPalettePlan;
-  }[];
-  /** Executed palette init callback, when no declarative palette shape fits. */
-  paletteProgram?: GeneratedProgramPalettePlan;
   /** Palette RAM decoded by a MAME set_format converter instead of a PROM. */
   ramPalette?: GeneratedRamPalettePlan;
   /**
@@ -1224,8 +1110,6 @@ export interface GeneratedVideoPlan {
    */
   paletteGroups?: { entries: number; shadows: boolean; highlights: boolean };
   tilemaps: GeneratedTilemapPlan[];
-  /** MAME `ATARI_MOTION_OBJECTS` sprite engine, configured by the driver. */
-  motionObjects?: GeneratedMotionObjectsPlan;
   /** Layouts named by `std::make_unique<gfx_element>(...)`, by source name. */
   gfxLayouts?: Record<string, GeneratedGfxLayout>;
   initialState: Record<string, unknown>;
@@ -1233,25 +1117,6 @@ export interface GeneratedVideoPlan {
   renderScale?: { x: number; y: number };
   /** Driver-init delegate member -> selected MAME method, or null when explicitly cleared. */
   delegates?: Record<string, string | null>;
-  /** Small source-derived color arrays used by generated video handlers. */
-  colorTables?: Record<string, number[]>;
-  /** Source-derived LFSR table initialized once and consumed by generated handlers. */
-  lfsrTable?: {
-    member: string;
-    period: number;
-    enabledMask: number;
-    enabledValue: number;
-    colorMask: number;
-    colorShift: number;
-    feedbackTap: number;
-    feedbackInvertTap: number;
-    feedbackWidth: number;
-    rowRenderer?: {
-      method: string;
-      colorMember: string;
-      scaleMember: string;
-    };
-  };
   bitmap?: GeneratedBitmapPlan;
   /**
    * Nibble-packed background RAM addressing, lowered from draw_background.
@@ -1268,17 +1133,7 @@ export interface GeneratedVideoPlan {
     /** Revisions that feed background scroll bit 8 into the column counter. */
     columnHighFromScroll: boolean;
   };
-  /** Atari Digital Vector Generator display list executed from the CPU bus. */
   vector?: {
-    type: 'DVG';
-    memoryBase: number;
-    coordinateBits: number;
-    doneInput?: {
-      port: string;
-      mask: number;
-      activeLow: boolean;
-    };
-  } | {
     /**
      * A generated vector generator (`set_vector("vector")`) that appends to
      * vector_device's display list itself; the host draws that list.
@@ -1384,6 +1239,12 @@ export interface BoardIr {
   execution: GeneratedExecutionPlan;
   devices?: GeneratedDevice[];
   handlers?: GeneratedHandler[];
+  /**
+   * The file-scope constant tables the handlers read by name, as data:
+   * dkong_v.cpp's `static const res_net_info dkong_net_info = { ... }`, which
+   * its palette callback hands resnet.cpp's compute_res_net.
+   */
+  staticTables?: Record<string, GeneratedTableValue>;
   /** Declared widths for the driver state class's own integer members. */
   stateMembers?: GeneratedStateMember[];
   maps?: GeneratedAddressMap[];
@@ -1450,6 +1311,8 @@ export interface GeneratedHandlerRuntime {
   };
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
+  pointerOffset(value: unknown): number;
   /**
    * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
    * copied, so the wider view writes through to the same shared bytes.

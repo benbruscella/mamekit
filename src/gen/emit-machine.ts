@@ -17,10 +17,11 @@ import type {
   GeneratedHandler,
   GeneratedHandlerOperation,
   GeneratedStateMember,
+  GeneratedTableValue,
   GeneratedVideoPlan,
 } from '../ir/board.ts';
 import { generatedBoardHandlersSource } from './emit-handler-codegen.ts';
-import { sourceMemoryRegions, sourceRegionBindings } from '../mame/video-compiler.ts';
+import { sourceMemoryRegions, sourceRegionBindings, type PaletteCallback } from '../mame/video-compiler.ts';
 import { lowerRamAllocation, ramPowerOn, sharePowerOn } from '../mame/ram-compiler.ts';
 
 /**
@@ -101,7 +102,7 @@ import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
 import { mameExecuteFacts } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
-import { deviceTables } from '../mame/static-aggregate.ts';
+import { deviceTables, sourceFileAggregates } from '../mame/static-aggregate.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { dacGeneratorTable } from '../hardware/dac/extract.ts';
@@ -114,7 +115,7 @@ export function lowerGeneratedMachine(
   game: string,
   family: string,
   board: BoardConfig,
-  compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
+  compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[]; paletteCallbacks?: PaletteCallback[] },
   nesApu?: GeneratedNesApuPlan,
   extraHandlers: GeneratedHandler[] = [],
 ): BoardIr {
@@ -263,6 +264,7 @@ export function lowerGeneratedMachine(
         callback.quantumSeconds = Number(props.quantumSeconds);
       }
       if (props.entries !== undefined) callback.entries = Number(props.entries);
+      if (props.indirectEntries !== undefined) callback.indirectEntries = Number(props.indirectEntries);
       if (props.indexed !== undefined) callback.indexed = Boolean(props.indexed);
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
@@ -595,6 +597,28 @@ export function lowerGeneratedMachine(
         handler.ownerClass === paletteCallback.targetClass &&
         handler.method === paletteCallback.targetMethod)
     : undefined;
+  const otherPalette = compiledVideo?.plan.palette || compiledVideo?.plan.ramPalette;
+  if (paletteHandler && !otherPalette && paletteHandler.program?.diagnostics.length) {
+    throw new Error(`${game}: palette callback ${paletteHandler.ownerClass}::${paletteHandler.method} ` +
+      `does not compile: ${paletteHandler.program.diagnostics.join('; ')}`);
+  }
+  // Each palette_device's init callback, run by the board at that palette's
+  // device_start: the ones the video compiler chose, or, with no video plan,
+  // the machine's one palette callback.
+  const handlerSource = (key: string) => handlers.find(handler => `${handler.ownerClass}.${handler.method}` === key)?.source;
+  const paletteInits: NonNullable<GeneratedExecutionPlan['paletteInits']> = compiledVideo?.paletteCallbacks?.length
+    ? compiledVideo.paletteCallbacks.map(callback => {
+        const source = callback.handler ? handlerSource(callback.handler) : undefined;
+        return { ...callback, ...(source ? { source } : {}) };
+      })
+    : paletteHandler && !otherPalette ? [{
+        member: 'm_palette',
+        handler: `${paletteCallback!.targetClass}.${paletteCallback!.targetMethod}`,
+        ...(paletteCallback!.entries !== undefined ? { entries: paletteCallback!.entries } : {}),
+        ...(paletteCallback!.indirectEntries !== undefined ? { indirectEntries: paletteCallback!.indirectEntries } : {}),
+        ...(paletteHandler.source ? { source: paletteHandler.source } : {}),
+      }]
+    : [];
   const paletteDevice = devices
     .filter(device => device.type === 'PALETTE')
     .flatMap(device => {
@@ -973,21 +997,13 @@ export function lowerGeneratedMachine(
           : {}),
       },
     } : {}),
-    // Only when the machine has no colour PROM to decode: a board that does
-    // keeps the palette plan it already had, so this adds a palette where
-    // there was none rather than replacing one that works.
     // No video plan and no init routine: the palette is whatever the driver
     // writes into it, so the host needs only its size.
     ...(!paletteHandler && !compiledVideo && paletteDevice ? { paletteDevice } : {}),
-    ...(paletteHandler && !compiledVideo?.plan.palette ? {
-      paletteInit: {
-        handler: `${paletteCallback!.targetClass}.${paletteCallback!.targetMethod}`,
-        ...(paletteCallback!.entries !== undefined
-          ? { entries: Number(paletteCallback!.entries) }
-          : {}),
-        ...(paletteHandler.source ? { source: paletteHandler.source } : {}),
-      },
-    } : {}),
+    // The palette_device's init callback, run by the board at the palette's
+    // device_start, whenever no other plan colours the palette: a palette RAM,
+    // a palette_device built-in init, or a palette the driver banks at run time.
+    ...(paletteInits.length ? { paletteInits } : {}),
   };
   const soundDevice = devices.find(device =>
     device.type === 'NAMCO_WSG' || device.type === 'POLEPOS_WSG');
@@ -1304,6 +1320,34 @@ export function lowerGeneratedMachine(
       ...(callback.source ? { source: callback.source } : {}),
     })));
   }
+  // The file-scope constant tables a handler names, from its own source file.
+  // A class's static member is defined in one unit and read from any of its
+  // methods: popeye.h's inline bak_mb7051_net_info() returns a table
+  // popeye_v.cpp defines.
+  const staticTables: Record<string, GeneratedTableValue> = {};
+  if (graph.meta.mameSrc) {
+    const mameSrc = String(graph.meta.mameSrc);
+    const driverFiles = [...new Set(handlers.flatMap(handler =>
+      handler.source?.file.startsWith('src/mame/') ? [handler.source.file] : []))];
+    for (const handler of handlers) {
+      if (!handler.body || !handler.source?.file || !handler.program || handler.program.diagnostics.length) continue;
+      const own = sourceFileAggregates(mameSrc, handler.source.file);
+      for (const name of new Set(handler.body.match(/\b[A-Za-z_]\w*\b/g) ?? [])) {
+        if (name in staticTables) continue;
+        const tables = own.has(name)
+          ? own
+          : driverFiles.map(file => sourceFileAggregates(mameSrc, file)).find(other => other.isMember(name));
+        if (!tables) continue;
+        // A name the handler declares is its own local (`u8 t[3] = {0,0,0}`);
+        // `return name;` is not a declaration.
+        const declared = [...handler.body.matchAll(new RegExp(`([\\w:>*&]+)\\s+${name}\\s*(?:\\[[^\\]]*\\])?\\s*[=;{(,]`, 'g'))]
+          .some(match => !/^(?:return|case|else|goto|throw|delete|new|sizeof)$/.test(match[1]!));
+        if (declared) continue;
+        const value = tables.lower(name);
+        if (value !== undefined) staticTables[name] = value as GeneratedTableValue;
+      }
+    }
+  }
   const result: BoardIr = {
     schemaVersion: BOARD_IR_SCHEMA_VERSION,
     game,
@@ -1314,6 +1358,7 @@ export function lowerGeneratedMachine(
     execution,
     devices,
     handlers,
+    ...(Object.keys(staticTables).length ? { staticTables } : {}),
     maps,
     ...(stateMembers.length ? { stateMembers } : {}),
     ...(compiledVideo ? { video: compiledVideo.plan } : {}),

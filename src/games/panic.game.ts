@@ -17,9 +17,9 @@ export const panic = sourceTarget({
     },
     checkpoints: {
       1: { video: '6087f1e5', state: '02fdb96d' },
-      60: { video: '7c352156', state: '712a24a9' },
-      180: { video: '46a419c9', state: '74d14f9b' },
-      300: { video: '1236025c', state: 'aeeeb857' },
+      60: { video: 'b934538a', state: '712a24a9' },
+      180: { video: '83a56b15', state: '74d14f9b' },
+      300: { video: '1aca5db7', state: 'aeeeb857' },
       600: { video: '2019d643', state: 'dcf02d8d' },
       900: { video: 'ab7b492d', state: 'e39923b9' },
       1200: { video: 'e73caa97', state: '61556cdd' },

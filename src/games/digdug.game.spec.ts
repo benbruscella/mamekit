@@ -3,7 +3,7 @@ import { compileMameDevice } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { digdug } from './digdug.game.ts';
-import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-support.ts';
+import { assertGameContract, assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 assertGameContract(digdug);
 const mameSrc = mameSourceRoot();
@@ -42,27 +42,7 @@ assert.deepEqual(video.plan.tilemaps.map(tilemap => tilemap.member), [
   'm_bg_tilemap',
   'm_fg_tilemap',
 ]);
-assert.deepEqual(video.plan.palette?.banks, [
-  {
-    penOffset: 0,
-    penStride: 2,
-    colorOr: 0,
-    colorStride: 0,
-    lookupOffset: 0,
-    lookupCount: 16,
-    direct: true,
-  },
-  {
-    penOffset: 1,
-    penStride: 2,
-    colorOr: 0,
-    lookupOffset: 0,
-    lookupCount: 16,
-    direct: true,
-  },
-  { penOffset: 32, colorOr: 16, lookupOffset: 32, lookupCount: 256 },
-  { penOffset: 288, colorOr: 0, lookupOffset: 288, lookupCount: 256 },
-]);
+assertPaletteCallback(video, { handler: 'digdug_state.digdug_palette', entries: 544, indirectEntries: 32 });
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 assert.match(
   video.handlers.find(handler => handler.method === 'bg_get_tile_info')?.body ?? '',

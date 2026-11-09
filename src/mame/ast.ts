@@ -7,6 +7,8 @@
  * guessed at or discarded.
  */
 
+import { instantiateVariadicTemplates } from './variadic-template.ts';
+
 export interface SourceSpan {
   file: string;
   start: number;
@@ -57,6 +59,13 @@ export interface MameFunction {
    * being a double division.
    */
   inlineReturnType?: string;
+  /** A file-scope function's enclosing namespace (`emu::detail`). */
+  namespace?: string;
+  /**
+   * A file-scope function template's parameter list as written
+   * (`typename T = int, typename U, std::size_t N, typename... V`).
+   */
+  template?: string;
   parameters: string;
   body: string;
   statements: MameStatement[];
@@ -441,6 +450,11 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     /(?:^|\n)((?:[\w:<>,~*&]+[^\S\n]+)+(?:[*&]+[^\S\n]*)?)(\w+)[^\S\n]*\(((?:[^;{}()]|\([^;{}()]*\))*)\)\s*(?:(?:const|noexcept)\s*)*\{/g;
   const classBodies = classes.map(declaration =>
     [declaration.bodySpan.start, declaration.bodySpan.end] as [number, number]);
+  // `namespace emu::detail { ... }`, outermost first, for the functions inside.
+  const namespaces = [...masked.matchAll(/\bnamespace\s+([\w:]+)\s*\{/g)].map(match => {
+    const open = match.index! + match[0].length - 1;
+    return { name: match[1]!, open, close: matchPair(masked, open, '{', '}') };
+  }).filter(block => block.close > block.open);
   let ff: RegExpExecArray | null;
   while ((ff = freeFunctionRe.exec(masked)) !== null) {
     const start = ff.index + (ff[0].startsWith('\n') ? 1 : 0);
@@ -454,10 +468,17 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     const braceEnd = matchPair(masked, braceStart, '{', '}');
     if (braceEnd < 0) continue;
     const bodyStart = braceStart + 1;
+    const namespace = namespaces
+      .filter(block => start > block.open && start < block.close)
+      .map(block => block.name)
+      .join('::');
+    const template = /\btemplate\s*<([^;{}]*)>\s*$/.exec(masked.slice(Math.max(0, start - 512), start))?.[1]?.trim();
     functions.push({
       kind: 'function',
       className: '',
       name: ff[2]!,
+      ...(namespace ? { namespace } : {}),
+      ...(template !== undefined ? { template } : {}),
       parameters: source.slice(
         masked.indexOf('(', ff.index),
         matchPair(masked, masked.indexOf('(', ff.index), '(', ')') + 1,
@@ -491,6 +512,16 @@ export function parseMameSource(file: string, source: string): MameTranslationUn
     macroRe.lastIndex = close + 1;
   }
 
+  // MACHINE_START_CALL_MEMBER(x) and MACHINE_RESET_CALL_MEMBER(x) may sit in
+  // any method, not only another lifecycle override: CPS1's video_start runs
+  // `MACHINE_RESET_CALL_MEMBER(cps)`, which picks the game's config row. Each
+  // is that call, the same length, wherever it is written.
+  for (const fn of functions) {
+    if (!/_CALL_MEMBER\b/.test(fn.body)) continue;
+    fn.body = fn.body.replace(/\b(MACHINE|VIDEO)_(START|RESET)_CALL_MEMBER\s*\(\s*(\w+)\s*\)/g,
+      (whole, owner: string, kind: string, name: string) =>
+        `${owner.toLowerCase()}_${kind.toLowerCase()}_${name}()`.padEnd(whole.length, ' '));
+  }
   return { file, source, masked, macros, classes, functions };
 }
 
@@ -603,7 +634,9 @@ function memberMacroParameters(name: string): string {
 }
 
 export function parseMameAst(files: { file: string; source: string }[]): MameAst {
-  return { units: files.map(({ file, source }) => parseMameSource(file, source)) };
+  const units = files.map(({ file, source }) => parseMameSource(file, source));
+  instantiateVariadicTemplates(units);
+  return { units };
 }
 
 export function parseCallChain(
@@ -744,6 +777,32 @@ export class MameAstIndex {
       if (found) return found;
     }
     return undefined;
+  }
+
+  /**
+   * The overloads of `name` declared by the nearest class in `className`'s
+   * hierarchy that declares it, when there is more than one. A board handler
+   * is keyed by name, so each overload is its own handler, `name__aN` by its
+   * parameter count (overloadedName): taitosj's copy_layer has a five- and a
+   * six-parameter form, and keyed by name only one of them existed.
+   */
+  overloadsInHierarchy(className: string, name: string): MameFunction[] {
+    const visited = new Set<string>();
+    const find = (candidate: string): MameFunction[] => {
+      if (visited.has(candidate)) return [];
+      visited.add(candidate);
+      const own = this.ast.units.flatMap(unit => unit.functions)
+        .filter(fn => fn.className === candidate && fn.name === name);
+      if (own.length) return own;
+      const declaration = this.ast.units.flatMap(unit => unit.classes).find(cls => cls.name === candidate);
+      for (const base of declaration?.bases ?? []) {
+        const inherited = find(base.split('::').at(-1)!);
+        if (inherited.length) return inherited;
+      }
+      return [];
+    };
+    const found = find(className);
+    return new Set(found.map(functionArity)).size > 1 ? found : [];
   }
 
   /** Find a method only when its declaring class is unambiguous in the AST. */
@@ -927,6 +986,51 @@ function matchPair(source: string, open: number, left: string, right: string): n
     else if (c === right && --depth === 0) return i;
   }
   return -1;
+}
+
+/** A function's parameter count, `(void)` and `()` both none. */
+export function functionArity(fn: { parameters: string }): number {
+  const parameters = fn.parameters.trim();
+  return parameters === '' || parameters === 'void' ? 0 : splitMameArgs(parameters).length;
+}
+
+/** The handler name of one overload: `copy_layer__a6`. */
+export function overloadedName(name: string, arity: number): string {
+  return `${name}__a${arity}`;
+}
+
+/** `copy_layer__a6` back to its name and arity. */
+export function parseOverloadedName(method: string): { name: string; arity: number } | undefined {
+  const match = /^(\w+?)__a(\d+)$/.exec(method);
+  return match ? { name: match[1]!, arity: Number(match[2]) } : undefined;
+}
+
+/**
+ * Calls to an overloaded method of `className`, renamed to the overload their
+ * argument count selects. A member call (`x.f(`, `x->f(`) or a qualified one
+ * is another object's, and is left alone.
+ */
+export function lowerOverloadedCalls(body: string, ast: MameAstIndex, className: string): string {
+  let out = '';
+  let last = 0;
+  for (const match of body.matchAll(/\b([A-Za-z_]\w*)\s*\(/g)) {
+    const before = match.index ? body[match.index - 1] : '';
+    if (before === '.' || before === '>' || before === ':') continue;
+    const overloads = ast.overloadsInHierarchy(className, match[1]!);
+    if (!overloads.length) continue;
+    const open = match.index! + match[0].length - 1;
+    let close = open;
+    for (let depth = 0; close < body.length; close++) {
+      if (body[close] === '(') depth++;
+      else if (body[close] === ')' && --depth === 0) break;
+    }
+    const inner = body.slice(open + 1, close).trim();
+    const arity = inner === '' ? 0 : splitMameArgs(inner).length;
+    if (!overloads.some(fn => functionArity(fn) === arity)) continue;
+    out += body.slice(last, match.index) + overloadedName(match[1]!, arity) + body.slice(match.index! + match[1]!.length, open);
+    last = open;
+  }
+  return out + body.slice(last);
 }
 
 export function splitMameArgs(source: string): string[] {

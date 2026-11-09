@@ -9,6 +9,7 @@ import {
   dereferenceGeneratedFast,
   generatedByteView,
   generatedPackedView,
+  isBigEndianWords,
   generatedContainerAccessor,
   generatedVectorMethod,
   generatedStringCall,
@@ -31,9 +32,10 @@ import {
   resizeGeneratedContainer,
   resizeGeneratedVector,
 } from './generated-handler.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
+import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
+import { GeneratedRectangle } from './rectangle.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
 import { STREAM_VARIANT_SUFFIX, type GeneratedHandlerProgram } from '../ir/board.ts';
 import type { BoardImage, SoftwarePart } from '../ir/host-config.ts';
@@ -119,7 +121,8 @@ type DeviceResource =
   | { kind: 'owner' }
   | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
-  | { kind: 'region'; name: string }
+  /** `required_region_ptr<T>`: the region, indexed in T's width (elementBytes, when wider than a byte). */
+  | { kind: 'region'; name: string; elementBytes?: 2 | 4 }
   | { kind: 'region-object'; name: string }
   | { kind: 'region-pointer'; name: string; offset: number }
   | { kind: 'region-length'; name: string }
@@ -173,6 +176,8 @@ export interface GeneratedDeviceExecutionContext {
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
+  /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
+  pointerOffset(value: unknown): number;
   /**
    * A `u16*`/`s16*` declaration over byte memory, reinterpreted rather than
    * copied, so the wider view writes through to the same shared bytes.
@@ -1252,14 +1257,17 @@ class IrDevice implements Device {
     if (definition.structs && definition.structMethods && !STRUCT_METHODS.has(definition.structs)) {
       const device = this;
       STRUCT_METHODS.set(definition.structs, Object.fromEntries(Object.entries(definition.structMethods).map(([type, methods]) =>
-        [type, Object.fromEntries(methods.map(method => {
+        [type, structOverloads(methods, methods.map(method => {
           const names = splitParameters(method.parameters).map(parameterName);
           // Emitted, when the codegen compiled the struct's type as one of the
           // device's allocations: run against the device's own runtime with
           // the struct as its members, one runtime per struct, kept. POKEY's
           // four channels count down through inc_chan and check_borrow once a
           // clock, and interpreted they were most of a POKEY board's time.
-          const compiled = definition.allocations?.[type]?.compiledMethods?.[method.name];
+          // Compiled methods are keyed by name, so an overloaded one is left
+          // to the interpreter, which picks the overload by its arguments.
+          const overloaded = methods.filter(candidate => candidate.name === method.name).length > 1;
+          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name];
           if (compiled) {
             // Four check_borrow calls a clock: no rest array, no mapped copy.
             const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;
@@ -1284,10 +1292,18 @@ class IrDevice implements Device {
             // One bindings object per struct, kept: the compiled program is
             // cached by bindings, and a fresh one per call recompiled ymfm's
             // `output->clear()` fifty thousand times a second.
+            // A struct method calling its own sibling -- `set(input.data)` in
+            // atarimo's sprite_parameter -- reaches the struct's method (by its
+            // overloads), before anything of the device's of that name.
             let bindings = STRUCT_BINDINGS.get(this);
-            if (!bindings) STRUCT_BINDINGS.set(this, bindings = {
-              members: this, constants: device.bindings.constants, calls: device.bindings.calls,
-            } as GeneratedHandlerBindings);
+            if (!bindings) {
+              const own = STRUCT_METHODS.get(definition.structs!)?.[type] ?? {};
+              const calls = Object.create(device.bindings.calls ?? null) as Record<string, unknown>;
+              for (const [name, fn] of Object.entries(own)) calls[name] = (fn as (...args: unknown[]) => unknown).bind(this);
+              STRUCT_BINDINGS.set(this, bindings = {
+                members: this, constants: device.bindings.constants, calls,
+              } as GeneratedHandlerBindings);
+            }
             return executeGeneratedProgram(method.program, bindings, locals, false).value;
           }];
         }))])));
@@ -1631,6 +1647,17 @@ class IrDevice implements Device {
       calls: {
         save_item: () => 0,
         save_pointer: () => 0,
+        // device_t::tag(): the device's own tag, which sprite.h hands its
+        // owner to find the share named for it.
+        tag: () => this.ownTag,
+        // `rectangle(min_x, max_x, min_y, max_y)`, a value: sprite.cpp's
+        // sparse_dirty_bitmap starts `m_rect_list_bounds(0, -1, 0, -1)`.
+        // A bitmap built over memory: `BitmapType wrapped(base, w, h, rowpixels)`.
+        ...Object.fromEntries(['bitmap_ind8', 'bitmap_ind16', 'bitmap_ind32', 'bitmap_rgb32'].map(type => [type,
+          (base: GeneratedCallArgument, width: GeneratedCallArgument, height: GeneratedCallArgument, rowpixels: GeneratedCallArgument) =>
+            GeneratedBitmap.wrap(type, base, Number(width), Number(height), Number(rowpixels ?? width))])),
+        rectangle: (...args: GeneratedCallArgument[]) => new GeneratedRectangle(
+          Number(args[0] ?? 0), Number(args[1] ?? 0), Number(args[2] ?? 0), Number(args[3] ?? 0)),
         // `m_screen.set_tag(screen_tag)`: a setter re-pointing a device finder
         // (the watchdog's set_vblank_count) rebinds the member to that tag.
         ...Object.fromEntries(definition.members
@@ -1912,6 +1939,7 @@ class IrDevice implements Device {
           offset: index,
         },
       dereference: dereferenceGeneratedFast,
+      pointerOffset: generatedPointerOffset,
       copyStruct: copyGeneratedStruct,
       packedView: generatedPackedView,
       byteView: generatedByteView,
@@ -3141,7 +3169,12 @@ class IrDevice implements Device {
   ): unknown {
     try {
       const defaults = this.methodDefaults.get(method);
-      const compiled = this.definition.compiledMethods?.[method.name];
+      // Compiled methods are keyed by name, so an overloaded name has one body
+      // for all its overloads: the one selected runs from its own program.
+      // atarimo's sprite_parameter::set(entry) and set(uint16_t[4]) both ran
+      // the first, and every motion-object mask stayed zero.
+      const compiled = (this.methods.get(method.name)?.length ?? 0) > 1
+        ? undefined : this.definition.compiledMethods?.[method.name];
       // A `&` parameter always arrives as a get/set wrapper, because the caller
       // cannot know whether the callee reassigns it. Only methods that do NOT
       // reassign one reach this map (the emitter keeps the others out of it,
@@ -3180,6 +3213,16 @@ class IrDevice implements Device {
     if (overloads.length === 1 && this.methodParams.get(overloads[0]!)?.length === args.length) return overloads[0];
     const exact = overloads.filter(method =>
       (this.methodParams.get(method) ?? splitParameters(method.parameters)).length === args.length);
+    // Same arity: the overload whose parameters take these arguments, as C++
+    // picks by type. atarimo's sprite_parameter has `set(const entry &)`,
+    // which calls `set(input.data)`, beside `set(const uint16_t input[4])`;
+    // taking the last for both made the first call itself forever.
+    if (exact.length > 1) {
+      // By declaration: methodParams holds only the parameters' names.
+      const fitting = exact.filter(method => splitParameters(method.parameters)
+        .every((parameter, index) => argumentFits(parameter, args[index])));
+      if (fitting.length) return fitting.at(-1);
+    }
     if (exact.length) return exact.at(-1);
     return overloads
       .filter(method => {
@@ -3193,6 +3236,57 @@ class IrDevice implements Device {
         splitParameters(left.parameters).length - splitParameters(right.parameters).length)
       .at(0) ?? overloads.at(-1);
   }
+}
+
+/**
+ * A struct's methods by name. Overloads share a name, and C++ picks one by its
+ * arguments: atarimo's `sprite_parameter::set(const entry &)` forwards to
+ * `set(const uint16_t input[4])`, and keying the table by name alone left only
+ * the last, so the forward called itself until the stack ran out.
+ */
+function structOverloads(
+  methods: readonly { name: string; parameters: string }[],
+  entries: readonly [string, (this: Record<string, unknown>, ...args: unknown[]) => unknown][],
+): Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown> {
+  const table: Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown> = {};
+  const byName = new Map<string, number[]>();
+  methods.forEach((method, index) => byName.set(method.name, [...(byName.get(method.name) ?? []), index]));
+  for (const [name, indices] of byName) {
+    if (indices.length === 1) { table[name] = entries[indices[0]!]![1]; continue; }
+    const candidates = indices.map(index => ({
+      parameters: splitParameters(methods[index]!.parameters),
+      call: entries[index]![1],
+    }));
+    table[name] = function (this: Record<string, unknown>, ...args: unknown[]): unknown {
+      const sameArity = candidates.filter(candidate => candidate.parameters.length === args.length);
+      const chosen = sameArity.filter(candidate =>
+        candidate.parameters.every((parameter, index) => argumentFits(parameter, args[index]))).at(-1) ??
+        sameArity.at(-1) ?? candidates.at(-1)!;
+      return chosen.call.apply(this, args);
+    };
+  }
+  return table;
+}
+
+/**
+ * Whether a call argument suits a declared parameter, for choosing between
+ * overloads of one arity: a pointer or array takes memory, a struct taken by
+ * reference takes a struct, and a builtin scalar takes a number.
+ */
+function argumentFits(parameter: string, argument: unknown): boolean {
+  const value = argument && typeof argument === 'object' && (argument as { generatedLValue?: boolean }).generatedLValue
+    ? (argument as { get(): unknown }).get()
+    : argument;
+  const declared = parameter.replace(/=[\s\S]*$/, '').trim();
+  const memory = Array.isArray(value) || ArrayBuffer.isView(value) ||
+    Boolean(value && typeof value === 'object' && (value as { generatedPointer?: boolean }).generatedPointer);
+  if (/\*|\[/.test(declared)) return memory;
+  const struct = Boolean(value && typeof value === 'object' && !memory);
+  const type = declared.replace(/\b(?:const|volatile)\b/g, '').replace(/&/g, '').trim().split(/\s+/).slice(0, -1).join(' ');
+  if (/^(?:bool|char|short|int|long|unsigned|signed|float|double|u?int\d+_t|[us]\d+|offs_t|size_t)(?:\s+\w+)*$/.test(type)) {
+    return typeof value === 'number' || typeof value === 'boolean';
+  }
+  return struct;
 }
 
 class IrMemoryBank implements GeneratedMemoryBank {
@@ -3296,7 +3390,25 @@ function resolveDeviceResource(
   const regionName = resourceName === 'self'
     ? options.tag ?? ''
     : subtag && regions[subtag] ? subtag : resourceName;
-  if (resource.kind === 'region') return regions[regionName] ?? new Uint8Array(0);
+  if (resource.kind === 'region') {
+    const bytes = regions[regionName] ?? new Uint8Array(0);
+    const width = resource.elementBytes;
+    if (!width || bytes.byteOffset % width) return bytes;
+    // The same reinterpreting view a `u16 *` cast makes, which reads a
+    // 68000's big-endian region (ROM_REGION16_BE) word by word as MAME's
+    // byte-swapped copy does. Read in the host's order instead, System 16's
+    // sprite rows missed their end-of-row nibble and drew three times over.
+    // A region is ROM, so its big-endian words are decoded once into a real
+    // Uint16Array rather than through the per-read Proxy a writable
+    // big-endian view needs: read through the Proxy, shinobi's sprite loop
+    // took minutes a frame.
+    const view = (width === 2 && isBigEndianWords(bytes)
+      ? Uint16Array.from({ length: bytes.length >>> 1 }, (_, index) => (bytes[index * 2]! << 8) | bytes[index * 2 + 1]!)
+      : generatedPackedView(bytes, width === 2 ? false : 'u32')) as object;
+    // `bytes()` is the region's size in bytes, whatever the element width.
+    Object.defineProperty(view, 'bytes', { value: () => bytes.byteLength, configurable: true });
+    return view;
+  }
   // MAME's `memory_region *`. A device that is handed one asks it three
   // questions -- how big, where does it start, give me the bytes -- and a
   // missing region answers as a null pointer does, which is what lets a
@@ -3361,6 +3473,9 @@ class GeneratedBitmap {
   pixels: Uint32Array | Uint16Array | Uint8Array;
   private bitmapWidth = 0;
   private bitmapHeight = 0;
+  /** Row pitch and first pixel: a bitmap wrapped over another's memory has its own. */
+  private pitch = 0;
+  private base = 0;
   private readonly storage: Uint32ArrayConstructor | Uint16ArrayConstructor | Uint8ArrayConstructor;
 
   constructor(valueType: string) {
@@ -3372,9 +3487,27 @@ class GeneratedBitmap {
     this.pixels = new this.storage(0);
   }
 
+  /**
+   * bitmap_t(base, width, height, rowpixels): a view over memory another
+   * bitmap owns. sprite.h's draw_async wraps its own bitmap, offset by the
+   * sprite origin, and draws through the view.
+   */
+  static wrap(valueType: string, base: unknown, width: number, height: number, rowpixels: number): GeneratedBitmap {
+    const bitmap = new GeneratedBitmap(valueType);
+    const pointer = base as { generatedPointer?: boolean; source?: unknown; offset?: number };
+    if (pointer?.generatedPointer && ArrayBuffer.isView(pointer.source)) {
+      bitmap.pixels = pointer.source as Uint32Array | Uint16Array | Uint8Array;
+      bitmap.base = Number(pointer.offset ?? 0);
+    }
+    bitmap.bitmapWidth = Math.max(0, width | 0);
+    bitmap.bitmapHeight = Math.max(0, height | 0);
+    bitmap.pitch = Math.max(0, rowpixels | 0);
+    return bitmap;
+  }
+
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['bitmapWidth', 'bitmapHeight', 'pixels'];
+    return ['bitmapWidth', 'bitmapHeight', 'pitch', 'base', 'pixels'];
   }
 
   stateResizable(): readonly string[] {
@@ -3384,6 +3517,8 @@ class GeneratedBitmap {
   allocate(width: number, height: number): void {
     this.bitmapWidth = Math.max(0, width | 0);
     this.bitmapHeight = Math.max(0, height | 0);
+    this.pitch = this.bitmapWidth;
+    this.base = 0;
     this.pixels = new this.storage(this.bitmapWidth * this.bitmapHeight);
   }
 
@@ -3395,6 +3530,36 @@ class GeneratedBitmap {
     return this.bitmapHeight;
   }
 
+  /**
+   * bitmap_t::resize: sprite.h's draw_async grows its bitmap to the cliprect
+   * it is asked for (the slop is MAME's guard border, which ours needs not).
+   */
+  resize(width: number, height: number): void {
+    if ((width | 0) !== this.bitmapWidth || (height | 0) !== this.bitmapHeight) this.allocate(width, height);
+  }
+
+  /** bitmap_t::rowpixels: the row pitch, which without MAME's slop border is the width. */
+  rowpixels(): number {
+    return this.pitch;
+  }
+
+  /** bitmap_t::cliprect: the whole bitmap. */
+  cliprect(): GeneratedRectangle {
+    return new GeneratedRectangle(0, this.bitmapWidth - 1, 0, this.bitmapHeight - 1);
+  }
+
+  /** bitmap_t::fill, of the whole bitmap or a rectangle of it. */
+  fill(value: number, rect?: { min_x: number; max_x: number; min_y: number; max_y: number }): void {
+    const narrowed = Number(value) >>> 0;
+    if (!rect) { this.pixels.fill(narrowed); return; }
+    const left = Math.max(0, rect.min_x | 0), right = Math.min(this.bitmapWidth - 1, rect.max_x | 0);
+    const top = Math.max(0, rect.min_y | 0), bottom = Math.min(this.bitmapHeight - 1, rect.max_y | 0);
+    if (right < left) return;
+    for (let row = top; row <= bottom; row++) {
+      this.pixels.fill(narrowed, this.base + row * this.pitch + left, this.base + row * this.pitch + right + 1);
+    }
+  }
+
   /** MAME bitmap_t::plot_box, clipped to this bitmap's bounds. */
   plot_box(x: number, y: number, width: number, height: number, color: number): void {
     const left = Math.max(0, x), right = Math.min(this.bitmapWidth, x + width);
@@ -3402,7 +3567,7 @@ class GeneratedBitmap {
     if (right <= left || bottom <= top) return;
     const pixels = this.pixels;
     for (let row = top; row < bottom; row++) {
-      const start = row * this.bitmapWidth;
+      const start = this.base + row * this.pitch;
       // The VIC-II paints its border eight pixels at a time, every cycle; a
       // `fill` call costs more than storing a run that short.
       if (right - left <= 16) {
@@ -3414,11 +3579,11 @@ class GeneratedBitmap {
   }
 
   pix(y: number, x = 0): number {
-    return this.pixels[y * this.bitmapWidth + x] ?? 0;
+    return this.pixels[this.base + y * this.pitch + x] ?? 0;
   }
 
   'pix='(y: number, x: number, value: number): void {
-    const index = y * this.bitmapWidth + x;
+    const index = this.base + y * this.pitch + x;
     if (index >= 0 && index < this.pixels.length) this.pixels[index] = value >>> 0;
   }
 
@@ -3430,7 +3595,7 @@ class GeneratedBitmap {
     return {
       generatedPointer: true,
       source: this.pixels,
-      offset: y * this.bitmapWidth + x,
+      offset: this.base + y * this.pitch + x,
     };
   }
 }
@@ -3544,7 +3709,12 @@ function memoryMember(
   const tag = (memory.share === 'self' ? options.tag : memory.share)
     ?.replace(/^\^+/, '')
     .replace(/^:/, '');
-  const bytes = tag ? options.shares?.[tag] : undefined;
+  // A plain tag is the device's own child, as MAME's finder resolves it:
+  // atarimo's `m_slipramshare(*this, "slip")` is Gauntlet's share "mob:slip".
+  // One spelled `^tag` or `:tag` names the owner's or the root's.
+  const relative = memory.share !== 'self' && !/^[\^:]/.test(memory.share ?? '') && options.tag
+    ? options.shares?.[`${options.tag}:${tag}`] : undefined;
+  const bytes = relative ?? (tag ? options.shares?.[tag] : undefined);
   if (!bytes && /^optional_shared_ptr\b/.test(member.valueType)) {
     return new Uint8Array(0);
   }
@@ -3616,7 +3786,12 @@ function isIndexableMemberType(valueType: string | undefined): boolean {
 }
 
 function parameterName(parameter: string): string {
-  return /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.replace(/=[\s\S]*$/, '')) ?.[1]
+  // An array parameter names itself before its bound: `const uint16_t input[4]`
+  // is `input`. Taken whole, atarimo's sprite_parameter::set never saw its
+  // input and every motion-object mask stayed zero.
+  const declarator = parameter.replace(/=[\s\S]*$/, '').replace(/(\s*\[[^\]]*\])+\s*$/, '');
+  return /(\w+)\s*$/.exec(declarator)?.[1]
+    ?? /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.replace(/=[\s\S]*$/, '')) ?.[1]
     ?? /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1]
     ?? parameter;
 }
@@ -3981,10 +4156,16 @@ function rgbPixel(red: number, green: number, blue: number): number {
 function vectorElement(
   element: string | undefined,
   structs: Readonly<Record<string, readonly StructField[]>> | undefined,
-): (() => unknown) | undefined {
+): ((...args: unknown[]) => unknown) | undefined {
   if (!element) return undefined;
   const inner = /^std::vector<\s*(.+?)\s*>$/.exec(element);
   if (inner) return () => generatedVector(vectorElement(inner[1], structs));
+  // MAME's rectangle, by its (min_x, max_x, min_y, max_y) constructor;
+  // default-constructed it is all zero (emu/rendertypes.h).
+  if (element.trim() === 'rectangle') {
+    return (...args: unknown[]) => new GeneratedRectangle(
+      Number(args[0] ?? 0), Number(args[1] ?? 0), Number(args[2] ?? 0), Number(args[3] ?? 0));
+  }
   const fields = structs?.[element.split('::').at(-1)!.trim()];
   return fields ? () => structMember(fields, structs, element) : undefined;
 }

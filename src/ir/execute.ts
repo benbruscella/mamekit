@@ -38,9 +38,20 @@ const GENERATED_ELEMENT = Symbol.for('mamekit.vectorElement');
  * empties, `resize` grows by elements of its own kind. `element` makes one;
  * absent, elements are integers and grow as zero.
  */
-export function generatedVector(element?: () => unknown): unknown[] {
+export function generatedVector(element?: (...args: unknown[]) => unknown): unknown[] {
   const vector: unknown[] = [];
   if (element) Object.defineProperty(vector, GENERATED_ELEMENT, { value: element, enumerable: false });
+  // `emplace_back(args...)` builds the new last element from its
+  // constructor's arguments and hands back a reference to it: sprite.cpp's
+  // `currect = &m_rect_list.emplace_back(min_x, max_x, min_y, max_y)`.
+  Object.defineProperty(vector, 'emplace_back', {
+    value: (...args: unknown[]) => {
+      const made = element ? element(...args) : args[0] ?? 0;
+      vector.push(made);
+      return made;
+    },
+    enumerable: false,
+  });
   return vector;
 }
 
@@ -789,6 +800,7 @@ function preparedHandlerRuntime(
         offset: index,
       },
     dereference: dereferenceGeneratedValue,
+    pointerOffset: generatedPointerOffset,
     // A `u16*`/`s16*` declaration over byte memory is a reinterpreting view,
     // not a copy -- the same rule compilePackedPointerView applies on the
     // interpreted path. Emitted code dropped it, so a byte-backed sprite RAM
@@ -1335,13 +1347,13 @@ function compileFastOperations(
       const valueType = operation.valueType;
       const arrayLength = declaredArrayLength(operation.value);
       if (arrayLength) {
-        const length = compileFastExpression(arrayLength, bindings, localNames);
-        if (!length) return undefined;
+        const extents = [arrayLength, ...declaredInnerExtents(operation.value)]
+          .map(extent => compileFastExpression(extent, bindings, localNames));
+        if (extents.some(extent => !extent)) return undefined;
         compiled.push(context => {
           context.localTypes[name] = valueType;
-          const size = toNumber(length(context));
-          context.locals[name] = allocateDeclaredArray(valueType, size) ??
-            new Uint8Array(Math.max(0, Math.trunc(size)));
+          const sizes = extents.map(extent => toNumber(extent!(context)));
+          context.locals[name] = classArray(valueType, sizes[0]!, context.bindings) ?? allocateLocalArray(valueType, sizes);
           return undefined;
         });
         continue;
@@ -1681,6 +1693,13 @@ function compileFastExpression(
           : BINARY_OPERATORS['/']!(leftValue, rightValue);
       };
     }
+    if (ORDERING.has(operator)) {
+      const compare = BINARY_OPERATORS[operator]!;
+      return context => {
+        const leftValue = left(context), rightValue = right(context);
+        return orderedPointers(operator, leftValue, rightValue) ?? compare(toNumber(leftValue), toNumber(rightValue));
+      };
+    }
     const apply = BINARY_OPERATORS[operator] ?? UNKNOWN_BINARY;
     // Only + and - can carry pointer arithmetic. Every other operator skips
     // those runtime shape tests entirely.
@@ -1804,8 +1823,11 @@ function compileFastExpression(
 function allocateDeclaredArray(
   valueType: string | undefined,
   length: number,
-): ArrayBufferView | undefined {
+): ArrayBufferView | unknown[] | undefined {
   const size = Math.max(0, Math.trunc(length));
+  // An array of pointers holds what each one points at: resnet.cpp's
+  // `double *out[MAX_NETS]` keeps the caller's weight tables it fills.
+  if (valueType?.trim().endsWith('*')) return new Array<unknown>(size).fill(0);
   switch (valueType?.replace(/\bconst\b/g, '').trim()) {
     // MAME computes in single precision where the source says float, and the
     // difference is visible: Mr. Do!'s palette normalises against its own
@@ -1821,6 +1843,37 @@ function allocateDeclaredArray(
     // uint8_t, char and every unnamed type keep ALLOC's byte array.
     default: return undefined;
   }
+}
+
+/**
+ * A local array of a class the host constructs -- `rectangle sprite_areas[0x20]`
+ * in Taito SJ's sprite pass -- as that many default-constructed objects.
+ */
+function classArray(valueType: string | undefined, length: number, bindings: GeneratedHandlerBindings): unknown[] | undefined {
+  const type = valueType?.replace(/\bconst\b/g, '').trim();
+  if (!type || !/^[A-Za-z_]\w*$/.test(type) || allocateDeclaredArray(type, 0)) return undefined;
+  const construct = bindings.referenceCalls?.[type] ?? bindings.calls?.[type];
+  if (typeof construct !== 'function') return undefined;
+  return Array.from({ length: Math.max(0, Math.trunc(length)) }, () => (construct as (...args: number[]) => unknown)(0, 0, 0, 0));
+}
+
+/**
+ * A local array of every declared dimension: `double r[3][18]` is three rows
+ * of eighteen doubles, each row the array its declared type allocates.
+ */
+function allocateLocalArray(valueType: string | undefined, sizes: readonly number[]): unknown {
+  const [length = 0, ...rest] = sizes;
+  if (rest.length) {
+    return Array.from({ length: Math.max(0, Math.trunc(length)) }, () => allocateLocalArray(valueType, rest));
+  }
+  return allocateDeclaredArray(valueType, length) ?? new Uint8Array(Math.max(0, Math.trunc(length)));
+}
+
+/** The inner extents of a multi-dimensional ALLOC, past its first. */
+function declaredInnerExtents(value: GeneratedExpression | undefined): GeneratedExpression[] {
+  return value?.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'ALLOC'
+    ? value.args.slice(1)
+    : [];
 }
 
 /** The ALLOC(length) a local array declaration lowers to, if this is one. */
@@ -1933,7 +1986,12 @@ function parameterNames(parameters: string | undefined): string[] {
       // `int length = 1` names `length`, not its default. Read as `1`, ymfm's
       // bitfield masked with `(1 << 0) - 1` and answered 0 for every field.
       .map(parameter => parameter.replace(/=[\s\S]*$/, ''))
-      .map(parameter => /\(\s*\*\s*(\w+)\s*\)/.exec(parameter)?.[1] ?? /(\w+)\s*$/.exec(parameter)?.[1])
+      // A declarator in parentheses names its parameter inside them: a
+      // function pointer `void (*cb)(...)`, or resnet.h's reference to an
+      // array, `U const (&tab)[N]`.
+      // An array parameter names itself before its bound: `const uint16_t input[4]`.
+      .map(parameter => /\(\s*[*&]\s*(\w+)\s*\)/.exec(parameter)?.[1] ??
+        /(\w+)\s*$/.exec(parameter.replace(/(\s*\[[^\]]*\])+\s*$/, ''))?.[1])
       .filter((name): name is string => Boolean(name));
     PARAMETER_NAMES.set(key, names);
   }
@@ -1969,9 +2027,13 @@ function executeOperations(
     if (operation.op === 'declare') {
       context.localTypes[operation.name] = operation.valueType;
       const arrayLength = declaredArrayLength(operation.value);
-      const typed = arrayLength
-        ? allocateDeclaredArray(operation.valueType, toNumber(evaluate(arrayLength, context)))
-        : undefined;
+      const objects = arrayLength ? classArray(operation.valueType, toNumber(evaluate(arrayLength, context)), context.bindings) : undefined;
+      const typed = objects ?? (arrayLength
+        ? declaredInnerExtents(operation.value).length
+          ? allocateLocalArray(operation.valueType, [arrayLength, ...declaredInnerExtents(operation.value)]
+            .map(extent => toNumber(evaluate(extent, context))))
+          : allocateDeclaredArray(operation.valueType, toNumber(evaluate(arrayLength, context)))
+        : undefined);
       context.locals[operation.name] = typed ?? wrapValue(operation.valueType, operation.value
         ? evaluate(operation.value, context)
         : 0);
@@ -2122,6 +2184,10 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     }
     const rightValue = evaluate(expression.right, context);
     if (expression.precision === 64) return wideBinary(expression.operator, leftValue, rightValue);
+    if (ORDERING.has(expression.operator)) {
+      const ordered = orderedPointers(expression.operator, leftValue, rightValue);
+      if (ordered !== undefined) return ordered;
+    }
     if (expression.operator === '+' && isGeneratedPointer(leftValue)) {
       return offsetPointer(leftValue, toNumber(rightValue));
     }
@@ -2454,6 +2520,14 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOC32') return new Uint32Array(Math.max(0, toNumber(args[0])));
   if (name === 'ALLOCF') return new Float64Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
+  // A struct type a function declares for itself, and the variable it
+  // declares with it (cpu-compiler.ts lowerLocalStructs): popeye's sprite
+  // pass keeps `struct attribute_memory { ... } attributes[64]`. Each element
+  // is its own struct, built from the field/initial-value pairs.
+  if (name === 'STRUCT_VALUE') return generatedStruct(args);
+  if (name === 'STRUCT_ARRAY') {
+    return Array.from({ length: Math.max(0, toNumber(args[0])) }, () => generatedStruct(args.slice(1)));
+  }
   // <cmath>'s std:: spellings answer as the C ones: the speaker filter sums
   // `std::abs(m_ampl[c])`, and unbound that sum was 0 and every sample
   // divided by it.
@@ -2820,12 +2894,11 @@ function applyIdentifierCall(
   // identity operation, not a call to a generated source handler.  Keeping
   // the object intact is essential for declarations such as
   // `bitmap_ind16 &bm(bitmap)` used by Popeye's renderer.
-  if (
-    name === 'auto' ||
-    name === 'bitmap_ind8' ||
-    name === 'bitmap_ind16' ||
-    name === 'bitmap_rgb32'
-  ) {
+  if (name === 'auto') return args[0];
+  // A bitmap direct-initialised from another is that bitmap; one built from
+  // memory -- sprite.h's `BitmapType wrapped(base, width, height, rowpixels)`
+  // -- is a new view, which the host's call table constructs below.
+  if ((name === 'bitmap_ind8' || name === 'bitmap_ind16' || name === 'bitmap_rgb32') && args.length === 1) {
     return args[0];
   }
   // `m_irq_timer = timer_alloc(FUNC(cls::cb), this)`: the board runs each
@@ -2931,7 +3004,8 @@ function evaluateCall(
     // A MAME `rgb_t` is a packed number, and its channel accessors read it
     // back: the TIA builds its 16k blended palette by averaging every pair of
     // base pens through `pen_color(i).r()`.
-    if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method]) {
+    // Red sits at shift 0 in canvas order, so the test is presence, not value.
+    if (typeof object === 'number' && !expression.args.length && RGB_CHANNELS[method] !== undefined) {
       return (object >>> RGB_CHANNELS[method]!) & 0xff;
     }
     // A std::string is a JS string, which has none of its methods. `append`
@@ -3072,12 +3146,28 @@ function evaluateCall(
   return 0;
 }
 
+/** `*this`, as a cast's operand names the object itself. */
+export function isThisDereference(expression: GeneratedExpression): boolean {
+  return expression.kind === 'unary' && expression.operator === '*' &&
+    expression.operand.kind === 'identifier' && expression.operand.name === 'this';
+}
+
 function assign(
   target: GeneratedExpression,
   operator: string,
   value: unknown,
   context: ExecutionContext,
 ): void {
+  // `static_cast<base &>(*this) = config`: the object's own base subobject
+  // takes each field. Atari's motion-object device inherits its
+  // configuration struct and set_config copies the driver's aggregate in.
+  if (target.kind === 'cast' && isThisDereference(target.operand) && operator === '=') {
+    const source = isLValue(value) ? value.get() : value;
+    for (const [field, item] of Object.entries((source ?? {}) as Record<string, unknown>)) {
+      assign({ kind: 'identifier', name: field }, '=', item, context);
+    }
+    return;
+  }
   if (target.kind === 'identifier') {
     const local = context.locals[target.name];
     const localReference = isLValue(local) ? local : undefined;
@@ -3344,16 +3434,40 @@ function isBytePointerType(valueType: string | undefined): boolean {
   return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
 }
 
-function packedCastView(valueType: string | undefined): boolean | undefined {
+function packedCastView(valueType: string | undefined): boolean | 'u32' | 's32' | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
   if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
   if (/^(?:s16|int16_t)$/.test(pointee)) return true;
+  if (/^(?:u32|uint32_t)$/.test(pointee)) return 'u32';
+  if (/^(?:s32|int32_t)$/.test(pointee)) return 's32';
   return undefined;
 }
 
-function packedByteView(value: unknown, signed: boolean): unknown {
-  if (!(value instanceof Uint8Array) && !(value instanceof Int8Array)) return value;
-  return wordView(value, signed);
+function packedByteView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
+  // A pointer into bytes, `(uint32_t *)(&m_objectram[offs])`: the view starts
+  // at its element. Bubble Bobble skips an empty object by reading its four
+  // bytes as one word; read as one byte, every backdrop column at y = 0 was
+  // skipped too.
+  const pointer = value as { generatedPointer?: boolean; source?: unknown; offset?: number; target?: unknown };
+  const bytes = pointer?.generatedPointer && pointer.target === undefined &&
+    (pointer.source instanceof Uint8Array || pointer.source instanceof Int8Array)
+    ? (pointer.source as Uint8Array).subarray(Number(pointer.offset ?? 0))
+    : value;
+  if (!(bytes instanceof Uint8Array) && !(bytes instanceof Int8Array)) return value;
+  if (signed === 'u32' || signed === 's32') return dwordView(bytes, signed === 's32');
+  return wordView(bytes, signed);
+}
+
+/** Bytes read four at a time in the host's order, as MAME's little-endian host reads them. */
+function dwordView(bytes: Uint8Array | Int8Array, signed: boolean): unknown {
+  if ((bytes.byteOffset & 3) === 0) {
+    return signed
+      ? new Int32Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 2)
+      : new Uint32Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 2);
+  }
+  const copy = new Uint8Array(bytes.byteLength & ~3);
+  copy.set((bytes as Uint8Array).subarray(0, copy.length));
+  return signed ? new Int32Array(copy.buffer) : new Uint32Array(copy.buffer);
 }
 
 /**
@@ -3371,7 +3485,7 @@ export function markBigEndianWords(bytes: Uint8Array): void {
   Object.defineProperty(bytes, BIG_ENDIAN_WORDS, { value: true });
 }
 
-function isBigEndianWords(bytes: object): boolean {
+export function isBigEndianWords(bytes: object): boolean {
   return (bytes as { [BIG_ENDIAN_WORDS]?: boolean })[BIG_ENDIAN_WORDS] === true;
 }
 
@@ -3573,6 +3687,15 @@ function modulo(value: number, divisor: number): number {
   return ((value % divisor) + divisor) % divisor;
 }
 
+/**
+ * Element `index` of whatever a program holds as memory: a typed array, a
+ * pointer into one (`&scanline[xscroll]`), or a plain array.
+ */
+export function generatedElement(value: unknown, index: number): unknown {
+  if (ArrayBuffer.isView(value)) return (value as Uint8Array)[index] ?? 0;
+  return isGeneratedPointer(value) ? pointerValue(value, index) : indexValue(value, index);
+}
+
 function indexValue(object: unknown, index: number): unknown {
   // Memory first: a typed array is never a pointer wrapper or a reference,
   // and a board's per-pixel row reads (`&bitmap.pix(y)`) land here.
@@ -3619,12 +3742,17 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
       // a pointer wrapper around an unresolved call expression.
       if (result && (typeof result === 'object' || typeof result === 'function')) return result;
     }
-    const reference = object && typeof object === 'object'
-      ? (object as Record<string, unknown>)[`${expression.callee.property}&`]
+    // Through a pointer, the object it points at: System 1's
+    // `&bgpixmaps[i]->pix(y)` is a row of the bitmap the slot holds. Asking
+    // the pointer itself found no `pix&`, called `pix(y)` and took the address
+    // of one pixel, and every background row read zeros.
+    const receiver = memberObject(object, expression.callee.property);
+    const reference = receiver && typeof receiver === 'object'
+      ? (receiver as Record<string, unknown>)[`${expression.callee.property}&`]
       : undefined;
     if (typeof reference === 'function') {
       const args = expression.args.map(argument => toNumber(evaluate(argument, context)));
-      const pointer = reference.apply(object, args);
+      const pointer = reference.apply(receiver, args);
       if (isGeneratedPointer(pointer)) return pointer;
     }
     // `&region->as_u8()` is MAME's way of saying "the first byte of this
@@ -3780,15 +3908,43 @@ function isIntersectable(value: unknown): value is Intersectable {
  * this way.
  */
 function intersection(left: Intersectable, right: unknown): Intersectable {
-  const copy = Object.assign(Object.create(Object.getPrototypeOf(left)), left) as Intersectable;
+  const copy = intersectionCopy(left);
   copy.intersect(right);
   return copy;
+}
+
+/** A rectangle by value: the same edges in an object of its own. */
+function intersectionCopy(value: Intersectable): Intersectable {
+  return Object.assign(Object.create(Object.getPrototypeOf(value)), value) as Intersectable;
 }
 
 /** C++ `a & b` as the interpreter applies it, for emitted code. */
 export function applyGeneratedAnd(left: unknown, right: unknown): unknown {
   if (isIntersectable(left)) return intersection(left, right);
   return toNumber(left) & toNumber(right);
+}
+
+/**
+ * Where a value points, for ordering two pointers into the same memory: a
+ * pointer's offset, a bare container's start, a number as itself.
+ * sega16sp.cpp walks its sprite list `for (data = spriteram(); data < ramend;
+ * data += 8)`, and compared as numbers both sides were NaN: no sprite drew.
+ */
+export function generatedPointerOffset(value: unknown): number {
+  const held = isLValue(value) ? value.get() : value;
+  if (isGeneratedPointer(held)) return held.offset;
+  if (isIndexableMemory(held)) return 0;
+  return toNumber(held);
+}
+
+const ORDERING = new Set(['<', '<=', '>', '>=']);
+
+/** A relational operator over two values either of which may be a pointer. */
+function orderedPointers(operator: string, left: unknown, right: unknown): number | undefined {
+  const pointerish = (value: unknown) => isGeneratedPointer(value) || isIndexableMemory(value);
+  if (!pointerish(left) && !pointerish(right)) return undefined;
+  const a = generatedPointerOffset(left), b = generatedPointerOffset(right);
+  return (operator === '<' ? a < b : operator === '<=' ? a <= b : operator === '>' ? a > b : a >= b) ? 1 : 0;
 }
 
 export function generatedValuesEqual(left: unknown, right: unknown): boolean {
@@ -4140,7 +4296,7 @@ export function generatedByteView(value: unknown): unknown {
   return bytes(value) ?? value;
 }
 
-export function generatedPackedView(value: unknown, signed: boolean): unknown {
+export function generatedPackedView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
   return packedByteView(value, signed);
 }
 

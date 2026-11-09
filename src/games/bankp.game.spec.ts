@@ -3,7 +3,7 @@ import { inputKeys } from '../gen/generate.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { generatedTileGroupIndirectMask } from '../runtime/generated-video.ts';
 import { bankp } from './bankp.game.ts';
-import { gameSourceGraph, mameSourceRoot } from './test-support.ts';
+import { assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 const graph = gameSourceGraph(bankp);
 const machine = graph.nodes.find(node =>
@@ -19,24 +19,7 @@ const video = compileMameVideo(graph, mameSourceRoot(), machine.id);
 assert.ok(video);
 assert.equal(video.plan.tilemaps.length, 2);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
-assert.deepEqual(
-  video.plan.palette?.banks.map(bank => ({
-    penOffset: bank.penOffset,
-    lookupOffset: bank.lookupOffset,
-    lookupCount: bank.lookupCount,
-    colorOr: bank.colorOr,
-  })),
-  [
-    { penOffset: 0, lookupOffset: 32, lookupCount: 128, colorOr: 0 },
-    { penOffset: 128, lookupOffset: 32, lookupCount: 128, colorOr: 16 },
-    { penOffset: 256, lookupOffset: 288, lookupCount: 128, colorOr: 0 },
-    { penOffset: 384, lookupOffset: 288, lookupCount: 128, colorOr: 16 },
-  ],
-);
-assert.ok(
-  video.plan.palette?.banks.every(bank => !bank.lookupTerms?.length),
-  'Bank Panic lookup banks must use their post-palette PROM offsets',
-);
+assertPaletteCallback(video, { handler: 'bankp_state.palette', entries: 512, indirectEntries: 32 });
 assert.deepEqual(
   [1, 2, 3].map(button => inputKeys('bankp', `IPT_BUTTON${button}`)),
   [['KeyZ'], ['KeyX'], ['KeyC']],

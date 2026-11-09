@@ -29,7 +29,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { callLinksGeneration, DEFAULT_CONSTANTS, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
+import { callLinksGeneration, DEFAULT_CONSTANTS, GENERATED_STRUCT, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
 import {
@@ -86,6 +86,7 @@ import {
 } from './generated-board-shape.ts';
 import { hasDeviceType } from './generated-source-shape.ts';
 import { GeneratedRectangle, isEncodedRectangle } from './rectangle.ts';
+import { presentVectorDisplay } from './vector-display.ts';
 
 export type BoardFactory = (
   config: BoardConfig,
@@ -147,6 +148,9 @@ function startReadsHostBindings(type: string): boolean {
     // is MAME starting the device after its palette: the K053246 decodes its
     // sprite ROM against the palette's entry count.
     if (property === 'started') reads = true;
+    // A decoded graphics set read through the board's gfxdecode finder:
+    // atari_motion_objects_device::device_start checks `m_gfxdecode->gfx(n)`.
+    if (property === 'gfx') reads = true;
   });
   // And one that builds its own graphics set reads the palette the video
   // composes, through device_gfx_interface.
@@ -450,6 +454,8 @@ class IrBoard implements Board {
    * head a half-track away from where the DOS believes it is.
    */
   private machinePhase = DEFAULT_CONSTANTS['machine_phase::INIT']!;
+  /** device_t::m_started for the driver device (see `started` in the call table). */
+  private driverStarted = false;
   /** Composed slot cards' own scopes (see cardScope), by card tag. */
   private readonly cardScopes = new Map<string, { instance: Record<string, unknown>; bindings: GeneratedHandlerBindings }>();
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
@@ -668,6 +674,10 @@ class IrBoard implements Board {
     this.hostState['vector-display'] = this.vectorPoints;
     this.inputs = inputs;
     this.regions = regions;
+    // The file-scope constant tables the handlers name, where every handler
+    // resolves a name it does not declare: dkong's palette callback hands
+    // `dkong_net_info` to compute_res_net.
+    for (const [name, value] of Object.entries(machine.staticTables ?? {})) this.state[name] = staticTableValue(value);
     this.fbWidth = machine.execution.screen.width;
     this.fbHeight = machine.execution.screen.height;
     // The first line boundary is the beam arriving at line 0 with nothing run
@@ -796,14 +806,14 @@ class IrBoard implements Board {
           priority: () => this.videoPrimitives?.screenPriority?.() ?? 0,
           // MAME `screen_device::visible_area()`: the window inside the raster
           // that reaches the display, in the same coordinates a device plots.
-          visible_area: () => ({
-            min_x: machine.execution.screen.xOffset ?? 0,
-            max_x: (machine.execution.screen.xOffset ?? 0) +
-              machine.execution.screen.width - 1,
-            min_y: machine.execution.screen.yOffset ?? 0,
-            max_y: (machine.execution.screen.yOffset ?? 0) +
-              machine.execution.screen.height - 1,
-          }),
+          // A rectangle, with its accessors: atarimo's force_update asks
+          // `screen().visible_area().bottom()`.
+          visible_area: () => new GeneratedRectangle(
+            machine.execution.screen.xOffset ?? 0,
+            (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width - 1,
+            machine.execution.screen.yOffset ?? 0,
+            (machine.execution.screen.yOffset ?? 0) + machine.execution.screen.height - 1,
+          ),
           // MAME `screen_device::register_screen_bitmap`: the screen sizes the
           // device's own bitmap to the raster and keeps it that size. Without
           // it the Game Boy PPU plotted every pixel into a zero-by-zero bitmap
@@ -841,6 +851,24 @@ class IrBoard implements Board {
             shadows_enabled: () => this.videoPrimitives?.paletteShadows?.()?.shadowGroup ? 1 : 0,
             highlights_enabled: () => this.videoPrimitives?.paletteShadows?.()?.highlightGroup ? 1 : 0,
             shadow_table: () => this.videoPrimitives?.paletteShadows?.()?.shadow_table() ?? 0,
+          },
+          // The device's owner -- the driver -- answers its shares by tag:
+          // sprite.h's device_start binds `owner()->memshare(tag())` as the
+          // sprite RAM. A share a 16-bit processor owns is its words, as the
+          // board binds it (bindGeneratedShareState).
+          owner: {
+            memshare: (tag: unknown) => {
+              // A tag path (`:mob`, or a child's `owner:mob`) names its leaf share.
+              const leaf = String(generatedCallValue(tag) ?? '').split(':').at(-1)!;
+              tag = leaf;
+              const bytes = this.shares[leaf];
+              if (!bytes) return 0;
+              const words = machine.execution.cpus.some(cpu =>
+                generatedCpuDataWidth(cpu.type ?? 'Z80') === 16 &&
+                [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].some(range => range.share === String(generatedCallValue(tag))));
+              const view = words ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1) : bytes;
+              return { ptr: () => view, bytes: () => bytes.length };
+            },
           },
           machine: {
             side_effects_disabled: () => 0,
@@ -1425,6 +1453,14 @@ class IrBoard implements Board {
     // effects such as clearing a sound CPU IRQ.
     calls['machine().side_effects_disabled'] = () => 0;
     calls['machine().phase'] = () => this.machinePhase;
+    // The running game_driver: CPS1's machine_reset finds its row of
+    // cps1_config_table by `strcmp(pCFG->name, machine().system().name)`.
+    calls['machine().system'] = () => ({ name: machine.game }) as never;
+    // device_t::started() on the driver itself: device_t::start sets it once
+    // driver_device::device_start, which runs machine_start, sound_start and
+    // video_start, has returned. The Spectrum's end-of-screen timer reads it
+    // before forcing a partial update.
+    calls['started'] = () => this.driverStarted ? 1 : 0;
     // The scheduler's clock, as devices already see it. Carnival's sound timer
     // is `machine().time().as_ticks(500) & 1`, a 500 Hz square wave the game
     // polls; unbound it read 0 forever (#178).
@@ -1505,16 +1541,53 @@ class IrBoard implements Board {
           const shift = trailingZeroBits(custom.mask);
           value = (value & ~custom.mask) | ((line << shift) & custom.mask);
         }
-        const vectorPlan = machine.video?.vector;
-        const done = vectorPlan?.type === 'DVG' ? vectorPlan.doneInput : undefined;
-        if (done?.port === port) {
-          // This DVG executor consumes the display list synchronously, so the
-          // source custom input observes the generator in its completed state.
-          value = done.activeLow ? value & ~done.mask : value | done.mask;
-        }
         return value;
       },
     };
+    // A call through a member-function pointer, which holds its method's name
+    // (member-pointers.ts): Cosmic's screen update colours each pixel through
+    // `(this->*m_map_color)(x, y)`, set to panic_map_color by its palette.
+    // The pointer is called per pixel there, so each name and arity resolves
+    // to its handler and parameter names once.
+    const methodTargets = new Map<string, { handler: NonNullable<typeof machine.handlers>[number]; names: string[] } | null>();
+    const methodTarget = (name: string, arity: number) => {
+      const key = `${name}/${arity}`;
+      let target = methodTargets.get(key);
+      if (target !== undefined) return target;
+      // An overloaded method is one handler per arity (`copy_layer__a5`), and
+      // the pointer's own signature is what the call's arguments are.
+      const leaf = name.split(/[.:]+/).at(-1)!;
+      const usable = (candidate: NonNullable<typeof machine.handlers>[number]) =>
+        Boolean(candidate.program && !candidate.program.diagnostics.length);
+      const handler = machine.handlers?.find(candidate => candidate.method === `${leaf}__a${arity}` && usable(candidate)) ??
+        machine.handlers?.find(candidate => candidate.method === name && usable(candidate));
+      target = handler
+        ? {
+          handler,
+          names: (handler.parameters ?? '').split(',')
+            .map(parameter => /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1])
+            .filter((parameter): parameter is string => Boolean(parameter)),
+        }
+        : null;
+      methodTargets.set(key, target);
+      return target;
+    };
+    calls['CALL_METHOD'] = (method: unknown, ...args: unknown[]) => {
+      const name = String(method);
+      const target = methodTarget(name, args.length);
+      if (!target) {
+        noteUnresolvedCall(`CALL_METHOD ${name}`);
+        return 0;
+      }
+      const locals: Record<string, unknown> = {};
+      for (let index = 0; index < target.names.length; index++) locals[target.names[index]!] = args[index];
+      return executeGeneratedMachineHandler(machine, target.handler, this.bindings, locals) ?? 0;
+    };
+    // `ioport("VIDHW")`, the port by tag, or null where the machine has none:
+    // dkong's check_palette reads its board revision this way.
+    calls['ioport'] = (tag: unknown) => (generatedInputs.has?.(String(tag)) ?? true
+      ? { read: () => generatedInputs.read(String(tag)) }
+      : 0) as never;
     // referenceCalls/callParameters are shared, mutate-in-place dictionaries:
     // effect executors and prepared-call caches hold references to them, so
     // later packages (video framework calls) must extend them rather than
@@ -1571,6 +1644,15 @@ class IrBoard implements Board {
           const bytes = regions[tag];
           if (!bytes) throw new Error(`${machine.game}: no ROM region "${tag}"`);
           return { base: () => bytes, bytes: () => bytes.length };
+        },
+        // MAME's share finder by tag. System 16's paletteram_w sizes its
+        // shadow half as `memshare("paletteram")->bytes() / 2`; unbound that
+        // was 0, and every shadow pen was written over its normal pen.
+        memshare: (...args: unknown[]) => {
+          const tag = String(generatedCallValue(args[0]) ?? '');
+          const bytes = this.shares[tag];
+          if (!bytes) throw new Error(`${machine.game}: no memory share "${tag}"`);
+          return { ptr: () => bytes, bytes: () => bytes.length };
         },
       },
       callParameters: {},
@@ -1630,12 +1712,13 @@ class IrBoard implements Board {
     // the board spun in its own video timing with a black screen.
     for (const timer of machine.execution.genericTimers ?? []) {
       if (timer.driver && timer.precise) this.preciseTimerMembers.add(timer.member);
+      // Resolved once: a scanline timer fires 264 times a frame.
+      const handler = machine.handlers?.find(candidate =>
+        `${candidate.ownerClass}.${candidate.method}` === timer.handler);
       const fire = (): void => {
         const pending = this.pendingTimers.get(timer.member);
         if (!pending) return;
         this.pendingTimers.delete(timer.member);
-        const handler = machine.handlers?.find(candidate =>
-          `${candidate.ownerClass}.${candidate.method}` === timer.handler);
         if (!handler?.program || handler.program.diagnostics.length) return;
         const run = () => executeGeneratedMachineHandler(machine, handler, this.bindings, {
           param: pending.param,
@@ -1684,28 +1767,37 @@ class IrBoard implements Board {
         return pending && pending.at > this.machineSeconds() ? 1 : 0;
       };
     }
-    // The driver reaches its motion-object device through a finder member
-    // (`m_mob->set_yscroll(...)`). Without a call binding, the device's inline
-    // accessor lowers into the driver's own namespace and writes a driver
-    // member of the same name -- Atari System 1's `m_yscroll` share.
-    const motionObjectsMember = machine.devices?.find(device =>
-      device.tag === machine.video?.motionObjects?.tag)?.member;
-    if (motionObjectsMember) {
-      const sprites = () => this.videoPrimitives?.motionObjectsDevice?.();
-      for (const accessor of ['set_xscroll', 'set_yscroll', 'set_bank'] as const) {
-        calls[`${motionObjectsMember}.${accessor}`] = value => {
-          sprites()?.[accessor](Number(value) || 0);
+    // `timer_alloc("cls.method")`: a driver timer held in an array element
+    // (Exidy's collision timers), scheduled and fired like the named ones.
+    calls['timer_alloc'] = (callback: unknown) => {
+      if (typeof callback !== 'string') return undefined as never;
+      const key = `${callback}#${this.genericTimerFires.size}`;
+      this.genericTimerFires.set(key, () => {
+        const pending = this.pendingTimers.get(key);
+        if (!pending) return;
+        this.pendingTimers.delete(key);
+        const handler = machine.handlers?.find(candidate =>
+          `${candidate.ownerClass}.${candidate.method}` === callback);
+        if (!handler?.program || handler.program.diagnostics.length) return;
+        withGeneratedTimerExpiry(pending.at, () =>
+          executeGeneratedMachineHandler(machine, handler, this.bindings, { param: pending.param }));
+      });
+      return {
+        stateKeys: () => [],
+        adjust: (when: unknown, param: unknown = 0) => {
+          const seconds = Number(when);
+          if (!Number.isFinite(seconds) || seconds < 0) this.pendingTimers.delete(key);
+          else this.pendingTimers.set(key, { at: this.machineSeconds() + seconds, param: Number(param) || 0 });
           return 0;
-        };
-      }
-      calls[`${motionObjectsMember}.bank`] = () => sprites()?.bankIndex() ?? 0;
-      // Accessors that hand back the device's own storage: video_start
-      // rewrites the lookups through these references, and the screen update
-      // merges the object bitmap.
-      for (const accessor of ['code_lookup', 'color_lookup', 'gfx_lookup', 'bitmap'] as const) {
-        calls[`${motionObjectsMember}.${accessor}`] = () => sprites()?.[accessor]() ?? 0;
-      }
-    }
+        },
+        reset: () => { this.pendingTimers.delete(key); return 0; },
+        enable: (enabled: unknown) => { if (!enabled) this.pendingTimers.delete(key); return 0; },
+        enabled: () => {
+          const pending = this.pendingTimers.get(key);
+          return pending && pending.at > this.machineSeconds() ? 1 : 0;
+        },
+      } as never;
+    };
     bindGeneratedDriverState(this.state, calls);
     for (const [tag, bytes] of Object.entries(regions)) {
       bindGeneratedRegionState(
@@ -1842,6 +1934,26 @@ class IrBoard implements Board {
         ['tag', () => tag],
         ['reset', () => device.reset()],
       ]);
+      // And its fields, live: a driver reads a device's public member through
+      // its finder -- System 16A's screen update starts
+      // `if (!m_segaic16vid->m_display_enable)`, and with no such property the
+      // test passed every frame and the screen stayed black.
+      if (self && typeof self === 'object') {
+        for (const name of Object.getOwnPropertyNames(self)) {
+          // Values only: a device pointer a device holds (the NES slot's
+          // m_cart) stays unexposed, as it was. Exposed, nes_state's
+          // machine_start took its cartridge branch, whose PPU-space installs
+          // the NES family already applies from source (nes/extract.ts) and a
+          // device space cannot take at run time.
+          if (name in referent || !/^m_\w+$/.test(name) || typeof self[name] === 'function' ||
+            (self[name] !== null && typeof self[name] === 'object' && !ArrayBuffer.isView(self[name]))) continue;
+          Object.defineProperty(referent, name, {
+            get: () => self[name],
+            set: (value: unknown) => { self[name] = value; },
+            enumerable: false,
+          });
+        }
+      }
       this.deviceReferents.set(tag, referent);
       if (flatMember && (this.state[flatMember] === device || this.state[flatMember] == null)) {
         this.state[flatMember] = referent;
@@ -1888,11 +2000,6 @@ class IrBoard implements Board {
       write: { ...sourceHandlers.write },
     };
     this.installDeviceHandlers(machine, registry);
-    if (machine.video?.vector?.type === 'DVG') {
-      registry.write['dvg.go_w'] = () => {};
-      registry.write['dvg.reset_w'] = () => {};
-      calls['m_dvg.reset_w'] = () => 0;
-    }
     this.installGeneratedDeviceBuses(machine, registry);
     this.cartridgeTaps = this.installCartridgeMemoryHandlers(machine, registry);
     this.soundRuntime = this.installGeneratedSoundHandlers(machine, regions, sinks, registry);
@@ -1939,24 +2046,6 @@ class IrBoard implements Board {
       }
     }
 
-    if (hasDeviceType(machine, 'ATARI_MOTION_OBJECTS') && machine.video && !machine.video.ramPalette) {
-      // PALETTE(...).set_format(IRGB_4444, 1024) is declared in the shared
-      // Atari base configuration. Preserve that inherited format even when
-      // the selected-machine palette extractor cannot associate the base
-      // device node with the derived machine.
-      machine.video.ramPalette = {
-        tag: 'palette',
-        endianness: 'big',
-        entries: 1024,
-        bytesPerEntry: 2,
-        intensity: { bits: 4, shift: 12 },
-        channels: [
-          { channel: 'r', bits: 4, shift: 8 },
-          { channel: 'g', bits: 4, shift: 4 },
-          { channel: 'b', bits: 4, shift: 0 },
-        ],
-      };
-    }
     const ramPalette = machine.video?.ramPalette;
     if (
       ramPalette && !ramPalette.endianness &&
@@ -2175,6 +2264,13 @@ class IrBoard implements Board {
         // their own addresses (`m_boot_view[0].install_read_handler(...)`, the
         // Game Boy's boot ROM), so the window itself places nothing.
         install_view: () => 0,
+        // `space(AS_*).specific(m_program)` / `.cache(m_cache)` bind a driver
+        // member to this space. The compiler reads the same statement into
+        // spaceAccessors, and the member is wired from that just below, so
+        // the call itself, which the Spectrum's machine_start makes, binds
+        // nothing more.
+        specific: () => 0,
+        cache: () => 0,
         install_read_tap: (...args: unknown[]) => tapInto('install_read_tap', args),
         install_write_tap: (...args: unknown[]) => tapInto('install_write_tap', args),
         install_readwrite_tap: (...args: unknown[]) => tapInto('install_readwrite_tap', args),
@@ -2630,6 +2726,11 @@ class IrBoard implements Board {
         }
       }
     }
+    // A device finder is the device, whatever a share happens to be called:
+    // Gauntlet's motion-object RAM is share "mob" and its
+    // atari_motion_objects_device is `m_mob`. The share's default `m_<tag>`
+    // alias gives way, or every `m_mob->set_xscroll()` wrote into RAM.
+    const deviceMembers = new Set((machine.devices ?? []).flatMap(device => device.member ? [device.member] : []));
     for (const [tag, bytes] of Object.entries(this.shares)) {
       const declaredBits = machine.execution.shareBindings
         ?.find(binding => binding.share === tag)?.bits;
@@ -2647,6 +2748,7 @@ class IrBoard implements Board {
           ?.filter(binding => binding.share === tag)
           .map(binding => binding.member),
         declaredBits ?? cpuOwnedBits,
+        deviceMembers,
       );
     }
 
@@ -3034,7 +3136,14 @@ class IrBoard implements Board {
       // generated device's update instead of a driver handler to execute.
       const deviceTag = machine.execution.screenUpdate.deviceTag;
       const updateMethod = machine.execution.screenUpdate.handler.split('.').pop()!;
-      const deviceUpdate: DeviceScreenUpdate | undefined = deviceTag
+      // MAME's vector_device is the display, not hardware: what its
+      // screen_update does is hand the generators' beam list to the render
+      // system, which is presentation (vector-display.ts).
+      const vectorDisplay = deviceTag !== undefined &&
+        machine.devices?.some(device => device.tag === deviceTag && device.type === 'VECTOR');
+      const deviceUpdate: DeviceScreenUpdate | undefined = vectorDisplay
+        ? (screen, bitmap) => presentVectorDisplay(this.vectorPoints.points, screen, bitmap)
+        : deviceTag
         ? (screen, bitmap, cliprect) => {
             const device = this.devices.get(deviceTag);
             // A processor can own the screen: the TMS34010 draws each line
@@ -3416,6 +3525,7 @@ class IrBoard implements Board {
     // machine_start was enough to change how Bubble Bobble ran.
     this.bindDelegateSlots(machine);
     this.runMachineLifecycle('startHandlers');
+    this.driverStarted = true;
     this.setRtcDatetime(config.baseTime);
     // running_machine::soft_reset: every device resets, then the driver's
     // machine_reset runs, all after the driver has started.
@@ -3939,14 +4049,6 @@ class IrBoard implements Board {
       const handler = this.machine.handlers?.find(candidate =>
         `${candidate.ownerClass}.${candidate.method}` === key);
       if (!handler?.program || handler.program.diagnostics.length) {
-        if (hasDeviceType(this.machine, 'ATARI_MOTION_OBJECTS') && key.endsWith('.video_start')) {
-          // The only unparsed construct is a range-for that XORs the motion
-          // object's derived code lookup. The generated renderer resolves ROM
-          // codes directly; retain the source-visible bank initialization.
-          this.state.m_playfield_tile_bank = 0;
-          this.state.m_playfield_color_bank = this.state.m_vindctr2_screen_refresh ? 0 : 1;
-          continue;
-        }
         throw new Error(
           `${this.machine.game}: machine lifecycle handler "${key}" is not executable`,
         );
@@ -4716,10 +4818,9 @@ class IrBoard implements Board {
           // PORT_READ_LINE_DEVICE_MEMBER: the bit is another device's output
           // line, answered live rather than by a switch.
           if (custom.source === 'device-line') {
-            // A line belonging to hardware the board does not instantiate —
-            // Asteroids reads the DVG's done flag, and the vector generator is
-            // a host service — leaves the bit as the port supplies it, which is
-            // what an unresolved handler custom already does.
+            // A line belonging to hardware the board does not instantiate
+            // leaves the bit as the port supplies it, which is what an
+            // unresolved handler custom already does.
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
             const specification = machine.devices?.find(candidate =>
               candidate.tag === custom.deviceTag);
@@ -5054,6 +5155,13 @@ class IrBoard implements Board {
       // start: each entry is wherever its pointer points, in the region it
       // points into (gng's machine_start banks its program ROM this way).
       const placeEntry = (value: number, base: unknown): void => {
+        // Or in the storage of the device the bank is configured over: the
+        // 128K's machine_start places each RAM bank at `m_ram->pointer()`.
+        const stored = deviceStorage && regionOffsetOf({ storage: deviceStorage }, base);
+        if (stored) {
+          entryOffsets[value] = stored.offset;
+          return;
+        }
         const placed = regionOffsetOf(regions, base);
         if (!placed) {
           throw new Error(`${machine.game}: memory bank "${bank.tag}" entry ${value} points into no region`);
@@ -5457,16 +5565,9 @@ class IrBoard implements Board {
    * out of that table -- unstarted, each gain it wrote was NaN.
    */
   private runDeviceStarts(): void {
-    // A device the video plan already models is started by the renderer from
-    // that plan, not from its C++ lifecycle: running
-    // atari_motion_objects_device::device_start over the board's flat member
-    // namespace zeroed Atari System 1's own `m_yscroll`, a shared pointer of
-    // the same name as the device's scroll register.
-    const modelled = new Set([this.machine.video?.motionObjects?.tag]);
     for (const specification of this.machine.devices ?? []) {
       const key = specification.startHandler;
       if (!key || this.devices.has(specification.tag)) continue;
-      if (modelled.has(specification.tag)) continue;
       const handler = this.machine.handlers?.find(candidate =>
         `${candidate.ownerClass}.${candidate.method}` === key);
       if (!handler?.program || handler.program.diagnostics.length) continue;
@@ -6143,6 +6244,8 @@ export function bindGeneratedShareState(
   bytes: Uint8Array,
   aliases: readonly string[] = [],
   bits: 8 | 16 = 8,
+  /** Members something else already is (a device finder), never aliased. */
+  reserved: ReadonlySet<string> = new Set(),
 ): void {
   Object.defineProperty(bytes, 'bytes', {
     value: () => bytes.length,
@@ -6151,7 +6254,7 @@ export function bindGeneratedShareState(
   const boundMemory = bits === 16
     ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1)
     : bytes;
-  state[`m_${tag}`] = boundMemory;
+  if (!reserved.has(`m_${tag}`)) state[`m_${tag}`] = boundMemory;
   const indexed = /^(.+)\[(\d+)\]$/.exec(tag);
   for (const member of aliases) {
     // An indexed share's finder member (`m_videoram` for share "videoram[1]")
@@ -6305,6 +6408,21 @@ function systemTime(baseTime: string | undefined): { local_time: Record<string, 
  * over, and how far in. `memregion("maincpu")->base() + 0x10000` is a pointer
  * whose source is that region's own array.
  */
+/**
+ * A file-scope constant table as the program sees it: each struct a struct
+ * (so an array of them decays to its first element, `range->type`), each
+ * array an array, copied so no board shares another's.
+ */
+function staticTableValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(staticTableValue);
+  if (value && typeof value === 'object') {
+    const struct = Object.fromEntries(Object.entries(value).map(([field, item]) => [field, staticTableValue(item)]));
+    Object.defineProperty(struct, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
+    return struct;
+  }
+  return value;
+}
+
 function regionOffsetOf(regions: Regions, base: unknown): { region: string; offset: number } | undefined {
   const pointer = base as { generatedPointer?: boolean; source?: unknown; offset?: number } | undefined;
   const source = pointer && typeof pointer === 'object' && pointer.generatedPointer ? pointer.source : base;

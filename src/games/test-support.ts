@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { buildGraph, gameSubgraph } from '../kg/build.ts';
 import type { KnowledgeGraph } from '../kg/types.ts';
+import type { CompiledMameVideo, PaletteCallback } from '../mame/video-compiler.ts';
 import type { GameTestContract, MachineTargetDefinition } from './types.ts';
 import { validateGameContract } from './contract-validation.ts';
 
@@ -31,4 +32,18 @@ export function gameSourceGraph(
 
 export function assertGameContract(contract: GameTestContract): void {
   validateGameContract(contract, 'accepted');
+}
+
+/**
+ * The machine's palette is its own palette_device init callback, which the
+ * board runs at the palette's device_start (execution.paletteInits): no plan
+ * read out of the callback's text stands in for it.
+ */
+export function assertPaletteCallback(
+  video: CompiledMameVideo | undefined,
+  ...expected: Omit<PaletteCallback, 'member'>[]
+): void {
+  assert.ok(video, 'the video source must lower');
+  assert.equal(video.plan.palette, undefined, 'no plan stands in for the palette callback');
+  assert.deepEqual(video.paletteCallbacks?.map(({ member: _, ...callback }) => callback), expected);
 }

@@ -16,6 +16,16 @@ export class GeneratedRectangle {
     this.max_y = maxY;
   }
 
+  /**
+   * Save-state roots (machine-state.ts). A rectangle a device keeps is state:
+   * sprite.cpp's `m_rect_list_bounds` and its rect list decide whether the
+   * next frame recomputes its dirty rectangles, and left out of a save, a
+   * rewound Marble Madness merged a stale list and lost a sprite.
+   */
+  stateKeys(): readonly string[] {
+    return ['min_x', 'max_x', 'min_y', 'max_y'];
+  }
+
   // emu/rendertypes.h accessors. A screen update's merge loop is written
   // `for (int y = rect.top(); y <= rect.bottom(); y++)`; unresolved, they
   // answered 0 and Atari System 1 merged one pixel of its sprites.

@@ -12,7 +12,7 @@ import {
   type GeneratedDeviceMethodMap,
 } from '../runtime/generated-device.ts';
 import { galaga } from './galaga.game.ts';
-import { assertGameContract, gameSourceGraph, mameSourceRoot } from './test-support.ts';
+import { assertGameContract, assertPaletteCallback, gameSourceGraph, mameSourceRoot } from './test-support.ts';
 
 assertGameContract(galaga);
 const mameSrc = mameSourceRoot();
@@ -116,30 +116,12 @@ for (const type of ['NAMCO_06XX', 'NAMCO_54XX'] as const) {
   assert.equal(compiled.summary.diagnostics, 0, `${type} must compile clean`);
 }
 
-// The star palette lowers as a computed indirect-color group plus an
-// identity pen bank — never as a PROM lookup.
+// The palette is galaga_palette as written, its star colours included: those
+// come from the colour index through a resistor network of their own
+// (resnet.cpp's compute_resistor_weights), set as indirect colours 32-95.
 const video = compileMameVideo(graph, mameSrc, machine.id);
-assert.ok(video, 'galaga MAME video source must lower to executable video IR');
-assert.deepEqual(video.plan.palette?.computedColors, [{
-  base: 32,
-  count: 64,
-  min: 0,
-  max: 255,
-  scaler: -1,
-  channels: [
-    { channel: 'r', bits: [0, 1], resistances: [470, 220], pulldown: 1000, pullup: 0 },
-    { channel: 'g', bits: [2, 3], resistances: [470, 220], pulldown: 1000, pullup: 0 },
-    { channel: 'b', bits: [4, 5], resistances: [470, 220], pulldown: 0, pullup: 0 },
-  ],
-}]);
-const starBank = video.plan.palette?.banks.find(bank => bank.penOffset === 512);
-assert.deepEqual(starBank, {
-  penOffset: 512,
-  colorOr: 32,
-  lookupOffset: 0,
-  lookupCount: 64,
-  direct: true,
-});
+assertPaletteCallback(video, { handler: 'galaga_state.galaga_palette', entries: 580, indirectEntries: 96 });
+assert.ok(video);
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
 console.log('galaga.spec: source-derived MCU fleet, starfield and palette passed');

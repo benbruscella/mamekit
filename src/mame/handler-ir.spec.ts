@@ -723,4 +723,39 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
     declared.value.callee.name === 'AGGREGATE', 'a braced initializer is an aggregate');
 }
 
-console.log('handler-ir.spec: 76 passed');
+// Every dimension of a local array is storage: resnet.cpp's
+// compute_resistor_weights keeps `double r[MAX_NETS][MAX_RES_PER_NET]`. Kept
+// to its first dimension, r[i][j] wrote into a number and every weight was 0.
+{
+  const program = compileMameHandler('double r[N][M]; r[1][2] = 0.5; r[2][17] = 3; return r[1][2] + r[2][17];');
+  assert.equal(executeGeneratedHandler(program, { constants: { N: 3, M: 18 } }), 3.5);
+}
+
+// An array of pointers keeps what they point at, and a write through one
+// lands in the caller's table: compute_resistor_weights fills `double *out[3]`.
+{
+  const program = compileMameHandler('double *out[3]; double a[2]; out[0] = a; (out[0])[1] = 7.25; return a[1];');
+  assert.equal(executeGeneratedHandler(program, {}), 7.25);
+}
+
+// A local static table whose element's address is taken stays an array:
+// pacman_palette hands compute_resistor_weights `&resistances[1]`, the blue
+// network's two resistors. Folded, the pointer pointed at a number.
+{
+  const handed: unknown[] = [];
+  const program = compileMameHandler(normalizeMameExecutionSource(
+    'static constexpr int resistances[3] = { 1000, 470, 220 }; f(&resistances[1]); return resistances[2];'));
+  assert.equal(executeGeneratedHandler(program, { referenceCalls: { f: (pointer: unknown) => { handed.push(pointer); return 0; } } }), 220);
+  const pointer = handed[0] as { source: number[]; offset: number };
+  assert.deepEqual([pointer.source[pointer.offset], pointer.source[pointer.offset + 1]], [470, 220]);
+}
+
+// An rgb_t's channels read back from the packed colour, red included: in
+// canvas order red is shift 0, and a truthiness test answered nothing for it.
+// Irem's M62 finds its brightest entry as `299 * rgb.r() + 587 * rgb.g() + ...`.
+{
+  const program = compileMameHandler(normalizeMameExecutionSource('rgb_t rgb = colour; return rgb.r() * 1000000 + rgb.g() * 1000 + rgb.b();'));
+  assert.equal(executeGeneratedHandler(program, {}, { colour: 0xff302010 }), 16032048);
+}
+
+console.log('handler-ir.spec: 80 passed');

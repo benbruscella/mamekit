@@ -48,8 +48,12 @@ export function lowerMemberPointerValues(
   evaluate: (argument: string) => number | null,
 ): string {
   const owners = classes.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  // Only the unary `&`: after an operand it is a bitwise AND, and
+  // `mo[x] & atari_motion_objects_device::PRIORITY_MASK` is a class constant
+  // masked, not a member pointer -- lowered, it read `mo[x] "PRIORITY_MASK"`
+  // and Marble Madness's whole screen update failed to compile.
   return source.replace(
-    new RegExp(`&\\s*(?:${owners})\\s*::\\s*(\\w+)\\s*(?:<([^<>]*)>)?`, 'g'),
+    new RegExp(`(?<![\\w\\])&]\\s*)&(?!&)\\s*(?:${owners})\\s*::\\s*(\\w+)\\s*(?:<([^<>]*)>)?`, 'g'),
     (all, name: string, templateArguments?: string) => {
       if (templateArguments === undefined) return JSON.stringify(name);
       const values = templateArguments.split(',').map(argument => evaluate(
@@ -59,4 +63,15 @@ export function lowerMemberPointerValues(
       return JSON.stringify(`${name}_${values.join('_')}`);
     },
   );
+}
+
+/**
+ * Both lowerings over a driver method's body, for the classes a driver
+ * source declares: `m_map_color = &cosmic_state::panic_map_color` stores the
+ * method's name, and `(this->*m_map_color)(x, y)` calls whatever method that
+ * name is (the board's CALL_METHOD).
+ */
+export function lowerDriverMemberPointers(body: string, classes: readonly string[]): string {
+  if (!/->\s*\*|&\s*\w+\s*::/.test(body)) return body;
+  return lowerMemberPointerValues(lowerMemberPointerCalls(body), classes, () => null);
 }

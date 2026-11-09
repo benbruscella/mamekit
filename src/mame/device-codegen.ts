@@ -1,6 +1,6 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, STRING_MUTATORS } from '../ir/execute.ts';
-import { HOST_SERVICE_CALLS } from '../ir/board.ts';
+import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDereference, STRING_MUTATORS } from '../ir/execute.ts';
+import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
@@ -610,10 +610,19 @@ export function supportsMethod(
   ]);
   const callees = calledIdentifiers(method.program.operations);
   const addressOnly = addressOnlyLocals(method.program.operations, locals);
+  const scalarLocals = integerScalarLocals(method.program.operations);
+  // The receiver of a bound framework chain is never emitted on its own.
+  const chainReceivers = new Set<GeneratedExpression>();
+  visitOperations(method.program.operations, operation => {
+    visitOperationExpressions(operation, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'member' &&
+          videoFrameworkChainName(expression, definition)) chainReceivers.add(expression.callee.object);
+    });
+  });
   let supported = true;
   visitOperations(method.program.operations, operation => {
     visitOperationExpressions(operation, expression => {
-      if (!supported) return;
+      if (!supported || chainReceivers.has(expression)) return;
       if (expression.kind === 'identifier') {
         // A constant written with its declaring class (`lr35902_cpu_device::
         // VBL_INT`) is recorded under its leaf name, and `emitExpression`
@@ -658,6 +667,14 @@ export function supportsMethod(
               // interpreter -- The Simpsons' sprite DMA compiled that way and
               // its attract drifted from the golden.
               members.has(expression.operand.name) ||
+              // `&sx` on a local every declaration types as an integer
+              // scalar: the same get/set pointer as `&m_value`, narrowed by
+              // the local's declared width. MAME's out-parameter idiom --
+              // Taito SJ's `get_sprite_xy(which, &sx, &sy)` -- is how its
+              // sprite and collision loops read each sprite's position, and
+              // declining it left them interpreted every frame. A pointer
+              // local (`&dst` above) is still declined.
+              scalarLocals.has(expression.operand.name) ||
               // A local whose address is all the method ever uses: what the
               // callee does through it no emitted code here can observe, and
               // the callee is handed the same lvalue-backed pointer the
@@ -707,6 +724,11 @@ export function supportsMethod(
           // device_gfx_interface::gfx(index) is a host-bound object lookup;
           // calls on the returned gfx_element are safe value-method calls.
           inner.callee.name === 'gfx' ||
+          // A board answers `memregion(tag)` and `ioport(tag)` with objects
+          // from the call table emitted code reads (its referenceCalls are
+          // flattened into it), so `memregion("maincpu")->base()` resolves the
+          // same either way. Declining it left Exidy's background interpreted.
+          (definition.boardScope && (inner.callee.name === 'memregion' || inner.callee.name === 'ioport')) ||
           (inner.callee.name === 'space' && Boolean(definition.spaces?.length)) ||
           definition.methods.some(candidate => candidate.name ===
             (inner.callee as { name: string }).name);
@@ -881,13 +903,61 @@ function emitOperation(
         `((value) => Object.assign(Object.create(Object.getPrototypeOf(value)), value))(${value});`;
     }
     const pointee = context.dereferencedLocals?.get(operation.name);
+    // A local of more than one dimension, or an array of pointers, is built
+    // as the interpreter builds it (allocateLocalArray in ir/execute.ts).
+    const extents = operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+      operation.value.callee.name === 'ALLOC' ? operation.value.args : [];
+    if (extents.length > 1 || (extents.length && declared?.endsWith('*'))) {
+      const rows = (level: number): string => {
+        const length = `Math.max(0, Math.trunc(Number(${emitExpression(extents[level]!, context)})))`;
+        if (level < extents.length - 1) return `Array.from({ length: ${length} }, () => ${rows(level + 1)})`;
+        return declared?.endsWith('*')
+          ? `new Array(${length}).fill(0)`
+          : wrapAllocatedArray(`new Uint8Array(${length})`, operation.valueType);
+      };
+      return `${pad}let ${localName(operation.name)}${annotation} = ${rows(0)};`;
+    }
+    // A local array of a class the host constructs (`rectangle areas[32]`):
+    // that many default-built objects, as the interpreter's classArray.
+    if (allocated && context.boardScope && extents.length === 1 && declared && /^[A-Za-z_]\w*$/.test(declared) &&
+        wrapAllocatedArray('x', operation.valueType) === 'x' && !/^(?:u?int\d+_t|[us]\d+|u?char|bool|char|offs_t|pen_t|rgb_t)$/.test(declared)) {
+      const link = callLink(context, declared);
+      return `${pad}let ${localName(operation.name)}${annotation} = typeof ${link} === 'function' ? ` +
+        `Array.from({ length: Math.max(0, Math.trunc(Number(${emitExpression(extents[0]!, context)}))) }, () => ${link}(0, 0, 0, 0)) : ${value};`;
+    }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
-        ? (context.plainArrayLocals?.has(operation.name) ? value : wrapAllocatedArray(value, operation.valueType))
-        : wrapType(value, operation.valueType)
+        ? (context.plainArrayLocals?.has(operation.name) ||
+            // A braced list of pointers is an array of pointers: System 1's
+            // `const u16 *const bgbase[2] = { &a->pix(y), &b->pix(y) }`. A
+            // Uint16Array of them held two NaNs.
+            (operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+              operation.value.callee.name === 'ARRAY' && /\*\s*$/.test(operation.valueType ?? ''))
+          ? value
+          : wrapAllocatedArray(value, operation.valueType))
+        // `rectangle adjusted = cliprect;` is a copy the body may move
+        // (sprite.h's draw_async offsets it), not the caller's own.
+        : operation.valueType?.replace(/\bconst\b/g, '').trim() === 'rectangle' && operation.value?.kind !== 'call'
+          ? copiedValue(value)
+          : wrapType(value, operation.valueType)
     };${pointee ? ` let ${pointee}${annotation} = runtime.dereference(${localName(operation.name)});` : ''}`;
   }
   if (operation.op === 'assign') {
+    // `static_cast<base &>(*this) = config`: each field of the base the
+    // object inherits is assigned as its own member would be.
+    if (operation.target.kind === 'cast' && isThisDereference(operation.target.operand) && operation.operator === '=') {
+      const value = emitExpression(operation.value, context);
+      // The source's own struct names the fields: `config` is a
+      // `const atari_motion_objects_config &`.
+      const sourceType = expressionValueType(operation.value, context)
+        ?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+      const names = (sourceType ? context.definition.structs?.[sourceType] : undefined)?.map(field => field.name) ?? [];
+      if (!names.length) throw new Error(`device codegen cannot copy a base subobject of unknown type "${sourceType}"`);
+      const inner: EmitContext = { ...context, locals: new Map([...context.locals, ['__base', sourceType ?? '']]) };
+      const fields = names.map(name => `${pad}  ` + `${emitAssignment({ kind: 'identifier', name }, '=',
+        { kind: 'member', object: { kind: 'identifier', name: '__base' }, property: name }, inner)};`);
+      return `${pad}{\n${pad}  const __base = ${value};\n${fields.join('\n')}\n${pad}}`;
+    }
     const pointee = operation.target.kind === 'identifier' ? context.dereferencedLocals?.get(operation.target.name) : undefined;
     return `${pad}${emitAssignment(operation.target, operation.operator, operation.value, context)};` +
       (pointee ? ` ${pointee} = runtime.dereference(${localName((operation.target as { name: string }).name)});` : '');
@@ -1412,6 +1482,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       }
       const operator = expression.operator === '==' ? '===' :
         expression.operator === '!=' ? '!==' : expression.operator;
+      // Pointers order by where they point within their memory.
+      if (operator !== '===' && operator !== '!==' && (leftType?.includes('*') || rightType?.includes('*'))) {
+        return `((runtime.pointerOffset(${left}) ${operator} runtime.pointerOffset(${right})) ? 1 : 0)`;
+      }
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
     // An operand declared unsigned shifts logically in C++ whatever its sign
@@ -1472,6 +1546,14 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     // it. The D64 loader's sector loop never ended while it read the wrapper.
     const pointerLocal = (expression.object.kind === 'identifier' && context.locals.has(expression.object.name)) ||
       expression.object.kind === 'index';
+    // A driver member may hold a pointer into a table of structs: CPS1's
+    // machine_reset_cps leaves `m_game_config` at its game's row of
+    // cps1_config_table, and `m_game_config->bank_mapper` reads that row. The
+    // board's state carries no declared pointer type to decide it from, and a
+    // non-pointer dereferences to itself.
+    if (context.boardScope && expression.object.kind === 'identifier' && !context.locals.has(expression.object.name)) {
+      return `runtime.dereference(${object}).${expression.property}`;
+    }
     return expressionValueType(expression.object, context)?.includes('*') &&
       (structFieldsOf(expression.object, context) || pointerLocal)
       ? `runtime.dereference(${object}).${expression.property}`
@@ -1665,6 +1747,13 @@ function emitCall(
       delegate && ['identifier', 'index', 'member'].includes(argument.kind)
         ? emitReferenceArgument(argument, context)
         : emitExpression(argument, context));
+    // A lambda the body holds in a local (`auto const TOTAL_COLORS = [this]
+    // (int gfxn) {...}`, Xevious's palette): the interpreter calls the local
+    // first, so the emitted call does too, not the board's call table.
+    if (context.locals.has(name)) {
+      return `(typeof ${localName(name)} === 'function' ? ${localName(name)}(${args.join(', ')}) : ` +
+        `runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
+    }
     if (name === 'COMBINE_DATA') {
       // The interpreter reads data/mem_mask from the handler's locals; emitted
       // code passes its own parameters, with MAME's full-mask default.
@@ -1859,6 +1948,11 @@ function emitCall(
         `typeof (${object})?.isnull === 'function' ? (${object}).isnull() : ` +
         `(${fallbackLink(context, name)}?.() ?? 0))`;
     }
+    const chain = videoFrameworkChainName(expression, context);
+    if (chain) {
+      const chainArgs = expression.args.map(argument => emitExpression(argument, context));
+      return `(${fallbackLink(context, chain)}?.(${chainArgs.join(', ')}) ?? 0)`;
+    }
     // An argument the receiver's class takes by non-const reference is passed
     // as storage it writes back to (`m_regs.write(..., keyon_channel, ...)`).
     const args = expression.args.map((argument, index) =>
@@ -2049,6 +2143,9 @@ function valueMemberCallCode(
   // element. Running it through runtime.dereference turns an empty vector into
   // undefined, so the first push is discarded and it remains empty forever.
   if (property === 'push') return `(${object}).push(${args.join(', ')})`;
+  // So is emplace_back, which builds the element and answers it
+  // (generatedVector): sprite.cpp's rect list started empty and stayed so.
+  if (property === 'emplace_back') return `(${object}).emplace_back(${args.join(', ')})`;
   // A member holding a C++ pointer is a generated pointer at run time, not the
   // thing it points at: `m_vram_space = &space(AS_DATA)` makes every
   // `m_vram_space->read_byte(...)` a call on the wrapper. The interpreter
@@ -2061,6 +2158,8 @@ function valueMemberCallCode(
   const finder = member?.finder?.kind === 'device' ||
     /^(?:required|optional)_device(?:_array)?</.test(member?.valueType ?? '');
   const directObject = finder || /^bitmap_(?:rgb32|ind16|ind8)$/.test(member?.valueType ?? '') ||
+    // A std::vector member is the container, never a pointer to its first element.
+    /^std::vector\s*</.test(member?.valueType ?? '') ||
     (receiver.kind === 'call' && receiver.callee.kind === 'identifier' &&
       receiver.callee.name === 'space' && Boolean(context.definition.spaces?.length));
   const accessed = directObject ? `(${object})` : `runtime.dereference(${object})`;
@@ -2215,6 +2314,22 @@ function linkedMemberCallName(
 }
 
 /**
+ * `machine().tilemap().set_flip_all(...)`: a board video framework call the
+ * video package binds by its whole chain (VIDEO_FRAMEWORK_CHAIN_CALLS).
+ */
+function videoFrameworkChainName(
+  expression: Extract<GeneratedExpression, { kind: 'call' }>,
+  context: { boardScope?: boolean },
+): string | undefined {
+  if (!context.boardScope || expression.callee.kind !== 'member') return undefined;
+  const object = expression.callee.object;
+  if (object.kind !== 'call' || object.args.length) return undefined;
+  const inner = linkedMemberCallName(object);
+  const name = inner && `${inner}().${expression.callee.property}`;
+  return name && VIDEO_FRAMEWORK_CHAIN_CALLS.includes(name) ? name : undefined;
+}
+
+/**
  * A copier for `a = b` where both are members of the same struct type, as
  * one named store per field: `checkpoint_live = cur_live` on the 64H156 runs
  * twelve thousand times a frame while a 1541 reads, and the generic copy's
@@ -2320,6 +2435,12 @@ function emitAssignment(
   // must leave two structs, not one object under two names.
   if (operator === '=' && expression.kind === 'identifier' && !context.locals.has(expression.name)) {
     const member = context.definition.members.find(candidate => candidate.name === expression.name);
+    // So does a rectangle: sprite.cpp keeps `m_rect_list_bounds = cliprect`,
+    // and holding the caller's object instead, its invalidate_rect_list()
+    // emptied the screen update's own cliprect -- nothing drew after it.
+    if (member?.valueType.trim() === 'rectangle') {
+      return `members.${member.name} = ${copiedValue(right)}`;
+    }
     if (member?.fields && !member.arrayLength && !member.valueType.includes('*')) {
       const copier = structCopier(member, value, context);
       if (copier) return `${copier}(members.${member.name}, ${right})`;
@@ -2376,6 +2497,16 @@ function pointerAssignment(
     : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
 }
 
+/**
+ * A copy of a class value C++ assigns by value: a rectangle (anything with
+ * rectangle's `intersect`) is cloned, any other value passes through.
+ * Self-contained, so board and device code emit it alike.
+ */
+function copiedValue(value: string): string {
+  return `((__v) => (__v !== null && typeof __v === 'object' && typeof __v.intersect === 'function') ` +
+    `? Object.assign(Object.create(Object.getPrototypeOf(__v)), __v) : __v)(${value})`;
+}
+
 function emitAddressOf(
   expression: GeneratedExpression,
   context: EmitContext,
@@ -2390,8 +2521,17 @@ function emitAddressOf(
       ? `runtime.addressOf(${object}, ${index})`
       : `({ generatedPointer: true, source: ${object}, offset: ${index} })`;
   }
+  // A container's element reference -- `&v.emplace_back(...)`, `&v.back()`
+  // -- is that element, an object whose address is itself.
+  if (expression.kind === 'call' && expression.callee.kind === 'member' &&
+      ['emplace_back', 'back', 'front'].includes(expression.callee.property)) {
+    return emitExpression(expression, context);
+  }
   if (expression.kind === 'call' && expression.callee.kind === 'member') {
-    const object = emitExpression(expression.callee.object, context);
+    // A slot of an array of pointers holds a pointer to the object, whose
+    // method is the one asked: `&bgpixmaps[i]->pix(y)` (as the interpreter).
+    const receiver = emitExpression(expression.callee.object, context);
+    const object = expression.callee.object.kind === 'index' ? `runtime.dereference(${receiver})` : receiver;
     const args = expression.args.map(argument => emitExpression(argument, context));
     return `${object}[${JSON.stringify(`${expression.callee.property}&`)}](${args.join(', ')})`;
   }
@@ -2835,6 +2975,20 @@ function addressOnlyLocals(
   return new Set([...addressed].filter(([name, count]) => named.get(name) === count).map(([name]) => name));
 }
 
+const INTEGER_SCALAR_TYPE = /^(?:(?:const|unsigned|signed|long|short)\s+)*(?:u?int(?:8|16|32)_t|[us](?:8|16|32)|int|char|bool|short|unsigned|offs_t)$/;
+
+/** Locals whose every declaration is an integer scalar (`uint8_t sx`). */
+function integerScalarLocals(operations: GeneratedHandlerOperation[]): Set<string> {
+  const scalar = new Set<string>();
+  const other = new Set<string>();
+  visitOperations(operations, operation => {
+    if (operation.op !== 'declare') return;
+    if (INTEGER_SCALAR_TYPE.test(operation.valueType?.trim() ?? '')) scalar.add(operation.name);
+    else other.add(operation.name);
+  });
+  return new Set([...scalar].filter(name => !other.has(name)));
+}
+
 function collectLocalNames(
   operations: GeneratedHandlerOperation[],
   locals: Set<string>,
@@ -2954,10 +3108,12 @@ function isBytePointerType(valueType: string | undefined): boolean {
   return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
 }
 
-function packedPointerView(valueType: string | undefined): boolean | undefined {
+function packedPointerView(valueType: string | undefined): string | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
-  if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
-  if (/^(?:s16|int16_t)$/.test(pointee)) return true;
+  if (/^(?:u16|uint16_t)$/.test(pointee)) return 'false';
+  if (/^(?:s16|int16_t)$/.test(pointee)) return 'true';
+  if (/^(?:u32|uint32_t)$/.test(pointee)) return "'u32'";
+  if (/^(?:s32|int32_t)$/.test(pointee)) return "'s32'";
   return undefined;
 }
 

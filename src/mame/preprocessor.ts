@@ -220,6 +220,23 @@ const MEMBER_ALIAS = /^m_\w+(?:\s*\[[^\]]*\]|\s*\.\s*\w+)*$/;
  * The Game Boy PPU counted scanlines correctly and published none of them: LY
  * read 0 forever and the boot ROM waited for line 0x90 that never came.
  */
+/**
+ * A parenthesised read of driver state: taitosj's
+ * `#define GLOBAL_FLIP_X (*m_video_mode & 0x01)`. Not a constant (it reads a
+ * member) and not an lvalue alias, it was left unexpanded and answered 0, so
+ * every Taito SJ layer was drawn unflipped -- upside down.
+ */
+function memberExpression(body: string): boolean {
+  if (!body.startsWith('(') || !body.endsWith(')') || !/\bm_\w+/.test(body)) return false;
+  if (/[;{}]/.test(body) || /(?<![=!<>])=(?!=)/.test(body)) return false;
+  let depth = 0;
+  for (let index = 0; index < body.length; index++) {
+    if (body[index] === '(') depth++;
+    else if (body[index] === ')' && --depth === 0 && index !== body.length - 1) return false;
+  }
+  return depth === 0;
+}
+
 export function collectMemberAliasMacros(source: string): MemberAliasMacro[] {
   const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
   const aliases: MemberAliasMacro[] = [];
@@ -231,6 +248,20 @@ export function collectMemberAliasMacros(source: string): MemberAliasMacro[] {
     aliases.push({ name, body });
   }
   return aliases;
+}
+
+/**
+ * Object-like `#define`s that read driver state in an expression (see
+ * memberExpression). Not aliases -- nothing assigns through one -- but a
+ * handler that names one means the expression.
+ */
+export function collectMemberExpressionMacros(source: string): MemberAliasMacro[] {
+  const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+  return [...joined.matchAll(/^[ \t]*#define[ \t]+([A-Z_][A-Z0-9_]*)[ \t]+(.+)$/gm)].flatMap(match => {
+    const body = match[2]!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '').trim();
+    return !INTRINSICS.has(match[1]!) && !TRACING.test(match[1]!) && memberExpression(body)
+      ? [{ name: match[1]!, body }] : [];
+  });
 }
 
 /** Object-like BIT aliases may read a handler parameter, so cannot be constants. */
@@ -336,4 +367,21 @@ export function expandMemberAliasMacros(
     expanded = expanded.replace(new RegExp(`\\b${alias.name}\\b`, 'g'), alias.body);
   }
   return expanded;
+}
+
+/**
+ * The statement macros a function defines for itself -- cps1_render_sprites
+ * `#define`s DRAWSPRITE inside its own body -- or its translation unit does,
+ * expanded where they are used, as the preprocessor would, with the
+ * definitions dropped. Left as written, the `#define` line did not parse and
+ * the whole function could not lower.
+ */
+export function expandStatementMacros(body: string, unitSource: string): string {
+  const own = collectFunctionMacros(body);
+  const macros = [
+    ...own,
+    ...collectFunctionMacros(unitSource).filter(macro => !own.some(mine => mine.name === macro.name)),
+  ];
+  const stripped = body.replace(/^[ \t]*#[ \t]*(?:define|undef)\b(?:[^\n]*\\[ \t]*\r?\n)*[^\n]*/gm, '');
+  return macros.length ? expandFunctionMacros(stripped, macros) : stripped;
 }

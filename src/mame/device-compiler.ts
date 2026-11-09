@@ -13,7 +13,7 @@ import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
-import { DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
+import { cppDefaultArgument, DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
 import {
   collectFunctionMacros,
   collectMemberCallMacros,
@@ -415,7 +415,8 @@ export type GeneratedDeviceResource =
   | { kind: 'owner' }
   | { kind: 'sample-image'; region: string; sampleRate: number }
   | { kind: 'number'; value: number }
-  | { kind: 'region'; name: string }
+  /** `required_region_ptr<T>`: the region, indexed in T's width (elementBytes, when wider than a byte). */
+  | { kind: 'region'; name: string; elementBytes?: 2 | 4 }
   // MAME's `memory_region *`: the bytes plus the size questions asked of them.
   | { kind: 'region-object'; name: string }
   // A pointer part-way into a region, as MAME writes `get_rom_base() + N`.
@@ -712,10 +713,25 @@ function compileMameDeviceSource(
       if (source) sources.push({ file, source });
     }
   }
+  // A template instance named through an alias is that template: a call
+  // qualified by the alias (atarimo's `sprite16_device_ind16::device_start()`)
+  // is the template's method, so it is spelled that way before parsing.
+  const joinedSource = sources.map(({ source }) => source).join('\n');
+  const definedTemplates = new Set([...stripCppComments(joinedSource)
+    .matchAll(/\btemplate\s*<[^;{}]*?>\s*(?:class|struct)\s+(\w+)/g)].map(match => match[1]!));
+  const aliasTemplates = new Map([...templateAliases(joinedSource)]
+    .filter(([, alias]) => definedTemplates.has(alias.template)));
+  if (aliasTemplates.size) {
+    for (const source of sources) {
+      source.source = source.source.replace(/\b(\w+)\s*::\s*(?=~?\w)/g, (whole, alias: string) =>
+        aliasTemplates.has(alias) ? `${aliasTemplates.get(alias)!.template}::` : whole);
+    }
+  }
   const ast = parseMameAst(sources);
   const classes = new Map(
     ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]),
   );
+  resolveTemplateAliasBases(classes, aliasTemplates);
   const hierarchy = classHierarchy(definition.className, classes);
   const memberOwners = new Map<string, string[]>();
   for (const className of hierarchy) {
@@ -880,6 +896,23 @@ function compileMameDeviceSource(
       pendingDefines.delete(name);
       resolved = true;
     }
+  }
+  // logmacro.h's own defaults: `#ifndef VERBOSE #define VERBOSE 0`, and
+  // LOG_GENERAL as bit 0. A device that leaves VERBOSE commented out (the
+  // usual state) guards its log lines with a name no file it parses defines,
+  // so every method holding `if (VERBOSE & LOG_TIMER)` was declined by the
+  // emitter: the 68705's timer `update`, which runs every instruction.
+  // Read from the files as written: the preprocessor pass hands over source
+  // whose #include and #define lines are already consumed.
+  const written = sourceFiles.flatMap(file => {
+    const path = join(mameSrc, file);
+    return existsSync(path) ? [stripCppComments(readFileSync(path, 'utf8'))] : [];
+  });
+  const usesLogMacros = written.some(source => /^\s*#include\s+"logmacro\.h"/m.test(source));
+  if (usesLogMacros) {
+    const definesVerbose = written.some(source => /^\s*#define\s+VERBOSE\b/m.test(source));
+    if (!definesVerbose) constants.VERBOSE ??= 0;
+    constants.LOG_GENERAL ??= 1;
   }
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
@@ -1275,8 +1308,11 @@ function compileMameDeviceSource(
   // A free function handed to a constructor as a value (`dac_mapper_unsigned`
   // in DAC_GENERATOR's base call), which a function-pointer member then calls.
   const sourceText = sources.map(({ source }) => source).join('\n');
+  // Or stored as one: segaic16's tilemap_init sets
+  // `info->draw_layer = tilemap_16a_draw_layer;`, and tilemap_draw calls
+  // `(*info->draw_layer)(...)` -- every System 16 background layer.
   const handedOn = new Set(sourceMethods.filter(helper => helper.className === '' &&
-    new RegExp(`(?<=[(,]\\s*)${helper.name}(?=\\s*[,)])`).test(sourceText)).map(helper => helper.name));
+    new RegExp(`(?<=[(,]\\s*)${helper.name}(?=\\s*[,)])|(?<=[^=!<>]=\\s*)${helper.name}(?=\\s*;)`).test(sourceText)).map(helper => helper.name));
   const staticCalls = new Set<string>();
   for (let added = true; added;) {
     added = false;
@@ -1357,10 +1393,26 @@ function compileMameDeviceSource(
     // The class's constants size its arrays: the AY-3-8910's
     // `m_vol_table[NUM_CHANNELS][16]` was no array at all without them, and
     // every sample it rendered read volume zero.
+    // A type named inside a class is that class's own before any other of
+    // the name: atari_motion_objects_config's `entry m_link_entry` is its
+    // nested `entry { uint16_t data[4]; }`, not emumem's handler `entry`,
+    // and taking that one gave sprite_parameter::set a struct with no data.
+    // Only where the bare name is ambiguous -- another struct of that name is
+    // known -- since a class's own nested type is otherwise registered (and
+    // its allocation compiled) under the bare name: qualifying
+    // sprite_parameter cut its members off from their methods.
+    const scoped = (type: string): string => {
+      const bare = type.replace(/\*$/, '').trim();
+      const own = structFields.get(`${className}::${bare}`);
+      const other = structFields.get(bare);
+      return !bare.includes('::') && own && other && JSON.stringify(own) !== JSON.stringify(other)
+        ? type.replace(bare, `${className}::${bare}`)
+        : type;
+    };
     return memberDeclarations(declaration, constants).map(member => ({
       ...member,
       name: emittedMemberName(className, member.name),
-      valueType: specialize(className, member.valueType),
+      valueType: scoped(specialize(className, member.valueType)),
     })).flatMap(member => {
       if (member.valueType.startsWith('devcb_')) {
         callbacks.push({
@@ -1380,8 +1432,15 @@ function compileMameDeviceSource(
       // bound is one.
       const allocated = allocatedArrays.get(member.name) ??
         (member.arrayLength ? fixedArrays.get(member.name) : undefined);
-      const pushed = new RegExp(`\\b${member.name}\\s*\\.\\s*(?:push_back|emplace_back)\\s*\\(`)
-        .test(sources.map(candidate => candidate.source).join('\n'));
+      const allSource = sources.map(candidate => candidate.source).join('\n');
+      // Or hands it to an object holding a `std::vector<T> &` that appends
+      // through the reference: ymfm_saved_state(m_save_blob, true) writes the
+      // DS1001's save blob with `m_buffer.push_back`.
+      const pushed = new RegExp(`\\b${member.name}\\s*\\.\\s*(?:push_back|emplace_back)\\s*\\(`).test(allSource) ||
+        (new RegExp(`[(,]\\s*${member.name}\\s*[,)]`).test(allSource) &&
+          /std::vector<[^<>;]+>\s*&\s*(\w+)\s*;[\s\S]*/.test(allSource) &&
+          [...allSource.matchAll(/std::vector<[^<>;]+>\s*&\s*(\w+)\s*;/g)].some(reference =>
+            new RegExp(`\\b${reference[1]}\\s*\\.\\s*(?:push_back|emplace_back)\\s*\\(`).test(allSource)));
       const memory = memoryContainer(member.valueType, member.name, constructorBindings, pushed);
       const finder = finderBinding(member.valueType, member.name, constructorBindings, constants);
       const structType = structFields.has(member.valueType.replace(/\*$/, '').trim());
@@ -1432,7 +1491,15 @@ function compileMameDeviceSource(
     if (!object && !/^(?:required|optional)_region_ptr<[^>]+>$/.test(member.valueType)) return [];
     const target = constructorBindings[member.name]?.at(-1) ?? '';
     const name = target === 'DEVICE_SELF' ? 'self' : unquoteToken(target);
-    return name ? [[member.name, { kind: object ? 'region-object' as const : 'region' as const, name }]] : [];
+    // A region pointer is indexed in its element type: segaic16's sprite
+    // devices read `required_region_ptr<uint16_t>` a word at a time, and its
+    // bytes() counts the whole region.
+    const element = /_region_ptr<\s*([^>]+?)\s*>$/.exec(member.valueType)?.[1];
+    const bits = element ? integerBits(element) : undefined;
+    const elementBytes = bits === 16 ? 2 as const : bits === 32 ? 4 as const : undefined;
+    return name ? [[member.name, object
+      ? { kind: 'region-object' as const, name }
+      : { kind: 'region' as const, name, ...(elementBytes ? { elementBytes } : {}) }]] : [];
   }));
   for (const className of hierarchy) {
     const body = classes.get(className)?.body ?? '';
@@ -1805,7 +1872,16 @@ function compileMameDeviceSource(
   // so long as it is not a device (those are children, found by tag).
   for (const member of result.members) {
     if (member.memory || member.finder || member.fields) continue;
-    const owner = [...hierarchy].reverse().find(className => classes.has(`${className}::${member.valueType}`));
+    // Looked up in the class and then outward through the scopes enclosing
+    // it, as C++ does: dual_sprite_parameter's `sprite_parameter m_lower` is
+    // the `atari_motion_objects_device::sprite_parameter` declared beside it.
+    // Missed, both halves were zero and no motion object found a code.
+    const enclosing = (className: string): string[] => {
+      const parts = className.split('::');
+      return parts.map((_, depth) => parts.slice(0, parts.length - depth).join('::'));
+    };
+    const owner = [...hierarchy].reverse().flatMap(enclosing)
+      .find(className => classes.has(`${className}::${member.valueType}`));
     const qualified = owner ? `${owner}::${member.valueType}` : member.valueType;
     const template = qualified.replace(/\s*<[\s\S]*>$/, '');
     if (!owner && (!classes.has(template) || hierarchy.includes(qualified) || /_device$/.test(template))) continue;
@@ -1815,12 +1891,24 @@ function compileMameDeviceSource(
     member.object = allocation;
     // Built as the owner's constructor builds it: `m_timer(*this)`, which
     // may be written inside the class (`ymfm_device_base`'s `m_chip(*this)`).
-    const initializer = [
+    const owning = [
       ...constructors.filter(candidate => hierarchy.includes(candidate.className)),
       ...hierarchy.flatMap(className => inlineConstructor(sources, className) ?? []),
-    ].flatMap(candidate => candidate.initializers)
-      .find(candidate => candidate.name === member.name);
-    if (initializer?.args.length) member.objectArgs = initializer.args.map(argument => argument.trim());
+    ].find(candidate => candidate.initializers.some(initializer => initializer.name === member.name));
+    const initializer = owning?.initializers.find(candidate => candidate.name === member.name);
+    // An argument naming the owning constructor's own parameter is that
+    // parameter's default, when the derived class's base call leaves it out:
+    // sprite_device's `m_dirty(dirty_granularity)`, with
+    // `int dirty_granularity = 3`, which atarimo's base call never passes.
+    // As a member name it read zero, and the dirty grid was one cell a pixel.
+    const parameterDefaults = new Map(splitMameArgs(owning?.parameters ?? '').flatMap(parameter => {
+      const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter.trim())?.[1];
+      const fallback = cppDefaultArgument(parameter);
+      return name && fallback !== undefined ? [[name, String(fallback)] as const] : [];
+    }));
+    if (initializer?.args.length) {
+      member.objectArgs = initializer.args.map(argument => parameterDefaults.get(argument.trim()) ?? argument.trim());
+    }
     if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
     delete member.values;
     delete member.initial;
@@ -2820,6 +2908,10 @@ export function addSourceConstructor(
         } else if (args.length > 1 && (member.arrayLength || /^std::array\s*</.test(member.valueType))) {
           // A braced array initializer: `m_timer_running{0,0}`.
           fields.push(...args.map((argument, index) => `${member.name}[${index}] = ${argument};`));
+        } else if (args.length && /^[A-Za-z_][\w:]*$/.test(member.valueType.trim())) {
+          // A value of a class built from its constructor's arguments:
+          // sprite.cpp's `m_rect_list_bounds(0, -1, 0, -1)`, a rectangle.
+          fields.push(`${member.name} = ${member.valueType.trim()}(${args.join(', ')});`);
         } else if (args.length) {
           throw new Error(`unsupported constructor initializer ${initializer.name}`);
         }
@@ -2955,7 +3047,7 @@ function executionDataAddressBits(
  * format class (every floppy connector) compiles exactly as it did.
  */
 /** The file-scope functions a header declares; a class's methods are its own. */
-function headerFunctionNames(header: string): string[] {
+export function headerFunctionNames(header: string): string[] {
   const declared = stripCppComments(header);
   const outside = declared.replace(/\b(?:class|struct)\s+\w+[^;{]*\{(?:[^{}]|\{[^{}]*\})*\}\s*;/g, '');
   return [...outside.matchAll(/^[\w:<>*&\s]+?\b(\w+)\s*\([^;{}]*\)\s*;/gm)].map(name => name[1]!);
@@ -3399,6 +3491,49 @@ function resolveInheritedBaseCalls(
       if (expression.kind !== 'call' || expression.callee.kind !== 'identifier') return;
       const target = rewrites.get(expression.callee.name);
       if (target) expression.callee = { kind: 'identifier', name: target };
+    });
+  }
+}
+
+/**
+ * A base class named through an alias of a template instance is that
+ * template, with those arguments: atarimo derives from
+ * `sprite16_device_ind16`, sprite.h's
+ * `typedef sprite_device<uint16_t, bitmap_ind16> sprite16_device_ind16;`.
+ * Unresolved, the hierarchy stopped at the alias and the motion-object device
+ * had no draw_async, bitmap() or spriteram() -- it never drew a sprite.
+ */
+/** `typedef T<args> Name;` and `using Name = T<args>;`, by alias name. */
+function templateAliases(source: string): Map<string, { template: string; args: string[] }> {
+  const aliases = new Map<string, { template: string; args: string[] }>();
+  const text = stripCppComments(source);
+  for (const match of text.matchAll(/\btypedef\s+([\w:]+)\s*<([^;<>]*(?:<[^;<>]*>[^;<>]*)*)>\s*(\w+)\s*;/g)) {
+    aliases.set(match[3]!, { template: match[1]!.split('::').at(-1)!, args: splitMameArgs(match[2]!).map(arg => arg.trim()) });
+  }
+  for (const match of text.matchAll(/\busing\s+(\w+)\s*=\s*([\w:]+)\s*<([^;<>]*(?:<[^;<>]*>[^;<>]*)*)>\s*;/g)) {
+    aliases.set(match[1]!, { template: match[2]!.split('::').at(-1)!, args: splitMameArgs(match[3]!).map(arg => arg.trim()) });
+  }
+  return aliases;
+}
+
+function resolveTemplateAliasBases(
+  classes: Map<string, MameClass>,
+  aliases: Map<string, { template: string; args: string[] }>,
+): void {
+  if (!aliases.size) return;
+  for (const [name, declaration] of classes) {
+    const bases = declaration.bases.map(base => {
+      const alias = aliases.get(base.split('::').at(-1)!);
+      return alias && !classes.has(base) && classes.get(alias.template)?.templateParameters?.length ? alias : undefined;
+    });
+    if (!bases.some(Boolean)) continue;
+    classes.set(name, {
+      ...declaration,
+      bases: declaration.bases.map((base, index) => bases[index]?.template ?? base),
+      baseTemplateArguments: {
+        ...declaration.baseTemplateArguments,
+        ...Object.fromEntries(bases.flatMap(alias => alias ? [[alias.template, alias.args]] : [])),
+      },
     });
   }
 }
@@ -5296,7 +5431,10 @@ function structFieldList(
       // The type and the
       // name are apart by a space or a `*`: without that, `unsigned short
       // energytable[...]` backtracked into a field `e` of type `energytabl`.
-      /(?:^|(?<=[;}]))\s*(?:const\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
+      // An elaborated type names its struct with the keyword: CPS1config's
+      // `const struct gfx_range *bank_mapper;`, which missed shifted every
+      // later field of each config row by one.
+      /(?:^|(?<=[;}]))\s*(?:const\s+)?(?:struct\s+)?((?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;{}()]*?>)?)(?:\s+|\s*(?=\*))((?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?(?:\s*,\s*(?:\*\s*)?[A-Za-z_]\w*\s*(?:\[[^\]]+\]\s*)*(?:=\s*\{[^{}]*\}|=[^,;{}]*|\{[^{}]*\})?)*)\s*;/gm,
     )) {
       const valueType = statement[1]!.replace(/\s+/g, ' ');
       if (/^(?:return|using|typedef|friend|enum|struct|class|union)$/.test(valueType)) continue;
