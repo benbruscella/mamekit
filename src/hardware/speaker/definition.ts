@@ -1,4 +1,5 @@
 import type { PortDeclaration } from '../ports.ts';
+import { SOUND_DEVICE_MAME_TYPES } from '../sound-device/definition.ts';
 
 export const SPEAKER_ID = 'speaker';
 
@@ -26,6 +27,9 @@ export const STREAM_AUDIO_RATE = 48000;
  */
 export const STREAM_SOUND_TYPES: readonly string[] = [
   'SPEAKER_SOUND', 'CASSETTE', 'POKEY', 'SAMPLES', 'DISCRETE', 'SN76477', 'TMS36XX', 'PHOENIX_SOUND',
+  // A speech chip whose BSY a sound CPU polls, compiled by the device capability.
+  'VLM5030',
+  ...SOUND_DEVICE_MAME_TYPES,
 ];
 
 /**

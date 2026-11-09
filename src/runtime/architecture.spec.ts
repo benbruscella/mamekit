@@ -124,10 +124,6 @@ const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
     'GeneratedYm2203Mixer', 'GeneratedYm2203Processor', 'GeneratedYm2610AdpcmA',
     'GeneratedYm3526Chip',
   ],
-  'mame/sn76489-compiler.ts': [
-    'GeneratedSn76489Core', 'GeneratedSn76489FrameRenderer', 'GeneratedSn76489Mixer',
-    'GeneratedSn76489Processor',
-  ],
   'mame/tms5220-compiler.ts': ['GeneratedTms5220Core'],
 };
 

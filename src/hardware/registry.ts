@@ -53,9 +53,11 @@ import { NEOGEO_ID, NEOGEO_MAME_TYPES, NEOGEO_PORTS } from './neogeo/definition.
 import { extractNeogeo } from './neogeo/extract.ts';
 import { extractSpectrum } from './spectrum/extract.ts';
 import { SPEAKER_ID, SPEAKER_MAME_TYPES, SPEAKER_PORTS } from './speaker/definition.ts';
+import { SOUND_DEVICE_ID, SOUND_DEVICE_MAME_TYPES, SOUND_DEVICE_PORTS } from './sound-device/definition.ts';
 import { DISCRETE_ID, DISCRETE_MAME_TYPES, DISCRETE_PORTS } from './discrete/definition.ts';
 import { extractDiscrete } from './discrete/extract.ts';
 import { extractSpeaker } from './speaker/extract.ts';
+import { extractSoundDevices } from './sound-device/extract.ts';
 import { SN76477_ID, SN76477_MAME_TYPES, SN76477_PORTS } from './sn76477/definition.ts';
 import { extractSn76477 } from './sn76477/extract.ts';
 import { TMS36XX_ID, TMS36XX_MAME_TYPES, TMS36XX_PORTS } from './tms36xx/definition.ts';
@@ -76,12 +78,6 @@ import {
   GAMEBOY_PORTS,
 } from './gameboy/definition.ts';
 import { extractGameboy } from './gameboy/extract.ts';
-import {
-  SN76489_ID,
-  SN76489_MAME_TYPES,
-  SN76489_PORTS,
-} from './sn76489/definition.ts';
-import { extractSn76489 } from './sn76489/extract.ts';
 import {
   POKEY_ID,
   POKEY_MAME_TYPES,
@@ -216,12 +212,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: YM2203_PORTS,
     extract: extractYm2203,
   },
-  {
-    id: SN76489_ID,
-    mameTypes: SN76489_MAME_TYPES,
-    ports: SN76489_PORTS,
-    extract: extractSn76489,
-  },
+  { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices },
   {
     id: POKEY_ID,
     mameTypes: POKEY_MAME_TYPES,

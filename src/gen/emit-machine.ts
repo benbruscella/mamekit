@@ -1019,9 +1019,6 @@ export function lowerGeneratedMachine(
   // OPL2's waveform select.
   const oplDevices = devices.filter(device =>
     device.type === 'YM3526' || device.type === 'YM3812');
-  const snDevices = devices.filter(device =>
-    ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
-      'GAMEGEAR', 'SEGAPSG'].includes(device.type));
   const dacDevices = devices.filter(device => !device.stream && [
     'DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
     'NETLIST_INT_INPUT'].includes(device.type));
@@ -1142,20 +1139,6 @@ export function lowerGeneratedMachine(
           ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
           ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
           ...(netlistLogicInputs.length ? { netlistFinders: lowerNetlistFinders(graph, reachableDevices.map(({ node }) => node), String(graph.meta.mameSrc)) } : {}),
-        }
-    : snDevices.length
-      ? {
-          kind: 'sn76489',
-          deviceTag: snDevices[0]!.tag,
-          deviceTags: snDevices.map(device => device.tag),
-          deviceType: snDevices[0]!.type,
-          writeMethods: ['write'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, snDevices).length
-            ? { routes: lowerAudioRoutes(graph, snDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
         }
     : dacDevices.length && !(devices.some(device => device.type === 'SAMPLES') && dacDevices.every(device =>
         device.type === 'DAC_1BIT'))
@@ -1864,7 +1847,6 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
   AD7524: ['data_w', 'write'],
   AD7533: ['data_w', 'write'],
   MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
-  VLM5030: ['data_w', 'st', 'rst'],
   YM3526: ['write'],
   YM3812: ['write'],
   HC55516: ['digit_w', 'clock_w'],

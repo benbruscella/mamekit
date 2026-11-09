@@ -62,9 +62,6 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   // plus OPL2's waveform select, and Wardner's only sound chip is one.
   const oplChips = devices.filter(d =>
     d.props.type === 'YM3526' || d.props.type === 'YM3812');
-  const snChips = devices.filter(d =>
-    ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
-      'GAMEGEAR', 'SEGAPSG'].includes(String(d.props.type)));
   const dacChips = devices.filter(d => worklet(d) &&
     ['DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
       'NETLIST_INT_INPUT']
@@ -149,28 +146,7 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
               ? { auxiliaryDevices: auxiliaryAudioDevices }
               : {}),
           }
-        : snChips.length
-          ? (() => {
-              const snRoutes = lowerAudioRoutes(
-                graph,
-                snChips.map(device => ({ id: device.id, tag: String(device.props.tag) })),
-              );
-              return {
-                kind: 'sn76489',
-                clock: Number(snChips[0].props.clock),
-                chips: snChips.length,
-                // Per chip, because a board fits family variants and clocks
-                // independently: Congo Bongo's second SN76489A runs at a
-                // quarter of the first's.
-                deviceTypes: snChips.map(chip => String(chip.props.type)),
-                clocks: snChips.map(chip => Number(chip.props.clock)),
-                ...(snRoutes.length ? { routes: snRoutes } : {}),
-                ...(auxiliaryAudioDevices.length
-                  ? { auxiliaryDevices: auxiliaryAudioDevices }
-                  : {}),
-              };
-            })()
-          : dacChips.length && !(devices.some(device => device.props.type === 'SAMPLES') && dacChips.every(device =>
+        : dacChips.length && !(devices.some(device => device.props.type === 'SAMPLES') && dacChips.every(device =>
               device.props.type === 'DAC_1BIT'))
             ? {
                 kind: 'dac',

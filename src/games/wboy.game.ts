@@ -5,7 +5,7 @@ export const wboy = sourceTarget({
   driver: 'src/mame/sega/system1.cpp',
   machine: { className: 'system1_state', name: 'wboy' },
   screen: { width: 512, height: 224 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   // Sega System 1 renders a 512-wide screen: the mixer samples both tilemaps
   // at half rate, so 30 fps here is real work, not a widened framebuffer.
   minimumFps: 30,

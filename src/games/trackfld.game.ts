@@ -10,7 +10,7 @@ export const trackfld = sourceTarget({
   driver: 'src/mame/konami/trackfld.cpp',
   machine: { className: 'trackfld_state', name: 'trackfld' },
   screen: { width: 256, height: 224 },
-  soundKind: 'sn76489',
+  soundKind: 'dac',
   frames: 1200,
   minimumFps: 20,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],

@@ -3,7 +3,9 @@ import { compileMameDevice } from '../../mame/device-compiler.ts';
 import type { MameHardwareDefinition } from '../../mame/hardware.ts';
 import { generatedStreamWorkletSource } from '../../mame/stream-worklet.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
-import { SPEAKER_MAME_TYPES, STREAM_AUDIO_WORKLET_ARTIFACT, STREAM_SOUND_TYPES } from './definition.ts';
+import {
+  SPEAKER_MAME_TYPES, STREAM_AUDIO_WORKLET_ARTIFACT, STREAM_SOUND_TYPES,
+} from './definition.ts';
 
 export function extractSpeaker(input: CapabilityInput): CapabilityExtraction | undefined {
   const speaker = extractStreamDevice(input, SPEAKER_MAME_TYPES);

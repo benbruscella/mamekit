@@ -14,7 +14,7 @@ export const coleco = {
     driver: 'src/mame/coleco/coleco.cpp',
     machine: { className: 'coleco_state', name: 'coleco' },
     screen: { width: 280, height: 216 },
-    soundKind: 'sn76489',
+    soundKind: 'stream',
     media: [
       { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'accepted', softwareLists: ['coleco'] },
