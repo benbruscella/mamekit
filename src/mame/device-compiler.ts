@@ -897,6 +897,23 @@ function compileMameDeviceSource(
       resolved = true;
     }
   }
+  // logmacro.h's own defaults: `#ifndef VERBOSE #define VERBOSE 0`, and
+  // LOG_GENERAL as bit 0. A device that leaves VERBOSE commented out (the
+  // usual state) guards its log lines with a name no file it parses defines,
+  // so every method holding `if (VERBOSE & LOG_TIMER)` was declined by the
+  // emitter: the 68705's timer `update`, which runs every instruction.
+  // Read from the files as written: the preprocessor pass hands over source
+  // whose #include and #define lines are already consumed.
+  const written = sourceFiles.flatMap(file => {
+    const path = join(mameSrc, file);
+    return existsSync(path) ? [stripCppComments(readFileSync(path, 'utf8'))] : [];
+  });
+  const usesLogMacros = written.some(source => /^\s*#include\s+"logmacro\.h"/m.test(source));
+  if (usesLogMacros) {
+    const definesVerbose = written.some(source => /^\s*#define\s+VERBOSE\b/m.test(source));
+    if (!definesVerbose) constants.VERBOSE ??= 0;
+    constants.LOG_GENERAL ??= 1;
+  }
   // Struct shapes for members whose type is one the device declares.
   const structFields = structDeclarations(sources, constants);
   // And for a framework struct it names, which only MAME's emu headers
