@@ -198,3 +198,29 @@ engine was within 0.3 dB.
 - Where to start: the 6840 channels in `sound_stream_update` (the union
   `counter`, `sh6840_apply_clock`, `m_sh6840_volume`), rendered at the board's
   1.79 MHz stream rate.
+
+### 4.3 Compiled chips still off MAME where the hand engines were close
+
+From `oracle:baseline compare --baseline e11059da` on the #242 tree (MAME 0.289).
+Each was already present in the first compare of the compiled chips, so none
+comes from the later gap fixes. Level and bands are |ours − MAME|, baseline → now.
+
+| Target | Chip path | No input | Contract |
+|---|---|---|---|
+| mslug | YM2610 (ymfm) | level 0.19 → 21.8 dB, bands 2.2 → 31.2 dB | level 1.2 → 7.2 dB |
+| berzerk | Exidy 6840 + S14001A | bands 0.6 → 100.2 dB | same |
+| gng, gunsmoke | YM2203 ×2 (ymfm) | level 0.1 → 5.9 dB (gng) | level 0.0 → 6.0 / 3.3 dB |
+| ffight, sf2, sf2ce | YM2151 + OKIM6295 | level ~0.1 → 3.8–5.8 dB, bands ~5 → 16–19 dB | similar |
+| nbajam, mk | Williams ADPCM (YM2151, OKIM6295, DAC) | small | level 0.05–0.45 → 1.2–5.6 dB |
+| ladybug, coleco/dkong | SN76489 | bands 16 → 56 dB, 14 → 27 dB | — |
+| wboy | SN76489 ×2 (Sega) | level 1.1 → 5.2 dB | better |
+| rampage | Sounds Good DAC + biquads | level 9.6 → 11.6 dB | level 0.9 → 9.8 dB |
+| nes/smb1, nes/duckhunt | RP2A03 APU | bands ~1 → 6–10 dB | — |
+
+- The ROM side is in place for mslug: both 8 MB ADPCM regions install into the
+  YM2610's spaces (`init_ym`), so its gap is in how ymfm's ADPCM output reaches
+  the mix.
+- The OKI boards became audible only once `add_int` and the volume table were
+  fixed; before that the OKI rendered nothing and the old goldens hid it.
+- popeye (AY `set_flags` dropped from a derived config) and xevious (device
+  self-reset shadowing `namco_51xx_device::reset`) are fixed; see #242.

@@ -962,8 +962,17 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       ...(installedHandlers.length
         ? { installedHandlers: installedHandlers.map(handler => JSON.stringify(handler)) }
         : {}),
+      // A constant the driver's headers define is its value in a patch: the
+      // patch is lowered as written, later, where none is known. Popeye's
+      // derived config sets `m_aysnd->set_flags(AY8910_RESISTOR_OUTPUT)`, and
+      // left as a name the call was dropped, so its AY fed the netlist levels
+      // instead of resistances and the board was near silent.
       ...(cfg.devicePatches.length
-        ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify(patch)) }
+        ? { devicePatches: cfg.devicePatches.map(patch => JSON.stringify({
+          ...patch,
+          config: patch.config.map(statement => statement.replace(/\b([A-Z][A-Z0-9_]{2,})\b(?!\s*\()/g, (name: string) =>
+            consts[name] !== undefined && Number.isFinite(consts[name]) ? String(consts[name]) : name)),
+        })) }
         : {}),
       ...(cfg.removedAddrMaps.length
         ? { removedAddrMaps: cfg.removedAddrMaps.map(removal =>

@@ -1956,6 +1956,15 @@ class IrBoard implements Board {
         }
       }
       this.deviceReferents.set(tag, referent);
+      // device_memory_interface::space(n) through the device's finder: Neo
+      // Geo's init_ym takes `m_ym->space(0)` and installs the cartridge's
+      // ADPCM-A ROM there. Unbound, the YM2610 had no sample ROM at all and
+      // Metal Slug's attract was 21 dB under MAME.
+      const deviceSpace = self && typeof self === 'object' ? (self as { space?: unknown }).space : undefined;
+      if (typeof deviceSpace === 'function') {
+        const space = (index: number) => (deviceSpace as (index: number) => unknown)(Number(index) || 0) as number;
+        for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) calls[`${name}.space`] ??= space;
+      }
       if (flatMember && (this.state[flatMember] === device || this.state[flatMember] == null)) {
         this.state[flatMember] = referent;
         // A finder array indexed at run time (`m_slots[m_curr_slot]`) holds
