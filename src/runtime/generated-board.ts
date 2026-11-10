@@ -4336,11 +4336,22 @@ class IrBoard implements Board {
           // MAME device tags may themselves contain dots (LS175.3D). Resolve
           // against instantiated tags instead of treating the first dot as
           // an unconditional tag/method delimiter.
-          const tag = [...this.devices.keys()]
+          // Or by the class whose own map names it: venture_sound_device maps
+          // its 8253 as `FUNC(venture_sound_device::sh8253_w)` on its own CPU,
+          // which is the compiled device's method, run on its own members.
+          // Interpreted against the board's, `m_stream->update()` reached nothing.
+          const byClass = (): string | undefined => {
+            const dot = key.lastIndexOf('.');
+            const owners = (machine.devices ?? []).filter(device =>
+              device.classHierarchy?.includes(key.slice(0, dot)) && this.devices.has(device.tag));
+            return owners.length === 1 ? owners[0]!.tag : undefined;
+          };
+          const tagged = [...this.devices.keys()]
             .filter(candidate => key.startsWith(`${candidate}.`))
             .sort((left, right) => right.length - left.length)[0];
+          const tag = tagged ?? byClass();
           if (!tag) continue;
-          const method = key.slice(tag.length + 1);
+          const method = tagged ? key.slice(tag.length + 1) : key.slice(key.lastIndexOf('.') + 1);
           const device = this.devices.get(tag);
           if (!device) continue;
           if (!device.methodNames().includes(method)) continue;

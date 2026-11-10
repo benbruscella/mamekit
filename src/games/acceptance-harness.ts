@@ -333,9 +333,17 @@ export async function runGameAcceptance(
         if (!replayWrites) pendingMutes.push({ muted, frac });
       },
       // A gate on one chip of the mix names its stream: `tms.stream`.
-      observeStreams: (contract.audioRequirements ?? [])
-        .filter(requirement => requirement.method.endsWith('.stream'))
-        .map(requirement => requirement.method.slice(0, -'.stream'.length)),
+      // MAMEKIT_OBSERVE_STREAMS=1 watches every chip, so a silent board's
+      // report says which of its streams rendered anything.
+      observeStreams: [
+        ...(contract.audioRequirements ?? [])
+          .filter(requirement => requirement.method.endsWith('.stream'))
+          .map(requirement => requirement.method.slice(0, -'.stream'.length)),
+        ...(process.env.MAMEKIT_OBSERVE_STREAMS === '1'
+          ? (JSON.parse(readFileSync(join(gameDir, 'generated/board.json'), 'utf8')) as { sound?: { deviceTags?: string[] } })
+            .sound?.deviceTags ?? []
+          : []),
+      ],
     },
   );
   assert.equal(board.fbWidth, contract.screen.width);
@@ -871,6 +879,12 @@ export async function runGameAcceptance(
           [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
             method,
             allWrites.filter(write => (write.method ?? 'register') === method).length,
+          ]),
+        ),
+        nonzeroMethods: Object.fromEntries(
+          [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
+            method,
+            allWrites.filter(write => (write.method ?? 'register') === method && write.data !== 0).length,
           ]),
         ),
         writes: allWrites.slice(0, 32),

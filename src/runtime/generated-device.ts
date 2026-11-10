@@ -926,6 +926,8 @@ export class IrSoundStream {
   onRate?: (rate: number) => void;
   samples: () => number = () => 0;
   put: (channel: number, index: number, value: number) => number = () => 0;
+  /** sound_stream::add: bound by the mixer beside `put` for the span it asks for. */
+  add: (channel: number, index: number, value: number) => number = () => 0;
   /** The outputs and inputs `stream_alloc` asked for. */
   readonly outputs: number;
   readonly inputs: number;
@@ -942,6 +944,12 @@ export class IrSoundStream {
   // binds for the span it asks for: an OKIM6295 renders with put_int.
   put_int(channel: number, index: number, value: number, max: number): number {
     return this.put(channel, index, Number(max) ? Number(value) / Number(max) : 0);
+  }
+  put_clamp(channel: number, index: number, value: number, clamp = 1): number {
+    return this.put(channel, index, Math.max(-Number(clamp), Math.min(Number(clamp), Number(value))));
+  }
+  add_int(channel: number, index: number, value: number, max: number): number {
+    return this.add(channel, index, Number(max) ? Number(value) / Number(max) : 0);
   }
   put_int_clamp(channel: number, index: number, value: number, max: number): number {
     const limit = Number(max);
@@ -1825,6 +1833,10 @@ class IrDevice implements Device {
         notify_clock_changed: () => this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0,
         // device_t::type: the number its own DECLARE_DEVICE_TYPE name compiled to.
         type: () => definition.constants?.[definition.type] ?? 0,
+        // device_t::owner(): the device that composed this one. A PIT8253's
+        // counters reach their chip's out handlers and type through
+        // `downcast<pit8253_device *>(owner())`.
+        ...(options.owner !== undefined ? { owner: () => options.owner as number } : {}),
         name: () => definition.description ?? definition.type,
         stream_alloc: (inputs, outputs, requested) => {
           // SAMPLE_RATE_INPUT_ADAPTIVE, _OUTPUT_ADAPTIVE and _ADAPTIVE
@@ -1969,6 +1981,12 @@ class IrDevice implements Device {
       for (const method of definition.methods) {
         if (!options.calls?.[method.name]) delete this.bindings.calls![method.name];
       }
+    }
+    // device_rom_interface is the device's own surface, reached through a
+    // reference to it as well: each K053260 voice reads its samples with
+    // `m_device.read_byte(...)`, which through `*this` answered 0.
+    if (definition.romInterface && typeof self.read_byte !== 'function') {
+      self.read_byte = (address: unknown) => (this.bindings.calls!.read_byte as (address: unknown) => unknown)(address);
     }
     this.executionContext = {
       members: this.members,

@@ -864,6 +864,10 @@ function compileMameDeviceSource(
   const constants = Object.assign(
     // C stdio ABI, supplied by the host rather than a MAME device header.
     { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
+    // <numbers>, for an initializer read at compile time: flt_biquad's
+    // constructor sets `m_q(std::numbers::sqrt2 / 2.0)`, which read as 0 gave
+    // every biquad a Q of zero until its first setup, and NaN out of recalc.
+    Object.fromEntries(Object.entries(DEFAULT_CONSTANTS).filter(([name]) => name.startsWith('std::numbers::'))),
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
     coreEnumerators(mameSrc, sources),
@@ -1141,6 +1145,26 @@ function compileMameDeviceSource(
   // (`#define CURLINE m_vid_regs[0x04]`). The name stands for nothing but the
   // subscript, so it has to become the subscript before lowering.
   const memberAliases = sources.flatMap(({ source }) => [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
+  // A struct method that reads a table of the device's sources is compiled as
+  // the device's own methods are, the table substituted: k053260.cpp's
+  // KDSC_Voice::update_pan_volume reads `pan_mul[m_pan][0]`, which unread was
+  // 0, so every voice played at volume 0.
+  const tableNames = Object.keys(sourceTables);
+  if (tableNames.length) {
+    const reads = new RegExp(`\\b(?:${tableNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*\\[`);
+    for (const list of Object.values(structMethods)) {
+      list.forEach((method, index) => {
+        const body = STRUCT_METHOD_SOURCE.get(method.program);
+        if (body === undefined || !reads.test(body)) return;
+        const recompiled = compileMethod(
+          { kind: 'function', className: '', name: method.name, parameters: method.parameters, body,
+            span: { file: '', line: 0, column: 0 } } as unknown as MameFunction,
+          [], sourceTables, functionMacros, memberAliases, stringMacros,
+        );
+        if (!recompiled.program.diagnostics.length) list[index] = { ...method, program: recompiled.program };
+      });
+    }
+  }
   const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
     /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
   )].map(match => ({
@@ -2031,8 +2055,16 @@ function compileMameDeviceSource(
       const fallback = cppDefaultArgument(parameter);
       return name && fallback !== undefined ? [[name, String(fallback)] as const] : [];
     }));
-    if (initializer?.args.length) {
-      member.objectArgs = initializer.args.map(argument => parameterDefaults.get(argument.trim()) ?? argument.trim());
+    // An array of them built one brace list an element, every one alike:
+    // k053260's `m_voice{ { *this }, { *this }, { *this }, { *this } }` is
+    // four voices each built with `*this`.
+    const elementArgs = initializer?.args.length && initializer.args.every(argument => /^\{[\s\S]*\}$/.test(argument.trim())) &&
+      new Set(initializer.args.map(argument => argument.replace(/\s+/g, ''))).size === 1
+      ? splitMameArgs(initializer.args[0]!.trim().slice(1, -1)).map(argument => argument.trim()).filter(Boolean)
+      : undefined;
+    const args = elementArgs ?? initializer?.args;
+    if (args?.length) {
+      member.objectArgs = args.map(argument => parameterDefaults.get(argument.trim()) ?? argument.trim());
     }
     if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
     delete member.values;
@@ -3923,6 +3955,14 @@ function compileMethod(
       .replace(new RegExp(`\\b${name}\\s*\\.\\s*dvalue\\s*\\(\\s*\\)`, 'g'), `(${name})`)
       .replace(new RegExp(`\\b${name}\\s*\\.\\s*value\\s*\\(\\s*\\)`, 'g'), `u32(${name} + 1e-3)`);
   }
+  // So is an XTAL constant: exidysound.cpp's `#define SH8253_CLOCK
+  // (CRYSTAL_OSC / 2)` over `3.579545_MHz_XTAL`, read in device_start as
+  // `SH8253_CLOCK.value()`. A macro or constant name with an accessor can only
+  // be one (an arithmetic constant has none); unrewritten, the stream's rate
+  // and the 6840's clocks per sample were both 0, and Berzerk was silent.
+  body = body
+    .replace(/(?<![\w.>])([A-Z][A-Z0-9_]*)\s*\.\s*dvalue\s*\(\s*\)/g, '($1)')
+    .replace(/(?<![\w.>])([A-Z][A-Z0-9_]*)\s*\.\s*value\s*\(\s*\)/g, 'u32($1 + 1e-3)');
   return {
     name: method.name,
     parameters: method.parameters,
@@ -4059,10 +4099,12 @@ export function memberDeclarations(
   for (const block of structBlocks(declaration.body)) {
     // Only an anonymous struct declares a member here; a named one is a type,
     // and its members are picked up by the ordinary patterns below.
+    // A named one with a declarator declares both: k053260.h's
+    // `class KDSC_Voice { ... } m_voice[4];` is four KDSC_Voices.
     const name = block.declarator;
-    if (!name || block.name !== name || members.some(member => member.name === name)) continue;
+    if (!name || members.some(member => member.name === name)) continue;
     const arrayLength = block.declaratorBound === undefined ? undefined : arrayBound(block.declaratorBound, constants);
-    members.push({ valueType: name, name,
+    members.push({ valueType: block.name, name,
       ...(arrayLength !== undefined && Number.isInteger(arrayLength) && arrayLength > 0 ? { arrayLength } : {}) });
     unmasked = unmasked.replace(`{${block.body}}`, `{${block.body.replace(/[^\r\n]/g, ' ')}}`);
   }
@@ -4200,7 +4242,10 @@ function maskNestedClasses(source: string): string {
     const end = matchingBrace(source, brace);
     if (end < 0) continue;
     const declared = /^\s*\w+\s*(?:\[[^\]]*\]\s*)?;/.test(source.slice(end + 1));
-    const kept = match[1] === 'struct' && declared ? `struct ${match[2]}` : '';
+    // A class declaring a member as it closes is a member of that class:
+    // k053260.h's `class KDSC_Voice { ... } m_voice[4];` is four voices, each
+    // an object of the nested class (see the member's `object`).
+    const kept = !declared ? '' : match[1] === 'struct' ? `struct ${match[2]}` : match[2]!;
     const masked = kept + result.slice(match.index + kept.length, end + 1).replace(/[^\r\n]/g, ' ');
     result = result.slice(0, match.index) + masked + result.slice(end + 1);
     pattern.lastIndex = end + 1;
@@ -5212,8 +5257,10 @@ interface ConstantTable {
 
 function constantTables(source: string): Record<string, ConstantTable> {
   const tables: Record<string, ConstantTable> = {};
+  // Or a class's own static, defined out of the class as MAME defines one:
+  // k053260.cpp's `const int k053260_device::pan_mul[8][2] = { ... };`.
   for (const match of source.matchAll(
-    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
+    /(?:\bstatic\s+const\s+\w+\s+|(?:^|[;}])\s*const\s+\w+\s+\w+::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\})\s*\}\s*;/gm,
   )) {
     const columns = Number(match[3]);
     const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
@@ -5222,9 +5269,9 @@ function constantTables(source: string): Record<string, ConstantTable> {
     tables[match[1]!] = { values, columns };
   }
   for (const match of source.matchAll(
-    /\bstatic\s+(?:const\s+)?\w+\s+(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/g,
+    /(?:\bstatic\s+(?:const\s+)?\w+\s+|(?<=^|[;}])\s*const\s+\w+\s+\w+::)(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/gm,
   )) {
-    if (!/^static\s+const\b/.test(match[0])) {
+    if (!/^\s*(?:static\s+)?const\b/.test(match[0])) {
       const uses = source.replace(match[0], '');
       const name = match[1]!;
       if (new RegExp(`\\b${name}\\s*\\[[^\\]]+\\]\\s*(?:[+*/&|^-]?=|\\+\\+|--)`).test(uses) ||
@@ -5573,19 +5620,80 @@ function structMethodDeclarations(
   sources: readonly { file: string; source: string }[],
 ): Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]> {
   const methods: Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]> = {};
+  const code = sources.map(({ source }) => stripCppComments(source)).join('\n');
   for (const { source } of sources) {
     for (const declaration of structBlocks(stripCppComments(source))) {
       if (!declaration.name || methods[declaration.name]) continue;
-      const found = structMethodsOf(declaration.body, declaration.name);
+      const owner = ownerReferences(declaration.body);
+      const found = [
+        ...structMethodsOf(declaration.body, declaration.name, owner),
+        ...outOfLineStructMethods(code, declaration.name, owner),
+      ];
       if (found.length) methods[declaration.name] = found;
     }
   }
   return methods;
 }
 
-/** The inline methods one struct body defines. */
-function structMethodsOf(body: string, name?: string): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+/**
+ * Each struct method's source, by its compiled program: one that reads a
+ * table or macro of the device's own sources is compiled again once the
+ * device knows them (see compileMameDeviceSource).
+ */
+const STRUCT_METHOD_SOURCE = new WeakMap<GeneratedHandlerProgram, string>();
+
+/**
+ * The fields a value type holds as a reference to the device that owns it:
+ * `k053260_device &m_device;`. A method reaching through one
+ * (`m_device.read_byte(...)`, `m_device.save_item(...)`) is calling its
+ * device, which is what a struct method's own unqualified call reaches.
+ */
+function ownerReferences(body: string): string[] {
+  return [...body.matchAll(/(?:^|[;{}:])\s*(?:const\s+)?\w+_device\s*&\s*(m_\w+)\s*;/gm)].map(match => match[1]!);
+}
+
+function throughOwner(body: string, owner: readonly string[]): string {
+  return owner.reduce((text, member) =>
+    text.replace(new RegExp(`(?<![\\w.>])${member}\\s*(?:\\.|->)\\s*`, 'g'), ''), body);
+}
+
+/**
+ * A value type's methods defined outside its body, as MAME defines a nested
+ * class's: `void k053260_device::KDSC_Voice::play(s32 *outputs) { ... }`.
+ */
+function outOfLineStructMethods(
+  code: string,
+  name: string,
+  owner: readonly string[],
+): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+  const leaf = name.split('::').at(-1)!;
   const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  const definition = new RegExp(
+    `(?:^|[;}])\\s*(?:inline\\s+)?[\\w:<>]+[\\s*&]+(?:\\w+::)*${leaf}::(\\w+)\\s*\\(([^()]*)\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?\\{`,
+    'gm',
+  );
+  for (const match of code.matchAll(definition)) {
+    if (match[1] === leaf) continue;
+    const open = code.indexOf('{', match.index! + match[0].length - 1);
+    const close = matchingBrace(code, open);
+    if (close < 0) continue;
+    const body = throughOwner(code.slice(open + 1, close), owner);
+    const program = compileMameHandler(normalizeMameExecutionSource(body));
+    if (program.diagnostics.length) continue;
+    STRUCT_METHOD_SOURCE.set(program, body);
+    found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
+  }
+  return found;
+}
+
+/** The inline methods one struct body defines. */
+function structMethodsOf(
+  body: string,
+  name?: string,
+  owner: readonly string[] = [],
+): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+  const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  body = throughOwner(body, owner);
   // Its default constructor, as `__construct`, which building the struct
   // runs: discrete's `double_stack() : p(&stk[0]) { }` points its stack at
   // its own storage, and built as zeros the first push wrote through null.
@@ -5628,6 +5736,7 @@ function structMethodsOf(body: string, name?: string): { name: string; parameter
     if (close < 0) continue;
     const program = compileMameHandler(normalizeMameExecutionSource(body.slice(open + 1, close)));
     if (program.diagnostics.length) continue;
+    STRUCT_METHOD_SOURCE.set(program, body.slice(open + 1, close));
     found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
   }
   return found;

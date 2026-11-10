@@ -1055,10 +1055,16 @@ export function lowerGeneratedMachine(
     : [];
   // A route names a tag in its own machine config: a child of a sound board
   // (Irem's `filtermix`) is the board's `irem_audio:filtermix`.
+  // A device that routes itself in its own config (`this->add_route(...,
+  // "mono", ...)`) names a tag beneath it: venture's `soundbd:mono`.
   const scopedRoutes = (sources: readonly GeneratedDevice[], routes: GeneratedAudioRoute[]) => routes.map(route => {
     const host = sources[route.chip]?.hostTag;
     const scoped = host ? `${host}:${route.target}` : undefined;
-    return scoped && devices.some(device => device.tag === scoped) ? { ...route, target: scoped } : route;
+    if (scoped && devices.some(device => device.tag === scoped)) return { ...route, target: scoped };
+    const own = sources[route.chip] ? `${sources[route.chip]!.tag}:${route.target}` : undefined;
+    return own && !devices.some(device => device.tag === route.target) && devices.some(device => device.tag === own)
+      ? { ...route, target: own }
+      : route;
   });
   const deviceRoutes = (device: GeneratedDevice) => scopedRoutes([device], lowerAudioRoutes(graph, [device]));
   const mappedWriteKeys = maps.flatMap(map => map.ranges)

@@ -900,6 +900,8 @@ function preparedHandlerRuntime(
       if (args.length) return (value == null ? undefined : (value as (...values: unknown[]) => unknown).apply(target, args)) ?? 0;
       if (typeof value === 'function') return value.call(target);
       if (typeof value === 'number' || typeof value === 'boolean') return value;
+      // device_finder::target() on a finder holding its device: the device.
+      if (property === 'target' && value === undefined) return object;
       return generatedContainerAccessor(object, property);
     },
   } satisfies Omit<GeneratedHandlerRuntime, 'palette'> & { linksGeneration?: number };
@@ -2354,7 +2356,21 @@ export function generatedMacroCall(name: string, args: unknown[]): unknown {
   return 0;
 }
 
+/**
+ * Constants spelled as calls, answered before the macro chain below: Berzerk
+ * draws every unlit pixel as `rgb_t::black()`, and walking the chain's string
+ * and pattern tests for it was a fifth of the machine's time.
+ */
+const CONSTANT_MACROS: ReadonlyMap<string, number> = new Map([
+  ['rgb_t::black', 0xff000000],
+  ['rgb_t::white', 0xffffffff],
+]);
+
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
+  const constant = CONSTANT_MACROS.get(name);
+  if (constant !== undefined) return constant;
+  // MAME's downcast<T>(x) is a checked static_cast: the object itself.
+  if (name === 'downcast' && args.length === 1) return args[0];
   // As the C library and as `std::` spell it: the floppy drive's call_load
   // compares its `write_protected` feature with `std::strcmp`, and the NES
   // loader an `mmc1_type` against the prefix `"MMC1B"` with `strncmp`, which
@@ -2744,8 +2760,6 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::lower_bound' || name === 'std::upper_bound') {
     return generatedBoundSearch(name === 'std::lower_bound', args[0], args[1], args[2], args[3]);
   }
-  if (name === 'rgb_t::black') return 0xff000000;
-  if (name === 'rgb_t::white') return 0xffffffff;
   if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
   if (name === 'CAP_N') return toNumber(args[0]) * 1e-9;
   if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
@@ -3138,6 +3152,11 @@ function evaluateCall(
       }
       // A vector's capacity is the host's business; reserving changes nothing it holds.
       if (Array.isArray(object) && (method === 'reserve' || method === 'shrink_to_fit')) return 0;
+      // device_finder::target() on a finder holding its device: the device.
+      // Irem's m62 audio picks an MSM5205 by `m_adpcm1.target()`.
+      if (method === 'target' && !args.length && typeof (object as Record<string, unknown>).target !== 'function') {
+        return object;
+      }
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
       // A finder member re-pointed by its own setter: `m_screen.set_tag(tag)`

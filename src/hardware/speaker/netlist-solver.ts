@@ -32,6 +32,9 @@ class GeneratedNetlistDiode {
     this.vcrit = this.vt * Math.log(this.vt / is / Math.SQRT2);
   }
 
+  /** Save-state roots (machine-state.ts): the operating point; the rest is the model. */
+  stateKeys(): readonly string[] { return ['vd', 'id', 'g']; }
+
   update(nVd: number): void {
     if (nVd > this.vcrit) {
       const old = Math.max(0, this.vd);
@@ -72,6 +75,9 @@ class GeneratedNetlistGroup {
   private readonly lower: Int32Array;
   private readonly upperStart: Int32Array;
   private readonly upper: Int32Array;
+
+  /** Save-state roots: the stamped matrix and its last solve; the elimination order is fixed. */
+  stateKeys(): readonly string[] { return ['a', 'base', 'rhs', 'x']; }
 
   constructor(nodes: readonly number[], pairs: readonly (readonly [number, number])[]) {
     const size = nodes.length;
@@ -275,6 +281,16 @@ export class GeneratedNetlistSolver {
   private readonly inputValues: Float64Array;
   /** Seconds: the time the last read was taken at. */
   private now = 0;
+
+  /**
+   * Save-state roots (machine-state.ts): node voltages, the inputs as they
+   * last landed, each group's clock, matrix, capacitors, switches, drives and
+   * diodes. Without them the netlist was opaque to a save, and a rewound board
+   * played on from whatever voltages the netlist had reached instead.
+   */
+  stateKeys(): readonly string[] {
+    return ['v', 'inputG', 'inputValues', 'now', 'groups', 'switches', 'gates', 'logics'];
+  }
 
   constructor(plan: GeneratedNetlistPlanData, rate: number) {
     this.rate = rate;

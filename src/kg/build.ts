@@ -1269,7 +1269,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
           const close = matchingParenthesis(line, open);
           if (close < 0) break;
           // Setters only: `.add_route(...)` is the sound graph's, read elsewhere.
-          if (link[1]!.startsWith('set_')) chained.push(`__added.${line.slice(at, close + 1).trim().replace(/^\.\s*/, '')}`);
+          // A filter's `*_setup` is one: `FILTER_BIQUAD(config, m_dac_filter[0])
+          // .opamp_mfb_lowpass_setup(...)` builds Sounds Good's DAC filters,
+          // and left out, each stayed the constructor's 16 Hz high-pass.
+          if (link[1]!.startsWith('set_') || /_setup$/.test(link[1]!)) chained.push(`__added.${line.slice(at, close + 1).trim().replace(/^\.\s*/, '')}`);
           at = close + 1;
         }
       }
@@ -3632,14 +3635,35 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
         .map(edge => edge.to));
     }
   }
+  // A device's own device_add_mconfig, and the configs it calls in turn, are
+  // reached through the device rather than the machine: only their `^self`
+  // patches (a device routing itself, `this->add_route(...)`) are applied
+  // from there. venture_sound_device's base config routes the board to its
+  // speaker that way, and left out, Venture had no sound route at all.
+  const selfOnly = new Set<string>();
+  {
+    const pending = configOrder.flatMap(id => edges
+      .filter(edge => edge.from === id && edge.rel === 'HAS_DEVICE')
+      .flatMap(device => edges.filter(edge => edge.from === device.to && edge.rel === 'CALLS').map(edge => edge.to)));
+    while (pending.length) {
+      const id = pending.shift()!;
+      if (configOrder.includes(id) || selfOnly.has(id)) continue;
+      selfOnly.add(id);
+      pending.push(...edges.filter(edge => edge.from === id && edge.rel === 'CALLS').map(edge => edge.to));
+      pending.push(...edges
+        .filter(edge => edge.from === id && edge.rel === 'HAS_DEVICE')
+        .flatMap(device => edges.filter(edge => edge.from === device.to && edge.rel === 'CALLS').map(edge => edge.to)));
+    }
+  }
   const patchedClocks = new Set<string>();
   const patchedScreenRaws = new Set<string>();
-  for (const configId of configOrder) {
+  for (const configId of [...configOrder, ...selfOnly]) {
     const config = nodes.find(node => node.id === configId);
     const encoded = Array.isArray(config?.props.devicePatches)
       ? config.props.devicePatches.map(String)
       : [];
     for (const value of encoded) {
+      if (selfOnly.has(configId) && !value.startsWith('{"tag":"^self"')) continue;
       const patch = JSON.parse(value) as {
         tag: string;
         config: string[];
@@ -3656,10 +3680,30 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       const deviceIds = new Set(configOrder.flatMap(id => edges
         .filter(edge => edge.from === id && edge.rel === 'HAS_DEVICE')
         .map(edge => edge.to)));
-      const device = nodes.find(node =>
-        deviceIds.has(node.id) &&
-        node.label === 'Device' &&
-        String(node.props.tag) === patch.tag);
+      // '^self' is the device whose own config this is: the one that calls
+      // it, or calls a config that does (venture_sound_device's config calls
+      // exidy_sh8253_sound_device's, where the board routes itself).
+      const selfDevice = (): typeof nodes[number] | undefined => {
+        const visited = new Set<string>();
+        const pending = [configId];
+        while (pending.length) {
+          const id = pending.shift()!;
+          if (visited.has(id)) continue;
+          visited.add(id);
+          for (const edge of edges.filter(candidate => candidate.to === id && candidate.rel === 'CALLS')) {
+            const caller = nodes.find(node => node.id === edge.from);
+            if (caller?.label === 'Device') return caller;
+            if (caller?.label === 'MachineConfig') pending.push(caller.id);
+          }
+        }
+        return undefined;
+      };
+      const device = patch.tag === '^self'
+        ? selfDevice()
+        : nodes.find(node =>
+          deviceIds.has(node.id) &&
+          node.label === 'Device' &&
+          String(node.props.tag) === patch.tag);
       if (!device) continue;
       if (patch.replacementType) device.props.type = patch.replacementType;
       if (patch.slotOptions !== undefined) {

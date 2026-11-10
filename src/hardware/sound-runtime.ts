@@ -18,6 +18,8 @@ export interface SoundStreamSurface {
   outputs?: number;
   samples: () => number;
   put: (channel: number, index: number, value: number) => number;
+  /** sound_stream::add, accumulating on the sample put has written. */
+  add?: (channel: number, index: number, value: number) => number;
 }
 
 export interface SoundRuntimeContext {

@@ -193,6 +193,12 @@ export function createStreamMixer(
       if (at >= 0 && at < due) lane(channel)[at] = Number(value);
       return 0;
     };
+    // sound_stream::add: the Namco WSG sums its voices into one output.
+    const add = (channel: number, index: number, value: number): number => {
+      const at = Number(index);
+      if (at >= 0 && at < due) lane(channel)[at]! += Number(value);
+      return 0;
+    };
     context.callDevice(tag, 'sound_stream_update', {
       samples: () => due,
       sample_rate: () => rate,
@@ -214,6 +220,11 @@ export function createStreamMixer(
         return sum;
       },
       put,
+      put_clamp: (channel: number, index: number, value: number, clamp = 1) =>
+        put(channel, index, Math.max(-Number(clamp), Math.min(Number(clamp), Number(value)))),
+      add,
+      add_int: (channel: number, index: number, value: number, max: number) =>
+        add(channel, index, Number(max) ? Number(value) / Number(max) : 0),
       put_int: (channel: number, index: number, value: number, max: number) =>
         put(channel, index, Number(max) ? Number(value) / Number(max) : 0),
       put_int_clamp: (channel: number, index: number, value: number, max: number) =>
@@ -281,6 +292,10 @@ export function createStreamMixer(
     surface.samples = () => due;
     surface.put = (_output, at, value) => {
       if (at >= 0 && at < due) channel.history[from + Number(at)] = Number(value) * channel.outputGain;
+      return 0;
+    };
+    surface.add = (_output, at, value) => {
+      if (at >= 0 && at < due) channel.history[from + Number(at)] = (channel.history[from + Number(at)] ?? 0) + Number(value) * channel.outputGain;
       return 0;
     };
     context.callDevice(stream.tag, 'sound_stream_update', surface);
@@ -370,6 +385,8 @@ export function createStreamMixer(
       lanes: [] as Float64Array[],
       start: 0,
       next: 0,
+      observed: context.observeStreams?.includes(tag) ?? false,
+      level: 0,
     })),
   } : undefined;
   const renderNetlist = (target: number): void => {
@@ -383,16 +400,7 @@ export function createStreamMixer(
         const due = Math.max(0, last - feeder.native);
         const { lanes } = update(feeder.tag, due, rate, undefined, undefined, feeder.native);
         feeder.lanes = lanes;
-        // A gate on a feeder (kungfum's MSM5205s into its netlist) watches
-        // what it renders, at its own rate, before the netlist.
-        if (context.observeStreams?.includes(feeder.tag)) {
-          const frac = context.fraction();
-          for (let index = 0; index < due; index++) {
-            let sample = 0;
-            for (const lane of lanes) sample += lane?.[index] ?? 0;
-            context.soundWrite(0, sample, frac, `${feeder.tag}.stream`);
-          }
-        }
+
         feeder.start = feeder.native;
         feeder.next = feeder.native;
         feeder.native = last;
@@ -416,9 +424,20 @@ export function createStreamMixer(
             else for (const lane of earliest.lanes) value += lane?.[offset] ?? 0;
             netlist.solver.set(route.input, value * route.gain, earliestTime);
           }
+          if (earliest.observed) {
+            let value = 0;
+            for (const lane of earliest.lanes) value += lane?.[offset] ?? 0;
+            earliest.level = value;
+          }
           earliest.next++;
         }
         netlistNode.pending.push(netlist.solver.read(at));
+        // A gate on a feeder (kungfum's MSM5205s into its netlist) watches
+        // what it holds at each speaker sample, as a stream's is watched:
+        // every native sample of a 384 kHz chip was millions of writes.
+        for (const feeder of netlistNode.feeders) {
+          if (feeder.observed) context.soundWrite(0, feeder.level, context.fraction(), `${feeder.tag}.stream`);
+        }
       }
       // Every sample the feeders rendered is in the solver now; what is left
       // is scratch, and a save must not carry a buffer whose length is only

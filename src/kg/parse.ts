@@ -2245,8 +2245,11 @@ export function parseMachineConfigs(
           }
           continue;
         }
-        if (!dev && (refRaw.startsWith('m_') || refRaw.startsWith('"'))) {
-          const tag = resolveTag(refRaw);
+        // `this->add_route(ALL_OUTPUTS, "mono", 0.50)` in a device's own
+        // device_add_mconfig (exidy_sh8253_sound_device) configures the device
+        // the config belongs to; '^self' names it for the graph builder.
+        if (!dev && (refRaw.startsWith('m_') || refRaw.startsWith('"') || refRaw === 'this')) {
+          const tag = refRaw === 'this' ? '^self' : resolveTag(refRaw);
           let patch = cfg.devicePatches.find(candidate => candidate.tag === tag);
           if (!patch) {
             patch = { tag, config: [] };
