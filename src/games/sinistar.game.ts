@@ -29,7 +29,7 @@ export const sinistar = sourceTarget({
   driver: 'src/mame/williams/williams.cpp',
   machine: { className: 'williams_state', name: 'sinistar_upright' },
   screen: { width: 292, height: 240 },
-  soundKind: 'dac',
+  soundKind: 'stream',
   // The cold-CMOS operator menu has to be cleared before a coin means
   // anything, so this machine needs a longer run than the 1200-frame default.
   frames: 2400,

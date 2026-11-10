@@ -68,7 +68,7 @@ import {
 import { portHandlers } from './input.ts';
 import { installSoundRuntime } from '../hardware/sound-runtime-registry.ts';
 import type { SoundRuntimeHooks } from '../hardware/sound-runtime.ts';
-import { AY_FILTER_CONTROL_BASE, AY_FILTER_CONTROL_STRIDE } from '../ir/audio-protocol.ts';
+import type { GeneratedSampleWindow } from '../ir/audio-protocol.ts';
 import type {
   Board,
   BoardConfig,
@@ -217,8 +217,10 @@ export function generatedCompositeCallbackBindings(
         );
       }
       const reads = effect.reads || /(?:^|_)(?:r|read)(?:_cb|_callback)?$/.test(callback.signal);
+      // A read callback's argument is the offset it asks for (the APU's DMC
+      // address), which a space read takes and a port read ignores.
       return reads
-        ? applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms)
+        ? applyBoardTransforms(Number(effect.run(0, value)) || 0, effect.transforms)
         : (effect.run(applyBoardTransforms(value, effect.transforms)), 0);
     };
     calls[`m_${callback.signal}`] ??= emit;
@@ -1103,11 +1105,11 @@ class IrBoard implements Board {
                 return (line: number, state: number) => {
                   const cpu = this.cpus.get(cpuSpec.tag);
                   if (cpu) {
-                    applyGeneratedCpuInputLine(
+                    this.cpuInputLine(
+                      cpuSpec.tag,
                       cpu,
                       line,
                       state,
-                      held => this.cpuHeld.set(cpuSpec.tag, held),
                     );
                   }
                 };
@@ -1187,6 +1189,7 @@ class IrBoard implements Board {
             }),
           },
           regions,
+          ...(specification.romMap?.length ? { romRead: this.deviceRomRead(specification.tag, specification.romMap, regions) } : {}),
           configuration: config,
           // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
           // lowered from the driver's constant arguments. MAME makes them
@@ -1224,13 +1227,8 @@ class IrBoard implements Board {
         this.devices.set(specification.tag, device);
         if (hostBound) this.hostBoundStarts.push(device);
         if (specification.member) {
-          const indexed = /^(m_\w+)\[(\d+)\]$/.exec(specification.member);
-          if (indexed) {
-            const values = Array.isArray(this.state[indexed[1]!])
-              ? this.state[indexed[1]!] as unknown[]
-              : [];
-            values[Number(indexed[2])] = device;
-            this.state[indexed[1]!] = values;
+          if (finderElement(specification.member)) {
+            placeFinderElement(this.state, specification.member, device);
           } else {
             // Required/optional device finders are pointer-like in driver
             // handlers. Binding the live generated object preserves nullable
@@ -1406,17 +1404,20 @@ class IrBoard implements Board {
       lumpHosted = outerHosted;
       this.deliveringDeviceTime = outer;
     };
-    // MAME's DISCRETE_SOUND network addresses nodes through the NODE(n) macro,
-    // and a driver handler may poke one directly. Gyruss's i8039 does exactly
-    // that (dac_w writes NODE(16)), and both halves were missing: NODE was
-    // unbound, and m_discrete.write was bound only for hosted firmware MCUs.
-    // Gyruss runs its 8039 as a full CPU, so its entire percussion channel —
-    // the swarm the enemies arrive on — reached the sink as nothing at all.
-    calls['NODE'] = (node: number) => node;
-    calls['m_discrete.write'] = (node: number, value: number) => {
-      sinks.soundWrite(node, value, this.soundFraction(), 'discrete');
-      return 0;
-    };
+    // MAME's DISCRETE_SOUND network addresses nodes through discrete.h's
+    // `NODE(_x) (NODE_00 + (_x) * DISCRETE_MAX_OUTPUTS)`, and a driver handler
+    // may poke one directly: Gyruss's i8039 drives its drum DAC with
+    // `m_discrete->write(NODE(16), data)`. The numbering is the compiled
+    // network's own (NODE_00 and the step to NODE_01). Answered as the bare
+    // index -- what the hand engine before #236 numbered nodes by -- every
+    // such write landed on a node the network does not have, and the drums
+    // and the AY filter selects were silent.
+    const discreteConstants = generatedDeviceDefinition('DISCRETE')?.constants;
+    const node00 = discreteConstants?.NODE_00;
+    const node01 = discreteConstants?.NODE_01;
+    if (node00 !== undefined && node01 !== undefined) {
+      calls['NODE'] = (node: number) => node00 + Number(node) * (node01 - node00);
+    }
     // MAME device_scheduler::abort_timeslice: the executing processor's
     // slice ends after the instruction in progress. Donkey Kong asks for it
     // straight after raising the 8257's DMA requests, so the controller
@@ -1955,16 +1956,21 @@ class IrBoard implements Board {
         }
       }
       this.deviceReferents.set(tag, referent);
+      // device_memory_interface::space(n) through the device's finder: Neo
+      // Geo's init_ym takes `m_ym->space(0)` and installs the cartridge's
+      // ADPCM-A ROM there. Unbound, the YM2610 had no sample ROM at all and
+      // Metal Slug's attract was 21 dB under MAME.
+      const deviceSpace = self && typeof self === 'object' ? (self as { space?: unknown }).space : undefined;
+      if (typeof deviceSpace === 'function') {
+        const space = (index: number) => (deviceSpace as (index: number) => unknown)(Number(index) || 0) as number;
+        for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) calls[`${name}.space`] ??= space;
+      }
       if (flatMember && (this.state[flatMember] === device || this.state[flatMember] == null)) {
         this.state[flatMember] = referent;
         // A finder array indexed at run time (`m_slots[m_curr_slot]`) holds
         // its fitted devices; the rest read as the null MAME's finder holds.
-        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(flatMember);
-        if (indexed) {
-          const values = Array.isArray(this.state[indexed[1]!]) ? this.state[indexed[1]!] as unknown[] : [];
-          const slot = Number(indexed[2]);
-          if (values[slot] === undefined || values[slot] === device) values[slot] = referent;
-          this.state[indexed[1]!] = values;
+        if (finderElement(flatMember)) {
+          placeFinderElement(this.state, flatMember, referent, held => held === undefined || held === device);
         }
       }
     }
@@ -2593,21 +2599,21 @@ class IrBoard implements Board {
         return 0;
       };
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
-        applyGeneratedCpuInputLine(
+        this.cpuInputLine(
+          specification.tag,
           cpu,
           line,
           state,
-          held => this.cpuHeld.set(specification.tag, held),
           state !== 0 ? interruptVector : 0xff,
         );
       };
       calls[`m_${specification.tag}.set_input_line_and_vector`] =
         (line, state, vector) => {
-          applyGeneratedCpuInputLine(
+          this.cpuInputLine(
+            specification.tag,
             cpu,
             line,
             state,
-            held => this.cpuHeld.set(specification.tag, held),
             vector & 0xff,
           );
         };
@@ -2708,13 +2714,8 @@ class IrBoard implements Board {
         // state and therefore needs the finder array to contain live targets.
         // Populate an adapter from the same generic CPU call package so every
         // required_device_array works without a board/game exception.
-        const indexed = /^(m_\w+)\[(\d+)\]$/.exec(member);
-        if (indexed) {
-          const values = Array.isArray(this.state[indexed[1]!])
-            ? this.state[indexed[1]!] as unknown[]
-            : [];
-          values[Number(indexed[2])] = adapter;
-          this.state[indexed[1]!] = values;
+        if (finderElement(member)) {
+          placeFinderElement(this.state, member, adapter);
         } else {
           // A required_device CPU finder is a live object in source, not only
           // a qualified call spelling. Composite handlers such as
@@ -3304,6 +3305,14 @@ class IrBoard implements Board {
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
+        // Held in RESET or HALT, MAME's timeslice still books the slice to
+        // the processor (eatcycles): its machine time while it runs again is
+        // the machine's, not short by every cycle it sat out. Rampage's sound
+        // 68000, held 0.9 s at boot, stamped each DAC write 0.9 s behind the
+        // mixer, so none rendered at its own time.
+        eat: (cycles: number) => {
+          this.cpuCycles.set(specification.tag, (this.cpuCycles.get(specification.tag) ?? 0) + cycles);
+        },
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
         // A core MAME stops between bus cycles stands, mid-instruction, at
         // the cycles before this instruction and those it has paid for so far
@@ -3405,15 +3414,6 @@ class IrBoard implements Board {
           event.state,
           this.state,
         )) return;
-        if (machine.sound?.auxiliaryDevices?.some(device =>
-          device.deviceTag === event.ownerTag)) {
-          sinks.soundWrite(
-            0,
-            event.state,
-            this.soundFraction(),
-            `${event.ownerTag}.vck`,
-          );
-        }
         dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
       },
       onLine: (line, phase, framebuffer) => {
@@ -3689,11 +3689,40 @@ class IrBoard implements Board {
    * execute_set_input. Arkanoid's Z80 holds its 68705 in reset through the
    * interface's reset_w, and the firmware's handshake depends on the restart.
    */
+  /**
+   * set_input_line on a generated CPU. RESET and HALT driven by another
+   * processor change through scheduler().synchronize(), as
+   * device_input::set_state_synced does, so the processor they hold or
+   * release first runs up to the time the line was driven: Rampage's Z80
+   * asserts its sound 68000's RESET 12 us in, and MAME's 68000 has written
+   * its PIA's DDRs and control registers by then.
+   */
+  private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
+    const apply = () => applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+    if ((line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) && this.synchronizesLineFrom(tag)) this.synchronize(apply);
+    else apply();
+  }
+
+  /** Whether a RESET or HALT on `tag` is driven from another running processor. */
+  private synchronizesLineFrom(tag: string): boolean {
+    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning;
+  }
+
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {
     if (line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) {
-      const held = state !== 0;
-      if (!held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag)) device.reset();
-      this.cpuHeld.set(tag, held);
+      const apply = () => {
+        const held = state !== 0;
+        if (!held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag)) device.reset();
+        this.cpuHeld.set(tag, held);
+      };
+      // device_input::set_state_synced: the line changes through
+      // scheduler().synchronize(), so a processor another one holds or
+      // releases first runs up to the time the line was driven. Rampage's
+      // Z80 asserts the sound 68000's RESET 12 us in; MAME's 68000 has made
+      // its first four PIA writes by then (DDR and control), and without
+      // them its release at 0.9 s wrote the DDR where MAME writes port A.
+      if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
+      else apply();
       return 0;
     }
     // device_input (diexec.cpp): HOLD_LINE reaches the core as ASSERT_LINE
@@ -4356,11 +4385,22 @@ class IrBoard implements Board {
           // MAME device tags may themselves contain dots (LS175.3D). Resolve
           // against instantiated tags instead of treating the first dot as
           // an unconditional tag/method delimiter.
-          const tag = [...this.devices.keys()]
+          // Or by the class whose own map names it: venture_sound_device maps
+          // its 8253 as `FUNC(venture_sound_device::sh8253_w)` on its own CPU,
+          // which is the compiled device's method, run on its own members.
+          // Interpreted against the board's, `m_stream->update()` reached nothing.
+          const byClass = (): string | undefined => {
+            const dot = key.lastIndexOf('.');
+            const owners = (machine.devices ?? []).filter(device =>
+              device.classHierarchy?.includes(key.slice(0, dot)) && this.devices.has(device.tag));
+            return owners.length === 1 ? owners[0]!.tag : undefined;
+          };
+          const tagged = [...this.devices.keys()]
             .filter(candidate => key.startsWith(`${candidate}.`))
             .sort((left, right) => right.length - left.length)[0];
+          const tag = tagged ?? byClass();
           if (!tag) continue;
-          const method = key.slice(tag.length + 1);
+          const method = tagged ? key.slice(tag.length + 1) : key.slice(key.lastIndexOf('.') + 1);
           const device = this.devices.get(tag);
           if (!device) continue;
           if (!device.methodNames().includes(method)) continue;
@@ -4919,12 +4959,6 @@ class IrBoard implements Board {
         };
         continue;
       }
-      if (deviceType === 'YM3812') {
-        // Primary-board audio remains live; this auxiliary chip still exposes
-        // its register bus so the unmodified sound CPU can progress.
-        registry.write[key] = () => {};
-        continue;
-      }
       if (/^K0\d+/.test(deviceType)) {
         const bytes = this.generatedResources[`registers:${deviceTag}`] as Uint8Array |
           undefined ?? new Uint8Array(0x10000);
@@ -4932,12 +4966,6 @@ class IrBoard implements Board {
         registry.write[key] = (_address, offset, data) => {
           bytes[offset & 0xffff] = data & 0xff;
         };
-        continue;
-      }
-      if (deviceType === 'UPD7759') {
-        // Keep the real command/control bus executable while the media
-        // decoder remains a separately reported hardware gap.
-        registry.write[key] = () => {};
         continue;
       }
     }
@@ -4962,19 +4990,11 @@ class IrBoard implements Board {
         registry.read[key] = (_address, offset) => bytes[offset % bytes.length]!;
         continue;
       }
-      if (deviceType === 'YM3812') {
-        registry.read[key] = () => 0xff;
-        continue;
-      }
       if (/^K0\d+/.test(deviceType)) {
         const bytes = this.generatedResources[`registers:${deviceTag}`] as Uint8Array |
           undefined ?? new Uint8Array(0x10000);
         this.generatedResources[`registers:${deviceTag}`] = bytes;
         registry.read[key] = (_address, offset) => bytes[offset & 0xffff]!;
-        continue;
-      }
-      if (deviceType === 'UPD7759') {
-        registry.read[key] = () => 0;
         continue;
       }
       const custom = config.customs?.find(candidate => candidate.member === key.split('.').at(-1));
@@ -5044,17 +5064,30 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * A sound chip's `device_rom_interface` reads through its own address space
+   * 0 (the Williams ADPCM OKI's banked low half): each window is a fixed region
+   * offset or the bank's selected entry, read when the chip reads.
+   */
+  private deviceRomRead(tag: string, windows: readonly GeneratedSampleWindow[], regions: Regions): (address: number) => number {
+    return address => {
+      const region = regions[tag];
+      if (!region) return 0;
+      const window = windows.find(candidate => address >= candidate.start && address <= candidate.end);
+      if (!window) return 0;
+      const base = window.bank
+        ? window.bank.entryOffsets[this.bankSelection.get(window.bank.tag)?.entry ?? window.bank.initialEntry] ?? 0
+        : window.regionOffset ?? 0;
+      return region[base + address - window.start] ?? 0;
+    };
+  }
+
   private installMemoryBanks(
     machine: BoardIr,
     regions: Regions,
     registry: HandlerRegistry,
     sinks: BoardSinks,
   ): void {
-    // Banks a sound device reads its samples through (its own address map):
-    // the device runs in the audio engine, so a switch travels as a write.
-    const sampleBanks = new Set((machine.sound?.auxiliaryDevices ?? [])
-      .flatMap(device => device.sampleMap ?? [])
-      .flatMap(window => window.bank ? [window.bank.tag] : []));
     // The driver's own banks no plan describes: configured only by its code
     // as it runs. Each holds the region and offset it points at, which is what
     // a save keeps of it.
@@ -5128,9 +5161,6 @@ class IrBoard implements Board {
           );
         }
         selection.entry = value;
-        if (sampleBanks.has(bank.tag)) {
-          sinks.soundWrite(0, value, this.soundFraction(), `bank.${bank.tag}`);
-        }
         return value;
       };
       this.bankEntry.set(bank.tag, setEntry);
@@ -5288,6 +5318,7 @@ class IrBoard implements Board {
       state: this.state,
       soundWrite: (offset, data, frac, method) =>
         sinks.soundWrite(offset, data, frac, method),
+      ...(sinks.observeStreams?.length ? { observeStreams: sinks.observeStreams } : {}),
       soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
@@ -5349,13 +5380,20 @@ class IrBoard implements Board {
           );
           return 0;
         };
+      }
+    }
+    // device_t::set_unscaled_clock on any generated device the board drives:
+    // the device's own (its clock, then device_clock_changed). Recorded as
+    // well, so a contract can see the board change it.
+    for (const specification of machine.devices ?? []) {
+      const referent = this.deviceReferents.get(specification.tag) as
+        { set_unscaled_clock?: (clock: number) => unknown } | undefined;
+      if (typeof referent?.set_unscaled_clock !== 'function') continue;
+      for (const alias of [specification.tag, `m_${specification.tag}`, specification.member]
+        .filter((value): value is string => Boolean(value))) {
         this.bindings.calls![`${alias}.set_unscaled_clock`] ??= clock => {
-          sinks.soundWrite(
-            0,
-            Math.round(Number(clock)) & 0xff,
-            this.soundFraction(),
-            `${specification.tag}.set_unscaled_clock`,
-          );
+          referent.set_unscaled_clock!(Number(clock));
+          sinks.soundWrite(0, Math.round(Number(clock)) & 0xff, this.soundFraction(), `${specification.tag}.set_unscaled_clock`);
           return 0;
         };
       }
@@ -5692,7 +5730,7 @@ class IrBoard implements Board {
         // a signal from inside its own constructor (the I8039 resets on
         // create), so the target may not be instantiated yet at bind time.
         if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
-        if (line === 'busreq') {
+        if (line === 'busreq' || line === 'core') {
           // The core's own pin: its execute_set_input takes the request and
           // its next instruction boundary grants it through busack_cb, which
           // the machine wired to the bus master (z80dma bai_w, i8257
@@ -5837,11 +5875,11 @@ class IrBoard implements Board {
                 set_input_line: (line: number, state: number) => {
                   const cpu = this.cpus.get(scopedCpuTag);
                   if (cpu) {
-                    applyGeneratedCpuInputLine(
+                    this.cpuInputLine(
+                      scopedCpuTag,
                       cpu,
                       line,
                       state,
-                      held => this.cpuHeld.set(scopedCpuTag, held),
                     );
                   }
                 },
@@ -5869,6 +5907,9 @@ class IrBoard implements Board {
       },
       portRead: port => () =>
         registry.read[`port.${port}`]?.(0, 0) ?? this.bindings.inputs?.read(port) ?? 0xff,
+      // The CPU's own space, at the offset the device's read callback passes
+      // (the RP2A03 APU's DMC sample fetch).
+      cpuSpaceRead: tag => (_value, offset = 0) => this.cpuBuses.get(tag)?.read(Number(offset) & 0xffff) ?? 0,
       videoControl: control => {
         const setter = control === 'flip-screen'
           ? this.bindings.calls?.flip_screen_set
@@ -5890,6 +5931,40 @@ class IrBoard implements Board {
 }
 
 /** The CPU a device class's conventional `m_cpu` finder names: its own child. */
+/**
+ * A finder array's element, as a device's member names it: `m_slots[2]`, or
+ * one of an array of finder arrays, `m_filter[1][2]` (timeplt_a.h's
+ * `required_device_array<filter_rc_device, 3> m_filter[2]`).
+ */
+function finderElement(member: string): { root: string; indexes: number[] } | undefined {
+  const match = /^(m_\w+)((?:\[\d+\])+)$/.exec(member);
+  return match
+    ? { root: match[1]!, indexes: [...match[2]!.matchAll(/\d+/g)].map(index => Number(index[0])) }
+    : undefined;
+}
+
+/**
+ * Put a device in the finder array its member indexes, building the nested
+ * arrays on the way; `replace` says whether the element already held may go.
+ */
+function placeFinderElement(
+  state: Record<string, unknown>,
+  member: string,
+  value: unknown,
+  replace: (held: unknown) => boolean = () => true,
+): void {
+  const element = finderElement(member)!;
+  let values = (Array.isArray(state[element.root]) ? state[element.root] : []) as unknown[];
+  state[element.root] = values;
+  for (const index of element.indexes.slice(0, -1)) {
+    const inner = (Array.isArray(values[index]) ? values[index] : []) as unknown[];
+    values[index] = inner;
+    values = inner;
+  }
+  const slot = element.indexes.at(-1)!;
+  if (replace(values[slot])) values[slot] = value;
+}
+
 export function hostedCpuTagForClass(
   machine: BoardIr,
   ownerClass: string,

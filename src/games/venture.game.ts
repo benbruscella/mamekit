@@ -5,7 +5,7 @@ export const venture = sourceTarget({
   driver: 'src/mame/exidy/exidy.cpp',
   machine: { className: 'exidy_state', name: 'venture' },
   screen: { width: 256, height: 256 },
-  soundKind: 'exidy',
+  soundKind: 'stream',
   frames: 6200,
   checkpoints: [1, 60, 180, 300, 1200, 2400, 3000, 3600, 4200, 4800, 5400, 6000, 6200],
   actions: [
@@ -21,10 +21,11 @@ export const venture = sourceTarget({
     { atFrame: 3461, code: 'ArrowUp', heldFrames: 39, releasedFrames: 1 },
     { atFrame: 3501, code: 'ArrowLeft', heldFrames: 30, releasedFrames: 20 },
   ],
+  // The sound board's own stream: its 8253 music and 6840 effects are the
+  // venture_sound_device compiled whole, driven by its 6502 through its own
+  // map, so what proves them is the board's output reaching many levels.
   audioRequirements: [
-    { method: 'sh8253_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
-    { method: 'sh6840_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
-    { method: 'sfxctrl_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
+    { method: 'soundbd.stream', fromFrame: 3100, minimumNonzeroWrites: 100, minimumDistinctValues: 16 },
   ],
   minimumFps: 45,
   minimumAudioRms: 0.02,

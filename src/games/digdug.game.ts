@@ -5,7 +5,7 @@ export const digdug = sourceTarget({
   driver: 'src/mame/namco/galaga.cpp',
   machine: { className: 'digdug_state', name: 'digdug' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   // Dig Dug does not accept input or produce nonzero WSG data until its
   // three-CPU self-test has completed, so exercise controls after frame 1800.
   frames: 2400,

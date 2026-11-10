@@ -17,7 +17,7 @@ export const gauntlet = sourceTarget({
   driver: 'src/mame/atari/gauntlet.cpp',
   machine: { className: 'gauntlet_state', name: 'gauntlet' },
   screen: { width: 336, height: 240 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   // The board answers one speaker with three chips, and the YM2151 is only
   // the one that names the sound kind. Without a gate per chip, a TMS5220C
   // that silently stopped producing anything would still pass on the overall
@@ -28,9 +28,10 @@ export const gauntlet = sourceTarget({
   // writes, which AUDCTL alone satisfied.
   audioRequirements: [
     {
-      // Speech. The idle chip drives -1 every sample, so a live stream is not
-      // evidence of speech by itself; the value diversity is.
-      method: 'tms.pcm',
+      // Speech: the TMS5220C's own stream, before the mix. The idle chip
+      // drives -1 every sample, so a live stream is not evidence of speech by
+      // itself; the value diversity is.
+      method: 'tms.stream',
       fromFrame: 500,
       minimumNonzeroWrites: 5000,
       minimumDistinctValues: 32,

@@ -5,7 +5,7 @@ export const kungfum = sourceTarget({
   driver: 'src/mame/irem/m62.cpp',
   machine: { className: 'm62_state', name: 'kungfum' },
   screen: { width: 256, height: 256 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1800,
   minimumFps: 45,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],
@@ -17,26 +17,20 @@ export const kungfum = sourceTarget({
     { atFrame: 1140, code: 'Space', heldFrames: 20, releasedFrames: 20 },
     { atFrame: 1260, code: 'ArrowLeft', heldFrames: 120, releasedFrames: 20 },
   ],
+  // Each MSM5205's own stream into the netlist: its ADPCM decoding the
+  // sound CPU's nibbles is what makes it reach more than its reset level.
   audioRequirements: [
     {
-      method: 'irem_audio:msm1.vck',
-      fromFrame: 120,
-      minimumNonzeroWrites: 100,
-    },
-    {
-      method: 'irem_audio:msm2.vclk_w',
-      fromFrame: 120,
-      minimumNonzeroWrites: 100,
-    },
-    {
-      method: 'irem_audio:msm1.data_w',
+      method: 'irem_audio:msm1.stream',
       fromFrame: 600,
-      minimumNonzeroWrites: 1,
+      minimumNonzeroWrites: 100,
+      minimumDistinctValues: 8,
     },
     {
-      method: 'irem_audio:msm2.data_w',
+      method: 'irem_audio:msm2.stream',
       fromFrame: 600,
-      minimumNonzeroWrites: 1,
+      minimumNonzeroWrites: 100,
+      minimumDistinctValues: 8,
     },
   ],
   golden: {

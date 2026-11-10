@@ -5,7 +5,7 @@ export const pacman = sourceTarget({
   driver: 'src/mame/pacman/pacman.cpp',
   machine: { className: 'pacman_state', name: 'pacman' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   frames: 600,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 420, 600],

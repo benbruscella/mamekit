@@ -5,7 +5,7 @@ export const timeplt = sourceTarget({
   driver: 'src/mame/konami/timeplt.cpp',
   machine: { className: 'timeplt_state', name: 'timeplt' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 40,
   checkpoints: [1, 60, 300, 540, 720, 1200],

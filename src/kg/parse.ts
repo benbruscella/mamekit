@@ -323,6 +323,11 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   // An integer literal's suffix is its type, not its value: the 6805's
   // vector mask is `(1U << addr_width) - 1`.
   s = s.replace(/\b(0[xX][0-9a-fA-F]+|\d+)(?:[uU][lL]{0,2}|[lL]{1,2}[uU]?)\b/g, '$1');
+  // So is a float literal's: flt_vol.cpp's constructor sets `m_gain(1.0f)`,
+  // which unread was 0, and Berzerk's speech went through a filter at gain 0.
+  // Only a whole decimal literal: inside hex, `0x8e7f` is popeye's dmasource
+  // end, not `8e7` with a suffix.
+  s = s.replace(/(?<![\w.])(\d+\.\d*|\.\d+|\d+(?=[eE]))((?:[eE][+-]?\d+)?)[fF]\b/g, '$1$2');
   // An unsigned functional cast keeps its width: the AND-gate input merger
   // hands its base `~u32(0)` as both its initial state and its XOR mask.
   for (let cast; (cast = /\b(?:u(8|16|32)|uint(8|16|32)_t)\s*\(/.exec(s));) {
@@ -1086,16 +1091,25 @@ function parseAudioRoute(
   args: readonly string[],
   consts: Record<string, number>,
   raw: string,
+  /**
+   * The tag a finder names, where the config's class declares it: Sounds
+   * Good's `m_dac->add_route(ALL_OUTPUTS, m_dac_filter[0], 1.0)` chains its
+   * DAC through three biquads by finder, and dropped, the DAC reached nothing.
+   */
+  finderTag?: (member: string) => string | undefined,
 ): NonNullable<DeviceDef['audioRoutes']>[number] | undefined {
   const [output = '', target = '', gain = '', input = ''] = args;
   const parsedGain = evalExpr(gain, consts);
   const parsedInput = input ? evalExpr(input, consts) : null;
   const owned = /^\*\s*this$/.test(target.trim());
   const ownerOwned = target.trim() === 'DEVICE_SELF_OWNER';
-  if ((!target.trim().startsWith('"') && !owned && !ownerOwned) || parsedGain === null) return undefined;
+  const finder = /^m_\w+(?:\s*\[\s*\d+\s*\])?$/.test(target.trim())
+    ? finderTag?.(target.trim().replace(/\s+/g, ''))
+    : undefined;
+  if ((!target.trim().startsWith('"') && !owned && !ownerOwned && finder === undefined) || parsedGain === null) return undefined;
   return {
     output: output.trim(),
-    target: owned ? '^' : ownerOwned ? '^^' : unquote(target),
+    target: owned ? '^' : ownerOwned ? '^^' : finder ?? unquote(target),
     gain: parsedGain,
     ...(parsedInput !== null ? { input: parsedInput } : {}),
     raw,
@@ -1106,12 +1120,13 @@ function parseAudioRoute(
 export function statementAudioRoutes(
   statement: string,
   consts: Record<string, number>,
+  finderTag?: (member: string) => string | undefined,
 ): NonNullable<DeviceDef['audioRoutes']> {
   const at = statement.indexOf('add_route');
   if (at < 0) return [];
   return parseChain(`.${statement.slice(at)}`)
     .filter(chain => chain.method === 'add_route')
-    .flatMap(chain => parseAudioRoute(chain.args, consts, statement) ?? []);
+    .flatMap(chain => parseAudioRoute(chain.args, consts, statement, finderTag) ?? []);
 }
 
 /**
@@ -1680,6 +1695,21 @@ function regionPointer(
 export function parseMemberTags(src: string, strings = parseTextMacros(src).strings): Record<string, string> {
   const out: Record<string, string> = {};
   const counts = arrayFinderCounts(src);
+  // Finder arrays built in braces, one per outer element:
+  // `m_filter{{*this, "filter.0.%u", 0U}, {*this, "filter.1.%u", 0U}}`.
+  for (const braced of src.matchAll(/\bm_(\w+)\s*\{((?:\s*\{\s*\*this\s*,[^{}]*\}\s*,?)+)\s*\}/g)) {
+    const member = `m_${braced[1]}`;
+    const count = counts[member];
+    [...braced[2]!.matchAll(/\{\s*\*this\s*,\s*("[^"]+"|\w+)\s*(?:,\s*('?[\w']+'?)\s*)?\}/g)].forEach((inner, outer) => {
+      const format = inner[1]!.startsWith('"') ? unquote(inner[1]!) : strings[inner[1]!];
+      if (format === undefined) return;
+      if (inner[2] === undefined || !/%[-0-9.]*[a-z]/i.test(format) || !count) {
+        out[`${member}[${outer}]`] = format;
+        return;
+      }
+      for (let index = 0; index < count; index++) out[`${member}[${outer}][${index}]`] = formatFinderTag(format, inner[2]!, index);
+    });
+  }
   const re = /m_(\w+)\(\*this,\s*("[^"]+"|\w+)(?:\s*,\s*('?[\w']+'?)\s*)?\)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
@@ -1760,7 +1790,9 @@ function gfxDecodeTableNames(src: string): Set<string> {
 
 function arrayFinderCounts(src: string): Record<string, number> {
   const counts: Record<string, number> = {};
-  const re = /\b(?:required|optional)_\w*array\s*<([^<>]*)>\s+(m_\w+)\s*;/g;
+  // An array of finder arrays counts its inner dimension: timeplt_a.h's
+  // `required_device_array<filter_rc_device, 3> m_filter[2];`.
+  const re = /\b(?:required|optional)_\w*array\s*<([^<>]*)>\s+(m_\w+)\s*(?:\[\s*\d+\s*\])?\s*;/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const args = splitArgs(m[1]!);
@@ -1941,6 +1973,12 @@ export function parseMachineConfigs(
       }
       return (memberTags[`${cls}::${r}`] ?? memberTags[r] ?? tagConstants[r] ?? r.replace(/^m_/, '')).replace(/^:/, '');
     };
+    // Only a finder the class declares names a route target; anything else
+    // stays unresolved rather than guessed from its spelling.
+    const finderTag = (member: string): string | undefined => {
+      const tag = memberTags[`${cls}::${member}`] ?? memberTags[member];
+      return tag === undefined ? undefined : tag.replace(/^:/, '');
+    };
 
     const expandHelper = (statement: string, depth = 0): string[] => {
       const call = /^(?:(\w+)::)?(\w+)\s*\(\s*config\s*,([\s\S]*)\)$/.exec(statement.trim());
@@ -1974,6 +2012,21 @@ export function parseMachineConfigs(
       const count = Number(loop[2]);
       for (let index = 0; index < count; index++) {
         statements.push(`${loop[3]}(config, ${loop[4]}[${index}])`);
+      }
+    }
+    // And over a finder array by reference, each element configured alike:
+    // timeplt_a.cpp's `for (required_device<filter_rc_device> &filter :
+    // m_filter[0]) FILTER_RC(config, filter).add_route(ALL_OUTPUTS, "mono", 1.0);`.
+    // The elements are the finder tags the array's constructor names.
+    for (const loop of stripComments(body).matchAll(
+      /for\s*\(\s*(?:(?:required|optional)_device\s*<[^<>]*>|auto)\s*&\s*(\w+)\s*:\s*(m_\w+(?:\s*\[\s*\d+\s*\])?)\s*\)\s*([^;{}]+;)/g,
+    )) {
+      const array = loop[2]!.replace(/\s+/g, '');
+      const elements = Object.keys(memberTags)
+        .map(key => key.replace(/^\w+::/, ''))
+        .filter(key => key.startsWith(`${array}[`) && /^\[\d+\]$/.test(key.slice(array.length)));
+      for (const element of [...new Set(elements)].sort((a, b) => Number(/\d+(?=\]$)/.exec(a)![0]) - Number(/\d+(?=\]$)/.exec(b)![0]))) {
+        statements.push(...splitStatements(loop[3]!.replace(new RegExp(`\\b${loop[1]}\\b`, 'g'), element)).flatMap(child => expandHelper(child)));
       }
     }
     for (const stmt of statements) {
@@ -2143,7 +2196,7 @@ export function parseMachineConfigs(
             continue;
           }
           if (chain.method !== 'add_route') continue;
-          const route = parseAudioRoute(chain.args, consts, s);
+          const route = parseAudioRoute(chain.args, consts, s, finderTag);
           if (route) (dev.audioRoutes ??= []).push(route);
         }
         cfg.devices.push(dev);
@@ -2197,8 +2250,11 @@ export function parseMachineConfigs(
           }
           continue;
         }
-        if (!dev && (refRaw.startsWith('m_') || refRaw.startsWith('"'))) {
-          const tag = resolveTag(refRaw);
+        // `this->add_route(ALL_OUTPUTS, "mono", 0.50)` in a device's own
+        // device_add_mconfig (exidy_sh8253_sound_device) configures the device
+        // the config belongs to; '^self' names it for the graph builder.
+        if (!dev && (refRaw.startsWith('m_') || refRaw.startsWith('"') || refRaw === 'this')) {
+          const tag = refRaw === 'this' ? '^self' : resolveTag(refRaw);
           let patch = cfg.devicePatches.find(candidate => candidate.tag === tag);
           if (!patch) {
             patch = { tag, config: [] };
@@ -2208,7 +2264,7 @@ export function parseMachineConfigs(
           // A derived config rewires the base's device: Popeye's tpp2_state
           // resets the AY's route to the speaker and routes it into a netlist.
           if (method === 'reset_routes') (patch.routeEdits ??= []).push('reset');
-          else if (method === 'add_route') (patch.routeEdits ??= []).push(...statementAudioRoutes(s, consts));
+          else if (method === 'add_route') (patch.routeEdits ??= []).push(...statementAudioRoutes(s, consts, finderTag));
           const open = s.indexOf('(', s.indexOf(method));
           const close = matchParen(s, open);
           const args = splitArgs(s.slice(open + 1, close));
@@ -2256,7 +2312,7 @@ export function parseMachineConfigs(
             const at = s.indexOf(method);
             for (const chain of parseChain(`.${s.slice(at)}`)) {
               if (chain.method !== 'add_route') continue;
-              const route = parseAudioRoute(chain.args, consts, s);
+              const route = parseAudioRoute(chain.args, consts, s, finderTag);
               if (route) (dev.audioRoutes ??= []).push(route);
             }
           } else if (method === 'set_samples_names') {

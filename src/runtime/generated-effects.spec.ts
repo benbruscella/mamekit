@@ -66,6 +66,7 @@ const bindings: EffectBindings = {
   deviceMethod: (tag, method) =>
     tag === 'absent' ? undefined : state => { calls.push(`device ${tag}.${method}=${state}`); },
   handler: key => state => { calls.push(`handler ${key}=${state}`); },
+  cpuSpaceRead: () => undefined,
   portRead: port => () => { calls.push(`port ${port}`); return 0x5a; },
   videoControl: control => state => { calls.push(`video ${control}=${state}`); },
   audioControl: (tag, control, offset) => state => {

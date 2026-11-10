@@ -90,6 +90,8 @@ interface StructField {
   bits?: 8 | 16 | 32;
   signed?: boolean;
   fields?: StructField[];
+  /** A union: `fields` overlap, each laid out from the union's first byte. */
+  union?: true;
 }
 
 interface DeviceCallback {
@@ -353,8 +355,16 @@ export interface GeneratedDeviceDefinition {
      * EPROM. The host runs it against a map builder, as MAME does.
      */
     map?: string;
+    /** A space with no map, which the device fills at start with install_rom. */
+    installed?: true;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
+  /**
+   * Emitted code for the inline methods of the structs the device declares,
+   * by struct type: ymfm's `output->clear()` and `output->roundtrip_fp()` run
+   * once a sample, and interpreted they were a sixth of a CPS1 board's time.
+   */
+  compiledStructMethods?: Record<string, GeneratedDeviceMethodMap>;
   /** the host call names those methods reach, resolved once into `links` */
   compiledMethodLinks?: string[];
   start?: string;
@@ -635,6 +645,11 @@ export interface GeneratedDeviceOptions {
    */
   finder?: (tag: string, member?: string, kind?: 'space' | 'bank') => unknown;
   regions?: Record<string, Uint8Array>;
+  /**
+   * `device_rom_interface::read_byte` through the device's own address space
+   * 0, when its configuration installs one over its region.
+   */
+  romRead?: (address: number) => number;
   /** MAME's `machine().basename()`: the machine's short name. */
   machineName?: string;
   /** MAME's -samplepath: the sample sets the host found (BoardConfig.samplePath). */
@@ -911,13 +926,42 @@ export class IrSoundStream {
   onRate?: (rate: number) => void;
   samples: () => number = () => 0;
   put: (channel: number, index: number, value: number) => number = () => 0;
+  /** sound_stream::add: bound by the mixer beside `put` for the span it asks for. */
+  add: (channel: number, index: number, value: number) => number = () => 0;
+  /** The outputs and inputs `stream_alloc` asked for. */
+  readonly outputs: number;
+  readonly inputs: number;
   private readonly bindings: { calls?: Record<string, (...args: any[]) => unknown> };
 
-  constructor(rate: number, bindings: { calls?: Record<string, (...args: any[]) => unknown> }) {
+  constructor(rate: number, bindings: { calls?: Record<string, (...args: any[]) => unknown> }, outputs = 1, inputs = 0) {
     this.rate = rate;
     this.bindings = bindings;
+    this.outputs = Math.max(0, Math.trunc(Number(outputs) || 0));
+    this.inputs = Math.max(0, Math.trunc(Number(inputs) || 0));
   }
 
+  // The rest of sound_stream's write surface, through `put`, which the mixer
+  // binds for the span it asks for: an OKIM6295 renders with put_int.
+  put_int(channel: number, index: number, value: number, max: number): number {
+    return this.put(channel, index, Number(max) ? Number(value) / Number(max) : 0);
+  }
+  put_clamp(channel: number, index: number, value: number, clamp = 1): number {
+    return this.put(channel, index, Math.max(-Number(clamp), Math.min(Number(clamp), Number(value))));
+  }
+  add_int(channel: number, index: number, value: number, max: number): number {
+    return this.add(channel, index, Number(max) ? Number(value) / Number(max) : 0);
+  }
+  put_int_clamp(channel: number, index: number, value: number, max: number): number {
+    const limit = Number(max);
+    return this.put(channel, index, limit ? Math.max(-limit, Math.min(limit - 1, Number(value))) / limit : 0);
+  }
+  fill(channel: number, value: number, start = 0, count = this.samples() - Number(start)): number {
+    for (let index = Number(start); index < Number(start) + Number(count); index++) this.put(channel, index, Number(value));
+    return 0;
+  }
+  output_count(): number { return this.outputs; }
+  input_count(): number { return this.inputs; }
+  get(): number { return 0; }
   // Bound in the host's mixer; the speaker places each edge against end_time.
   update(): unknown { return this.bindings.calls?.['stream.update']?.(this) ?? 0; }
   end_time(): unknown { return this.bindings.calls?.['stream.end_time']?.(this) ?? 0; }
@@ -1189,7 +1233,7 @@ class IrDevice implements Device {
   private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
   /** The image/floppy/cassette surface the host answers (see hostedCalls). */
   private readonly hostedSurface: Record<string, (...args: never[]) => unknown> = {};
-  private readonly clock: number;
+  private clock: number;
   private executedCycles = 0;
   private runningCycles: number | undefined;
   /**
@@ -1238,7 +1282,8 @@ class IrDevice implements Device {
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
       // its map tests state the constructor sets (the 68705's port masks).
-      if (!config.map) this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
+      if (config.installed) this.spaces.set(config.index, installableDeviceSpace(config.addressBits));
+      else if (!config.map) this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
     }
     const resourceCache = options.resourceCache ?? {};
     const resourceOptions = { ...options, resourceCache };
@@ -1267,13 +1312,21 @@ class IrDevice implements Device {
           // Compiled methods are keyed by name, so an overloaded one is left
           // to the interpreter, which picks the overload by its arguments.
           const overloaded = methods.filter(candidate => candidate.name === method.name).length > 1;
-          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name];
+          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name] ??
+            definition.compiledStructMethods?.[type]?.[method.name];
           if (compiled) {
             // Four check_borrow calls a clock: no rest array, no mapped copy.
             const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;
             return [method.name, function (this: Record<string | symbol, unknown>, a?: unknown, b?: unknown, c?: unknown): unknown {
-              const runtime = (this[STRUCT_RUNTIME] as GeneratedDeviceExecutionContext | undefined) ??
-                (this[STRUCT_RUNTIME] = { ...device.executionContext, members: this, links: undefined }) as GeneratedDeviceExecutionContext;
+              let runtime = this[STRUCT_RUNTIME] as GeneratedDeviceExecutionContext | undefined;
+              if (!runtime) {
+                // `return *this;` reads `this` from the members it runs on,
+                // which are the struct: ymfm's `output->clear()` hands the
+                // struct on as the output to fill. Not enumerable, so a save
+                // walks past it.
+                if (!Object.hasOwn(this, 'this')) Object.defineProperty(this, 'this', { value: this, enumerable: false });
+                runtime = this[STRUCT_RUNTIME] = { ...device.executionContext, members: this, links: undefined } as GeneratedDeviceExecutionContext;
+              }
               switch (arguments.length) {
                 case 0: return compiled(runtime);
                 case 1: return compiled(runtime, referent(a));
@@ -1299,6 +1352,15 @@ class IrDevice implements Device {
             if (!bindings) {
               const own = STRUCT_METHODS.get(definition.structs!)?.[type] ?? {};
               const calls = Object.create(device.bindings.calls ?? null) as Record<string, unknown>;
+              // A free function the device compiled, which the struct calls by
+              // name: `ymfm_output::roundtrip_fp()` runs
+              // `ymfm::roundtrip_fp(data[index])`. Emitted struct methods
+              // reach it through invoke; interpreted, it was an unresolved
+              // reference in every YM2151 sample.
+              for (const name of device.methods.keys()) {
+                if (name in calls || Object.hasOwn(own, name)) continue;
+                calls[name] = (...args: unknown[]) => device.call(name, ...args as number[]);
+              }
               for (const [name, fn] of Object.entries(own)) calls[name] = (fn as (...args: unknown[]) => unknown).bind(this);
               STRUCT_BINDINGS.set(this, bindings = {
                 members: this, constants: device.bindings.constants, calls,
@@ -1754,6 +1816,8 @@ class IrDevice implements Device {
         // MAME `device_rom_interface::read_byte`: the device's own region.
         ...(definition.romInterface ? {
           read_byte: (address: number) => {
+            // A space of its own over the region (a banked OKI) answers first.
+            if (options.romRead) return options.romRead(address & (2 ** definition.romInterface!.addressBits - 1));
             const rom = options.regions?.[options.tag ?? ''];
             return rom?.length ? rom[(address & (2 ** definition.romInterface!.addressBits - 1)) % rom.length]! : 0;
           },
@@ -1769,10 +1833,32 @@ class IrDevice implements Device {
         notify_clock_changed: () => this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0,
         // device_t::type: the number its own DECLARE_DEVICE_TYPE name compiled to.
         type: () => definition.constants?.[definition.type] ?? 0,
+        // device_t::set_unscaled_clock: the new clock, then the device's own
+        // device_clock_changed (notify_clock_changed), which re-rates a sound
+        // chip's stream: Gauntlet sets its TMS5220's pitch this way and
+        // Berzerk its S14001A's speech rate. Only recorded, neither moved.
+        // device_t::unscaled_clock: the clock before any scale, which here is
+        // the clock (Pole Position's engine sound times its pitch by it).
+        unscaled_clock: () => clock,
+        set_unscaled_clock: (next: number) => {
+          clock = Math.trunc(Number(next));
+          this.clock = clock;
+          return this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0;
+        },
+        // device_t::owner(): the device that composed this one. A PIT8253's
+        // counters reach their chip's out handlers and type through
+        // `downcast<pit8253_device *>(owner())`.
+        ...(options.owner !== undefined ? { owner: () => options.owner as number } : {}),
         name: () => definition.description ?? definition.type,
-        stream_alloc: (_inputs, _outputs, rate) => {
-          if (Number(rate) > 0) this.members.__stream_rate = Number(rate);
-          const stream = new IrSoundStream(Number(rate), this.bindings);
+        stream_alloc: (inputs, outputs, requested) => {
+          // SAMPLE_RATE_INPUT_ADAPTIVE, _OUTPUT_ADAPTIVE and _ADAPTIVE
+          // (0xffffffff down to 0xfffffffd) take the rate of what the stream
+          // connects to, which in this mix is the speaker's: the Game Boy
+          // APU's and every FILTER_RC's. Read as a rate, they asked for four
+          // billion samples a second.
+          const rate = Number(requested) >= 0xfffffffd ? 48000 : Number(requested);
+          if (rate > 0) this.members.__stream_rate = rate;
+          const stream = new IrSoundStream(rate, this.bindings, Number(outputs), Number(inputs));
           stream.onRate = next => { this.members.__stream_rate = next; };
           this.soundStreams.push(stream);
           return stream as unknown as number;
@@ -1872,6 +1958,21 @@ class IrDevice implements Device {
         // device_memory_interface hands it out. Every declared space is flat
         // RAM (the extractor records no other shape), so the map is the buffer.
         space: index => this.deviceSpace(Number(index)) ?? 0,
+        // device_memory_interface::has_configured_map: whether the owner gave
+        // the space a map of its own. Nothing here configures one, so a device
+        // maps its regions itself (the YM2610's ADPCM ROM).
+        has_configured_map: () => 0,
+        // device_t::started(): the OKI asserts it before configuring PIN7.
+        started: () => this.deviceStarted ? 1 : 0,
+        // device_t::reset(), which a device calls on itself: a TMS5220C
+        // resets when the board pulls its /RS (rsq_w). Only for a class with
+        // no `reset` of its own: the call table answers before the method on
+        // a board's effect, and namco_51xx_device::reset(int), which pulses
+        // the MCU's reset line, reset the whole chip on every latch write
+        // instead -- Xevious's 51xx answered late and its attract diverged.
+        ...(definition.methods.some(method => method.name === 'reset') ? {} : {
+          reset: () => { this.reset(); return 0; },
+        }),
         // A source handler named in an address map, `FUNC(cls::method)`,
         // and a lambda given a name for the debugger, `NAME([this]() {...})`.
         FUNC: (handler: unknown) => handler,
@@ -1897,6 +1998,15 @@ class IrDevice implements Device {
       for (const method of definition.methods) {
         if (!options.calls?.[method.name]) delete this.bindings.calls![method.name];
       }
+    }
+    // device_rom_interface is the device's own surface, reached through a
+    // reference to it as well: each K053260 voice reads its samples with
+    // `m_device.read_byte(...)`, which through `*this` answered 0.
+    if (typeof self.set_unscaled_clock !== 'function') {
+      self.set_unscaled_clock = (next: unknown) => (this.bindings.calls!.set_unscaled_clock as (next: unknown) => unknown)(next);
+    }
+    if (definition.romInterface && typeof self.read_byte !== 'function') {
+      self.read_byte = (address: unknown) => (this.bindings.calls!.read_byte as (address: unknown) => unknown)(address);
     }
     this.executionContext = {
       members: this.members,
@@ -2177,6 +2287,9 @@ class IrDevice implements Device {
           // `nes_slot:vrc7:vrc7snd:internal`.
           deviceTag: `${this.ownTag}:${tag}`,
           slot: undefined,
+          // The owner's machine-config setters are the owner's: pit8253's
+          // `set_clk<N>` is not its counters'.
+          configure: undefined,
           // What device_add_mconfig set on this one (`m_channel[ch]->m_index = ch`).
           members: child.configured?.[index],
           ...(targets.length ? {
@@ -2233,7 +2346,12 @@ class IrDevice implements Device {
     if (definition.clockConstructor) this.invoke(definition.clockConstructor.method, 0, 0, 0, constructorArgument);
     options.configure?.(this);
     const start = (): void => {
+      // device_t::resolve_objects, which MAME runs once every device exists
+      // and before any starts: pit8253 sets each counter's index, clock and
+      // period there. Never run, Venture's PIT counted at no clock at all.
+      if (this.methods.has('device_resolve_objects')) this.call('device_resolve_objects');
       if (definition.start) this.call(definition.start);
+      this.deviceStarted = true;
       // MAME mounts the images it was started with once every device has
       // started, and resets after: the cartridge is in the card before the
       // C64's KERNAL looks for one.
@@ -2259,6 +2377,8 @@ class IrDevice implements Device {
 
   /** device_start held back by `deferStart`, run once when the host is ready. */
   private pendingStart?: () => void;
+  /** device_t::started(): set once device_start has run. */
+  private deviceStarted = false;
 
   startDeferred(): void {
     const start = this.pendingStart;
@@ -2710,6 +2830,12 @@ class IrDevice implements Device {
   }
 
   hostedCalls(): Readonly<Record<string, (...args: never[]) => unknown>> {
+    // device_memory_interface::space(n), which the owner's driver reaches
+    // through its finder: Neo Geo's init_ym takes `m_ym->space(0)` and
+    // installs the cartridge's ADPCM ROM there.
+    if (this.definition.spaces?.length && !this.hostedSurface.space) {
+      this.hostedSurface.space = ((index: number) => this.deviceSpace(Number(index)) ?? 0) as (...args: never[]) => unknown;
+    }
     return this.hostedSurface;
   }
 
@@ -4128,6 +4254,58 @@ function pairValue(): Record<string, unknown> {
   });
 }
 
+/**
+ * A device space with no map, filled by the device at start:
+ * `space(0).install_rom(start, end, base)` puts a region's bytes there, and
+ * `read_byte` reads whatever is installed (open bus elsewhere reads 0).
+ */
+function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
+  install_rom(start: number, end: number, base: unknown): number;
+  unmap_readwrite(start: number, end: number): number;
+  unmap_read(start: number, end: number): number;
+} {
+  const mask = addressBits >= 32 ? 0xffffffff : (2 ** addressBits) - 1;
+  const entries: { start: number; end: number; bytes: ArrayLike<number>; offset: number }[] = [];
+  // What an unmap leaves: the parts of each entry outside the range.
+  const unmap = (start: number, end: number): number => {
+    const from = start & mask;
+    const to = end & mask;
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const entry = entries[index]!;
+      if (entry.end < from || entry.start > to) continue;
+      entries.splice(index, 1);
+      if (entry.start < from) entries.splice(index, 0, { ...entry, end: from - 1 });
+      if (entry.end > to) entries.splice(index, 0, { ...entry, start: to + 1, offset: entry.offset + to + 1 - entry.start });
+    }
+    return 0;
+  };
+  const read = (address: number): number => {
+    const at = address & mask;
+    for (const entry of entries) {
+      if (at >= entry.start && at <= entry.end) return entry.bytes[entry.offset + at - entry.start] ?? 0;
+    }
+    return 0;
+  };
+  return {
+    memory: new Uint8Array(0),
+    read_byte: read,
+    write_byte: () => 0,
+    install_rom: (start, end, base) => {
+      const pointer = isGeneratedPointer(base) ? base : undefined;
+      const bytes = pointer ? pointer.source : base as ArrayLike<number>;
+      if (bytes && typeof bytes.length === 'number') {
+        // A later install over the same range replaces the earlier one.
+        entries.unshift({ start: Number(start) & mask, end: Number(end) & mask, bytes, offset: pointer?.offset ?? 0 });
+      }
+      return 0;
+    },
+    // `unmap_readwrite(start, end)`: Neo Geo's init_ym clears the YM2610's
+    // ADPCM spaces before installing the cartridge's ROM in them.
+    unmap_readwrite: (start, end) => unmap(Number(start), Number(end)),
+    unmap_read: (start, end) => unmap(Number(start), Number(end)),
+  };
+}
+
 function generatedDeviceSpace(addressBits: number): GeneratedDeviceSpace {
   const memory = new Uint8Array(1 << addressBits);
   const mask = memory.length - 1;
@@ -4230,6 +4408,12 @@ function structMember(
     // a number, the first assignment into one had nothing to assign to.
     // A field of a named struct type is one too: MMC5's `square_t squ[2]` is
     // a `mmc5_sound_t::square_t`, declared beside the struct that holds it.
+    if (field.union && field.fields) {
+      value[field.name] = field.length
+        ? Array.from({ length: field.length }, () => unionMember(field.fields!))
+        : unionMember(field.fields);
+      continue;
+    }
     const nested = field.fields ?? (field.valueType ? structs?.[field.valueType] : undefined);
     if (nested) {
       value[field.name] = field.length
@@ -4269,6 +4453,74 @@ function structMember(
     Object.defineProperty(struct, name, { value: method, enumerable: false, configurable: true, writable: true });
   }
   return struct;
+}
+
+/** A plain field's size in bytes, as a union lays it out (no padding: MAME's are byte-packed lanes). */
+function unionFieldBytes(field: StructField): number {
+  const each = field.fields ? field.fields.reduce((total, inner) => total + unionFieldBytes(inner), 0) : (field.bits ?? 32) / 8;
+  return each * (field.length ?? 1);
+}
+
+/**
+ * A union's storage: one little-endian byte store every member views from
+ * its first byte, so a write through one member reads back through the
+ * others. exidysound.h's 6840 counter is `union { struct { uint8_t l, h; } b;
+ * uint16_t w; }`: the timer reload writes `b.h` and `b.l` and counts `w` down.
+ * Only the widest member is enumerable, so a copy or a save state carries the
+ * bytes once.
+ */
+function unionMember(fields: readonly StructField[]): Record<string, unknown> {
+  const size = Math.max(1, ...fields.map(unionFieldBytes));
+  const bytes = new Uint8Array(size);
+  const view = (inner: readonly StructField[], base: number): Record<string, unknown> => {
+    const target: Record<string, unknown> = {};
+    let offset = base;
+    for (const field of inner) {
+      define(target, field, offset, true);
+      offset += unionFieldBytes(field);
+    }
+    return target;
+  };
+  const scalar = (field: StructField, at: number) => {
+    const width = (field.bits ?? 32) / 8;
+    return {
+      get: () => {
+        let word = 0;
+        for (let index = width - 1; index >= 0; index--) word = (word * 256) + bytes[at + index]!;
+        if (field.signed && word >= 2 ** (width * 8 - 1)) word -= 2 ** (width * 8);
+        return word;
+      },
+      set: (next: unknown) => {
+        let word = Number(next) || 0;
+        for (let index = 0; index < width; index++) {
+          bytes[at + index] = word & 0xff;
+          word = Math.floor(word / 256);
+        }
+      },
+    };
+  };
+  const define = (target: Record<string, unknown>, field: StructField, at: number, enumerable: boolean) => {
+    if (field.fields) {
+      const nested = field.length
+        ? Array.from({ length: field.length }, (_, index) => view(field.fields!, at + index * unionFieldBytes({ ...field, length: 1 })))
+        : view(field.fields, at);
+      Object.defineProperty(target, field.name, { value: nested, enumerable, configurable: true });
+    } else if (field.length) {
+      const width = (field.bits ?? 32) / 8;
+      const elements: Record<number, unknown> & { length: number } = { length: field.length };
+      for (let index = 0; index < field.length; index++) Object.defineProperty(elements, index, { ...scalar(field, at + index * width), enumerable: true });
+      Object.defineProperty(target, field.name, { value: elements, enumerable, configurable: true });
+    } else {
+      Object.defineProperty(target, field.name, { ...scalar(field, at), enumerable, configurable: true });
+    }
+  };
+  const union: Record<string, unknown> = {};
+  // The widest member, a plain one where two are as wide (`w` over `b`).
+  const rank = (field: StructField) => unionFieldBytes(field) * 2 + (field.fields || field.length ? 0 : 1);
+  const widest = fields.reduce((best, field) => rank(field) > rank(best) ? field : best, fields[0]!);
+  for (const field of fields) define(union, field, 0, field === widest);
+  Object.defineProperty(union, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
+  return union;
 }
 
 /** A C array member's storage, one level of nesting per declarator bound. */

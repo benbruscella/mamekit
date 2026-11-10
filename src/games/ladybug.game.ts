@@ -5,7 +5,7 @@ export const ladybug = sourceTarget({
   driver: 'src/mame/universal/ladybug.cpp',
   machine: { className: 'ladybug_state', name: 'ladybug' },
   screen: { width: 240, height: 192 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   // Lady Bug's upright panel is joystick-only; its controls are read through
   // the CONTP1/CONTP2 PORT_CUSTOM delegates rather than direct IN0 bits.
   actions: [

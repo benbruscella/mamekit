@@ -12,10 +12,7 @@ import type {
 } from './types.ts';
 import { validateGameContract } from './contract-validation.ts';
 
-const SOUND_KINDS = new Set<GameSoundKind>([
-  'wsg', 'ay8910', 'dac', 'discrete', 'sn76489', 'ym2203',
-  'ym2151', 'berzerk', 'exidy', 'stream', 'none',
-]);
+const SOUND_KINDS = new Set<GameSoundKind>(['stream', 'none']);
 
 function mediaFor(
   category: ReturnType<typeof gameCategory>,

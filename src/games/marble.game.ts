@@ -39,7 +39,7 @@ export const marble = sourceTarget({
   driver: 'src/mame/atari/atarisy1.cpp',
   machine: { className: 'atarisy1_state', name: 'marble' },
   screen: { width: 336, height: 240 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   frames: 2400,
   checkpoints: [1, 60, 300, 600, 900, 1200, 1500, 1800, 2100, 2400],
   actions: [

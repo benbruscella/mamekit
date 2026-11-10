@@ -2,7 +2,7 @@ import { lowerVideoExecution } from '../mame/video-execution.ts';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
-import { lowerNetlistFinders, lowerNetlistLogicInputs } from './lower-netlist.ts';
+import { lowerNetlistFinders, lowerNetlistLogicInputs, lowerNetlistSound } from './lower-netlist.ts';
 import { evalExpr } from '../kg/parse.ts';
 import type {
   BoardIr,
@@ -84,10 +84,7 @@ export function generatedCpuAddressSpace(type: string | undefined, ownerTag: str
   };
 }
 import type {
-  GeneratedAuxiliaryAudioDevice,
   GeneratedSampleWindow,
-  GeneratedBiquadStage,
-  GeneratedDacChip,
   GeneratedNesApuPlan,
 } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
@@ -105,10 +102,8 @@ import { indexMameHardware } from '../mame/hardware.ts';
 import { deviceTables, sourceFileAggregates } from '../mame/static-aggregate.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
-import { dacGeneratorTable } from '../hardware/dac/extract.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
 import { STREAM_SOUND_TYPES, streamRouteGains, streamRoutedDevices } from '../hardware/speaker/definition.ts';
-import type { DacGeneratorTable } from '../hardware/dac/worklet-source.ts';
 
 export function lowerGeneratedMachine(
   graph: KnowledgeGraph,
@@ -360,6 +355,7 @@ export function lowerGeneratedMachine(
         : {}),
       ...(node.props.imageInterface === true ? { imageInterface: true as const } : {}),
       ...(hostTag ? { hostTag } : {}),
+      ...deviceRomMap(graph, node),
       ...(node.props.startHandler
         ? { startHandler: String(node.props.startHandler) }
         : {}),
@@ -374,7 +370,6 @@ export function lowerGeneratedMachine(
         : {}),
       ...(deviceMember(node.props) ? { member: deviceMember(node.props) } : {}),
       ...(typeof node.props.clock === 'number' ? { clock: node.props.clock } : {}),
-      ...(deviceCallbackHz(node.props) ? { callbackHz: deviceCallbackHz(node.props) } : {}),
       ...(deviceConfiguration(node.props, String(graph.meta.mameSrc ?? '')).length
         ? { configuration: deviceConfiguration(node.props, String(graph.meta.mameSrc ?? '')) }
         : {}),
@@ -448,6 +443,42 @@ export function lowerGeneratedMachine(
         ...(finderAliases.has(node.id) ? { finderAliases: [...finderAliases.get(node.id)!].sort() } : {}),
       };
     });
+  // The RP2A03's internal APU, as rp2a03.cpp composes it: nes_apu.cpp's device
+  // under the CPU at its clock, reached through the CPU's internal map (each
+  // range a handler with MAME's own body, `m_apu->write(0x15, data);`), its
+  // irq() on the core's APU line and its mem_read() on the CPU's program space.
+  const nesApuCpuNode = nesApu ? graph.nodes.find(node => node.label === 'Device' && /^RP2A03/.test(String(node.props.type))) : undefined;
+  const nesApuCpu = nesApuCpuNode ? { tag: String(nesApuCpuNode.props.tag), clock: Number(nesApuCpuNode.props.clock) } : undefined;
+  if (nesApu && nesApuCpu) {
+    devices.push({
+      id: `device:${nesApuCpu.tag}/${nesApu.tag}`,
+      tag: nesApu.tag,
+      type: nesApu.type,
+      member: nesApu.member,
+      clock: nesApuCpu.clock,
+    });
+    for (const range of nesApu.internalMap.ranges) {
+      for (const handler of [range.read, range.write]) {
+        if (!handler) continue;
+        handlers.push({
+          id: `handler:${nesApu.cpuClass}.${handler.method}`,
+          ownerClass: nesApu.cpuClass,
+          method: handler.method,
+          parameters: handler.parameters,
+          body: handler.body,
+          program: compileMameHandler(handler.body, handler.method.endsWith('_r') ? { returnType: 'u8' } : {}),
+          source: range.source,
+        });
+      }
+    }
+    callbacks.push({
+      id: `callback:${nesApu.tag}.irq`, ownerTag: nesApu.tag, signal: 'irq', member: 'm_irq_handler',
+      operation: 'set', targetTag: nesApuCpu.tag, inputLine: nesApu.irqLine,
+    }, {
+      id: `callback:${nesApu.tag}.mem_read`, ownerTag: nesApu.tag, signal: 'mem_read', member: 'm_mem_read_cb',
+      operation: 'set', targetTag: nesApuCpu.tag, targetSpace: nesApu.memReadSpace,
+    });
+  }
   // A driver constant spelled in a device header's macro-made enum
   // (`QIX_DAC_DATA = NODE_01`) is known only after the preprocessor the
   // device's table was lowered through; a handler that names one writes
@@ -1005,247 +1036,66 @@ export function lowerGeneratedMachine(
     // a palette_device built-in init, or a palette the driver banks at run time.
     ...(paletteInits.length ? { paletteInits } : {}),
   };
-  const soundDevice = devices.find(device =>
-    device.type === 'NAMCO_WSG' || device.type === 'POLEPOS_WSG');
-  const nesCpu = nesApu && devices.find(device =>
-    device.type === 'RP2A03' || device.type === 'RP2A03G');
-  // A chip this machine renders as a compiled stream is not its worklet's.
-  const ayDevices = devices.filter(device => !device.stream &&
-    ['AY8910', 'AY8912', 'YM2149'].includes(device.type));
-  const ymDevices = devices.filter(device =>
-    device.type === 'YM2203' || device.type === 'YM2610');
-  const opmDevices = devices.filter(device => device.type === 'YM2151');
-  // Both OPL parts the generated FM worklet hosts; YM3812 is a YM3526 plus
-  // OPL2's waveform select.
-  const oplDevices = devices.filter(device =>
-    device.type === 'YM3526' || device.type === 'YM3812');
-  const snDevices = devices.filter(device =>
-    ['SN76496', 'SN76489', 'SN76489A', 'SN76494', 'SN94624', 'NCR8496', 'PSSJ3',
-      'GAMEGEAR', 'SEGAPSG'].includes(device.type));
-  const dacDevices = devices.filter(device => !device.stream && [
-    'DAC_1BIT', 'DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'MC1408', 'AD7533',
-    'NETLIST_INT_INPUT'].includes(device.type));
-  const berzerkSound = devices.find(device =>
-    device.type === 'EXIDY' || device.type === 'EXIDY_VENTURE');
-  const tiaDevice = devices.find(device => device.type === 'TIA');
-  // MAME's gameboy_sound_device renders through `sound_stream` like the TIA
-  // does, but its registers ARE in the processor's map, so the writes already
-  // reach the chip and only the sample pull needs wiring.
-  const sidDevice = devices.find(device => ['MOS6581', 'MOS8580'].includes(device.type));
-  const gameboyApu = devices.find(device => device.type === 'DMG_APU');
+  // The RP2A03's APU reaches the speaker through its CPU's own route
+  // (`m_apu->add_route(ALL_OUTPUTS, *this, 1.0)`, then the driver's
+  // `maincpu.add_route(ALL_OUTPUTS, "mono", 0.90)`).
+  const routeSource = (device: GeneratedDevice) => nesApu && nesApuCpuNode && device.tag === nesApu.tag
+    ? { ...device, id: nesApuCpuNode.id }
+    : device;
   // A speaker the board drives or a POKEY, with whatever else renders a
   // routed stream beside it. A cassette alone is only heard beside one.
-  const rendersStream = (device: GeneratedDevice) => device.stream || STREAM_SOUND_TYPES.includes(device.type);
+  // The NETLIST_SOUND is the mixer's own netlist node (boardNetlist), never a
+  // stream beside the chips that feed it.
+  const rendersStream = (device: GeneratedDevice) => device.type !== 'NETLIST_SOUND' &&
+    (device.stream || STREAM_SOUND_TYPES.includes(device.type));
   const streamDevices = devices.some(device =>
     rendersStream(device) && device.type !== 'CASSETTE')
     ? devices.filter(device => rendersStream(device) &&
-      lowerAudioRoutes(graph, [device]).length > 0)
+      lowerAudioRoutes(graph, [routeSource(device)]).length > 0)
     : [];
   // A route names a tag in its own machine config: a child of a sound board
   // (Irem's `filtermix`) is the board's `irem_audio:filtermix`.
+  // A device that routes itself in its own config (`this->add_route(...,
+  // "mono", ...)`) names a tag beneath it: venture's `soundbd:mono`.
   const scopedRoutes = (sources: readonly GeneratedDevice[], routes: GeneratedAudioRoute[]) => routes.map(route => {
     const host = sources[route.chip]?.hostTag;
     const scoped = host ? `${host}:${route.target}` : undefined;
-    return scoped && devices.some(device => device.tag === scoped) ? { ...route, target: scoped } : route;
+    if (scoped && devices.some(device => device.tag === scoped)) return { ...route, target: scoped };
+    const own = sources[route.chip] ? `${sources[route.chip]!.tag}:${route.target}` : undefined;
+    return own && !devices.some(device => device.tag === route.target) && devices.some(device => device.tag === own)
+      ? { ...route, target: own }
+      : route;
   });
   const deviceRoutes = (device: GeneratedDevice) => scopedRoutes([device], lowerAudioRoutes(graph, [device]));
   const mappedWriteKeys = maps.flatMap(map => map.ranges)
     .map(range => range.write)
     .filter((key): key is string => Boolean(key));
   // A board whose chips render as streams is mixed as streams.
-  const generatedSoundboard = ayDevices.length || streamDevices.length
-    ? undefined
-    : devices.find(device =>
-        (device.type.endsWith('_AUDIO') || device.type.endsWith('_SOUND')) &&
-        mappedWriteKeys.some(key => key.startsWith(`${device.tag}.`)));
-  const audioRoutes = lowerAudioRoutes(graph, ayDevices);
-  const filterRank = inferredMemberIndexRank(handlers, 'm_filter');
-  const auxiliaryDevices = lowerAuxiliaryAudioDevices(graph, devices.filter(device => !device.stream));
   const netlistLogicInputs = lowerNetlistLogicInputs(
     graph,
     reachableDevices.map(({ node }) => node),
     String(graph.meta.mameSrc),
   );
-  const sound = nesCpu
-    ? {
-        kind: 'nes',
-        deviceTag: 'nesapu',
-        deviceType: nesApu.type,
-        writeMethods: [nesApu.writeMethod],
-        enableMethods: [],
-        controlOffset: -1,
-        nesApu,
-        // The APU's own route (`maincpu.add_route(ALL_OUTPUTS, "mono",
-        // 0.90)`): a cartridge's sound chip is mixed relative to it.
-        ...(lowerAudioRoutes(graph, [nesCpu]).length ? { routes: lowerAudioRoutes(graph, [nesCpu]) } : {}),
-      }
-    : soundDevice
-    ? {
-        kind: 'wsg',
-        deviceTag: soundDevice.tag,
-        deviceType: soundDevice.type,
-        writeMethods: [...new Set(maps.flatMap(map => map.ranges)
-          .map(range => range.write)
-          .filter((key): key is string => Boolean(key?.startsWith(`${soundDevice.tag}.`)))
-          .map(key => key.slice(soundDevice.tag.length + 1)))],
-        enableMethods: [...new Set(callbacks
-          .filter(callback => callback.targetTag === soundDevice.tag && callback.targetMethod)
-          .map(callback => callback.targetMethod!))],
-        controlOffset: -1,
-        ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        // The shell applies the WSG's route after the worklet; a stream mixed
-        // beside it (the DISCRETE its 54xx drives) is relative to it.
-        ...(lowerAudioRoutes(graph, [soundDevice]).length ? { routes: lowerAudioRoutes(graph, [soundDevice]) } : {}),
-      }
-    : opmDevices.length
-      ? {
-          kind: 'ym2151',
-          deviceTag: opmDevices[0]!.tag,
-          deviceTags: opmDevices.map(device => device.tag),
-          deviceType: 'YM2151',
-          writeMethods: ['write'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, opmDevices).length
-            ? { routes: lowerAudioRoutes(graph, opmDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
-    : ymDevices.length || oplDevices.length
-      ? {
-          kind: 'ym2203',
-          deviceTag: (ymDevices[0] ?? oplDevices[0])!.tag,
-          deviceTags: ymDevices.map(device => device.tag),
-          deviceType: ymDevices.length ? ymDevices[0]!.type : oplDevices[0]!.type,
-          // ym2203_device maps a two-byte address/data port pair.
-          writeMethods: ymDevices.length ? ['write'] : [],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, ymDevices).length
-            ? { routes: lowerAudioRoutes(graph, ymDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
-    : ayDevices.length
-      ? {
-          kind: 'ay8910',
-          deviceTag: ayDevices[0]!.tag,
-          deviceTags: ayDevices.map(device => device.tag),
-          deviceType: 'AY8910',
-          writeMethods: ['address_w', 'data_w'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(audioRoutes.length ? { routes: audioRoutes } : {}),
-          ...(audioRoutes.some(route => route.filter) && filterRank ? {
-            filterLayout: filterRank === 1 ? 'flat' as const : 'matrix' as const,
-          } : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-          ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
-          ...(netlistLogicInputs.length ? { netlistFinders: lowerNetlistFinders(graph, reachableDevices.map(({ node }) => node), String(graph.meta.mameSrc)) } : {}),
-        }
-    : snDevices.length
-      ? {
-          kind: 'sn76489',
-          deviceTag: snDevices[0]!.tag,
-          deviceTags: snDevices.map(device => device.tag),
-          deviceType: snDevices[0]!.type,
-          writeMethods: ['write'],
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, snDevices).length
-            ? { routes: lowerAudioRoutes(graph, snDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
-    : dacDevices.length && !(devices.some(device => device.type === 'SAMPLES') && dacDevices.every(device =>
-        device.type === 'DAC_1BIT'))
-      ? {
-          kind: 'dac',
-          deviceTag: dacDevices[0]!.tag,
-          deviceTags: dacDevices.map(device => device.tag),
-          deviceType: dacDevices[0]!.type,
-          deviceTypes: dacDevices.map(device => device.type),
-          dacs: lowerDacChips(graph.meta.mameSrc, dacDevices.map(device => ({
-            tag: device.tag,
-            type: device.type,
-            config: deviceConfigLines(byId.get(device.id)?.props),
-          }))),
-          writeMethods: ['data_w', 'write'],
-          ...(lowerBiquadFilterChain(graph, dacDevices).length
-            ? { filterChain: lowerBiquadFilterChain(graph, dacDevices) }
-            : {}),
-          enableMethods: [],
-          controlOffset: -1,
-          ...(lowerAudioRoutes(graph, dacDevices).length
-            ? { routes: lowerAudioRoutes(graph, dacDevices) }
-            : {}),
-          ...(auxiliaryDevices.length ? { auxiliaryDevices } : {}),
-        }
-    : berzerkSound
-      ? {
-          kind: berzerkSound.type === 'EXIDY_VENTURE' ? 'exidy' : 'berzerk',
-          deviceTag: berzerkSound.tag,
-          deviceType: berzerkSound.type,
-          writeMethods: berzerkSound.type === 'EXIDY_VENTURE'
-            ? ['sh8253_w', 'sh6840_w', 'sfxctrl_w']
-            : ['sh6840_w', 'sfxctrl_w'],
-          enableMethods: [],
-          controlOffset: -1,
-        }
-    : generatedSoundboard
-      ? (() => {
-          const writeMethods = [...new Set(maps.flatMap(map => map.ranges)
-            .map(range => range.write)
-            .filter((key): key is string => Boolean(key?.startsWith(`${generatedSoundboard.tag}.`)))
-            .map(key => key.slice(generatedSoundboard.tag.length + 1)))].sort();
-          return {
-            kind: generatedSoundboard.type.toLowerCase().replace(/_(?:audio|sound)$/, ''),
-            deviceTag: generatedSoundboard.tag,
-            deviceType: generatedSoundboard.type,
-            writeMethods,
-            enableMethods: [],
-            controlOffset: -1,
-          };
-        })()
-        : sidDevice
-          ? { kind: 'sid', deviceTag: sidDevice.tag, deviceType: sidDevice.type,
-              writeMethods: [], enableMethods: [], controlOffset: -1,
-              routes: lowerAudioRoutes(graph, [sidDevice]) }
-        : gameboyApu
-          ? {
-              kind: 'gameboy',
-              deviceTag: gameboyApu.tag,
-              deviceType: gameboyApu.type,
-              // Its registers are in the LR35902's own address map, so the
-              // board routes every write to the device already; the sound
-              // binding exists purely to pump the renderer.
-              writeMethods: [],
-              enableMethods: [],
-              controlOffset: -1,
-              // `m_apu->add_route(0, "speaker", 0.50, 0)` and its right-hand
-              // twin. The renderer's own full scale is the whole four-channel
-              // mix, so without the routed gain the console came out at
-              // exactly twice MAME's level.
-              ...(lowerAudioRoutes(graph, [gameboyApu]).length
-                ? { routes: lowerAudioRoutes(graph, [gameboyApu]) }
-                : {}),
-            }
-        : tiaDevice
-          ? {
-              kind: 'tia',
-              deviceTag: tiaDevice.tag,
-              deviceType: tiaDevice.type,
-              // The chip is in no address map: tia_video_device calls
-              // `tia_sound_w` on it through a device finder, so there is no
-              // bus write for the board to route.
-              writeMethods: [],
-              enableMethods: [],
-              controlOffset: -1,
-              ...(lowerAudioRoutes(graph, [tiaDevice]).length
-                ? { routes: lowerAudioRoutes(graph, [tiaDevice]) }
-                : {}),
-            }
-        : streamDevices.length
+  // The NETLIST_SOUND the streams feed, compiled from its netlist, with the
+  // lines its driver writes and the finders its handlers test. One that does
+  // not compile is left out (silent) rather than approximated.
+  const boardNetlist = () => {
+    const nodes = reachableDevices.map(({ node }) => node);
+    const netlistNode = nodes.find(node => node.props.type === 'NETLIST_SOUND');
+    if (!netlistNode) return {};
+    // Its tag as the routes into it name it: under a sound board, the board's
+    // (kungfum's `irem_audio:snd_nl`).
+    const netlistTag = reachableDevices.find(({ node }) => node === netlistNode)?.tag ?? String(netlistNode.props.tag);
+    const routeGain = lowerAudioRoutes(graph, [{ id: netlistNode.id, tag: String(netlistNode.props.tag) }])[0]?.gain ?? 1;
+    const netlist = lowerNetlistSound(graph, nodes, String(graph.meta.mameSrc), routeGain);
+    if (netlist.error) console.warn(`${String(graph.meta.driverFile)}: netlist left out, silent: ${netlist.error}`);
+    return {
+      ...(netlist.plan ? { netlist: netlist.plan, netlistTag } : {}),
+      ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
+      ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
+    };
+  };
+  const sound = streamDevices.length
           ? {
               // Devices rendering their own stream beside the processor (the
               // Spectrum's beeper and its cassette, a POKEY), mixed by routed
@@ -1257,7 +1107,8 @@ export function lowerGeneratedMachine(
               writeMethods: [],
               enableMethods: [],
               controlOffset: -1,
-              routes: monoRoutes(graph, scopedRoutes(streamDevices, lowerAudioRoutes(graph, streamDevices))),
+              routes: monoRoutes(graph, scopedRoutes(streamDevices, lowerAudioRoutes(graph, streamDevices.map(routeSource)))),
+              ...boardNetlist(),
             }
         : undefined;
   // A speaker, cassette or POKEY routed beside a chip that owns the worklet.
@@ -1302,12 +1153,6 @@ export function lowerGeneratedMachine(
           soundWriteMethods: new Set(sound.writeMethods),
           soundEnableMethods: new Set(sound.enableMethods),
           soundControlOffset: sound.controlOffset,
-          auxiliaryAudio: new Map(
-            ('auxiliaryDevices' in sound ? sound.auxiliaryDevices ?? [] : []).map(
-              (device: GeneratedAuxiliaryAudioDevice) =>
-                [device.deviceTag, new Set(device.writeMethods)] as const,
-            ),
-          ),
         }
       : {}),
   });
@@ -1627,7 +1472,6 @@ export function lowerAudioRoutes(
   devices: { id: string; tag: string }[],
 ): GeneratedAudioRoute[] {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
-  const filters = new Map<string, number>();
   const routes: GeneratedAudioRoute[] = [];
   devices.forEach((device, chip) => {
     const sourceDevice = byId.get(device.id);
@@ -1637,245 +1481,49 @@ export function lowerAudioRoutes(
     const singleOutput = config.includes('AY8910_SINGLE_OUTPUT');
     for (const edge of graph.edges.filter(candidate =>
       candidate.from === device.id && candidate.rel === 'HAS_AUDIO_ROUTE')) {
-      let node = byId.get(edge.to);
-      if (!node) continue;
-      let gain = Number(node.props.gain);
+      const own = byId.get(edge.to);
+      if (!own) continue;
       // Which of the chip's outputs this route carries is the chip's own
       // route's to say, wherever the signal goes on from there.
-      const chipOutput = String(node.props.output);
+      const chipOutput = String(own.props.output);
       // A chip routed into its owner (a slot card's AY, the SSIO's two AYs)
-      // reaches the speaker through the owner's own route, at the product of
-      // the gains: the owner's input N comes out of its output N.
-      if (node.props.target === '^' || node.props.target === '^^') {
-        const owner = routeOwner(graph, device.id, node.props.target === '^^');
-        const onward = owner ? resolvedAudioRoute(graph, byId, owner.id, Number(node.props.input)) : undefined;
-        if (!onward && node.props.target === '^^') continue;
-        if (onward) {
-          gain *= onward.gain;
-          node = onward.route;
-        }
+      // reaches the speaker through the owner's own routes, at the product of
+      // the gains: the owner's input N comes out of its output N, on every
+      // route that carries it.
+      let hops = [{ node: own, gain: Number(own.props.gain) }];
+      if (own.props.target === '^' || own.props.target === '^^') {
+        const owner = routeOwner(graph, device.id, own.props.target === '^^');
+        const onward = owner ? resolvedAudioRoutes(graph, byId, owner.id, Number(own.props.input)) : [];
+        if (!onward.length && own.props.target === '^^') continue;
+        if (onward.length) hops = onward.map(next => ({ node: next.route, gain: Number(own.props.gain) * next.gain }));
       }
+      for (const { node, gain } of hops) {
       const target = String(node.props.target);
       const targetInput = Number(node.props.input);
       const rawOutput = chipOutput;
       const outputChannels = rawOutput === 'ALL_OUTPUTS'
-        ? sourceDevice?.props.type === 'YM2203' || sourceDevice?.props.type === 'YM2610'
-          ? [0, 1, 2, 3]
-          // A stream device sums however many outputs it has.
-          : singleOutput || STREAM_SOUND_TYPES.includes(String(sourceDevice?.props.type))
-            ? [-1]
-            : [0, 1, 2]
+        // A stream device sums however many outputs it has.
+        ? singleOutput || STREAM_SOUND_TYPES.includes(String(sourceDevice?.props.type))
+          ? [-1]
+          : [0, 1, 2]
         : [singleOutput && Number(rawOutput) === 0 ? -1 : Number(rawOutput)];
       if (!Number.isFinite(gain)) continue;
-      const match = /^filter\.(\d+)\.(\d+)$/.exec(target);
-      let filter: GeneratedAudioRoute['filter'];
-      if (match) {
-        // The filter's own route is the rest of the way to the speaker.
-        const stage = graph.nodes.find(candidate => candidate.label === 'Device' && candidate.props.tag === target);
-        const onward = stage ? resolvedAudioRoute(graph, byId, stage.id) : undefined;
-        if (onward) gain *= onward.gain;
-        let index = filters.get(target);
-        if (index === undefined) {
-          index = filters.size;
-          filters.set(target, index);
-        }
-        filter = {
-          index,
-          bank: Number(match[1]),
-          channel: Number(match[2]),
-        };
-      }
-      // MAME's YM2610 streams are [SSG, FM left, FM right], the SSG write_to_output
-      // folding its three channels at 2/3; the engine holds them as the YM2203's.
-      const opnb = sourceDevice?.props.type === 'YM2610';
-      const opnbOutput = opnb && rawOutput !== 'ALL_OUTPUTS' ? Number(rawOutput) : undefined;
-      const channels = opnbOutput === undefined ? outputChannels : opnbOutput === 0 ? [0, 1, 2] : [3];
-      const channelGain = opnbOutput === 0 ? gain * 2 / 3 : gain;
-      for (const channel of channels) {
+      for (const channel of outputChannels) {
         if (!Number.isInteger(channel) || channel < -1) continue;
         routes.push({
           chip,
           channel,
-          gain: channelGain,
+          gain,
           target,
           ...(Number.isInteger(targetInput) ? { targetInput } : {}),
-          ...(filter ? { filter } : {}),
         });
+      }
       }
     }
   });
   return routes;
 }
 
-/**
- * MAME's filter_biquad_device::opamp_mfb_lowpass_calc.
- *
- * The three op-amp stages between the MCR "Sounds Good" DAC and its speaker
- * are declared as resistor and capacitor values, not as a cutoff. Recovering
- * the cutoff means running MAME's own arithmetic over those components.
- */
-function opampMfbLowpassCalc(
-  components: readonly number[],
-): { type: GeneratedBiquadStage['type']; frequency: number; q: number; gain: number } | undefined {
-  const [r1, r2, r3, c1, c2] = components;
-  if (components.length !== 5) return undefined;
-  if (![r1, r2, r3, c1, c2].every(value => Number.isFinite(value))) return undefined;
-  // MAME fatalerrors on these: only c1 may be zero, and r2 with it.
-  if (r1 === 0 || (r2 === 0 && c1 !== 0) || r3 === 0 || c2 === 0) return undefined;
-  const gain = -r3! / r1!;
-  if (c1 === 0) {
-    return {
-      type: 'lowpass1p',
-      frequency: (r1! * r3!) /
-        (2 * Math.PI * ((r1! * r2!) + (r1! * r3!) + (r2! * r3!)) * r3! * c2!),
-      q: Math.SQRT2 / 2,
-      gain,
-    };
-  }
-  const root = Math.sqrt(r2! * r3! * c1! * c2!);
-  return {
-    type: 'lowpass',
-    frequency: 1 / (2 * Math.PI * root),
-    q: root / ((r3! * c2!) + (r2! * c2!) + ((r2! * c2!) * -gain)),
-    gain,
-  };
-}
-
-/**
- * Resolve every DAC on a board to the resolution, coding and gain MAME states
- * for it.
- *
- * A real DAC chip declares them in its DAC_GENERATOR line in dac.h. A netlist
- * integer input is not a DAC at all — its width is the mask its machine
- * configuration passes, `NETLIST_INT_INPUT(config, tag, "DAC.VAL", 0, 255)`.
- * Both are statements of fact in MAME source; neither may be inferred from the
- * values a game happens to write.
- */
-export function lowerDacChips(
-  mameSource: string,
-  devices: { tag: string; type: string; config?: readonly string[] }[],
-): GeneratedDacChip[] {
-  let table: DacGeneratorTable = {};
-  try {
-    table = dacGeneratorTable(mameSource);
-  } catch {
-    table = {};
-  }
-  return devices.flatMap(device => {
-    const generator = table[device.type];
-    if (generator) return [{ deviceTag: device.tag, ...generator }];
-    if (device.type !== 'NETLIST_INT_INPUT') return [];
-    // netlist_mame_int_input_device(param_name, shift, mask): the mask is the
-    // widest value the netlist parameter accepts.
-    const call = (device.config ?? [])
-      .map(line => /NETLIST_INT_INPUT\s*\([^,]+,[^,]+,[^,]+,\s*(\d+)\s*,\s*(\d+)\s*\)/.exec(line))
-      .find(match => match !== null);
-    const mask = call ? Number(call[2]) : Number.NaN;
-    if (!Number.isInteger(mask) || mask < 1) return [];
-    const bits = Math.floor(Math.log2(mask)) + 1;
-    return [{ deviceTag: device.tag, bits, mapper: 'unsigned', gain: 1 }];
-  });
-}
-
-/** The filter_biquad_device setup helpers this compiler can lower. */
-const BIQUAD_SETUPS: Record<string, (components: readonly number[]) => ReturnType<typeof opampMfbLowpassCalc>> = {
-  opamp_mfb_lowpass_setup: opampMfbLowpassCalc,
-};
-
-/** Split a C++ argument list on its top-level commas. */
-function splitArguments(source: string): string[] {
-  const args: string[] = [];
-  let depth = 0;
-  let current = '';
-  for (const character of source) {
-    if (character === '(') depth++;
-    if (character === ')') depth--;
-    if (character === ',' && depth === 0) {
-      args.push(current.trim());
-      current = '';
-      continue;
-    }
-    current += character;
-  }
-  if (current.trim()) args.push(current.trim());
-  return args;
-}
-
-function biquadStage(node: KGNode): GeneratedBiquadStage | undefined {
-  const config = Array.isArray(node.props.config) ? node.props.config.map(String) : [];
-  for (const line of config) {
-    const call = /\.(\w*_setup)\s*\(([\s\S]*)\)\s*$/.exec(line);
-    if (!call) continue;
-    const params = BIQUAD_SETUPS[call[1]!]?.(splitArguments(call[2]!).map(analogValue));
-    if (!params) return undefined;
-    return {
-      deviceTag: String(node.props.tag),
-      ...params,
-      source: {
-        file: String(node.props.sourceFile),
-        line: Number(node.props.sourceLine),
-      },
-    };
-  }
-  return undefined;
-}
-
-/**
- * Follow a sound device's add_route chain through the FILTER_BIQUAD stages
- * MAME puts between it and its board output, in source order.
- *
- * An unrecognised stage abandons the whole chain rather than emitting a
- * partial one: half of a three-pole filter is not a filter, and silently
- * shipping it would be worse than shipping none.
- */
-export function lowerBiquadFilterChain(
-  graph: KnowledgeGraph,
-  sources: { id: string; tag: string }[],
-): GeneratedBiquadStage[] {
-  const devices = graph.nodes.filter(node => node.label === 'Device');
-  const resolve = (reference: string): KGNode | undefined => devices.find(node =>
-    deviceMember(node.props) === reference ||
-    String(node.props.tag) === reference ||
-    String(node.props.tag).endsWith(`:${reference}`));
-  const stages: GeneratedBiquadStage[] = [];
-  const visited = new Set<string>();
-  let current = devices.find(node => node.id === sources[0]?.id);
-  while (current && !visited.has(current.id)) {
-    visited.add(current.id);
-    const config = Array.isArray(current.props.config) ? current.props.config.map(String) : [];
-    const route = config
-      .map(line => /add_route\s*\(\s*[^,]+,\s*([^,]+)\s*,/.exec(line))
-      .find(match => match !== null);
-    if (!route) break;
-    // "*this" leaves the device for its owner's mixer; a quoted tag is a speaker.
-    const next = resolve(route[1]!.trim());
-    if (!next || next.props.type !== 'FILTER_BIQUAD') break;
-    const stage = biquadStage(next);
-    if (!stage) return [];
-    stages.push(stage);
-    current = next;
-  }
-  return stages;
-}
-
-const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
-  DAC_4BIT_R2R: ['data_w', 'write'],
-  DAC_8BIT_R2R: ['data_w', 'write'],
-  AD7524: ['data_w', 'write'],
-  AD7533: ['data_w', 'write'],
-  MSM5205: ['data_w', 'reset_w', 'playmode_w', 's1_w', 's2_w', 'vclk_w'],
-  VLM5030: ['data_w', 'st', 'rst'],
-  YM3526: ['write'],
-  YM3812: ['write'],
-  HC55516: ['digit_w', 'clock_w'],
-  POLEPOS_SOUND: ['polepos_engine_sound_lsb_w', 'polepos_engine_sound_msb_w', 'clson_w'],
-  OKIM6295: ['write', 'set_pin7'],
-  UPD7759: ['port_w', 'reset_w', 'start_w', 'md_w'],
-  K007232: ['write', 'read', 'set_volume', 'set_bank'],
-  K053260: ['write'],
-  TMS5220: ['data_w'],
-  TMS5220C: ['data_w'],
-};
 
 /**
  * Lower routed secondary sound devices independently of the game using them.
@@ -1883,33 +1531,60 @@ const AUXILIARY_AUDIO_METHODS: Record<string, string[]> = {
  * tags, clocks, modes and routes remain facts from the machine graph.
  */
 /**
- * A device's audio route to a speaker, following routes into an owning device
- * (`add_route(ALL_OUTPUTS, *this, 0.10)` inside the Williams ADPCM board, which
- * the driver routes to "speaker" at 1.0) and multiplying the gains on the way.
+ * A device's audio routes to the speakers, following routes into an owning
+ * device (`add_route(ALL_OUTPUTS, *this, 0.10)` inside the Williams ADPCM
+ * board, which the driver routes to "speaker" at 1.0) and multiplying the
+ * gains on the way. Input N of a device comes out of its output N, on every
+ * route that carries that output or all of them: Rampage's Sounds Good board
+ * goes to both inputs of a two-channel speaker at 0.75, and followed to the
+ * first alone its mono mix was 0.375, 6 dB down.
  */
-function resolvedAudioRoute(
+function resolvedAudioRoutes(
   graph: KnowledgeGraph,
   byId: ReadonlyMap<string, KGNode>,
   deviceId: string,
   firstOutput?: number,
-): { route: KGNode; gain: number } | undefined {
-  let gain = 1;
-  let current = deviceId;
-  for (let depth = 0; depth < 8; depth++) {
-    const edges = graph.edges.filter(candidate =>
-      candidate.from === current && candidate.rel === 'HAS_AUDIO_ROUTE');
-    const edge = depth === 0 && Number.isInteger(firstOutput)
-      ? edges.find(candidate => Number(byId.get(candidate.to)?.props.output) === firstOutput) ?? edges[0]
-      : edges[0];
-    const route = edge ? byId.get(edge.to) : undefined;
-    if (!route) return undefined;
-    gain *= Number(route.props.gain);
-    if (route.props.target !== '^' && route.props.target !== '^^') return { route, gain };
-    const owner = routeOwner(graph, current, route.props.target === '^^');
-    if (!owner) return undefined;
-    current = owner.id;
+  depth = 0,
+): { route: KGNode; gain: number }[] {
+  if (depth >= 8) return [];
+  const edges = graph.edges.filter(candidate =>
+    candidate.from === deviceId && candidate.rel === 'HAS_AUDIO_ROUTE');
+  // A route that names no input reaches input 0 (`u32 channel = 0`).
+  const input = Number.isInteger(firstOutput) ? firstOutput : 0;
+  const carrying = edges.filter(candidate => {
+    const output = String(byId.get(candidate.to)?.props.output);
+    return output === 'ALL_OUTPUTS' || Number(output) === input;
+  });
+  const found: { route: KGNode; gain: number }[] = [];
+  for (const edge of carrying.length ? carrying : edges.slice(0, 1)) {
+    const route = byId.get(edge.to);
+    if (!route) continue;
+    const gain = Number(route.props.gain);
+    if (route.props.target !== '^' && route.props.target !== '^^') {
+      found.push({ route, gain });
+      continue;
+    }
+    const owner = routeOwner(graph, deviceId, route.props.target === '^^');
+    if (!owner) continue;
+    for (const next of resolvedAudioRoutes(graph, byId, owner.id, Number(route.props.input), depth + 1)) {
+      found.push({ route: next.route, gain: gain * next.gain });
+    }
   }
-  return undefined;
+  return found;
+}
+
+
+/**
+ * A sound chip's own address space 0 over its ROM region, which its
+ * `device_rom_interface` reads through: the Williams ADPCM board's OKI sees a
+ * banked low half and a fixed upper half. Nothing when it reads its region
+ * directly.
+ */
+function deviceRomMap(graph: KnowledgeGraph, node: KGNode): { romMap?: GeneratedSampleWindow[] } {
+  if (!STREAM_SOUND_TYPES.includes(String(node.props.type))) return {};
+  const region = graph.nodes.find(candidate => candidate.label === 'RomRegion' && candidate.props.tag === node.props.tag);
+  const romMap = region ? lowerSampleMap(graph, node.id, String(region.props.tag)) : undefined;
+  return romMap?.length ? { romMap } : {};
 }
 
 /**
@@ -1928,69 +1603,6 @@ function routeOwner(graph: KnowledgeGraph, deviceId: string, ownersOwner: boolea
   const tag = String(owner.props.tag);
   const parent = tag.includes(':') ? tag.slice(0, tag.lastIndexOf(':')) : undefined;
   return parent ? graph.nodes.find(node => node.label === 'Device' && node.props.tag === parent) : undefined;
-}
-
-export function lowerAuxiliaryAudioDevices(
-  graph: KnowledgeGraph,
-  devices: {
-    id: string;
-    tag: string;
-    type: string;
-    member?: string;
-    clock?: number;
-  }[],
-): GeneratedAuxiliaryAudioDevice[] {
-  const byId = new Map(graph.nodes.map(node => [node.id, node]));
-  return devices.flatMap(device => {
-    const writeMethods = AUXILIARY_AUDIO_METHODS[device.type];
-    const clock = Number.isFinite(device.clock)
-      ? device.clock!
-      : ['DAC_4BIT_R2R', 'DAC_8BIT_R2R', 'AD7533', 'HC55516'].includes(device.type)
-        ? 0
-        : device.type === 'UPD7759'
-          ? 640_000
-          : undefined;
-    if (!writeMethods || clock === undefined) return [];
-    const resolved = resolvedAudioRoute(graph, byId, device.id);
-    if (!resolved) return [];
-    const { route, gain } = resolved;
-    if (!Number.isFinite(gain)) return [];
-    const sourceDevice = byId.get(device.id);
-    const config = Array.isArray(sourceDevice?.props.config)
-      ? sourceDevice.props.config.map(String).join('\n')
-      : '';
-    const initialMode =
-      /set_prescaler_selector\([^)]*::(\w+)\)/.exec(config)?.[1] ??
-      (device.type === 'OKIM6295'
-        ? /okim6295_device::(PIN7_(?:HIGH|LOW))/.exec(config)?.[1]
-        : undefined);
-    const targetInput = Number(route.props.input);
-    const directSampleRegion = graph.nodes.find(node =>
-      node.label === 'RomRegion' && node.props.tag === device.tag);
-    const sampleRegion = directSampleRegion;
-    // A DAC mixed by another family's worklet still levels its codes from
-    // its own DAC_GENERATOR line in dac.h.
-    const [dac] = graph.meta.mameSrc
-      ? lowerDacChips(String(graph.meta.mameSrc), [{ tag: device.tag, type: device.type }])
-      : [];
-    const sampleMap = sampleRegion
-      ? lowerSampleMap(graph, device.id, String(sampleRegion.props.tag))
-      : undefined;
-    return [{
-      type: device.type,
-      deviceTag: device.tag,
-      ...(sampleMap?.length ? { sampleMap } : {}),
-      ...(device.member ? { member: device.member } : {}),
-      ...(dac ? { dac: { bits: dac.bits, mapper: dac.mapper, gain: dac.gain } } : {}),
-      clock,
-      ...(sampleRegion ? { sampleRegion: String(sampleRegion.props.tag) } : {}),
-      ...(initialMode ? { initialMode } : {}),
-      gain,
-      target: String(route.props.target),
-      ...(Number.isInteger(targetInput) ? { targetInput } : {}),
-      writeMethods,
-    }];
-  });
 }
 
 /**
@@ -2056,7 +1668,9 @@ function deviceConfigLines(props?: Record<string, unknown>): string[] {
 function deviceMember(props: Record<string, unknown>): string | undefined {
   if (typeof props.member === 'string') return props.member;
   const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
-  return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\])?)/.exec(config)?.[1];
+  // An element of a finder array, or of an array of them: timeplt_a.h's
+  // `required_device_array<filter_rc_device, 3> m_filter[2]` is `m_filter[1][2]`.
+  return /\(\s*config\s*,\s*(m_\w+(?:\[\d+\]){0,2})/.exec(config)?.[1];
 }
 
 /**
@@ -2298,23 +1912,6 @@ function lowerFrameEvents(
       }
       continue;
     }
-    // vck_legacy_callback shares vck_callback's timing: the MSM5205 clocks
-    // itself at clock/prescaler and fires the driver's per-sample feeder.
-    if (callback.signal === 'vck_callback' || callback.signal === 'vck_legacy_callback') {
-      const frequency = devices.find(device => device.tag === callback.ownerTag)?.callbackHz;
-      if (frequency) {
-        events.push({
-          callbackId: callback.id,
-          ownerTag: callback.ownerTag,
-          signal: callback.signal,
-          line: 0,
-          state: 1,
-          frequency,
-          ...(callback.source ? { source: callback.source } : {}),
-        });
-      }
-      continue;
-    }
     if (callback.signal === 'screen_vblank' || callback.signal === 'set_vblank_int') {
       events.push({
         callbackId: callback.id,
@@ -2456,13 +2053,6 @@ function scanlineConditionValues(
   return undefined;
 }
 
-function deviceCallbackHz(props: Record<string, unknown>): number | undefined {
-  if (props.type !== 'MSM5205' || typeof props.clock !== 'number') return undefined;
-  const config = Array.isArray(props.config) ? props.config.map(String).join('\n') : '';
-  const divisor = /set_prescaler_selector\([^)]*::S(\d+)_/.exec(config)?.[1];
-  return divisor ? props.clock / Number(divisor) : undefined;
-}
-
 export function generatedBoardSource(machine: BoardIr): string {
   const runtimeImport = '../../../../runtime/core';
   const irImport = '../../../../runtime/ir';
@@ -2553,11 +2143,13 @@ function mergeInternalRanges(
 ): NonNullable<BoardConfig['cpus'][number]['ranges']> {
   const merged = ranges.map(range => ({ ...range }));
   for (const internal of plan.internalMap.ranges) {
+    const read = internal.read ? `${plan.cpuClass}.${internal.read.method}` : undefined;
+    const write = internal.write ? `${plan.cpuClass}.${internal.write.method}` : undefined;
     const existing = merged.find(range =>
       range.start === internal.start && range.end === internal.end);
     if (existing) {
-      if (internal.read) existing.read = internal.read;
-      if (internal.write) existing.write = internal.write;
+      if (read) existing.read = read;
+      if (write) existing.write = write;
       existing.kind = 'handler';
       continue;
     }
@@ -2565,8 +2157,8 @@ function mergeInternalRanges(
       start: internal.start,
       end: internal.end,
       kind: 'handler',
-      ...(internal.read ? { read: internal.read } : {}),
-      ...(internal.write ? { write: internal.write } : {}),
+      ...(read ? { read } : {}),
+      ...(write ? { write } : {}),
     });
   }
   return merged.sort((left, right) => left.start - right.start || left.end - right.end);

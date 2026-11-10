@@ -5,7 +5,6 @@ import {
   generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
-  lowerAuxiliaryAudioDevices,
   lowerGeneratedMachine,
   resolveInputPortTag,
 } from './emit-machine.ts';
@@ -389,88 +388,33 @@ const allYmOutputs = lowerAudioRoutes(
   allYmOutputsGraph,
   [{ id: 'device:ym1', tag: 'ym1' }],
 );
-if (
-  allYmOutputs.length !== 4 ||
-  allYmOutputs.some((route, channel) => route.channel !== channel || route.gain !== 0.15)
-) {
-  throw new Error('YM2203 ALL_OUTPUTS did not expand to all four routed streams');
+// A stream device sums every output its ALL_OUTPUTS route names, as MAME's
+// speaker does: one route over all of them, at the route's gain.
+if (allYmOutputs.length !== 1 || allYmOutputs[0]!.channel !== -1 || allYmOutputs[0]!.gain !== 0.15) {
+  throw new Error('YM2203 ALL_OUTPUTS did not lower to one route over every stream output');
 }
 
-const defaultClockDacGraph: KnowledgeGraph = {
+// A board routed into its owner (`add_route(ALL_OUTPUTS, *this, 1.0)`)
+// leaves through every route of the owner that carries that input: Rampage's
+// Sounds Good board goes to both inputs of its two-channel speaker at 0.75.
+const ownerRoutesGraph: KnowledgeGraph = {
   meta: graph.meta,
-  nodes: [{
-    id: 'device:dac',
-    label: 'Device',
-    props: {
-      type: 'DAC_8BIT_R2R',
-      tag: 'dac',
-      config: ['DAC_8BIT_R2R(config, m_dac)'],
-    },
-  }, {
-    id: 'route:dac',
-    label: 'AudioRoute',
-    props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.15 },
-  }, {
-    id: 'device:dacvol',
-    label: 'Device',
-    props: { type: 'DISCRETE', tag: 'dacvol' },
-  }, {
-    id: 'route:dacvol',
-    label: 'AudioRoute',
-    props: { output: '0', target: 'dac', input: 0, gain: 1 },
-  }],
+  nodes: [
+    { id: 'device:board_state.config/sg', label: 'Device', props: { type: 'MIDWAY_SOUNDS_GOOD', cls: 'sg_device', tag: 'sg', config: [] } },
+    { id: 'device:sg_device.device_add_mconfig/filter', label: 'Device', props: { type: 'FILTER_BIQUAD', tag: 'sg:filter', config: [] } },
+    { id: 'route:filter', label: 'AudioRoute', props: { output: 'ALL_OUTPUTS', target: '^', gain: 1 } },
+    { id: 'route:sg/0', label: 'AudioRoute', props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.75, input: 0 } },
+    { id: 'route:sg/1', label: 'AudioRoute', props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.75, input: 1 } },
+  ],
   edges: [
-    { from: 'device:dac', to: 'route:dac', rel: 'HAS_AUDIO_ROUTE' },
-    { from: 'device:dacvol', to: 'route:dacvol', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:sg_device.device_add_mconfig/filter', to: 'route:filter', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:board_state.config/sg', to: 'route:sg/0', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:board_state.config/sg', to: 'route:sg/1', rel: 'HAS_AUDIO_ROUTE' },
   ],
 };
-const defaultClockDac = lowerAuxiliaryAudioDevices(defaultClockDacGraph, [{
-  id: 'device:dac',
-  tag: 'dac',
-  type: 'DAC_8BIT_R2R',
-  member: 'm_dac',
-}, {
-  id: 'device:dacvol',
-  tag: 'dacvol',
-  type: 'DISCRETE',
-  member: 'm_dacvol',
-}]);
-if (
-  defaultClockDac[0]?.clock !== 0 ||
-  defaultClockDac[0]?.member !== 'm_dac'
-) {
-  throw new Error('clockless passive R2R DACs must lower as routed auxiliary streams');
-}
-
-const konamiPcmGraph = {
-  meta: defaultClockDacGraph.meta,
-  nodes: [
-    { id: 'k007', label: 'Device', props: { type: 'K007232', tag: 'k007232' } },
-    { id: 'kroute', label: 'AudioRoute', props: { target: 'mono', gain: 0.15 } },
-    { id: 'krom', label: 'RomRegion', props: { tag: 'k007232' } },
-    { id: 'k053', label: 'Device', props: { type: 'K053260', tag: 'k053260' } },
-    { id: 'k053route', label: 'AudioRoute', props: { target: 'mono', gain: 0.75 } },
-    { id: 'k053rom', label: 'RomRegion', props: { tag: 'k053260' } },
-  ],
-  edges: [
-    { from: 'k007', to: 'kroute', rel: 'HAS_AUDIO_ROUTE' },
-    { from: 'k053', to: 'k053route', rel: 'HAS_AUDIO_ROUTE' },
-  ],
-} as KnowledgeGraph;
-const konamiPcm = lowerAuxiliaryAudioDevices(konamiPcmGraph, [
-  { id: 'k007', tag: 'k007232', type: 'K007232', clock: 3_579_545 },
-  { id: 'k053', tag: 'k053260', type: 'K053260', clock: 3_579_545 },
-]);
-const konamiPcmRegions = konamiPcm.map(device => [
-  device.type, device.sampleRegion,
-]);
-const expectedKonamiPcmRegions = [
-  ['K007232', 'k007232'],
-  ['K053260', 'k053260'],
-];
-if (JSON.stringify(konamiPcmRegions) !== JSON.stringify(expectedKonamiPcmRegions)) {
-  throw new Error(`Konami auxiliary sample ROMs must follow source routes: ${
-    JSON.stringify(konamiPcmRegions)}`);
+const ownerRoutes = lowerAudioRoutes(ownerRoutesGraph, [{ id: 'device:sg_device.device_add_mconfig/filter', tag: 'sg:filter' }]);
+if (JSON.stringify(ownerRoutes.map(route => [route.target, route.gain, route.targetInput])) !== JSON.stringify([['speaker', 0.75, 0], ['speaker', 0.75, 1]])) {
+  throw new Error(`a route into the owner must leave by each of the owner's routes: ${JSON.stringify(ownerRoutes)}`);
 }
 
 const filterHandlers = [

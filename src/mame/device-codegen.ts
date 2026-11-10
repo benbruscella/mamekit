@@ -242,8 +242,13 @@ export function generatedDeviceMethodsSource(
   const constantTables = new Map<string, string>();
   const links = new Set<string>();
   const structCopiers = new Map<string, string>();
-  const functions = supported.map(method =>
-    emitMethod(definition, method, supportedNames, typescript, constantTables, links, structCopiers)).join('\n\n');
+  const functions = supported.map(method => {
+    try {
+      return emitMethod(definition, method, supportedNames, typescript, constantTables, links, structCopiers);
+    } catch (error) {
+      throw new Error(`${(definition as { type?: string }).type ?? "device"}.${method.name}: ${(error as Error).message}`, { cause: error });
+    }
+  }).join('\n\n');
   // A method that assigns through a C++ reference is emitted against the
   // get/set (or single returned reference) ABI, which only an emitted caller
   // knows how to satisfy — and those call it as a plain function, not through
@@ -458,7 +463,61 @@ function generatedDeviceAssignments(
       `${target}.allocations![${JSON.stringify(name)}]!`,
     ));
   }
+  const structs = generatedStructMethodsSources(definition);
+  if (Object.keys(structs).length) {
+    assignments.push(`${target}.compiledStructMethods = {\n${Object.entries(structs)
+      .map(([type, source]) => `  ${JSON.stringify(type)}: ${source} as GeneratedDeviceMethodMap,`).join('\n')}\n};`);
+  }
   return assignments;
+}
+
+/**
+ * The inline methods of each struct the device declares, emitted as a
+ * device's methods are, with the struct's fields as the members they run on:
+ * ymfm's `ymfm_output::clear()` and `roundtrip_fp()` run once a sample. A
+ * struct the device also allocates is emitted with its allocation instead.
+ */
+export function generatedStructMethodsSources(definition: GeneratedDeviceDefinition, typed = true): Record<string, string> {
+  const sources: Record<string, string> = {};
+  for (const [type, methods] of Object.entries(definition.structMethods ?? {})) {
+    if (definition.allocations?.[type] || !methods.length) continue;
+    // An overloaded method is left to the interpreter, which picks by arguments.
+    const single = methods.filter(method => methods.filter(other => other.name === method.name).length === 1 &&
+      !method.program.diagnostics.length);
+    if (!single.length) continue;
+    const fields = definition.structs?.[type] ?? [];
+    const scope = {
+      ...definition,
+      type,
+      className: type,
+      // The device's free functions the methods call (`ymfm::roundtrip_fp`)
+      // come along by name; only the struct's own methods are entry points.
+      methods: [
+        ...single.map(method => ({ ...method, source: { file: '', line: 0 } })),
+        ...definition.methods.filter(method => !single.some(own => own.name === method.name)),
+      ],
+      members: fields.map(field => ({
+        name: field.name,
+        valueType: field.valueType ?? `${field.signed === false ? 'u' : ''}int${field.bits ?? 32}_t`,
+        ...(field.length ? { arrayLength: field.length } : {}),
+      })),
+      hotMethods: single.map(method => method.name),
+      allocations: undefined,
+      children: undefined,
+    } as unknown as GeneratedDeviceDefinition;
+    // Emitting is the fast path only; the interpreter runs the same methods.
+    // A struct whose scope pulls in a device method that cannot run on the
+    // struct's fields (atarimo's `set_config`, `static_cast<...&>(*this) =
+    // config`, beside its sprite_parameter) stays interpreted.
+    let emitted: ReturnType<typeof generatedDeviceMethodsSource>;
+    try {
+      emitted = generatedDeviceMethodsSource(scope, typed);
+    } catch {
+      continue;
+    }
+    if (emitted.methods.length) sources[type] = emitted.source;
+  }
+  return sources;
 }
 
 function methodClosure(
@@ -648,6 +707,11 @@ export function supportsMethod(
       } else if (expression.kind === 'unary') {
         supported = expression.operator !== '&' ||
           expression.operand.kind === 'index' ||
+          // `&m_APU.tri`: a struct field that is itself a struct, whose
+          // address is that object (the RP2A03's APU hands each channel to
+          // its own routine this way; declined, the APU's whole sample loop
+          // ran interpreted, 1.79 million samples a second).
+          (expression.operand.kind === 'member' && structFieldIsStruct(expression.operand, definition)) ||
           (
             expression.operand.kind === 'call' &&
             expression.operand.callee.kind === 'member'
@@ -2542,6 +2606,9 @@ function emitAddressOf(
   if (expression.kind === 'identifier' && namesStructMember(expression.name, context)) {
     return emitExpression(expression, context);
   }
+  if (expression.kind === 'member' && structFieldIsStruct(expression, context.definition)) {
+    return emitExpression(expression, context);
+  }
   // `&m_value` on a scalar: the interpreter answers with a pointer whose target
   // is the slot's own get/set pair (execute.ts addressOf), so a callee that
   // stores through it -- `get_sample(..., &m_value)` -- writes the member with
@@ -3199,6 +3266,28 @@ function structMemberNames(definition: CodegenScope): Set<string> {
         /^[A-Za-z_]\w*$/.test(member.valueType))
       .map(member => member.name),
   );
+}
+
+/** Whether `object.field` names a field that holds a struct (one with fields of its own). */
+function structFieldIsStruct(
+  expression: GeneratedExpression & { kind: 'member' },
+  definition: CodegenScope,
+): boolean {
+  const fieldsOf = (target: GeneratedExpression): readonly GeneratedStructField[] | undefined => {
+    if (target.kind === 'index') return fieldsOf(target.object);
+    if (target.kind === 'identifier') {
+      const member = definition.members.find(candidate => candidate.name === target.name) as
+        { fields?: GeneratedStructField[]; valueType?: string } | undefined;
+      return member?.fields ?? (member?.valueType ? definition.structs?.[member.valueType] : undefined);
+    }
+    if (target.kind === 'member') {
+      const field = fieldsOf(target.object)?.find(candidate => candidate.name === target.property);
+      return field?.fields ?? (field?.valueType ? definition.structs?.[field.valueType] : undefined);
+    }
+    return undefined;
+  };
+  const field = fieldsOf(expression.object)?.find(candidate => candidate.name === expression.property);
+  return Boolean(field && !field.length && (field.fields?.length || (field.valueType && definition.structs?.[field.valueType]?.length)));
 }
 
 function namesStructMember(name: string, context: EmitContext): boolean {

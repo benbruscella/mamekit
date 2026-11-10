@@ -95,10 +95,12 @@ export interface GameAcceptanceGolden {
   };
 }
 
-export type GameSoundKind =
-  | 'sid' | 'stream' | 'wsg' | 'ay8910' | 'dac' | 'discrete' | 'sn76489'
-  | 'ym2203' | 'ym2151' | 'berzerk' | 'exidy' | 'nes' | 'gameboy'
-  | 'tia' | 'none';
+/**
+ * What a target's sound plays through: every chip is its MAME class compiled
+ * whole in the stream mix, so there is one kind, and a board with no sound
+ * device is `none`.
+ */
+export type GameSoundKind = 'stream' | 'none';
 
 export type MediaKind =
   | 'romset' | 'bios' | 'device-rom' | 'cartridge' | 'quickload'

@@ -17,24 +17,6 @@ import { DEVICE_ID, DEVICE_MAME_TYPES, DEVICE_PORTS } from './device/definition.
 import { extractDevices } from './device/extract.ts';
 import { extractCpus } from './cpu/extract.ts';
 import {
-  AY8910_ID,
-  AY8910_MAME_TYPES,
-  AY8910_PORTS,
-} from './ay8910/definition.ts';
-import { extractAy8910 } from './ay8910/extract.ts';
-import {
-  NAMCO_WSG_ID,
-  NAMCO_WSG_MAME_TYPES,
-  NAMCO_WSG_PORTS,
-} from './namco-wsg/definition.ts';
-import { extractNamcoWsg } from './namco-wsg/extract.ts';
-import {
-  YM2203_ID,
-  YM2203_MAME_TYPES,
-  YM2203_PORTS,
-} from './ym2203/definition.ts';
-import { extractYm2203 } from './ym2203/extract.ts';
-import {
   NES_ID,
   NES_MAME_TYPES,
   NES_PORTS,
@@ -53,9 +35,11 @@ import { NEOGEO_ID, NEOGEO_MAME_TYPES, NEOGEO_PORTS } from './neogeo/definition.
 import { extractNeogeo } from './neogeo/extract.ts';
 import { extractSpectrum } from './spectrum/extract.ts';
 import { SPEAKER_ID, SPEAKER_MAME_TYPES, SPEAKER_PORTS } from './speaker/definition.ts';
+import { SOUND_DEVICE_ID, SOUND_DEVICE_MAME_TYPES, SOUND_DEVICE_PORTS } from './sound-device/definition.ts';
 import { DISCRETE_ID, DISCRETE_MAME_TYPES, DISCRETE_PORTS } from './discrete/definition.ts';
 import { extractDiscrete } from './discrete/extract.ts';
 import { extractSpeaker } from './speaker/extract.ts';
+import { extractSoundDevices } from './sound-device/extract.ts';
 import { SN76477_ID, SN76477_MAME_TYPES, SN76477_PORTS } from './sn76477/definition.ts';
 import { extractSn76477 } from './sn76477/extract.ts';
 import { TMS36XX_ID, TMS36XX_MAME_TYPES, TMS36XX_PORTS } from './tms36xx/definition.ts';
@@ -77,23 +61,11 @@ import {
 } from './gameboy/definition.ts';
 import { extractGameboy } from './gameboy/extract.ts';
 import {
-  SN76489_ID,
-  SN76489_MAME_TYPES,
-  SN76489_PORTS,
-} from './sn76489/definition.ts';
-import { extractSn76489 } from './sn76489/extract.ts';
-import {
   POKEY_ID,
   POKEY_MAME_TYPES,
   POKEY_PORTS,
 } from './pokey/definition.ts';
 import { extractPokey } from './pokey/extract.ts';
-import {
-  DAC_ID,
-  DAC_MAME_TYPES,
-  DAC_PORTS,
-} from './dac/definition.ts';
-import { extractDac } from './dac/extract.ts';
 import {
   PHOENIX_SOUND_ID,
   PHOENIX_SOUND_MAME_TYPES,
@@ -106,30 +78,6 @@ import {
   SAMPLES_PORTS,
 } from './samples/definition.ts';
 import { extractSamples } from './samples/extract.ts';
-import {
-  YM2151_ID,
-  YM2151_MAME_TYPES,
-  YM2151_PORTS,
-} from './ym2151/definition.ts';
-import { extractYm2151 } from './ym2151/extract.ts';
-import {
-  TMS5220_ID,
-  TMS5220_MAME_TYPES,
-  TMS5220_PORTS,
-} from './tms5220/definition.ts';
-import { extractTms5220 } from './tms5220/extract.ts';
-import {
-  OKIM6295_ID,
-  OKIM6295_MAME_TYPES,
-  OKIM6295_PORTS,
-} from './okim6295/definition.ts';
-import { extractOkim6295 } from './okim6295/extract.ts';
-import {
-  BERZERK_SOUND_ID,
-  BERZERK_SOUND_MAME_TYPES,
-  BERZERK_SOUND_PORTS,
-} from './berzerk-sound/definition.ts';
-import { extractBerzerkSound } from './berzerk-sound/extract.ts';
 import { VECTOR_ID, VECTOR_MAME_TYPES, VECTOR_PORTS } from './vector/definition.ts';
 import {
   ADDRESS_MAP_BANK_ID,
@@ -198,41 +146,12 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     extract: extractGameboy,
   },
   // Audio
-  {
-    id: NAMCO_WSG_ID,
-    mameTypes: NAMCO_WSG_MAME_TYPES,
-    ports: NAMCO_WSG_PORTS,
-    extract: extractNamcoWsg,
-  },
-  {
-    id: AY8910_ID,
-    mameTypes: AY8910_MAME_TYPES,
-    ports: AY8910_PORTS,
-    extract: extractAy8910,
-  },
-  {
-    id: YM2203_ID,
-    mameTypes: YM2203_MAME_TYPES,
-    ports: YM2203_PORTS,
-    extract: extractYm2203,
-  },
-  {
-    id: SN76489_ID,
-    mameTypes: SN76489_MAME_TYPES,
-    ports: SN76489_PORTS,
-    extract: extractSn76489,
-  },
+  { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices },
   {
     id: POKEY_ID,
     mameTypes: POKEY_MAME_TYPES,
     ports: POKEY_PORTS,
     extract: extractPokey,
-  },
-  {
-    id: DAC_ID,
-    mameTypes: DAC_MAME_TYPES,
-    ports: DAC_PORTS,
-    extract: extractDac,
   },
   {
     id: PHOENIX_SOUND_ID,
@@ -251,30 +170,6 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DISCRETE_MAME_TYPES,
     ports: DISCRETE_PORTS,
     extract: extractDiscrete,
-  },
-  {
-    id: YM2151_ID,
-    mameTypes: YM2151_MAME_TYPES,
-    ports: YM2151_PORTS,
-    extract: extractYm2151,
-  },
-  {
-    id: TMS5220_ID,
-    mameTypes: TMS5220_MAME_TYPES,
-    ports: TMS5220_PORTS,
-    extract: extractTms5220,
-  },
-  {
-    id: OKIM6295_ID,
-    mameTypes: OKIM6295_MAME_TYPES,
-    ports: OKIM6295_PORTS,
-    extract: extractOkim6295,
-  },
-  {
-    id: BERZERK_SOUND_ID,
-    mameTypes: BERZERK_SOUND_MAME_TYPES,
-    ports: BERZERK_SOUND_PORTS,
-    extract: extractBerzerkSound,
   },
   { id: SN76477_ID, mameTypes: SN76477_MAME_TYPES, ports: SN76477_PORTS, extract: extractSn76477 },
   { id: TMS36XX_ID, mameTypes: TMS36XX_MAME_TYPES, ports: TMS36XX_PORTS, extract: extractTms36xx },

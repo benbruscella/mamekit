@@ -27,7 +27,7 @@ export const polepos = sourceTarget({
   driver: 'src/mame/namco/polepos.cpp',
   machine: { className: 'polepos_state', name: 'polepos' },
   screen: { width: 256, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   actions: [
     // Pole Position ignores an early coin while its board test is running.
     // Keep actions non-overlapping: the acceptance harness replays each pulse
@@ -37,9 +37,11 @@ export const polepos = sourceTarget({
     { atFrame: 850, code: 'ArrowRight', heldFrames: 30, releasedFrames: 20 },
     { atFrame: 900, code: 'ArrowUp', heldFrames: 270, releasedFrames: 20 },
   ],
+  // The engine sound device's own stream (polepos_sound_device compiled
+  // whole): the accelerator moves its pitch, so with the throttle held it
+  // reaches many levels.
   audioRequirements: [
-    { method: 'polepos_engine_sound_lsb_w', fromFrame: 900, minimumNonzeroWrites: 50 },
-    { method: 'polepos_engine_sound_msb_w', fromFrame: 900, minimumNonzeroWrites: 50 },
+    { method: 'engine.stream', fromFrame: 900, minimumNonzeroWrites: 50, minimumDistinctValues: 16 },
   ],
   golden: {
     regions: {

@@ -5,7 +5,7 @@ export const rampage = sourceTarget({
   driver: 'src/mame/bally/mcr3.cpp',
   machine: { className: 'mcr3_state', name: 'mono_sg' },
   screen: { width: 512, height: 480 },
-  soundKind: 'dac',
+  soundKind: 'stream',
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 330, code: 'KeyZ', heldFrames: 10, releasedFrames: 20 },

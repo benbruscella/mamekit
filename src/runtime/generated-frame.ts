@@ -7,6 +7,14 @@ export interface GeneratedFrameProcessor {
   clock?: number;
   run(cycles: number): number;
   enabled?: () => boolean;
+  /**
+   * The cycles of a slice a disabled processor sat out. MAME suspends a
+   * processor held in RESET or HALT with `eatcycles` set, and its timeslice
+   * still adds every cycle of the slice to `m_totalcycles` and `m_localtime`:
+   * its `total_cycles()`, and the machine time a write from it reads once it
+   * runs again, keep pace with the machine.
+   */
+  eat?: (cycles: number) => void;
   /** MAME abort_timeslice: stop after the instruction in progress. */
   abort?: () => void;
   /**
@@ -602,6 +610,7 @@ export class GeneratedFrameRunner {
         if (cycles === 0) continue;
         if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
           local.addPeriods(cycles, scheduled.cycle);
+          scheduled.processor.eat?.(cycles);
           this.pullTarget(local, slop);
           continue;
         }
@@ -750,6 +759,7 @@ export class GeneratedFrameRunner {
         if (cycles === 0) continue;
         if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
           scheduled.local.addPeriods(cycles, scheduled.cycle);
+          scheduled.processor.eat?.(cycles);
           continue;
         }
         if (scheduled.processor.suspended?.() === 'waiting') continue;

@@ -36,15 +36,19 @@ assert.deepEqual(routes.map(route => ({
   channel: route.channel,
   gain: route.gain,
   target: route.target,
-  filter: route.filter,
 })), [
-  { chip: 0, channel: 0, gain: 0.6, target: 'filter.0.0', filter: { index: 0, bank: 0, channel: 0 } },
-  { chip: 0, channel: 1, gain: 0.6, target: 'filter.0.1', filter: { index: 1, bank: 0, channel: 1 } },
-  { chip: 0, channel: 2, gain: 0.6, target: 'filter.0.2', filter: { index: 2, bank: 0, channel: 2 } },
-  { chip: 1, channel: 0, gain: 0.6, target: 'filter.1.0', filter: { index: 3, bank: 1, channel: 0 } },
-  { chip: 1, channel: 1, gain: 0.6, target: 'filter.1.1', filter: { index: 4, bank: 1, channel: 1 } },
-  { chip: 1, channel: 2, gain: 0.6, target: 'filter.1.2', filter: { index: 5, bank: 1, channel: 2 } },
+  { chip: 0, channel: 0, gain: 0.6, target: 'filter.0.0' },
+  { chip: 0, channel: 1, gain: 0.6, target: 'filter.0.1' },
+  { chip: 0, channel: 2, gain: 0.6, target: 'filter.0.2' },
+  { chip: 1, channel: 0, gain: 0.6, target: 'filter.1.0' },
+  { chip: 1, channel: 1, gain: 0.6, target: 'filter.1.1' },
+  { chip: 1, channel: 2, gain: 0.6, target: 'filter.1.2' },
 ]);
+// The six RC stages are timeplt_audio_device's own FILTER_RCs, built in its
+// device_add_mconfig by a range-for over `m_filter[0]` and `m_filter[1]`,
+// each routed on to the speaker.
+assert.deepEqual(graph.nodes.filter(node => node.label === 'Device' && node.props.type === 'FILTER_RC')
+  .map(node => node.props.tag), ['filter.0.0', 'filter.0.1', 'filter.0.2', 'filter.1.0', 'filter.1.1', 'filter.1.2']);
 assert.ok(graph.nodes.some(node =>
   node.label === 'Handler' &&
   node.props.method === 'set_filter' &&

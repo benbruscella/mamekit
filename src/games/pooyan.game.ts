@@ -5,7 +5,7 @@ export const pooyan = sourceTarget({
   driver: 'src/mame/konami/pooyan.cpp',
   machine: { className: 'pooyan_state', name: 'pooyan' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 600,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 420, 600],

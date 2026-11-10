@@ -1,8 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, parseAddressMaps, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
+import { evalExpr, expandConstexprCalls, parseAddressMaps, parseConstexprFunctions, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
+  memberMacroParameters,
   parseMameAst,
   parseMameConstructors,
   splitMameArgs,
@@ -145,6 +146,8 @@ export interface GeneratedStructField {
   bits?: 8 | 16 | 32;
   signed?: boolean;
   fields?: GeneratedStructField[];
+  /** A union: `fields` overlap, each laid out from the union's first byte. */
+  union?: true;
 }
 
 export interface GeneratedDeviceCallback {
@@ -351,6 +354,11 @@ export interface GeneratedDeviceDefinition {
      * EPROM. The host runs it against a map builder, as MAME does.
      */
     map?: string;
+    /**
+     * A space with no map of its own, which the device fills itself at
+     * start: `space(0).install_rom(...)` over a region (a YM2610's ADPCM).
+     */
+    installed?: true;
   }[];
   start?: string;
   reset?: string;
@@ -839,6 +847,12 @@ function compileMameDeviceSource(
         return `new ${name}(`;
       });
     if (resolveTypes) specialized = resolveTypes(className, specialized);
+    // A data member named through a base, by the base or its alias: the
+    // YM2610's `parent::m_chip.set_fidelity(SSG_FIDELITY)` is this device's
+    // `m_chip`. Read as the identifier `ymfm_device_base::m_chip`, the chip
+    // kept ymfm's maximum fidelity and ran its SSG at the wrong ratio.
+    specialized = specialized.replace(/(?<![\w:])(\w+)::(m_\w+)\b(?!\s*\()/g, (whole, owner: string, member: string) =>
+      hierarchy.includes(owner) || owner === 'parent' ? member : whole);
     for (const name of memberOwners.keys()) {
       const resolved = resolvedMemberName(className, name);
       if (resolved !== name) {
@@ -850,13 +864,17 @@ function compileMameDeviceSource(
   const constants = Object.assign(
     // C stdio ABI, supplied by the host rather than a MAME device header.
     { SEEK_SET: 0, SEEK_CUR: 1, SEEK_END: 2 },
+    // <numbers>, for an initializer read at compile time: flt_biquad's
+    // constructor sets `m_q(std::numbers::sqrt2 / 2.0)`, which read as 0 gave
+    // every biquad a Q of zero until its first setup, and NaN out of recalc.
+    Object.fromEntries(Object.entries(DEFAULT_CONSTANTS).filter(([name]) => name.startsWith('std::numbers::'))),
     coreLineStates(mameSrc),
     coreAddressSpaces(mameSrc),
     coreEnumerators(mameSrc, sources),
     coreOsdDefines(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
-    ...sources.map(({ source }) => numericConstants(stripCppComments(source))),
+    ...((helpers) => sources.map(({ source }) => numericConstants(stripCppComments(source), {}, helpers)))(constexprHelpers(mameSrc, sources)),
     deviceTypeTokens(sources),
   );
   // A class template's members name their argument's constants
@@ -873,9 +891,45 @@ function compileMameDeviceSource(
   // foreign ones, so `CHANNELS = RegisterType::CHANNELS` is the instance's.
   // Comments out, as for foreign classes: flopimg.h documents each opcode
   // of its track description language with a comma-bearing comment.
+  // Another class's constant, by the qualified name a class here uses, is
+  // that instance's: a ymfm chip's `fm_engine::OUTPUTS` through its own
+  // `using fm_engine = fm_engine_base<opn_registers>`, down to
+  // opn_registers_base<false>'s `IsOpnA ? 2 : 1`. Left to evalExpr, a name no
+  // table held fell back to its bare leaf, and another header's OUTPUTS
+  // sized every ymfm output wrong.
+  const instanceConstants = instanceConstantResolver(classes, namespaceAliasMap(sources), constants, namespaceQualifier);
+  const hierarchyAliases = new Map<string, string>();
   for (const className of hierarchy) {
-    Object.assign(constants, numericConstants(
-      stripCppComments(specialize(className, classes.get(className)?.body ?? '')), constants));
+    const body = stripCppComments(specialize(className, classes.get(className)?.body ?? ''));
+    for (const alias of body.matchAll(/\busing\s+(\w+)\s*=\s*([^;]+);/g)) hierarchyAliases.set(alias[1]!, alias[2]!.trim());
+    const qualified = body.replace(/\b(\w+(?:<[^<>;]*>)?)::([A-Z]\w*)\b/g, (whole, owner: string, name: string) => {
+      // A bare template name is the instance an alias here names: the alias
+      // pass has already spelled `fm_engine::` as `fm_engine_base::`.
+      const target = hierarchyAliases.get(owner) ?? [...hierarchyAliases.values()]
+        .find(aliased => aliased.replace(/\s*<[\s\S]*>$/, '') === owner && aliased !== owner) ?? owner;
+      if (hierarchy.includes(target)) return whole;
+      const value = instanceConstants(target)?.[name];
+      return value === undefined ? whole : String(value);
+    });
+    Object.assign(constants, numericConstants(qualified, constants));
+  }
+  // And by the qualified name a method body uses: the YM2203 clocks its
+  // engine with `m_fm.clock(fm_engine::ALL_CHANNELS)`, which an alias pass
+  // spells `fm_engine_base::ALL_CHANNELS`. evalExpr falls back to the bare
+  // leaf for a name no table holds, so channel 0 was never clocked.
+  {
+    const namespaced = namespaceAliasMap(sources);
+    const instanceOf = (owner: string): string | undefined => hierarchyAliases.get(owner) ?? namespaced.get(owner) ??
+      [...hierarchyAliases.values()].find(aliased => aliased.replace(/\s*<[\s\S]*>$/, '') === owner && aliased !== owner);
+    for (const { source } of sources) {
+      for (const match of source.matchAll(/(?<![\w:])(\w+)::([A-Z][A-Z0-9_]*)\b/g)) {
+        const key = `${match[1]}::${match[2]}`;
+        if (constants[key] !== undefined || hierarchy.includes(match[1]!)) continue;
+        const target = instanceOf(match[1]!);
+        const value = target ? instanceConstants(target)?.[match[2]!] : undefined;
+        if (value !== undefined) constants[key] = value;
+      }
+    }
   }
   // A define spelled in another file's constants resolves only once every
   // file's are known: m68705.h's `M6805_INT_TIMER (M6805_IRQ_LINE + 1)` names
@@ -935,6 +989,7 @@ function compileMameDeviceSource(
   // is a struct of its own (`ymfm_output__2`), sized and given methods with
   // its arguments.
   type ClassScope = { root: string; aliases: Map<string, string>; constants: Record<string, number> };
+  const namespacedAliases = namespaceAliasMap(sources);
   const scopes = new Map<string, ClassScope | undefined>();
   const classScope = (instance: string): ClassScope | undefined => {
     const key = instance.replace(/\s+/g, '');
@@ -957,15 +1012,24 @@ function compileMameDeviceSource(
       for (const [parameter, argument] of Object.entries(substitutions.get(className) ?? {})) {
         body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
       }
-      // Another class's constant, by the qualified name this one uses.
-      const qualified = body.replace(/\b(\w+(?:<[^<>;]*>)?)::([A-Z]\w*)\b/g, (whole, owner: string, name: string) => {
-        const value = owner === root ? undefined : classScope(owner)?.constants[name];
-        return value === undefined ? whole : String(value);
-      });
-      scope.constants = numericConstants(qualified, scope.constants);
+      // Aliases first: a constant may be spelled through one.
       for (const alias of body.matchAll(/\busing\s+(\w+)\s*=\s*([^;]+);/g)) scope.aliases.set(alias[1]!, alias[2]!.trim());
       // The older spelling: discrete_device's `typedef std::vector<...> node_list_t;`.
       for (const alias of body.matchAll(/\btypedef\s+([^;()]+?)\s*\b(\w+)\s*;/g)) scope.aliases.set(alias[2]!, alias[1]!.trim());
+      // Another class's constant, by the qualified name this one uses. The
+      // owner may be one of this scope's aliases: ym3526's
+      // `OUTPUTS = fm_engine::OUTPUTS` is `fm_engine_base<opl_registers>`'s,
+      // which is opl_registers_base<1>'s 1 -- read unresolved, the flat
+      // table's 2 from another header stood in for it.
+      const qualified = body.replace(/\b(\w+(?:<[^<>;]*>)?)::([A-Z]\w*)\b/g, (whole, owner: string, name: string) => {
+        // Or a namespace's: fm_engine_base<opna_registers>'s `OUTPUTS =
+        // RegisterType::OUTPUTS` is `opn_registers_base<true>`'s.
+        const aliased = scope.aliases.get(owner) ?? namespacedAliases.get(owner);
+        const target = aliased ? resolveType(scope, aliased) : owner;
+        const value = target === root ? undefined : classScope(target)?.constants[name];
+        return value === undefined ? whole : String(value);
+      });
+      scope.constants = numericConstants(qualified, scope.constants);
     }
     scopes.set(key, scope);
     return scope;
@@ -1030,14 +1094,31 @@ function compileMameDeviceSource(
       const target = scope?.aliases.get(alias);
       if (!target) return whole;
       const type = resolveType(scope, target);
-      const value = classScope(type)?.constants[name];
+      const owner = classScope(type);
+      const value = owner?.constants[name];
       if (value !== undefined && /^[A-Z]/.test(name)) return String(value);
+      // A type the aliased class names, in that class's own scope: the
+      // YM2610's `fm_engine::output_data m_last_fm` is
+      // fm_engine_base<opna_registers>'s ymfm_output<2>. Spelled as the bare
+      // base and resolved with no scope, its OUTPUTS read as the chip's 3.
+      if (owner?.aliases.has(name)) return resolveType(owner, owner.aliases.get(name)!);
       const base = type.replace(/\s*<[\s\S]*>$/, '');
       return `${hierarchy.includes(base) ? base : type}::${name}`;
     });
     // `Owner::alias`, Owner any class: the type it names.
-    resolved = resolved.replace(/(?<![\w:])(\w+)::(\w+)\b(?!\s*\()/g, (whole, owner: string, name: string) =>
-      classScope(owner)?.aliases.has(name) ? resolveType(undefined, whole) : whole);
+    resolved = resolved.replace(/(?<![\w:])(\w+)::(\w+)\b(?!\s*\()/g, (whole, owner: string, name: string) => {
+      if (!classScope(owner)?.aliases.has(name)) return whole;
+      // A bare template name is the instance an alias of this class names:
+      // the alias pass has already spelled `fm_engine::output_data` as
+      // `fm_engine_base::output_data`. Resolved with no arguments, OUTPUTS
+      // was the chip's 3, not fm_engine_base<opna_registers>'s 2.
+      const instance = classes.get(owner)?.templateParameters?.length && scope
+        ? [...scope.aliases.values()].map(aliased => resolveType(scope, aliased))
+          .find(aliased => aliased !== owner && aliased.replace(/\s*<[\s\S]*>$/, '') === owner)
+        : undefined;
+      const other = instance ? classScope(instance) : undefined;
+      return other?.aliases.has(name) ? resolveType(other, other.aliases.get(name)!) : resolveType(undefined, whole);
+    });
     if (!scope?.aliases.size) return resolved;
     return resolved.replace(/(?<![\w:.>])(\w+)(?![\w:(])/g, (name: string) =>
       scope.aliases.has(name) ? resolveType(scope, name) : name);
@@ -1084,6 +1165,26 @@ function compileMameDeviceSource(
   // (`#define CURLINE m_vid_regs[0x04]`). The name stands for nothing but the
   // subscript, so it has to become the subscript before lowering.
   const memberAliases = sources.flatMap(({ source }) => [...collectMemberAliasMacros(source), ...collectBitAliasMacros(source)]);
+  // A struct method that reads a table of the device's sources is compiled as
+  // the device's own methods are, the table substituted: k053260.cpp's
+  // KDSC_Voice::update_pan_volume reads `pan_mul[m_pan][0]`, which unread was
+  // 0, so every voice played at volume 0.
+  const tableNames = Object.keys(sourceTables);
+  if (tableNames.length) {
+    const reads = new RegExp(`\\b(?:${tableNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*\\[`);
+    for (const [struct, list] of Object.entries(structMethods)) {
+      list.forEach((method, index) => {
+        const body = STRUCT_METHOD_SOURCE.get(method.program);
+        if (body === undefined || !reads.test(body)) return;
+        const recompiled = compileMethod(
+          { kind: 'function', className: '', name: method.name, parameters: method.parameters, body,
+            span: { file: '', line: 0, column: 0 } } as unknown as MameFunction,
+          [], sourceTables, functionMacros, memberAliases, stringMacros, struct,
+        );
+        if (!recompiled.program.diagnostics.length) list[index] = { ...method, program: recompiled.program };
+      });
+    }
+  }
   const interruptCallbacks = sources.flatMap(({ source }) => [...source.matchAll(
     /\b(m_\w+)->set_input_line\s*\(\s*(INPUT_LINE_\w+)/g,
   )].map(match => ({
@@ -1313,6 +1414,25 @@ function compileMameDeviceSource(
   // `(*info->draw_layer)(...)` -- every System 16 background layer.
   const handedOn = new Set(sourceMethods.filter(helper => helper.className === '' &&
     new RegExp(`(?<=[(,]\\s*)${helper.name}(?=\\s*[,)])|(?<=[^=!<>]=\\s*)${helper.name}(?=\\s*;)`).test(sourceText)).map(helper => helper.name));
+  // A struct's inline method calling a free function by its namespace
+  // (`ymfm_output::roundtrip_fp()` runs `ymfm::roundtrip_fp(data[index])`)
+  // names the function, not itself: the qualified spelling is the free
+  // function's too. Unbound, every YM2151 sample came back as the call.
+  const structText = sources.flatMap(({ source }) => structBlocks(stripCppComments(source)).map(block => block.body)).join('\n');
+  for (const call of new Set([...structText.matchAll(/(?<![\w:])(\w+)::(\w+)\s*\(/g)]
+    .filter(match => namespaces.includes(match[1]!)).map(match => `${match[1]}::${match[2]}`))) {
+    const name = call.slice(call.indexOf('::') + 2);
+    const helper = sourceMethods.find(method => method.className === '' && method.name === name);
+    if (helper && !methods.some(candidate => candidate.name === call)) replaceOrAppend({ ...helper, name: call });
+  }
+  // Or unqualified: `ymfm_output::clamp16()` runs `clamp(data[index], -32768,
+  // 32767)`, a free function of ymfm.h. Unbound, every YM2610 FM sample was
+  // the call.
+  for (const name of new Set([...structText.matchAll(/(?<![\w:.>])(\w+)\s*\(/g)].map(match => match[1]!))) {
+    const helper = sourceMethods.find(method => method.className === '' && method.name === name);
+    if (helper && !methods.some(candidate => candidate.name === name)) replaceOrAppend(helper);
+  }
+  const heldAliases = namespaceAliasMap(sources);
   const staticCalls = new Set<string>();
   for (let added = true; added;) {
     added = false;
@@ -1332,14 +1452,25 @@ function compileMameDeviceSource(
     ];
     for (const call of new Set(named.map(match => `${match[1]}::${match[2]}`))) {
       const [className, name] = call.split('::') as [string, string];
-      const declaration = classes.get(className);
-      if (!declaration || hierarchy.includes(className) || staticCalls.has(call)) continue;
+      // Through a namespace alias of a template instance: the OPN engine's
+      // `RegisterType::operator_offset(opnum)` is `opn_registers::...`, which
+      // is opn_registers_base<false>'s, its body read with `IsOpnA` false.
+      // Unlowered, every operator's register offset was the call itself.
+      const alias = classes.has(className) ? undefined : /^(\w+)\s*<([\s\S]*)>$/.exec(heldAliases.get(className) ?? '');
+      const root = alias?.[1] ?? className;
+      const declaration = classes.get(root);
+      if (!declaration || hierarchy.includes(root) || staticCalls.has(call)) continue;
       staticCalls.add(call);
       if (!new RegExp(`\\bstatic\\b[^;{}]*\\b${name}\\s*\\(`).test(declaration.body)) continue;
       const helper = inlineMethods(declaration).find(method => method.name === name) ??
-        sourceMethods.find(method => method.className === className && method.name === name);
+        sourceMethods.find(method => method.className === root && method.name === name);
       if (!helper) continue;
-      replaceOrAppend({ ...helper, name: call, className: '' });
+      const args = alias ? splitMameArgs(alias[2]!).map(argument => argument.trim()) : [];
+      const bound = (text: string): string => (declaration.templateParameters ?? []).reduce((result, parameter, index) =>
+        args[index] === undefined ? result : result.replace(new RegExp(`\\b${parameter}\\b`, 'g'), args[index]!), text);
+      replaceOrAppend(alias
+        ? { ...helper, name: call, className: '', body: bound(helper.body), parameters: bound(helper.parameters) }
+        : { ...helper, name: call, className: '' });
       added = true;
     }
   }
@@ -1481,6 +1612,32 @@ function compileMameDeviceSource(
         const existing = members.find(member => member.name === name);
         if (existing) Object.assign(existing, { values: values as number[], arrayLength: values.length });
         else members.push({ name, valueType: 'auto', values: values as number[], arrayLength: values.length });
+      }
+    }
+  }
+  // A class's non-const static storage, defined out of the class: okiadpcm.cpp's
+  // `int oki_adpcm_state::s_diff_lookup[49*16];`, which compute_tables() fills
+  // and clock() reads, and `bool oki_adpcm_state::s_tables_computed = false;`.
+  // Never declared, both read as nothing: every OKI6295 voice decoded to 0
+  // and the chip was silent.
+  for (const className of hierarchy) {
+    for (const { source } of sources) {
+      for (const match of stripCppComments(source).matchAll(new RegExp(
+        String.raw`(?:^|[;}])\s*((?:unsigned\s+|signed\s+)?[A-Za-z_][\w:]*)\s+${className}::(\w+)\s*(?:\[([^\]]+)\])?\s*(?:=\s*([^;{}()]+))?\s*;`, 'gm'))) {
+        const [, valueType, field, bound, initial] = match;
+        if (/^(?:const|constexpr|static|return)$/.test(valueType!)) continue;
+        const name = emittedMemberName(className, field!);
+        if (members.some(member => member.name === name)) continue;
+        if (bound !== undefined) {
+          const length = evalExpr(bound, constants);
+          if (length === null || !Number.isInteger(length) || length <= 0 || length > 1 << 20) continue;
+          members.push({ name, valueType: valueType!, arrayLength: length, values: new Array<number>(length).fill(0) });
+        } else {
+          const value = initial === undefined ? 0
+            : /^\s*true\s*$/.test(initial) ? 1 : /^\s*false\s*$/.test(initial) ? 0 : evalExpr(initial, constants);
+          if (value === null || !Number.isFinite(value)) continue;
+          members.push({ name, valueType: valueType!, initial: value });
+        }
       }
     }
   }
@@ -1700,6 +1857,37 @@ function compileMameDeviceSource(
         ...(tags ? { tags } : {}),
       });
     }
+    // A child added by its tag rather than its finder, which a finder array
+    // names by format: pit8253's `PIT_COUNTER(config, "counter0")` ...
+    // `"counter2"` are its `m_counter(*this, "counter%u", 0U)`. Each array
+    // is one child entry with the tags in order.
+    const byTag = new Map<string, { member: string; index: number; count: number }>();
+    for (const member of members) {
+      const tags = deviceArrayTags(member.valueType ?? '', constructorBindings[member.name] ?? [], constants);
+      tags?.forEach((tag, index) => byTag.set(tag, { member: member.name, index, count: tags.length }));
+    }
+    const tagged = new Map<string, { type: string; tags: string[] }>();
+    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*"([^"]+)"\s*\)/g)) {
+      const owner = byTag.get(match[2]!);
+      if (!owner || nested.has(match[1]!) || children.some(existing => existing.member === owner.member)) continue;
+      const entry = tagged.get(owner.member) ?? { type: match[1]!, tags: new Array<string>(owner.count) };
+      if (entry.type !== match[1]) continue;
+      entry.tags[owner.index] = match[2]!;
+      tagged.set(owner.member, entry);
+    }
+    for (const [member, { type: childType, tags }] of tagged) {
+      if (tags.some(tag => tag === undefined)) continue;
+      const childDefinition = known.get(childType);
+      if (!childDefinition) continue;
+      const child = compileMameDevice(mameSrc, childDefinition, childType, nested);
+      if (child.summary.diagnostics) {
+        omittedChildren.push({ member, type: childType, diagnostics: child.summary.diagnostics });
+        console.warn(`  ! ${type}: child ${childType} (${member}) left out, ${child.summary.diagnostics} compiler diagnostics`);
+        continue;
+      }
+      // No clock argument: the owner sets each one up in device_resolve_objects.
+      children.push({ member, type: childType, definition: child, clock: 0, tags });
+    }
     configureChildren(mconfig, children);
   }
   inlineReferenceCallees(methods);
@@ -1870,8 +2058,15 @@ function compileMameDeviceSource(
   // The class may also be a helper declared beside the device rather than
   // inside it -- the 6805's `m6805_timer m_timer`, built `m_timer(*this)` --
   // so long as it is not a device (those are children, found by tag).
+  // A namespace alias names the instance it stands for: ymfm's OPN engine
+  // holds `RegisterType m_regs`, which is `opn_registers`, which is
+  // `opn_registers_base<false>`. Unresolved, no register file was built and
+  // every write the YM2203's FM took went nowhere.
   for (const member of result.members) {
     if (member.memory || member.finder || member.fields) continue;
+    const valueType = !classes.has(member.valueType.replace(/\s*<[\s\S]*>$/, '')) && heldAliases.get(member.valueType)
+      ? heldAliases.get(member.valueType)!
+      : member.valueType;
     // Looked up in the class and then outward through the scopes enclosing
     // it, as C++ does: dual_sprite_parameter's `sprite_parameter m_lower` is
     // the `atari_motion_objects_device::sprite_parameter` declared beside it.
@@ -1881,12 +2076,12 @@ function compileMameDeviceSource(
       return parts.map((_, depth) => parts.slice(0, parts.length - depth).join('::'));
     };
     const owner = [...hierarchy].reverse().flatMap(enclosing)
-      .find(className => classes.has(`${className}::${member.valueType}`));
-    const qualified = owner ? `${owner}::${member.valueType}` : member.valueType;
+      .find(className => classes.has(`${className}::${valueType}`));
+    const qualified = owner ? `${owner}::${valueType}` : valueType;
     const template = qualified.replace(/\s*<[\s\S]*>$/, '');
     if (!owner && (!classes.has(template) || hierarchy.includes(qualified) || /_device$/.test(template))) continue;
     if (!constructorOf(qualified)) continue;
-    const allocation = templateInstanceName(member.valueType);
+    const allocation = templateInstanceName(valueType);
     if (!allocations[allocation]) compileNestedClass(allocation, qualified);
     member.object = allocation;
     // Built as the owner's constructor builds it: `m_timer(*this)`, which
@@ -1906,15 +2101,40 @@ function compileMameDeviceSource(
       const fallback = cppDefaultArgument(parameter);
       return name && fallback !== undefined ? [[name, String(fallback)] as const] : [];
     }));
-    if (initializer?.args.length) {
-      member.objectArgs = initializer.args.map(argument => parameterDefaults.get(argument.trim()) ?? argument.trim());
+    // An array of them built one brace list an element, every one alike:
+    // k053260's `m_voice{ { *this }, { *this }, { *this }, { *this } }` is
+    // four voices each built with `*this`.
+    const elementArgs = initializer?.args.length && initializer.args.every(argument => /^\{[\s\S]*\}$/.test(argument.trim())) &&
+      new Set(initializer.args.map(argument => argument.replace(/\s+/g, ''))).size === 1
+      ? splitMameArgs(initializer.args[0]!.trim().slice(1, -1)).map(argument => argument.trim()).filter(Boolean)
+      : undefined;
+    const args = elementArgs ?? initializer?.args;
+    if (args?.length) {
+      member.objectArgs = args.map(argument => parameterDefaults.get(argument.trim()) ?? argument.trim());
     }
     if (Array.isArray(member.values) && member.values.length > 1) member.arrayLength ??= member.values.length;
     delete member.values;
     delete member.initial;
   }
   if (options.nestedClass) {
-    const constructor = constructorOf(definition.className)!;
+    let constructor = constructorOf(definition.className)!;
+    // A default argument lives on the declaration in the class, not on the
+    // out-of-line definition: ymfm's `ym2610(ymfm_interface &intf, uint8_t
+    // channel_mask = 0x36)`. Built as `m_chip(*this)`, the mask was 0 and
+    // every YM2610 FM channel was off.
+    {
+      const leaf = definition.className.replace(/\s*<[\s\S]*>$/, '').split('::').at(-1)!;
+      const body = stripCppComments(classes.get(definition.className.replace(/\s*<[\s\S]*>$/, ''))?.body ?? '');
+      const defined = splitMameArgs(constructor.parameters).map(parameter => parameter.trim()).filter(Boolean);
+      for (const declaration of body.matchAll(new RegExp(`(?<![\\w~])${leaf}\\s*\\(([^;{}()]*(?:\\([^()]*\\)[^;{}()]*)*)\\)\\s*;`, 'g'))) {
+        const declared = splitMameArgs(declaration[1]!).map(parameter => parameter.trim()).filter(Boolean);
+        if (declared.length !== defined.length || !declared.some(parameter => parameter.includes('='))) continue;
+        const merged = defined.map((parameter, index) =>
+          !parameter.includes('=') && declared[index]!.includes('=') ? `${parameter} = ${declared[index]!.slice(declared[index]!.indexOf('=') + 1).trim()}` : parameter);
+        constructor = { ...constructor, parameters: merged.join(', ') };
+        break;
+      }
+    }
     // A reference member (`m6805_base_device &m_parent;`) declares like a
     // function to the member scan; its constructor initializer says it is
     // state, so it becomes a member the constructor can bind.
@@ -1993,7 +2213,7 @@ function compileMameDeviceSource(
     compileNestedClass(type, qualified);
   }
   if (Object.keys(allocations).length) result.allocations = allocations;
-  annotateMemberCallReferences(result, classes, sourceMethods, hierarchy);
+  annotateMemberCallReferences(result, classes, sourceMethods, hierarchy, heldAliases);
   for (const member of result.members) {
     const held = member.valueType.replace(/\bconst\b/g, '')
       .replace(/^\s*std::(?:unique_ptr|shared_ptr|array)\s*<\s*([\s\S]+?)\s*(?:,\s*\d+\s*)?>\s*$/, '$1')
@@ -2093,6 +2313,8 @@ function annotateMemberCallReferences(
   classes: Map<string, MameClass>,
   sourceMethods: readonly MameFunction[],
   hierarchy: readonly string[],
+  /** Namespace aliases: ymfm's `opn_registers` is `opn_registers_base<false>`. */
+  namespaceAliases: ReadonlyMap<string, string> = new Map(),
 ): void {
   // What a value of the type is an object of. An element of a container is
   // one too, which is how a range-for over `std::vector<std::unique_ptr<
@@ -2104,7 +2326,11 @@ function annotateMemberCallReferences(
       held = held.replace(/^\s*std::(?:unique_ptr|shared_ptr|array)\s*<\s*([\s\S]+?)\s*(?:,\s*\d+\s*)?>\s*$/, '$1');
       if (element) held = held.replace(/^\s*std::vector\s*<\s*([\s\S]+?)\s*>\s*$/, '$1');
     }
-    held = held.replace(/[*&]/g, '').trim().replace(/\s*<[\s\S]*>$/, '');
+    held = held.replace(/[*&]/g, '').trim();
+    // Through a namespace alias: the OPN engine's `opn_registers m_regs`,
+    // whose `write(..., uint32_t &channel, uint32_t &opmask)` writes back.
+    if (!classes.has(held.replace(/\s*<[\s\S]*>$/, '')) && namespaceAliases.has(held)) held = namespaceAliases.get(held)!;
+    held = held.replace(/\s*<[\s\S]*>$/, '');
     return classes.has(held) && !hierarchy.includes(held) ? held : undefined;
   };
   const cache = new Map<string, number[] | undefined>();
@@ -2154,6 +2380,36 @@ function annotateMemberCallReferences(
     }
     return undefined;
   };
+  // The instance of a function template a call's argument types deduce: ymfm
+  // calls `m_adpcm_a.output(m_last_fm, 0x3f)` on `template<int NumOutputs>
+  // void output(ymfm_output<NumOutputs> &output, ...)`, and its instances are
+  // emitted as output_1 and output_2. Called by the template's own name, the
+  // YM2610 never mixed in a single ADPCM-A or ADPCM-B sample.
+  const deducedInstance = (className: string, method: string, argumentTypes: readonly (string | undefined)[]): string | undefined => {
+    for (const owner of [...classHierarchy(className, classes)].reverse()) {
+      const candidates = [...sourceMethods.filter(candidate => candidate.className === owner), ...inlineMethods(classes.get(owner)!)]
+        .filter(candidate => candidate.name === method);
+      if (!candidates.length) continue;
+      for (const candidate of candidates) {
+        const templateParameters = (candidate as { templateParameters?: readonly string[] }).templateParameters ?? [];
+        if (!templateParameters.length) continue;
+        const bound: Record<string, string> = {};
+        splitMameArgs(candidate.parameters).map(parameter => parameter.trim()).filter(Boolean).forEach((parameter, index) => {
+          const declared = /^([\w:]+)\s*<\s*(\w+)\s*>$/.exec(parameterBaseType(parameter));
+          const argument = argumentTypes[index]?.replace(/\s+/g, '');
+          if (!declared || !argument || !templateParameters.includes(declared[2]!)) return;
+          const template = declared[1]!.split('::').at(-1)!;
+          const value = new RegExp(`^(?:\\w+::)*${template}(?:__|<)(\\d+)>?$`).exec(argument)?.[1];
+          if (value !== undefined) bound[declared[2]!] = value;
+        });
+        if (templateParameters.every(parameter => bound[parameter] !== undefined)) {
+          return `${method}_${templateParameters.map(parameter => bound[parameter]).join('_')}`;
+        }
+      }
+      return undefined;
+    }
+    return undefined;
+  };
   for (const method of device.methods) {
     // What each name is declared as here: a member, shadowed by a parameter
     // or local (`discrete_base_node &node = *m_node_list.back();`).
@@ -2188,7 +2444,9 @@ function annotateMemberCallReferences(
       if (!className) return;
       const argumentTypes = expression.args.map(argument => argument.kind === 'identifier' && types.has(argument.name)
         ? parameterBaseType(`${types.get(argument.name)} ${argument.name}`) : undefined);
-      const chosen = typedOverload(className, expression.callee.property, argumentTypes);
+      const instance = deducedInstance(className, expression.callee.property, argumentTypes);
+      if (instance) (expression.callee as { property: string }).property = instance;
+      const chosen = instance ? undefined : typedOverload(className, expression.callee.property, argumentTypes);
       if (chosen) {
         const parameters = splitMameArgs(chosen.parameters).map(parameter => parameter.trim()).filter(Boolean);
         const references = parameters.flatMap((parameter, index) => /&(?!&)/.test(parameter.replace(/=.*$/, '')) && !/\bconst\b/.test(parameter) ? [index] : []);
@@ -2938,7 +3196,20 @@ function methodSignature(name: string, parameters: string): string {
   // `reset(void)` overrides `reset()`: every DISCRETE node defines its methods
   // through DISCRETE_RESET, which spells the empty list as `(void)`.
   const list = parameters.replace(/\s+/g, ' ').trim();
-  return `${name}(${list === 'void' ? '' : list})`;
+  if (list === 'void' || list === '') return `${name}()`;
+  // Types only: an override may name its parameters differently, and is
+  // still the override. ym2610_device_base's `ymfm_external_read(access_class
+  // type, uint32_t offset)` replaces ym_generic_device's `(..., uint32_t
+  // address)`; kept as an overload, the base answered first and every ADPCM
+  // fetch read 0 -- Metal Slug's ADPCM was silent.
+  const types = splitMameArgs(list).map(parameter => {
+    const plain = parameter.replace(/=[\s\S]*$/, '').trim().replace(/\b\w+::/g, '');
+    const named = /^(.*?[\w>*&\]])\s*\b([A-Za-z_]\w*)\s*((?:\[[^\]]*\])*)$/.exec(plain);
+    return (named && !/^(?:const|unsigned|signed|long|short|int|char|bool|float|double|void|struct)$/.test(named[2]!) && named[1]!.trim()
+      ? `${named[1]!.trim()}${named[3] ?? ''}`
+      : plain).replace(/\s+/g, ' ');
+  });
+  return `${name}(${types.join(',')})`;
 }
 
 export function mameDeviceRomSet(
@@ -3236,6 +3507,74 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
  * Map each template class in the hierarchy to the arguments its derived class
  * supplies, e.g. buffered_spriteram_device -> { Type: 'uint8_t' }.
  */
+/** Namespace-scope aliases (`using opl_registers = opl_registers_base<1>;`), at column 0. */
+function namespaceAliasMap(sources: readonly { source: string }[]): Map<string, string> {
+  const aliases = new Map<string, string>();
+  for (const { source } of sources) {
+    for (const alias of stripCppComments(source).matchAll(/^using\s+(\w+)\s*=\s*([^;]+);/gm)) {
+      aliases.set(alias[1]!, alias[2]!.trim());
+    }
+  }
+  return aliases;
+}
+
+/**
+ * The constants of a class instance (`fm_engine_base<opl_registers>`), with
+ * its template arguments in place and every qualified name it uses resolved
+ * the same way, through its own aliases and the namespace's. Memoized; a
+ * cycle answers undefined.
+ */
+function instanceConstantResolver(
+  classes: Map<string, MameClass>,
+  namespaceAliases: ReadonlyMap<string, string>,
+  seed: Record<string, number>,
+  namespaceQualifier?: RegExp,
+): (instance: string) => Record<string, number> | undefined {
+  const memo = new Map<string, Record<string, number> | undefined>();
+  const resolve = (instance: string): Record<string, number> | undefined => {
+    const key = (namespaceQualifier ? instance.replace(namespaceQualifier, '') : instance).replace(/\s+/g, '');
+    if (memo.has(key)) return memo.get(key);
+    memo.set(key, undefined);
+    const parsed = /^(\w+)(?:<([\s\S]*)>)?$/.exec(key);
+    if (!parsed) return undefined;
+    const root = parsed[1]!;
+    const declaration = classes.get(root);
+    if (!declaration) {
+      const alias = namespaceAliases.get(root);
+      const values = alias && parsed[2] === undefined ? resolve(alias) : undefined;
+      memo.set(key, values);
+      return values;
+    }
+    const substitutions = new Map(resolveTemplateArguments(root, classes));
+    if (parsed[2] !== undefined && declaration.templateParameters?.length) {
+      const args = splitMameArgs(parsed[2]).map(argument => argument.trim());
+      substitutions.set(root, Object.fromEntries(
+        declaration.templateParameters.map((parameter, index) => [parameter, args[index] ?? parameter])));
+    }
+    const aliases = new Map<string, string>();
+    let values = seed;
+    for (const className of classHierarchy(root, classes)) {
+      let body = stripCppComments(classes.get(className)?.body ?? '');
+      if (namespaceQualifier) body = body.replace(namespaceQualifier, '');
+      for (const [parameter, argument] of Object.entries(substitutions.get(className) ?? {})) {
+        body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
+      }
+      for (const alias of body.matchAll(/\busing\s+(\w+)\s*=\s*([^;]+);/g)) aliases.set(alias[1]!, alias[2]!.trim());
+      const qualified = body.replace(/\b(\w+(?:<[^<>;]*>)?)::([A-Z]\w*)\b/g, (whole, owner: string, name: string) => {
+        const target = aliases.get(owner) ?? [...aliases.values()]
+          .find(aliased => aliased.replace(/\s*<[\s\S]*>$/, '') === owner && aliased !== owner) ?? owner;
+        if (target === root) return whole;
+        const value = resolve(target)?.[name];
+        return value === undefined ? whole : String(value);
+      });
+      values = numericConstants(qualified, values);
+    }
+    memo.set(key, values);
+    return values;
+  };
+  return resolve;
+}
+
 function resolveTemplateArguments(
   className: string,
   classes: Map<string, MameClass>,
@@ -3247,12 +3586,18 @@ function resolveTemplateArguments(
     visited.add(name);
     const declaration = classes.get(name);
     if (!declaration) return;
+    // A template base forwarding its own parameter (`ymfm_ssg_device_base<
+    // ChipClass> : ymfm_device_base<ChipClass>`) passes on what it was bound
+    // to: the YM2203's `ymfm::ym2203`, not the word `ChipClass`.
+    const own = resolved.get(name) ?? {};
+    const bound = (argument: string): string => argument.replace(/\b[A-Za-z_]\w*\b/g, word =>
+      Object.hasOwn(own, word) ? own[word]! : word);
     for (const base of declaration.bases) {
       const args = declaration.baseTemplateArguments?.[base];
       const parameters = classes.get(base)?.templateParameters;
       if (args?.length && parameters?.length) {
         resolved.set(base, Object.fromEntries(
-          parameters.map((parameter, index) => [parameter, args[index] ?? parameter]),
+          parameters.map((parameter, index) => [parameter, args[index] !== undefined ? bound(args[index]!) : parameter]),
         ));
       }
       visit(base);
@@ -3624,6 +3969,7 @@ function compileMethod(
   functionMacros: readonly FunctionMacro[] = [],
   memberAliases: readonly MemberAliasMacro[] = [],
   stringMacros: Readonly<Record<string, string>> = {},
+  owner: string = method.className ?? '',
 ): GeneratedDeviceMethod {
   let body = expandMemberAliasMacros(
     expandFunctionMacros(expandLocalMacros(method.body), functionMacros),
@@ -3669,7 +4015,15 @@ function compileMethod(
     );
   }
   const subscript = '((?:[^\\[\\]]|\\[[^\\]]*\\])*)';
+  // A table by its bare name, unless the method's own class defines one of
+  // that name: then that one (constantTables keeps both).
+  const tables: Record<string, ConstantTable> = {};
+  for (const [name, table] of Object.entries(sourceTables)) if (!name.includes('::')) tables[name] = table;
   for (const [name, table] of Object.entries(sourceTables)) {
+    const at = name.lastIndexOf('::');
+    if (at > 0 && owner && name.slice(0, at) === owner) tables[name.slice(at + 2)] = table;
+  }
+  for (const [name, table] of Object.entries(tables)) {
     // A table this method declares itself is a local, and the execution-source
     // normalizer folds those together with their declaration. Substituting
     // here as well leaves `static const double TABLE(...) = {...}` behind.
@@ -3701,6 +4055,14 @@ function compileMethod(
       .replace(new RegExp(`\\b${name}\\s*\\.\\s*dvalue\\s*\\(\\s*\\)`, 'g'), `(${name})`)
       .replace(new RegExp(`\\b${name}\\s*\\.\\s*value\\s*\\(\\s*\\)`, 'g'), `u32(${name} + 1e-3)`);
   }
+  // So is an XTAL constant: exidysound.cpp's `#define SH8253_CLOCK
+  // (CRYSTAL_OSC / 2)` over `3.579545_MHz_XTAL`, read in device_start as
+  // `SH8253_CLOCK.value()`. A macro or constant name with an accessor can only
+  // be one (an arithmetic constant has none); unrewritten, the stream's rate
+  // and the 6840's clocks per sample were both 0, and Berzerk was silent.
+  body = body
+    .replace(/(?<![\w.>])([A-Z][A-Z0-9_]*)\s*\.\s*dvalue\s*\(\s*\)/g, '($1)')
+    .replace(/(?<![\w.>])([A-Z][A-Z0-9_]*)\s*\.\s*value\s*\(\s*\)/g, 'u32($1 + 1e-3)');
   return {
     name: method.name,
     parameters: method.parameters,
@@ -3776,6 +4138,34 @@ function inlineMethods(declaration: MameClass): MameFunction[] {
     });
     pattern.lastIndex = braceEnd + 1;
   }
+  // A member macro defined in the class body, as a header does for a short
+  // callback: sn76496.h's `TIMER_CALLBACK_MEMBER(delayed_ready) {
+  // set_ready_state(1); }`. Missed, the READY timer named a method no
+  // device had, and the first SN76489 write that armed it threw.
+  const macroMember = /(?:^|\n|[;{}])\s*(INTERRUPT_GEN_MEMBER|TIMER_CALLBACK_MEMBER|TIMER_DEVICE_CALLBACK_MEMBER|IRQ_CALLBACK_MEMBER|TILEMAP_MAPPER_MEMBER|TILE_GET_INFO_MEMBER|INPUT_CHANGED_MEMBER)\s*\(\s*(\w+)\s*\)\s*\{/g;
+  for (let match; (match = macroMember.exec(masked)) !== null;) {
+    const braceStart = masked.indexOf('{', match.index + match[0].length - 1);
+    const braceEnd = matchingBrace(masked, braceStart);
+    if (braceEnd < 0 || methods.some(method => method.name === match![2])) continue;
+    const line = declaration.bodySpan.line + source.slice(0, match.index).split('\n').length - 1;
+    const span = {
+      file: declaration.span.file,
+      start: declaration.bodySpan.start + match.index,
+      end: declaration.bodySpan.start + braceEnd + 1,
+      line, column: 1, endLine: line, endColumn: 1,
+    };
+    methods.push({
+      kind: 'function',
+      className: declaration.name,
+      name: match[2]!,
+      parameters: memberMacroParameters(match[1]!),
+      body: source.slice(braceStart + 1, braceEnd),
+      statements: [],
+      span,
+      bodySpan: { ...span, start: declaration.bodySpan.start + braceStart + 1, end: declaration.bodySpan.start + braceEnd },
+    });
+    macroMember.lastIndex = braceEnd + 1;
+  }
   return methods;
 }
 
@@ -3809,10 +4199,12 @@ export function memberDeclarations(
   for (const block of structBlocks(declaration.body)) {
     // Only an anonymous struct declares a member here; a named one is a type,
     // and its members are picked up by the ordinary patterns below.
+    // A named one with a declarator declares both: k053260.h's
+    // `class KDSC_Voice { ... } m_voice[4];` is four KDSC_Voices.
     const name = block.declarator;
-    if (!name || block.name !== name || members.some(member => member.name === name)) continue;
+    if (!name || members.some(member => member.name === name)) continue;
     const arrayLength = block.declaratorBound === undefined ? undefined : arrayBound(block.declaratorBound, constants);
-    members.push({ valueType: name, name,
+    members.push({ valueType: block.name, name,
       ...(arrayLength !== undefined && Number.isInteger(arrayLength) && arrayLength > 0 ? { arrayLength } : {}) });
     unmasked = unmasked.replace(`{${block.body}}`, `{${block.body.replace(/[^\r\n]/g, ' ')}}`);
   }
@@ -3950,7 +4342,10 @@ function maskNestedClasses(source: string): string {
     const end = matchingBrace(source, brace);
     if (end < 0) continue;
     const declared = /^\s*\w+\s*(?:\[[^\]]*\]\s*)?;/.test(source.slice(end + 1));
-    const kept = match[1] === 'struct' && declared ? `struct ${match[2]}` : '';
+    // A class declaring a member as it closes is a member of that class:
+    // k053260.h's `class KDSC_Voice { ... } m_voice[4];` is four voices, each
+    // an object of the nested class (see the member's `object`).
+    const kept = !declared ? '' : match[1] === 'struct' ? `struct ${match[2]}` : match[2]!;
     const masked = kept + result.slice(match.index + kept.length, end + 1).replace(/[^\r\n]/g, ' ');
     result = result.slice(0, match.index) + masked + result.slice(end + 1);
     pattern.lastIndex = end + 1;
@@ -4713,22 +5108,49 @@ function foreignClassConstants(
     }
   }
   const found: Record<string, number> = {};
+  // A namespace-scope alias of a template instance names that instance's
+  // constants: ymfm's `using opl_registers = opl_registers_base<1>;`, so a
+  // YM3526's `RegisterType::OUTPUTS` is opl_registers_base<1>'s
+  // `IsOpl3Plus ? 4 : 1`. Column 0 only: a class's own `using fm_engine = ...`
+  // is that class's, and two chips spell it differently.
+  const namespaceAliases = new Map<string, { target: string; args: string[] }>();
+  for (const { source } of sources) {
+    for (const alias of stripCppComments(source).matchAll(/^using\s+(\w+)\s*=\s*(\w+)\s*<([^;<>]*)>\s*;/gm)) {
+      namespaceAliases.set(alias[1]!, { target: alias[2]!, args: splitMameArgs(alias[3]!).map(argument => argument.trim()) });
+    }
+  }
   // A class the sources declare but the device does not derive from answers
   // from its own body: a format names `floppy_image::FF_525` and
   // flopimg.h is one of its own sources.
-  for (const [owner, names] of wanted) {
-    const declaration = classes.get(owner) as { body?: string } | undefined;
+  // Repeated until nothing more resolves: a class constant may be spelled in
+  // another class's, which a later owner supplies. ymfm's ym2203 declares
+  // `SSG_OUTPUTS = ssg_engine::OUTPUTS`; read before ssg_engine, it fell back
+  // to the leaf name, the YM2610's `SSG_OUTPUTS = 1`, and every YM2203 rotated
+  // its outputs by one -- FM on an SSG route at twice its gain.
+  for (let progress = true; progress && wanted.size;) {
+  progress = false;
+  for (const [owner, names] of [...wanted]) {
+    const alias = classes.has(owner) ? undefined : namespaceAliases.get(owner);
+    const root = alias?.target ?? owner;
+    const declaration = classes.get(root) as { body?: string; templateParameters?: string[] } | undefined;
     if (!declaration?.body) continue;
+    const parameters = alias ? declaration.templateParameters ?? [] : [];
+    const bound = (body: string): string => parameters.reduce((text, parameter, index) =>
+      alias!.args[index] === undefined ? text : text.replace(new RegExp(`\\b${parameter}\\b`, 'g'), alias!.args[index]!), body);
     // With what the class inherits: OPLL's registers take `EG_HAS_REVERB`
     // from `fm_registers_base`.
-    let values = known;
-    for (const className of classHierarchy(owner, classes as Map<string, MameClass>)) {
-      values = numericConstants(stripCppComments((classes.get(className) as { body?: string } | undefined)?.body ?? ''), values);
+    let values: Record<string, number> = { ...known, ...found };
+    for (const className of classHierarchy(root, classes as Map<string, MameClass>)) {
+      values = numericConstants(bound(stripCppComments((classes.get(className) as { body?: string } | undefined)?.body ?? '')), values);
     }
-    for (const name of names) {
-      if (values[name] !== undefined) found[`${owner}::${name}`] = values[name]!;
+    for (const name of [...names]) {
+      if (values[name] === undefined) continue;
+      found[`${owner}::${name}`] = values[name]!;
+      names.delete(name);
+      progress = true;
     }
-    wanted.delete(owner);
+    if (!names.size) wanted.delete(owner);
+  }
   }
   if (!wanted.size) return found;
   // Headers the device's sources include, and theirs in turn, a few levels
@@ -4781,10 +5203,30 @@ function foreignClassConstants(
   return found;
 }
 
+const RESCAP_FUNCTIONS = new Map<string, ReturnType<typeof parseConstexprFunctions>>();
+
+/** rescap.h's RES_K, CAP_U and friends, and the device's own one-expression constexpr helpers. */
+function constexprHelpers(
+  mameSrc: string,
+  sources: readonly { source: string }[],
+): ReturnType<typeof parseConstexprFunctions> {
+  if (!RESCAP_FUNCTIONS.has(mameSrc)) {
+    const path = join(mameSrc, 'src/devices/machine/rescap.h');
+    RESCAP_FUNCTIONS.set(mameSrc, existsSync(path) ? parseConstexprFunctions(readFileSync(path, 'utf8')) : {});
+  }
+  return Object.assign({}, RESCAP_FUNCTIONS.get(mameSrc), ...sources.map(({ source }) => parseConstexprFunctions(source)));
+}
+
 export function numericConstants(
   source: string,
   /** Constants already known, which the source's own values may be spelled in. */
   seed: Record<string, number> = {},
+  /**
+   * One-expression constexpr helpers a value may call: polepos.cpp's
+   * `static const double r_filt_total = 1.0 / (1.0/RES_K(4.7) + ...)`, which
+   * unexpanded read as 0 and scaled the engine sound to nothing.
+   */
+  functions: Parameters<typeof expandConstexprCalls>[1] = {},
 ): Record<string, number> {
   const expressions = new Map<string, string>();
   // The value runs to the end of the line less any comment. Stopping at the
@@ -4879,7 +5321,8 @@ export function numericConstants(
       // evalExpr substitutes every constant it is given, one by one: with
       // discrete.h's 2,700 node enumerators that is quadratic, so an
       // expression with no names left is evaluated alone.
-      const value = evalExpr(substituted, /[A-Za-z_]/.test(substituted) ? constants : {});
+      const expanded = /\w\s*\(/.test(substituted) ? expandConstexprCalls(substituted, functions) : substituted;
+      const value = evalExpr(expanded, /[A-Za-z_]/.test(expanded) ? constants : {});
       if (value !== null && Number.isFinite(value)) {
         constants[name] = value;
         resolved++;
@@ -4946,31 +5389,44 @@ interface ConstantTable {
 
 function constantTables(source: string): Record<string, ConstantTable> {
   const tables: Record<string, ConstantTable> = {};
+  // Or a class's own static, defined out of the class as MAME defines one:
+  // k053260.cpp's `const int k053260_device::pan_mul[8][2] = { ... };`.
   for (const match of source.matchAll(
-    /\bstatic\s+const\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
+    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
   )) {
-    const columns = Number(match[3]);
-    const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
+    const columns = Number(match[4]);
+    const values = [...match[5]!.matchAll(/\{([^{}]*)\}/g)]
       .flatMap(row => splitMameArgs(row[1]!).map(value => value.trim()).filter(Boolean));
-    if (values.length !== Number(match[2]) * columns) continue;
-    tables[match[1]!] = { values, columns };
+    if (values.length !== Number(match[3]) * columns) continue;
+    tables[match[2]!] = { values, columns };
+    if (match[1]) tables[`${match[1]}::${match[2]}`] = { values, columns };
   }
   for (const match of source.matchAll(
-    /\bstatic\s+(?:const\s+)?\w+\s+(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/g,
+    // The element type may be qualified: okim6295.cpp's
+    // `const sound_stream::sample_t okim6295_device::s_volume_table[16]`, which
+    // missed left every voice's volume undefined and the OKI rendering NaN.
+    // `static constexpr double out_pos_gain[] = {...}` (sn76477.cpp) is one too.
+    /(?:\bstatic\s+(?:const\s+|constexpr\s+)?[\w:]+\s+|(?<=^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/gm,
   )) {
-    if (!/^static\s+const\b/.test(match[0])) {
+    if (!/^\s*(?:static\s+)?(?:const|constexpr)\b/.test(match[0])) {
       const uses = source.replace(match[0], '');
-      const name = match[1]!;
+      const name = match[2]!;
       if (new RegExp(`\\b${name}\\s*\\[[^\\]]+\\]\\s*(?:[+*/&|^-]?=|\\+\\+|--)`).test(uses) ||
           new RegExp(`(?:&|\\+\\+|--)\\s*${name}\\b`).test(uses) ||
           new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(uses)) continue;
     }
     // Zero past the last initializer, to the declared length: the TMS36xx's
     // `tune1[96*6]` writes 192 of its 576 entries.
-    const values = splitMameArgs(match[3]!).map(value => value.trim());
-    const declared = match[2]!.trim() ? evalExpr(match[2]!, {}) : null;
+    const values = splitMameArgs(match[4]!).map(value => value.trim());
+    const declared = match[3]!.trim() ? evalExpr(match[3]!, {}) : null;
     if (declared !== null && declared > values.length) values.push(...Array.from({ length: declared - values.length }, () => '0'));
-    tables[match[1]!] = { values };
+    tables[match[2]!] = { values };
+    // Two classes of one source can each define a static of the same name:
+    // okiadpcm.cpp's oki_adpcm_state and oki_adpcm2_state both have an
+    // s_index_shift, and by name alone the second won, so the OKIM6295 stepped
+    // by the MSM6585's shifts and saturated within a phrase. The owner's own
+    // is kept by its qualified name too (see compileMethod).
+    if (match[1]) tables[`${match[1]}::${match[2]}`] = { values };
   }
   // A table of C strings: the CRT format's `static char const *const
   // CRT_C64_SLOT_NAMES[] = { "standard", UNSUPPORTED, "final3", ... }`, the
@@ -5075,13 +5531,32 @@ function deviceAddressSpaces(
       });
     }
   }
-  if (!configs.size) return spaces;
+  // A space configured with no map of its own: what the device installs into
+  // it itself at start (a YM2610's ADPCM ROM, `space(0).install_rom(...)`).
+  const unmapped = new Map<string, { name: string; dataBits: number; addressBits: number }>();
+  for (const match of source.matchAll(
+    // The address shift is optional: `m_data_config("data", ENDIANNESS_BIG, 8, 8)`
+    // is the Namco WSG's waveform space, which it fills from its own region.
+    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_\w+\s*,\s*([^,()]+),\s*([^,()]+)(?:,\s*([^,()]+))?\)/g,
+  )) {
+    if (configs.has(match[1]!)) continue;
+    const dataBits = evalExpr(match[3]!.trim(), constants);
+    const addressBits = evalExpr(match[4]!.trim(), constants);
+    if (!Number.isInteger(dataBits) || !Number.isInteger(addressBits)) continue;
+    unmapped.set(match[1]!, { name: match[2]!, dataBits: Number(dataBits), addressBits: Number(addressBits) });
+  }
+  if (!configs.size && !unmapped.size) return spaces;
   const vector = methodBodies.get('memory_space_config');
   if (vector === undefined) return spaces;
   for (const pair of vector.matchAll(
     /std::make_pair\s*\(\s*(\w+)\s*,\s*&\s*(m_\w+)\s*\)/g,
   )) {
     const index = Number(evalExpr(pair[1]!, constants));
+    const installed = unmapped.get(pair[2]!);
+    if (installed && Number.isInteger(index)) {
+      spaces.push({ index, ...installed, installed: true });
+      continue;
+    }
     const config = configs.get(pair[2]!);
     if (config === undefined || !Number.isInteger(index)) continue;
     const map = methodBodies.get(config.map);
@@ -5267,7 +5742,7 @@ export function structDeclarations(
     // Comments out first: flopimg.h annotates each field of a grouped
     // declaration (`int type, //!< An opcode`), and read with them the struct
     // lost every field after the first comment.
-    for (const declaration of structBlocks(stripCppComments(source))) {
+    for (const declaration of structBlocks(littleEndianLayout(stripCppComments(source)))) {
       if (!declaration.name || structs.has(declaration.name)) continue;
       const fields = structFieldList(declaration.body, constants, declaration.name);
       if (fields.length) structs.set(declaration.name, fields);
@@ -5288,19 +5763,80 @@ function structMethodDeclarations(
   sources: readonly { file: string; source: string }[],
 ): Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]> {
   const methods: Record<string, { name: string; parameters: string; program: GeneratedHandlerProgram }[]> = {};
+  const code = sources.map(({ source }) => stripCppComments(source)).join('\n');
   for (const { source } of sources) {
     for (const declaration of structBlocks(stripCppComments(source))) {
       if (!declaration.name || methods[declaration.name]) continue;
-      const found = structMethodsOf(declaration.body, declaration.name);
+      const owner = ownerReferences(declaration.body);
+      const found = [
+        ...structMethodsOf(declaration.body, declaration.name, owner),
+        ...outOfLineStructMethods(code, declaration.name, owner),
+      ];
       if (found.length) methods[declaration.name] = found;
     }
   }
   return methods;
 }
 
-/** The inline methods one struct body defines. */
-function structMethodsOf(body: string, name?: string): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+/**
+ * Each struct method's source, by its compiled program: one that reads a
+ * table or macro of the device's own sources is compiled again once the
+ * device knows them (see compileMameDeviceSource).
+ */
+const STRUCT_METHOD_SOURCE = new WeakMap<GeneratedHandlerProgram, string>();
+
+/**
+ * The fields a value type holds as a reference to the device that owns it:
+ * `k053260_device &m_device;`. A method reaching through one
+ * (`m_device.read_byte(...)`, `m_device.save_item(...)`) is calling its
+ * device, which is what a struct method's own unqualified call reaches.
+ */
+function ownerReferences(body: string): string[] {
+  return [...body.matchAll(/(?:^|[;{}:])\s*(?:const\s+)?\w+_device\s*&\s*(m_\w+)\s*;/gm)].map(match => match[1]!);
+}
+
+function throughOwner(body: string, owner: readonly string[]): string {
+  return owner.reduce((text, member) =>
+    text.replace(new RegExp(`(?<![\\w.>])${member}\\s*(?:\\.|->)\\s*`, 'g'), ''), body);
+}
+
+/**
+ * A value type's methods defined outside its body, as MAME defines a nested
+ * class's: `void k053260_device::KDSC_Voice::play(s32 *outputs) { ... }`.
+ */
+function outOfLineStructMethods(
+  code: string,
+  name: string,
+  owner: readonly string[],
+): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+  const leaf = name.split('::').at(-1)!;
   const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  const definition = new RegExp(
+    `(?:^|[;}])\\s*(?:inline\\s+)?[\\w:<>]+[\\s*&]+(?:\\w+::)*${leaf}::(\\w+)\\s*\\(([^()]*)\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?\\{`,
+    'gm',
+  );
+  for (const match of code.matchAll(definition)) {
+    if (match[1] === leaf) continue;
+    const open = code.indexOf('{', match.index! + match[0].length - 1);
+    const close = matchingBrace(code, open);
+    if (close < 0) continue;
+    const body = throughOwner(code.slice(open + 1, close), owner);
+    const program = compileMameHandler(normalizeMameExecutionSource(body));
+    if (program.diagnostics.length) continue;
+    STRUCT_METHOD_SOURCE.set(program, body);
+    found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
+  }
+  return found;
+}
+
+/** The inline methods one struct body defines. */
+function structMethodsOf(
+  body: string,
+  name?: string,
+  owner: readonly string[] = [],
+): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
+  const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  body = throughOwner(body, owner);
   // Its default constructor, as `__construct`, which building the struct
   // runs: discrete's `double_stack() : p(&stk[0]) { }` points its stack at
   // its own storage, and built as zeros the first push wrote through null.
@@ -5343,6 +5879,7 @@ function structMethodsOf(body: string, name?: string): { name: string; parameter
     if (close < 0) continue;
     const program = compileMameHandler(normalizeMameExecutionSource(body.slice(open + 1, close)));
     if (program.diagnostics.length) continue;
+    STRUCT_METHOD_SOURCE.set(program, body.slice(open + 1, close));
     found.push({ name: match[1]!, parameters: match[2]!.trim(), program });
   }
   return found;
@@ -5387,7 +5924,22 @@ function structBlocks(
   return blocks;
 }
 
-/** The fields of one struct body, recursing into nested anonymous structs. */
+/**
+ * A layout MAME spells per host byte order, as a little-endian host builds it:
+ * exidysound.h's 6840 channel keeps its counter as `union { #ifdef LSB_FIRST
+ * struct { uint8_t l, h; } b; #else struct { uint8_t h, l; } b; #endif
+ * uint16_t w; }`. Every host this runs on is little-endian, so LSB_FIRST is
+ * defined, and both branches read as fields gave `b` twice.
+ */
+function littleEndianLayout(source: string): string {
+  if (!/\bLSB_FIRST\b/.test(source)) return source;
+  return resolveLiteralConditionals(source
+    .replace(/^(\s*)#\s*ifdef\s+LSB_FIRST\b.*$/gm, '$1#if 1')
+    .replace(/^(\s*)#\s*ifndef\s+LSB_FIRST\b.*$/gm, '$1#if 0')
+    .replace(/^(\s*)#\s*if\s+defined\s*\(?\s*LSB_FIRST\s*\)?\s*$/gm, '$1#if 1'));
+}
+
+/** The fields of one struct body, recursing into nested anonymous structs and unions. */
 function structFieldList(
   body: string,
   constants: Record<string, number>,
@@ -5406,7 +5958,7 @@ function structFieldList(
   };
   let cursor = 0;
   while (cursor < body.length) {
-    const nested = /\bstruct\s*(?:\w+\s*)?\{/g;
+    const nested = /\b(struct|union)\s*(?:\w+\s*)?\{/g;
     nested.lastIndex = cursor;
     const start = nested.exec(body);
     const scalars = start ? body.slice(cursor, start.index) : body.slice(cursor);
@@ -5473,13 +6025,19 @@ function structFieldList(
     const declarator = /^\s*(\w+)\s*(?:\[\s*([^\]]+)\s*\])?\s*;/.exec(body.slice(close + 1));
     // A named nested struct with no declarator is a type, recorded on its
     // own by structBlocks; it adds no field here.
+    const union = start[1] === 'union';
     if (declarator) {
       const length = bound(declarator[2]);
       fields.push({
         name: declarator[1]!,
         ...(length !== undefined ? { length } : {}),
         fields: structFieldList(body.slice(open + 1, close), constants),
+        // Its members share one storage, each from its first byte.
+        ...(union ? { union: true } : {}),
       });
+    } else if (union) {
+      // An anonymous union's members are the enclosing struct's own.
+      fields.push(...structFieldList(body.slice(open + 1, close), constants));
     }
     cursor = close + 1 + (declarator?.[0].length ?? 0);
   }

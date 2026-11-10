@@ -57,7 +57,7 @@ const HOST_BOUNDARIES = {
       Setup: "reads MAME's netlist setup language into a device list, as nlparse_t does; " +
         'it runs nothing',
     },
-    'mame/netlist-solver.ts': {
+    'hardware/speaker/netlist-solver.ts': {
       GeneratedNetlistDiode: "MAME's generic_diode, which the solver's diode and BJT " +
         'elements share; every parameter comes from the netlist\'s own model',
       GeneratedNetlistGroup: 'one sparse LU over whatever nodes a netlist gives it',
@@ -79,56 +79,15 @@ const DEVICE_TYPE_BRANCHES: Record<string, string[]> = {};
 const DIRECT_SCREEN_SHAPES: string[] = [];
 // Each replaceMethod call in src/hardware/device/extract.ts swaps a MAME method
 // for a hand-written body, keyed by the compiler that makes it.
-const REPLACED_METHODS = [
-  'compileUpd7759: sound_stream_update',
-];
+const REPLACED_METHODS: string[] = [];
 // Each SPECIALIZED type in extract.ts is compiled by its own function, which
 // edits MAME's source or its lowered methods before the device is emitted.
-const SPECIALIZED_COMPILERS = [
-  'UPD7759',
-];
+const SPECIALIZED_COMPILERS: string[] = [];
 // Each class in src/hardware, or in the worklet source a compiler emits,
 // restates an engine, mixer or worklet by hand: a core, the frame renderer and
 // processor that host it, or a chip model under another name. Paths are
 // relative to src.
 const HAND_WRITTEN_ENGINES: Record<string, string[]> = {
-  'hardware/berzerk-sound/berzerk-sound-worklet.ts': [
-    'BerzerkProcessor', 'ExidyPit8253Core', 'ExidySoundCore', 'GeneratedBerzerkSoundCore',
-    'GeneratedBerzerkSoundFrameRenderer', 'S14001aCore',
-  ],
-  'hardware/dac/worklet-source.ts': [
-    'GeneratedBiquadFilter', 'GeneratedDacFrameRenderer', 'GeneratedDacMixer',
-    'GeneratedDacProcessor', 'GeneratedHc55516Core',
-  ],
-  'hardware/nes/apu.ts': ['Dmc', 'Envelope', 'NesApu', 'Noise', 'Pulse', 'Triangle'],
-  'hardware/okim6295/okim6295-worklet.ts': [
-    'GeneratedOkim6295Core', 'GeneratedOkim6295FrameRenderer', 'GeneratedOkim6295Processor',
-    'OkiVoice',
-  ],
-  'hardware/ym2151/runtime.ts': ['Upd7759Runtime'],
-  'mame/audio-compiler.ts': [
-    'GeneratedAy8910Core', 'GeneratedAy8910FrameRenderer', 'GeneratedAy8910Mixer',
-    'GeneratedAy8910Processor', 'GeneratedDac8Core',
-    'GeneratedMsm5205Core', 'GeneratedNamcoWsgCore', 'GeneratedNamcoWsgFrameRenderer',
-    'GeneratedNamcoWsgProcessor', 'GeneratedPoleposEngineCore',
-  ],
-  'mame/nes-apu-compiler.ts': ['NesProcessor', 'Resampler'],
-  'mame/opm-compiler.ts': [
-    'GeneratedK007232Core', 'GeneratedK053260Core', 'GeneratedMsm5205Core',
-    'GeneratedSampleSpace', 'GeneratedUpd7759Core',
-    'GeneratedYm2151Chip', 'GeneratedYm2151FrameRenderer', 'GeneratedYm2151Mixer',
-    'GeneratedYm2151Processor', 'OkiCore', 'OkiVoice',
-  ],
-  'mame/opn-compiler.ts': [
-    'GeneratedMsm5205Core', 'GeneratedYm2203Chip', 'GeneratedYm2203FrameRenderer',
-    'GeneratedYm2203Mixer', 'GeneratedYm2203Processor', 'GeneratedYm2610AdpcmA',
-    'GeneratedYm3526Chip',
-  ],
-  'mame/sn76489-compiler.ts': [
-    'GeneratedSn76489Core', 'GeneratedSn76489FrameRenderer', 'GeneratedSn76489Mixer',
-    'GeneratedSn76489Processor',
-  ],
-  'mame/tms5220-compiler.ts': ['GeneratedTms5220Core'],
 };
 
 const deviceTypeBranch =
@@ -275,6 +234,30 @@ const SAVED_BOARD_FIELDS = [
     'generated-board.ts: a new saved board field is state the generated machine does not own; ' +
     'generate the hardware instead (or, if one was removed, delete it from SAVED_BOARD_FIELDS)',
   );
+}
+
+// Sound kinds that name a chip family or a board rather than the stream mix,
+// as an exact list that may only shrink (#242). Each was a hand engine and a
+// worklet of its own; every chip is now its MAME class compiled whole and
+// played through the stream mix, so the list is empty. A kind is read from
+// every place one could come back: the runtime installers, the acceptance
+// probes, the contracts' kind union and the app plan's kind literals.
+const SOUND_KINDS: string[] = [];
+{
+  const read = (file: string) => readFileSync(join(root, file), 'utf8');
+  const keys = (source: string, table: string) =>
+    [...(new RegExp(`const ${table}[^=]*=\\s*\\{([^}]*)\\}`).exec(source)?.[1] ?? '').matchAll(/^\s*(\w+)\s*:/gm)].map(match => match[1]!);
+  const kinds = new Set([
+    ...keys(read('../hardware/sound-runtime-registry.ts'), 'INSTALLERS'),
+    ...keys(read('../hardware/acceptance-registry.ts'), 'AUDIO_PROBES'),
+    ...[...(/export type GameSoundKind =([^;]*);/.exec(read('../games/types.ts'))?.[1] ?? '').matchAll(/'(\w+)'/g)].map(match => match[1]!),
+    ...[...read('../gen/lower-sound.ts').matchAll(/\bkind:\s*'(\w+)'/g)].map(match => match[1]!),
+  ]);
+  kinds.delete('stream');
+  kinds.delete('none');
+  assert.deepEqual([...kinds].sort(), [...SOUND_KINDS].sort(),
+    'a sound kind that names a chip family is a hand engine; compile the chip and play it through the stream mix ' +
+    '(or, if one was removed, delete it from SOUND_KINDS)');
 }
 
 // A list keyed by a file that is gone would pass silently forever.

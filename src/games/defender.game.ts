@@ -5,12 +5,16 @@ export const defender = sourceTarget({
   driver: 'src/mame/williams/williams.cpp',
   machine: { className: 'defender_state', name: 'defender' },
   screen: { width: 292, height: 240 },
-  soundKind: 'dac',
+  soundKind: 'stream',
   minimumAudioRms: 0.05,
   audioRequirements: [{
-    method: 'dac.data_w',
+    // The DAC's own stream, before the mix: the sound CPU's writes are what
+    // move it, so the gate is how many different levels it reached, not
+    // whether it is non-zero (an idle DAC holds one constant level).
+    method: 'dac.stream',
     fromFrame: 500,
     minimumNonzeroWrites: 100,
+    minimumDistinctValues: 16,
   }],
   actions: [
     // A fresh Defender CMOS image pauses in its source-defined operator flow.

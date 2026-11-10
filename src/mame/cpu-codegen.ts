@@ -111,7 +111,10 @@ function popcount32(value: number): number {
 
 /** The core header's input-line constants, for a pin the board names (Cpu.inputLine). */
 const INPUT_LINES: Record<string, number> = ${JSON.stringify(Object.fromEntries(
-    Object.entries(definition.constants).filter(([name]) => /INPUT_LINE/.test(name))))};
+    // Every line the core's header names, not only the framework's
+    // INPUT_LINE_*: m6502.h's APU_IRQ_LINE = INPUT_LINE_IRQ1, which the
+    // RP2A03's APU raises its IRQ on.
+    Object.entries(definition.constants).filter(([name]) => /(?:^|_)LINE(?:_|$)/.test(name))))};
 
 /**
  * The byte halves of a Pair16, as a class rather than a per-instance object.

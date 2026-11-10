@@ -8,7 +8,6 @@ import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import type { GeneratedTiaAudio } from '../../mame/tia-audio-compiler.ts';
 import {
   compileTiaAudio,
-  generatedTiaWorkletSource,
   TIA_AUDIO_TYPE,
 } from '../../mame/tia-audio-compiler.ts';
 import {
@@ -22,12 +21,12 @@ import type {
   LoweredMethod,
 } from '../contract.ts';
 import {
-  A2600_AUDIO_WORKLET_ARTIFACT,
   A2600_CART_SLOT_TAG,
   A2600_MAME_TYPES,
   a2600DeviceIrArtifact,
   a2600DeviceModuleArtifact,
 } from './definition.ts';
+import { streamWorkletArtifact } from '../speaker/extract.ts';
 
 /**
  * Slot methods that identify an image rather than run the bus.
@@ -134,13 +133,8 @@ export function extractA2600(input: CapabilityInput): CapabilityExtraction | und
         path: a2600DeviceModuleArtifact(type),
         contents: generatedDeviceExecutableSource(device, ir.replace('devices/', '')),
       },
-      // The chip renders beside the CPU; this is only what plays the result.
-      ...(type === TIA_AUDIO_TYPE
-        ? [{
-            path: A2600_AUDIO_WORKLET_ARTIFACT,
-            contents: generatedTiaWorkletSource(device as GeneratedTiaAudio),
-          }]
-        : []),
+      // The chip renders in the stream mix; the shared worklet plays it.
+      ...(type === TIA_AUDIO_TYPE ? [streamWorkletArtifact()] : []),
     );
     executable[type] = { kind: 'device', artifact: ir };
     entrySourceFiles[type] = device.sourceFiles;

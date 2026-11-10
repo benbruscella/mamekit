@@ -5,7 +5,7 @@ export const popeye = sourceTarget({
   driver: 'src/mame/nintendo/popeye.cpp',
   machine: { className: 'tpp2_state', name: 'config' },
   screen: { width: 512, height: 448 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   golden: {
     regions: {
       gfx1: 'fa52a752',

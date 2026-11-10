@@ -36,18 +36,17 @@ try {
       };
     }};
   `);
-  write(join(outRoot, 'runtime/generated/audio/dac-worklet.js'), `
-    export class GeneratedDacMixer {}
-    export class GeneratedDacFrameRenderer { render() { return Float32Array.of(0.25); } }
+  write(join(outRoot, 'runtime/generated/audio/stream-worklet.js'), `
+    export class GeneratedStreamFrameRenderer { write() {} render() { return Float32Array.of(0.25); } }
   `);
   write(join(outRoot, 'games/arcade/fixture/config.json'), JSON.stringify({
-    game: 'fixture', sound: { kind: 'dac' }, roms: [], bindings: [], dipDefaults: [], ports: [],
+    game: 'fixture', sound: { kind: 'stream' }, roms: [], bindings: [], dipDefaults: [], ports: [],
     board: { cpus: [], screen: { refresh: 60 } },
   }));
   const contract: GameTestContract = {
     game: 'fixture', category: 'arcade', driver: 'src/mame/fixture.cpp',
     machine: { className: 'fixture_state', name: 'fixture' }, screen: { width: 1, height: 1 },
-    romEnvironment: 'MAMEKIT_FIXTURE_ROM', soundKind: 'dac',
+    romEnvironment: 'MAMEKIT_FIXTURE_ROM', soundKind: 'stream',
     frames: 130, checkpoints: [1, 60, 130], minimumFps: 1, actions: [],
   };
   await assert.rejects(runGameAcceptance(contract, root, { recording: true, outRoot }), /not in public registry/);

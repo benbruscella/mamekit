@@ -5,7 +5,7 @@ export const ffight = sourceTarget({
   driver: 'src/mame/capcom/cps1.cpp',
   machine: { className: 'cps_state', name: 'cps1_10MHz' },
   screen: { width: 384, height: 224 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   minimumFps: 50,
   // CPS1 is still in its power-on RAM test when the standard schedule tries
   // to start. Exercise Final Fight after the test and keep the run long enough

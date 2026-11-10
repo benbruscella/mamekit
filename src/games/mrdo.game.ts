@@ -5,7 +5,7 @@ export const mrdo = sourceTarget({
   driver: 'src/mame/universal/mrdo.cpp',
   machine: { className: 'mrdo_state', name: 'mrdo' },
   screen: { width: 240, height: 192 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   golden: {
     regions: {
       gfx1: 'a066a445',

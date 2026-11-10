@@ -801,6 +801,20 @@ export async function emitHardwareClosure(
         : {}),
       })),
   };
+  // A device a capability compiles that no machine config names as a node of
+  // its own: the RP2A03's APU, which rp2a03.cpp's device_add_mconfig builds
+  // inside the CPU. The app imports what the manifest lists, so it is listed.
+  const listed = new Set(compact.hardware.map(entry => entry.type));
+  for (const [type, executable] of [...capabilityExecutable].sort(([left], [right]) => left.localeCompare(right))) {
+    if (listed.has(type) || !['cpu', 'device'].includes(executable.kind)) continue;
+    (compact.hardware as unknown[]).push({
+      type,
+      status: 'source-resolved',
+      executable: true,
+      executableKind: executable.kind,
+      executableArtifact: executable.artifact,
+    });
+  }
   writeFileSync(join(root, 'hardware-manifest.json'), JSON.stringify(compact, null, 2));
   writeFileSync(
     join(root, 'hardware-graph.json'),

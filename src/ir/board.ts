@@ -8,13 +8,9 @@
 // Values here are serialized verbatim into each target's generated board.json.
 
 import { BOARD_IR_SCHEMA_VERSION } from './version.ts';
-import type {
-  GeneratedAuxiliaryAudioDevice,
-  GeneratedBiquadStage,
-  GeneratedDacChip,
-  GeneratedNesApuPlan,
-} from './audio-protocol.ts';
+import type { GeneratedSampleWindow } from './audio-protocol.ts';
 import type { GeneratedVideoExecution } from './video-execution.ts';
+import type { GeneratedNetlistPlanData } from './netlist-plan.ts';
 
 export interface BoardSourceRef {
   file: string;
@@ -80,6 +76,11 @@ export interface GeneratedCallback {
   targetClass?: string;
   targetMethod?: string;
   targetPort?: string;
+  /**
+   * A read devcb a CPU's own space answers (the RP2A03's `apu_read_mem`,
+   * `m_program.read_interruptible(offset)`): the space it reads.
+   */
+  targetSpace?: 'program';
   /** The value a `set_constant` read answers. */
   constant?: number;
   /**
@@ -150,7 +151,9 @@ export interface GeneratedCallback {
  */
 export type CpuLine =
   | 'irq' | 'irq1' | 'irq2' | 'irq3' | 'irq4' | 'irq5' | 'irq6' | 'irq7'
-  | 'firq' | 'nmi' | 'reset' | 'halt' | 'busreq';
+  | 'firq' | 'nmi' | 'reset' | 'halt' | 'busreq'
+  /** A line the core names itself (`APU_IRQ_LINE`), carried in `input`, held at its level. */
+  | 'core';
 
 /**
  * How a source drives the pin. MAME's driver_device interrupt generators
@@ -180,6 +183,12 @@ export type BoardEffect =
   | { kind: 'handler'; handler: string; deviceTag?: string }
   /** Read an input port back to the caller (MAME set_ioport). */
   | { kind: 'port-read'; port: string }
+  /**
+   * Answer a read devcb from a CPU's own space at the offset the device asks:
+   * the RP2A03's `apu_read_mem`, `m_program.read_interruptible(offset)`, which
+   * the DMC fetches its samples through.
+   */
+  | { kind: 'cpu-space-read'; tag: string; space: 'program' }
   /** Answer a read with a fixed value (MAME set_constant). */
   | { kind: 'constant'; value: number }
   /** Board-level video control lowered from MAME's flip_screen helpers. */
@@ -274,10 +283,14 @@ export interface GeneratedDevice {
    * members of the card's scope that none of its own handlers assign.
    */
   cardMembers?: string[];
+  /**
+   * The device's own address space 0 over its ROM region, which its
+   * `device_rom_interface` reads through (a banked OKI). Absent when it reads
+   * its region directly.
+   */
+  romMap?: GeneratedSampleWindow[];
   member?: string;
   clock?: number;
-  /** Source-derived rate for device clock callbacks such as MSM5205 VCK. */
-  callbackHz?: number;
   /** Setter calls from the machine config: numbers, and tags as strings. */
   /**
    * A table the constructor took is data of its own shape: DISCRETE's node
@@ -1151,23 +1164,20 @@ export interface GeneratedSoundBinding {
   deviceType: string;
   /** MAME device type per chip index, when a bank mixes several chips. */
   deviceTypes?: string[];
-  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
-  dacs?: GeneratedDacChip[];
   writeMethods: string[];
   enableMethods: string[];
   controlOffset: number;
   routes?: GeneratedAudioRoute[];
-  /** Index rank inferred from MAME handler IR for the routed filter member. */
-  filterLayout?: 'flat' | 'matrix';
   /** A netlist's `NETLIST_LOGIC_INPUT` lines, as handlers reach them. */
   netlistLogicInputs?: { deviceTag: string; param: string; shift: number; members: string[] }[];
   /** The bound finders a handler can test on a netlist board. */
   netlistFinders?: string[];
-  auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
-  /** RP2A03 internal APU plan, present only for the NES sound capability. */
-  nesApu?: GeneratedNesApuPlan;
-  /** FILTER_BIQUAD stages MAME places between this core and its board output. */
-  filterChain?: GeneratedBiquadStage[];
+  /**
+   * The board's NETLIST_SOUND, compiled from its netlist and run in the
+   * stream mix: the streams routed to `netlistTag` are its stream inputs.
+   */
+  netlist?: GeneratedNetlistPlanData;
+  netlistTag?: string;
   /**
    * Devices on the same speaker that render their own stream on the main
    * thread (sound_stream_update at machine().sample_rate()), with the gain

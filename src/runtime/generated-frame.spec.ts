@@ -544,3 +544,26 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
 }
 
 console.log('generated-frame.spec: 21 passed');
+
+// A processor held in RESET or HALT sits its slices out, but MAME's timeslice
+// still books them to it (eatcycles): every cycle it does not run is eaten,
+// so its total_cycles keeps pace with the machine and a write it makes once
+// released reads the machine's time. Rampage's sound 68000 sat out 0.9 s of
+// boot and then stamped every DAC write 0.9 s behind the mixer.
+{
+  let held = true;
+  let ran = 0;
+  let eaten = 0;
+  new GeneratedFrameRunner({
+    machine,
+    processors: [{
+      tag: 'maincpu',
+      enabled: () => !held,
+      eat: budget => { eaten += budget; },
+      run: budget => { ran += budget; held = false; return budget; },
+    }],
+    video: { width: 1, height: 1, render: () => {}, vblank: () => {} },
+  }).frame(new Uint32Array(1));
+  assert.equal(ran, 0, 'a held processor does not run');
+  assert.equal(eaten, 60, 'a held processor eats every cycle of its slices');
+}

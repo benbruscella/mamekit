@@ -420,7 +420,7 @@ the capability registry over it.
 A hardware family is one package under `src/hardware/<family>/`:
 
 ```
-src/hardware/ym2203/
+src/hardware/pokey/
 ├── definition.ts   id, MAME types, ports, browser-facing constants
 ├── extract.ts      MAME source -> IR + emitted artifacts (compile time only)
 ├── runtime.ts      browser-side wiring of the generated artifact (optional)
@@ -430,10 +430,9 @@ src/hardware/ym2203/
 `definition.ts` is neutral and shared by both sides. `extract.ts` may reach into
 `src/mame` and never ships to the browser. `acceptance.ts` runs in Node against
 `dist`, so QA validates the artifact that actually ships. A package that needs
-browser-side wiring (15 of the 31 today, the sound families among them) adds a
-`runtime.ts`; the sound families' installers are selected by sound kind in
-`src/hardware/sound-runtime-registry.ts`, which imports only `runtime.ts`
-files. `buildApp()` copies `src/hardware` into `dist/runtime/hardware` minus
+browser-side wiring adds a `runtime.ts`. Sound has one: the stream mix in
+`hardware/speaker/runtime.ts`, which `src/hardware/sound-runtime-registry.ts`
+installs for the one sound kind and which imports only runtime-side files. `buildApp()` copies `src/hardware` into `dist/runtime/hardware` minus
 `extract.ts`, `acceptance.ts`, `registry.ts`, `acceptance-registry.ts` and
 specs, so everything else
 in a package -- `definition.ts`, `runtime.ts` and their helpers -- crosses the
@@ -746,26 +745,48 @@ in `src/ir/walk.ts`, shared with the driver-init lowering).
 
 ### AUDIO
 
-Audio families are capability packages over `src/mame/audio-compiler.ts`, which
-lowers supported MAME audio implementations and emits AudioWorklet source plus
-audio IR. Worklets live under
-`dist/runtime/generated/audio` and import shared operations from
-`dist/runtime/core` when required.
+Every sound chip is its MAME class, compiled whole from its source, and every
+board plays through one path: the stream mix. There is one `sound.kind`,
+`stream`, and a board with no sound device is `none`. No chip is modelled
+anywhere else, and `architecture.spec.ts` pins that with `SOUND_KINDS`, a
+shrink-only list of kinds that name a chip family or a board. It is empty.
 
-Generated configs select one of thirteen `sound.kind` values: `ay8910` (with
-generated RC routing), `sn76489`, `ym2203`, `ym2151`, `wsg` (Namco WSG), `dac`,
-`sid`, `tia`, `nes`, `gameboy`, `berzerk`, `exidy` and `stream`. Runtime and QA
-code must never branch on a game or board-family name.
+A sound device is any MAME class with a `sound_stream_update`. Most compile
+through the `sound-device` capability (`src/hardware/sound-device`), which
+compiles each listed type with the device compiler and nothing else: the
+SN76489 family, the ymfm chips (YM2151, YM2203, YM2610, YM3526, YM3812), the
+AY-3-8910 family, the DAC_GENERATOR DACs, the OKIM6295, MSM5205, TMS5220,
+HC55516, the Namco WSGs and Pole Position's engine sound, the Exidy boards,
+the S14001A, and the RC, biquad and volume filters. Others are compiled by the
+capability that owns their composition: the device capability (VLM5030,
+uPD7759, K007232, K053260), the consoles' (the TIA, the SID, the Game Boy APU)
+and the NES's (the RP2A03's APU). `STREAM_SOUND_TYPES` in
+`hardware/speaker/definition.ts` is the set the plans treat as streams.
 
-A board whose only sound is MAME's own stream devices -- the Spectrum's
-`SPEAKER_SOUND` beeper and its `CASSETTE`, routed to the speakers, or a POKEY
--- is `sound.kind = "stream"`: each device's `sound_stream_update` renders on
-the main thread as the processor runs (the speaker forces an update on every
-level change, as in MAME, and a POKEY on every change of its output), and the
-routed mix is played by the shared stream worklet. A board with a chip as well
-(the 128K's AY-3-8912, Gauntlet's YM2151) keeps the chip's worklet and adds
-the streams to its mix (`streamDevices`). A device's `set_output_gain` scales
-its stream there, as Gauntlet's mixer does to its POKEY.
+Each device's `sound_stream_update` renders on the main thread, as the
+processor runs, through MAME's `sound_stream` surface (`samples()`, `put`,
+`put_int`, `get`). `createStreamMixer` in `hardware/speaker/runtime.ts` asks a
+device for the samples elapsed time is worth whenever it updates its stream
+(a register write updates it first, as in MAME), sums the routed outputs, and
+posts the mix to the shared stream worklet as `stream.pcm`. The worklet only
+queues and resamples; no chip code runs there. So a chip the CPU reads back
+(a POKEY's `RANDOM`, a TMS5220's `/READY`, a uPD7759's `BUSY`, an OKI's voice
+status, a YM chip's timers and status) is read where it stands, with no state
+kept twice.
+
+A device's rate decides how it is mixed. One at `machine().sample_rate()` or
+an adaptive rate (`SAMPLE_RATE_*_ADAPTIVE`, which resolve to the speaker's) is
+rendered a sample per speaker sample. One above the speaker's rate (an AY at
+clock/8, a YM2151 at clock/64, an NES APU at its clock) is rendered at that
+rate and averaged down. One below it (an OKIM6295 at clock/132, the TIA at its
+clock), or a device with several streams, is rendered at its own rate and
+read through MAME's `audio_resampler_lofi`.
+
+The ymfm chips are checked against ymfm itself: `src/mame/ymfm-chips.spec.ts`
+builds 3rdparty/ymfm with clang and checks that the same register writes give
+the same samples, interpreted and as emitted code. A struct's inline methods
+(`ymfm_output::clear()`, `roundtrip_fp()`) are emitted with the device
+(`compiledStructMethods`), because they run once a sample.
 
 MAME's `DISCRETE` device is a stream device too, compiled whole from
 `discrete.cpp`, its node classes (`disc_*.hxx`, each a `DISCRETE_CLASS_*`
@@ -776,34 +797,48 @@ lowers `DISCRETE_SOUND_START(...)` to its `discrete_block` array, which reaches
 the device as configuration (`set_intf`), and each block's
 `discrete_node_factory<C>::create` builds that node. A driver writes its
 inputs as MAME does, `m_discrete->write(NODE, data)` and the latch's
-`write_line<NODE>`, to the generated device. The SN76477, the TMS36xx and
-Phoenix's own effects board, mixed with a table on the same speaker, are
-stream devices compiled the same way.
+`write_line<NODE>`, to the generated device.
 
-A stream routed into another one is that one's input: Battlezone's POKEY feeds
-its table's `DISCRETE_INPUTX_STREAM`. The mixer renders a feeder before the
-device reading it, keeps what the feeder rendered output by output, and answers
-the reader's `stream.get(input, n)` with it, at the route's gain. A chip whose
-own capability plays it in a worklet elsewhere renders as a stream on the
-machines that route it into a stream device, or that route a stream into it
-(`streamRoutedDevices`): Burger Time's AY-3-8910s into its table, Elevator
-Action's DAC, whose range its `dacvol` table sets. Such a type is also compiled
-whole, as its stream variant (`devices/<type>.stream.ts`, registered under
-`<TYPE>:STREAM`), and the board's device says `stream: true`. A device's
-outputs are summed into the mix each at its route's gain; `ALL_OUTPUTS` from a
-stream device sums however many it has. A child the board holds itself (a
-sound board's DISCRETE) is that board device, not a second copy built inside.
+A stream routed into another one is that one's input: an AY's three outputs
+into Time Pilot's FILTER_RC stages, Battlezone's POKEY into its table's
+`DISCRETE_INPUTX_STREAM`. The mixer renders a feeder before the device
+reading it, keeps what the feeder rendered output by output, and answers the
+reader's `stream.get(input, n)` with it, at the route's gain. A device's
+outputs are summed into the mix each at its route's gain; `ALL_OUTPUTS` from
+a stream device sums however many it has. A child the board holds itself (a
+sound board's DISCRETE, the Exidy board's RIOT, PIA and PIT) is that board
+device, not a second copy built inside. Filters a sound board builds in its
+own `device_add_mconfig` are found as MAME builds them, including a range-for
+over a finder array (`for (required_device<filter_rc_device> &filter :
+m_filter[0])`) and finder arrays built in braces.
+
+A chip's own address space over its ROM region (the Williams ADPCM OKI's
+banked low half) is lowered onto its board device as `romMap`, and
+`device_rom_interface::read_byte` reads through it with the bank's live entry.
+A device space with no map of its own (the YM2610's ADPCM-A/B) answers the
+`install_rom` its device_start or driver puts there.
+
+A board's level is MAME's routes and nothing else. Each device outputs what its
+MAME stream outputs, and the mixer sums the routes as MAME's mixer does,
+without dividing by their total or by the number of chips. A route through a
+chip's owner takes that device's own route too (the RP2A03's APU through
+`maincpu`'s, the Williams ADPCM board's chips through the board's), and
+`reset_routes` and `add_route` in a derived configuration (`routeEdits` on a
+device patch) replace what the base configured. The browser plays one
+channel, the mean of every speaker channel MAME has, so a route to one channel
+counts that share: half on a stereo speaker, a quarter on Pole Position's
+front and rear pairs. The summed mix clamps to full scale where MAME's speaker
+stage clamps it to 16 bits (`sound.cpp`): on the raw sum, DC and all, with no
+filter in front.
 
 A `SAMPLES` device is a stream device too, compiled whole from `samples.cpp`,
 because a driver reads it back (`playing` decides whether Zaxxon restarts a
-sample). Zaxxon and Space Panic are `sound.kind = "stream"`; Congo Bongo,
-Carnival, Q*bert and TMNT mix it beside their chip through `streamDevices`.
-It allocates one stream a channel and moves each to the rate of the recording
+sample); it mixes beside whatever else the board has (Congo Bongo's
+SN76489As, TMNT's YM2151). It allocates one stream a channel and moves each to the rate of the recording
 it starts (`set_sample_rate`), so the mixer renders such a device channel by
 channel at those rates, keeps each channel's absolute source index, and reads
 the speaker's samples through MAME's `audio_resampler_lofi`, with the tables
-in `hardware/speaker/lofi-interpolation.ts` that the worklets share. A device
-with one stream at the speaker's rate, or above it, keeps the plain path.
+in `hardware/speaker/lofi-interpolation.ts`.
 
 The recordings are the player's own. `load_samples` runs from MAME's source
 against a host `emu_file` over `BoardConfig.samplePath` (`runtime/sample-path.ts`),
@@ -823,10 +858,8 @@ channels, the VRC6, the Namco 163. The card builds it in its own
 child with its own clock and its routes (`children[].clock`, `.routes`), so a
 chip that is not clocked like its card keeps MAME's clock and MAME's gain.
 The slot reports the stream-rendering devices of the card it holds, tagged
-as MAME tags them (`nes_slot:exrom:sound`), through `streamDescendants()`.
-The NES sound runtime hands them to the same stream mixer the Spectrum
-uses, at each route's gain relative to the APU's own route, and posts the
-mix to the NES worklet as `stream.pcm`, which plays it beside the APU. A chip
+as MAME tags them (`nes_slot:exrom:sound`), through `streamDescendants()`,
+and they join the stream mix at their routes' gains, beside the APU. A chip
 that allocated its stream at its own clock (the MMC5 and VRC6 at 1.79 MHz,
 stepping once a sample) is rendered at that rate and averaged down to the
 speaker's 48 kHz; a stream at `machine().sample_rate()` is rendered as is.
@@ -840,29 +873,6 @@ that need it (`cards: ["vrc7"]`), at the tag MAME gives it
 cartridge on one of those boards, so a VRC7 cartridge asks for `ds1001.zip`
 the way the ColecoVision asks for its BIOS, and no other cartridge does.
 
-A board's level is MAME's routes and nothing else: no family carries a gain of
-its own. Each engine outputs what its MAME stream outputs at route 1.0, and the
-worklet sums the routes as MAME's mixer does, without dividing by their total
-or by the number of chips. An AY plays the table its flags select
-(`sound.chipOutputs`, from `set_flags` and `set_resistors_load`):
-`AY8910_LEGACY_OUTPUT`, MAME's default, the normalized `build_single_table`;
-`AY8910_DISCRETE_OUTPUT` the resistor network's own voltages;
-`AY8910_RESISTOR_OUTPUT` a resistance, for a netlist. A route through a chip's
-owner or an `RC` filter takes that device's own route too, and `reset_routes` and
-`add_route` in a derived configuration (`routeEdits` on a device patch) replace
-what the base configured, down through a device's own config.
-
-A mix that goes through one gain carries it as `sound.outputGain`, which the
-shell applies after the worklet: a WSG's route, the TIA's, the APU's; a stream
-mixed beside it is relative to that gain. The browser plays one channel, the
-mean of every speaker channel MAME has, so a route to one channel counts that
-share: half on a stereo speaker, a quarter on Pole Position's front and rear
-pairs. The summed mix clamps to full scale where
-MAME's speaker stage clamps it to 16 bits (`sound.cpp`): on the raw sum, DC and
-all, with no filter in front. Boards that sum past it clip as MAME's do; removing
-the clamp left bankp 5 dB over. The hand model still waiting to be compiled
-(`berzerk-sound`) keeps its own gains.
-
 ### NETLISTS
 
 A `NETLIST_SOUND` is compiled from its netlist. `src/mame/netlist-compiler.ts`
@@ -874,9 +884,11 @@ and lowers each device to the elements of its MAME class: `RES`, `CAP`, `POT`,
 frontier, logic outputs through `nld_d_to_a_proxy`, and a one-input `TRUTH_TABLE`
 inverter. A device outside that set stops the compile, so generation fails rather
 than playing an approximation. Mario's netlist is one: its VCOs and TTL need a
-digital simulator that doesn't exist yet, and the board stays on its DAC path.
+digital simulator that doesn't exist yet, so it is left out with a warning and
+Mario is silent until it compiles (OUTSTANDING.md).
 
-`src/mame/netlist-solver.ts`, emitted into the worklet, runs the plan as MAME's
+`src/hardware/speaker/netlist-solver.ts` runs the plan in the stream mix, as a
+node of `createStreamMixer`, the way MAME's
 solver does: a sparse LU per solver group with its elimination fixed once,
 backward Euler capacitors as `NL_USE_BACKWARD_EULER` selects, and Newton-Raphson
 to MAME's `RELTOL`, `VNTOL` and `NR_LOOPS` only in a group with a diode or a
@@ -895,8 +907,10 @@ streams `build_mosfet_resistor_table`'s resistances, a few kilohms on and
 hundreds of megohms off, and averaging a resistance down to 48 kHz reads almost
 every edge as off. That cut fast AY noise, Kung-Fu Master's snare and hi-hat,
 by more than 10 dB. An MSM5205's stream is volts through its `set_mult_offset`.
-A driver's `NETLIST_LOGIC_INPUT` writes reach the worklet as `netlist.logic`
-(Frogger's filter capacitors). Kung-Fu Master's `I_BD0`…`I_OH0` drum lines exist,
+Each chip routed into a `NETLIST_STREAM_INPUT` is rendered only by the netlist
+node, at its native rate, every sample landing in the solver at its own time,
+earliest first across the chips. A driver's `NETLIST_LOGIC_INPUT` writes
+(Frogger's filter capacitors) land once the netlist has caught up to them. Kung-Fu Master's `I_BD0`…`I_OH0` drum lines exist,
 but in MAME its sound program never writes them.
 
 `npm run test:netlists` (`tools/netlist-reference.ts`) checks every compiled
@@ -905,40 +919,6 @@ netlist against MAME's own engine. It builds `nltool` from the MAME checkout's
 (native-rate resistance streams, MSM-like staircases, logic toggles), and fails
 when the level or any third-octave band from 50 Hz to 16 kHz is more than
 1.5 dB off.
-
-A board is rarely one chip. The chip that decides `sound.kind` owns the
-worklet; every other chip routed to the same speaker is lowered as an entry in
-`sound.auxiliaryDevices`, carrying its tag, clock and the gain its own
-`add_route` gave it, and is hosted inside that worklet, or, when it renders
-its own stream, is mixed beside it (`streamDevices`). Gauntlet is the widest
-case: a YM2151 for music, a POKEY for effects and a TMS5220C for speech, all
-three answering one two-input speaker.
-
-Where a chip's engine runs is decided by what reads it back, not by what it
-sounds like. A chip the CPU only writes to can live in the worklet. A chip
-the CPU reads back cannot, because its state would have to exist twice.
-
-POKEY is read back: `RANDOM` is its polynomial counter where the chip stands,
-and the pots, `IRQST` and `SKSTAT` are its registers. So it is compiled whole
-from `pokey.cpp`, an ordinary generated device. It is a
-`device_execute_interface`, and the board runs it as MAME's scheduler does:
-in the round beside the CPUs, in configuration order. Inside a CPU's slice it stands where
-the round last left it, so a read finds `RANDOM` there, and the read's own
-`synchronize()` ends the slice so the next one finds it caught up. While it
-runs, the time is its own, so the stream update its `step_one_clock` forces
-lands where the output changed. A 6502 synchronizes between bus cycles
-(`position` in the frame runner), and the round ends there.
-
-The TMS5220 is the case that forces the distinction too. Its `/READY` pin feeds a port
-bit the sound CPU tests before every byte it writes; ready depends on the FIFO
-level, the FIFO level depends on how fast the frame parser consumes bits, and
-the parser is the synthesiser. Splitting that across a worklet boundary means
-keeping the chip's state twice, so the whole engine is emitted as a main-thread
-device instead: a generated device IR whose methods are backed by compiled
-JavaScript, loaded by the board exactly like any other generated device. Only
-the PCM it produces crosses to the audio sink, forwarded a sample at a time
-and resampled by the worklet against the chip's live clock — live because
-Gauntlet's speech-squeak line retunes the chip while it is talking.
 
 ### DSL ARTIFACTS
 
@@ -1463,15 +1443,12 @@ unchanged for the next generated machine".
 ### WHAT IS STILL HAND-WRITTEN
 
 The left-hand column above is the rule, not yet the whole state of the code.
-Some MAME-derived behaviour is still written by hand, in `src/runtime`,
-`src/hardware` and inside some compilers: several sound engines, a set of
-game-named screen renderers, a few board devices (Neo Geo I/O,
-the Taito SJ watchdog and interface start values), compile-time method
-replacements and CPU support layers. Generating an item and deleting its
-hand-written version is tracked in
-[#178](https://github.com/benbruscella/mamekit/issues/178); the 68705 MCU, the
-Z80 PIO, the Z80 CTC, POKEY and the Z80 DMA went that way, and all five now
-compile from MAME's own source.
+Some MAME-derived behaviour is still written by hand: CPU support layers and
+MAME facts copied by hand. Generating an item and deleting its hand-written
+version is tracked in
+[#178](https://github.com/benbruscella/mamekit/issues/178). The board devices
+(#237), the video hardware (#240) and every sound engine (#242) went that way
+and now compile from MAME's own source.
 
 The source of truth for what is left is `src/runtime/architecture.spec.ts`,
 which pins each piece by name in an exact, shrink-only list:
@@ -1483,13 +1460,13 @@ which pins each piece by name in an exact, shrink-only list:
 | `REPLACED_METHODS` | `replaceMethod` calls in `src/hardware/device/extract.ts`, as compiler and method |
 | `SPECIALIZED_COMPILERS` | Device types `extract.ts` compiles with their own source-editing function |
 | `HAND_WRITTEN_ENGINES` | Classes in `src/hardware` and in compiler-emitted worklets: cores, chips, mixers, frame renderers and processors |
+| `SOUND_KINDS` | Sound kinds that name a chip family or a board rather than the stream mix |
 
 A new entry fails the spec, and so does an entry that no longer matches until
 it is deleted from its list. Host boundaries, such as the `SCREEN` and
 `VECTOR` hosts and the shared stream worklet that plays what a generated chip
 rendered, are declared apart in `HOST_BOUNDARIES` with the reason each is not
-hardware. The epic is done when all five lists are empty and only
-`HOST_BOUNDARIES` is left. The
+hardware. Every list is empty; only `HOST_BOUNDARIES` is left. The
 [#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103)
 has the original file and line references; CPU support layers and MAME facts
 copied by hand have no list yet, and nothing may be added to them either.
@@ -1613,7 +1590,7 @@ copied by hand have no list yet, and nothing may be added to them either.
    Fast-forward runs frames back to back as tasks of their own rather than
    only inside the display's tick, which fits a whole number of frames.
 7. The shell creates the generated board, starts frame scheduling, presents the
-   framebuffer, and activates generated audio worklets after a user gesture.
+   framebuffer, and activates the stream worklet after a user gesture.
 
 Static route pages use `<base href="../../">`; runtime URLs are relative to
 `/app/`. Game metadata carries `dataPath`, so app code never guesses whether a

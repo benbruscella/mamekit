@@ -5,7 +5,7 @@ export const junofrst = sourceTarget({
   driver: 'src/mame/konami/junofrst.cpp',
   machine: { className: 'junofrst_state', name: 'junofrst' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 45,
   checkpoints: [1, 60, 300, 480, 720, 1200],
@@ -16,9 +16,13 @@ export const junofrst = sourceTarget({
     { atFrame: 840, code: 'Space', heldFrames: 20, releasedFrames: 20 },
   ],
   audioRequirements: [{
-    method: 'dac.data_w',
+    // The DAC's own stream, before the mix: the sound CPU's writes are what
+    // move it, so the gate is how many different levels it reached, not
+    // whether it is non-zero (an idle DAC holds one constant level).
+    method: 'dac.stream',
     fromFrame: 120,
     minimumNonzeroWrites: 100,
+    minimumDistinctValues: 16,
   }],
   golden: {
     regions: {

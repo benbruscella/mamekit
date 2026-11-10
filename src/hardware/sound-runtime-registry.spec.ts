@@ -1,107 +1,12 @@
 import assert from 'node:assert/strict';
 import type { BoardIr } from '../ir/board.ts';
 import { installSoundRuntime } from './sound-runtime-registry.ts';
-import type { SoundRuntimeContext } from './sound-runtime.ts';
 
-const writes: unknown[][] = [];
-const calls: SoundRuntimeContext['calls'] = {};
-// A sound kind with no installer of its own routes by method name: a driver
-// callback reaching the board through its finder is forwarded like a bus write.
-const board = {
-  devices: [{ tag: 'soundboard', type: 'TEST_AUDIO', member: 'm_soundboard' }],
-} as unknown as BoardIr;
-const sound = {
-  kind: 'test',
-  deviceTag: 'soundboard',
-  deviceType: 'TEST_AUDIO',
-  writeMethods: ['write'],
-  enableMethods: [],
-  controlOffset: -1,
-} as NonNullable<BoardIr['sound']>;
+// Every board plays through the stream mix; a kind nothing plays is a
+// composition error, not a silent board.
+assert.throws(() => installSoundRuntime({
+  board: { game: 'fixture' } as BoardIr,
+  sound: { kind: 'ay8910', deviceTag: 'ay', deviceType: 'AY8910', writeMethods: [], enableMethods: [], controlOffset: -1 },
+} as never), /no runtime plays sound kind "ay8910"/);
 
-installSoundRuntime({
-  board,
-  regions: {},
-  sound,
-  registry: { read: {}, write: {} },
-  calls,
-  state: {},
-  soundWrite: (...args) => writes.push(args),
-  soundData: () => {},
-  fraction: () => 0.25,
-  callDevice: () => undefined,
-  deviceStream: () => [],
-  runCallbackHandler: () => undefined,
-  dispatch: () => {},
-  readSignal: () => undefined,
-  readProgram: () => 0xff,
-  stallCpu: () => {},
-  setCpuInputLine: () => {}, perfectQuantum: () => {}, synchronize: run => run(),
-});
-
-assert.equal(typeof calls['m_soundboard.write'], 'function');
-calls['m_soundboard.write']!(2, 0x91);
-calls['m_soundboard.write']!(0x42);
-assert.deepEqual(writes, [
-  [2, 0x91, 0.25, 'write'],
-  [0, 0x42, 0.25, 'write'],
-]);
-
-console.log('sound-runtime-registry.spec: callback-reached sound writes passed');
-
-const williamsCalls: SoundRuntimeContext['calls'] = {};
-const williamsDeviceCalls: unknown[][] = [];
-installSoundRuntime({
-  board: {
-    callbacks: [{
-      id: 'pia-command',
-      ownerTag: 'pia_1',
-      signal: 'writepb_handler',
-      operation: 'set',
-      targetClass: 'williams_state',
-      targetMethod: 'snd_cmd_w',
-    }],
-    devices: [
-      { id: 'pia-2', tag: 'pia_2', type: 'PIA6821' },
-      { id: 'dac', tag: 'dac', type: 'MC1408' },
-    ],
-  } as BoardIr,
-  regions: {},
-  sound: {
-    kind: 'dac',
-    deviceTag: 'dac',
-    deviceType: 'MC1408',
-    writeMethods: ['data_w'],
-    enableMethods: [],
-    controlOffset: -1,
-  },
-  registry: { read: {}, write: {} },
-  calls: williamsCalls,
-  state: {},
-  soundWrite: () => {},
-  soundData: () => {},
-  fraction: () => 0,
-  deviceStream: () => [],
-  callDevice: (...args) => {
-    williamsDeviceCalls.push(args);
-    return 0;
-  },
-  runCallbackHandler: () => undefined,
-  dispatch: () => {},
-  readSignal: () => undefined,
-  readProgram: () => 0xff,
-  stallCpu: () => {},
-  setCpuInputLine: () => {}, perfectQuantum: () => {}, synchronize: run => run(),
-});
-
-assert.equal(typeof williamsCalls['williams_state.snd_cmd_w'], 'function');
-williamsCalls['williams_state.snd_cmd_w']!(0x15);
-williamsCalls['williams_state.snd_cmd_w']!(0x3f);
-assert.deepEqual(williamsDeviceCalls, [
-  ['pia_2', 'portb_w', 0xd5],
-  ['pia_2', 'cb1_w', 1],
-  ['pia_2', 'portb_w', 0xff],
-  ['pia_2', 'cb1_w', 0],
-]);
-
-console.log('sound-runtime-registry.spec: Williams PIA sound-command bridge passed');
+console.log('sound-runtime-registry.spec: one sound kind, the stream mix');

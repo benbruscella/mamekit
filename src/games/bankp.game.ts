@@ -5,7 +5,7 @@ export const bankp = sourceTarget({
   driver: 'src/mame/sanritsu/bankp.cpp',
   machine: { className: 'bankp_state', name: 'bankp' },
   screen: { width: 224, height: 224 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   frames: 1600,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 600, 700, 1200, 1304, 1320, 1360, 1500, 1560, 1600],

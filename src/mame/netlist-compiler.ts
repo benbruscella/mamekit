@@ -7,7 +7,7 @@
  * nets. What comes out is a flat list of elements over numbered nodes, each with
  * the conductance stamps of its MAME device (analog/nlid_twoterm.h, nld_bjt.cpp,
  * nld_opamps.cpp, nlid_fourterm.cpp, nlid_proxy.cpp, nld_4066.cpp), for the generic
- * solver in netlist-solver.ts to run.
+ * solver in hardware/speaker/netlist-solver.ts to run.
  *
  * A device outside that set stops the compile: an unlowered netlist stays
  * visibly unlowered instead of playing an approximation.

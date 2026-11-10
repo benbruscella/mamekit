@@ -13,7 +13,7 @@ export const upndown = sourceTarget({
   driver: 'src/mame/sega/system1.cpp',
   machine: { className: 'system1_state', name: 'upndown' },
   screen: { width: 512, height: 224 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 30,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],

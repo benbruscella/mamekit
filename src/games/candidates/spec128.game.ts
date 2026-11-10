@@ -13,7 +13,7 @@ export const spec128 = {
     driver: 'src/mame/sinclair/spec128.cpp',
     machine: { className: 'spectrum_128_state', name: 'spectrum_128' },
     screen: { width: 352, height: 296 },
-    soundKind: 'ay8910',
+    soundKind: 'stream',
     media: [
       { kind: 'bios', status: 'candidate' },
       { kind: 'cartridge', status: 'candidate', softwareLists: ['spectrum_cart'] },

@@ -5,7 +5,7 @@ export const sf2 = sourceTarget({
   driver: 'src/mame/capcom/cps1.cpp',
   machine: { className: 'cps_state', name: 'cps1_10MHz' },
   screen: { width: 384, height: 224 },
-  soundKind: 'ym2151',
+  soundKind: 'stream',
   // Same CPS1 board as sf2ce (10 MHz 68000 instead of 12): ~103 fps in Node
   // with wired-hot handler codegen; hold it above real time.
   minimumFps: 50,

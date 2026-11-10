@@ -11,7 +11,7 @@ export const gberet = sourceTarget({
   driver: 'src/mame/konami/gberet.cpp',
   machine: { className: 'gberet_state', name: 'gberet' },
   screen: { width: 240, height: 224 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 30,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],

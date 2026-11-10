@@ -1,6 +1,7 @@
 import { deviceAliases, soundTags, type SoundRuntimeContext, type SoundRuntimeHooks, type SoundStreamSurface } from '../sound-runtime.ts';
 import { STREAM_AUDIO_RATE, streamRouteGains } from './definition.ts';
 import { LOFI_INTERPOLATION } from './lofi-interpolation.ts';
+import { GeneratedNetlistSolver } from './netlist-solver.ts';
 
 /**
  * How many samples the mix waits for between the board's frame ends. A
@@ -76,6 +77,11 @@ interface StreamChannel {
   written: number;
   base: number;
   history: number[];
+  /**
+   * Each output apart, beside `history`, for a stream another device reads:
+   * that reader takes its input before any speaker gain, by output.
+   */
+  lanes?: number[][];
   /** How far this channel has reached the speaker, and what it gave it. */
   rendered: number;
   pending: number[];
@@ -137,13 +143,30 @@ function resampleChannel(channel: StreamChannel, start: number, count: number, g
  * `sound_stream_update`, and `emit` receives the routed sum one sample at a
  * time.
  */
+/**
+ * A compiled NETLIST_SOUND in the mix: the streams routed into its
+ * NETLIST_STREAM_INPUTs feed it, sample by sample at their own rates, and it
+ * is read at the speaker's.
+ */
+export interface StreamNetlist {
+  solver: GeneratedNetlistSolver;
+  /** One route into the netlist: which feeder output (-1, all), which input, at what gain. */
+  feeds: readonly StreamInput[];
+}
+
 export function createStreamMixer(
   context: SoundRuntimeContext,
-  sources: readonly StreamSource[],
+  allSources: readonly StreamSource[],
   emit: (sample: number, frac: number) => void,
-): SoundRuntimeHooks {
+  netlist?: StreamNetlist,
+): SoundRuntimeHooks & { renderTo?: (seconds: number) => void } {
   if (!context.time || !context.bindDeviceCall) throw new Error('stream sound requires scheduler and stream services');
   const time = context.time;
+  // A device that feeds the netlist is rendered by the netlist alone, at its
+  // native rate: MAME never resamples what a NETLIST_STREAM_INPUT takes, and
+  // rendering it twice would run the chip twice.
+  const netlistFeeders = new Set(netlist?.feeds.map(feed => feed.tag) ?? []);
+  const sources = allSources.filter(source => !netlistFeeders.has(source.tag));
   const driver = context.board.execution.cpus[0]?.tag;
   // `outputGain` is the device's set_output_gain, over its routed gain.
   const streams = sources.map(source => ({
@@ -153,8 +176,13 @@ export function createStreamMixer(
     feeds: sources.some(other => other.inputs?.some(input => input.tag === source.tag)), raw: [] as number[][], rawBase: 0,
     // Set once the device takes a stream below the speaker's rate.
     resampled: false, channels: [] as StreamChannel[],
+    // A chip rendering above the speaker's rate, kept at its own rate for
+    // MAME's resampler (see render): its absolute index and recent samples.
+    lofi: { base: 0, rate: 0, history: [] as number[] },
   }));
   const state = { emitted: 0, streams };
+  // The devices an acceptance gate watches, each reported as it renders.
+  const observed = streams.filter(stream => context.observeStreams?.includes(stream.tag));
   // MAME's `sound_stream` surface, one output, over `due` samples at `rate`.
   const byTag = new Map(streams.map(stream => [stream.tag, stream]));
   const update = (
@@ -173,10 +201,19 @@ export function createStreamMixer(
       if (at >= 0 && at < due) lane(channel)[at] = Number(value);
       return 0;
     };
+    // sound_stream::add: the Namco WSG sums its voices into one output.
+    const add = (channel: number, index: number, value: number): number => {
+      const at = Number(index);
+      if (at >= 0 && at < due) lane(channel)[at]! += Number(value);
+      return 0;
+    };
     context.callDevice(tag, 'sound_stream_update', {
       samples: () => due,
       sample_rate: () => rate,
-      output_count: () => outputGains?.length ?? 1,
+      // As many as the device allocated (a YM2203's four: ymfm renders only
+      // `output_count()` of them, so an ALL_OUTPUTS route that answered one
+      // heard the FM and none of the SSG), or as many as its routes name.
+      output_count: () => surfaces(tag)[0]?.outputs ?? Math.max(1, outputGains?.length ?? 1),
       input_count: () => inputs?.length ?? 0,
       get: (input: number, index: number) => {
         let sum = 0;
@@ -191,6 +228,11 @@ export function createStreamMixer(
         return sum;
       },
       put,
+      put_clamp: (channel: number, index: number, value: number, clamp = 1) =>
+        put(channel, index, Math.max(-Number(clamp), Math.min(Number(clamp), Number(value)))),
+      add,
+      add_int: (channel: number, index: number, value: number, max: number) =>
+        add(channel, index, Number(max) ? Number(value) / Number(max) : 0),
       put_int: (channel: number, index: number, value: number, max: number) =>
         put(channel, index, Number(max) ? Number(value) / Number(max) : 0),
       put_int_clamp: (channel: number, index: number, value: number, max: number) =>
@@ -224,7 +266,12 @@ export function createStreamMixer(
   // other stream keeps the plain path below.
   const channelsOf = (stream: typeof streams[number]): StreamChannel[] | undefined => {
     const allocated = surfaces(stream.tag);
-    if (allocated.length < 2 && !stream.resampled) return undefined;
+    // A stream below the speaker's rate from the start (an OKIM6295 at
+    // clock/132, the TIA at its clock) is resampled to it as MAME's mixer
+    // does, not rendered a sample per speaker sample: that played the OKI
+    // six times too fast.
+    const slow = allocated.length === 1 && allocated[0]!.rate > 0 && allocated[0]!.rate < STREAM_AUDIO_RATE;
+    if (allocated.length < 2 && !stream.resampled && !slow) return undefined;
     while (stream.channels.length < allocated.length) {
       const rate = allocated[stream.channels.length]!.rate;
       // Updated through the current sample, as a stream that starts here has
@@ -250,28 +297,71 @@ export function createStreamMixer(
     const from = channel.history.length;
     channel.history.length = from + due;
     channel.history.fill(0, from);
+    // One lane per output, then summed at each output's route gain, as the
+    // speaker-rate path does: a YM2203 at 20.8 kHz writes three SSG outputs
+    // and its FM, routed at 0.4 and 0.2. Written into one slot, each output
+    // overwrote the last and none had its own gain.
+    const lanes: Float64Array[] = [];
+    const lane = (output: number): Float64Array => lanes[Number(output) || 0] ??= new Float64Array(due);
     surface.samples = () => due;
-    surface.put = (_output, at, value) => {
-      if (at >= 0 && at < due) channel.history[from + Number(at)] = Number(value) * channel.outputGain;
+    surface.put = (output, at, value) => {
+      if (at >= 0 && at < due) lane(output)[Number(at)] = Number(value);
+      return 0;
+    };
+    surface.add = (output, at, value) => {
+      if (at >= 0 && at < due) lane(output)[Number(at)]! += Number(value);
       return 0;
     };
     context.callDevice(stream.tag, 'sound_stream_update', surface);
+    lanes.forEach((values, output) => {
+      const weight = (stream.outputGains ? stream.outputGains[output] ?? 0 : 1) * channel.outputGain;
+      if (weight) for (let at = 0; at < due; at++) channel.history[from + at]! += values[at]! * weight;
+    });
+    if (stream.feeds) {
+      channel.lanes ??= [];
+      for (let output = 0; output < Math.max(lanes.length, channel.lanes.length); output++) {
+        const kept = channel.lanes[output] ??= [];
+        kept.length = Math.min(kept.length, from);
+        while (kept.length < from) kept.push(0);
+        const values = lanes[output];
+        for (let at = 0; at < due; at++) kept.push((values?.[at] ?? 0) * channel.outputGain);
+      }
+    }
     channel.written += due;
   };
   const renderChannels = (stream: typeof streams[number], channels: StreamChannel[], target: number) => {
+    // A stream routed into another device is read by output at the speaker's
+    // rate, before its speaker gain, as the other two paths keep it. Never
+    // kept here, Berzerk's S14001A (at 20-35 kHz) fed its FILTER_VOLUME
+    // nothing, and the speech was silent.
+    const fed: Float64Array[] = [];
+    let firstOutput = 0;
     for (const [index, channel] of channels.entries()) {
       updateChannel(stream, index, Math.floor((target - 1) * channel.rate / STREAM_AUDIO_RATE));
+      const outputs = surfaces(stream.tag)[index]?.outputs ?? 1;
       const count = target - channel.rendered;
-      if (count <= 0) continue;
+      if (count <= 0) { firstOutput += outputs; continue; }
       resampleChannel(channel, channel.rendered, count, stream.gain, channel.pending);
+      if (stream.feeds && target > stream.rendered) {
+        const shift = channel.rendered - stream.rendered;
+        channel.lanes?.forEach((history, output) => {
+          const out: number[] = [];
+          resampleChannel({ ...channel, history, pending: out }, channel.rendered, count, 1, out);
+          const lane = fed[firstOutput + output] ??= new Float64Array(target - stream.rendered);
+          out.forEach((value, at) => { if (shift + at >= 0 && shift + at < lane.length) lane[shift + at]! += value; });
+        });
+      }
+      firstOutput += outputs;
       channel.rendered = target;
       // Nothing behind the resampler's window is read again.
       const keep = Math.floor(target * channel.rate / STREAM_AUDIO_RATE) - 8 - channel.base;
       if (keep > RATE_CHANGE_HISTORY) {
         channel.history.splice(0, keep - RATE_CHANGE_HISTORY);
+        for (const lane of channel.lanes ?? []) lane.splice(0, keep - RATE_CHANGE_HISTORY);
         channel.base += keep - RATE_CHANGE_HISTORY;
       }
     }
+    if (stream.feeds && target > stream.rendered) keep(stream, fed, target - stream.rendered, values => values);
     for (let index = stream.rendered; index < target; index++) {
       let sum = 0;
       for (const channel of channels) sum += channel.pending[index - stream.rendered] ?? 0;
@@ -298,6 +388,13 @@ export function createStreamMixer(
     // spans. A device at machine().sample_rate() (the speaker) renders as is.
     const rate = context.deviceStreamRate?.(stream.tag) ?? 0;
     const native = rate > STREAM_AUDIO_RATE ? rate : 0;
+    // The resampler reads absolute source indices, which hold at one rate: a
+    // chip that changed its own (set_sample_rate) starts its history again.
+    if (native && stream.lofi.rate !== native) {
+      if (stream.lofi.rate) stream.native = Math.floor(stream.rendered * native / STREAM_AUDIO_RATE);
+      stream.lofi.rate = native;
+      stream.lofi.history.length = 0;
+    }
     while (stream.rendered < target) {
       const due = Math.min(MAX_SAMPLES_PER_UPDATE, target - stream.rendered);
       if (!native) {
@@ -322,13 +419,113 @@ export function createStreamMixer(
         for (let at = from; at < to; at++) sum += values[at]!;
         return to > from ? sum / (to - from) : 0;
       });
-      for (const sample of mean(mixed)) stream.pending.push(sample * stream.outputGain * stream.gain);
+      // To the speaker through MAME's own resampler (audio_resampler_lofi,
+      // its default): blocks of 1 + fs/ft native samples averaged, then cubic
+      // interpolation, which rolls the top octave off. A plain mean of each
+      // output's span left an AY at 187.5 kHz up to 6.7 dB brighter than
+      // MAME above 12 kHz (Mat Mania).
+      const lofi = stream.lofi;
+      if (!lofi.history.length) lofi.base = stream.native;
+      for (const sample of mixed) lofi.history.push(sample * stream.outputGain);
+      const out: number[] = [];
+      resampleChannel({ rate: native, outputGain: 1, written: end, base: lofi.base, history: lofi.history, rendered: stream.rendered, pending: out },
+        stream.rendered, due, stream.gain, out);
+      for (const sample of out) stream.pending.push(sample);
+      // Nothing behind the resampler's window is read again.
+      const behind = end - 8 * (2 + Math.floor(native / STREAM_AUDIO_RATE)) - lofi.base;
+      if (behind > RATE_CHANGE_HISTORY) {
+        lofi.history.splice(0, behind - RATE_CHANGE_HISTORY);
+        lofi.base += behind - RATE_CHANGE_HISTORY;
+      }
       if (stream.feeds) keep(stream, lanes, due, mean);
       stream.native = end;
       stream.rendered += due;
     }
   };
   const now = () => Math.floor(time() * STREAM_AUDIO_RATE);
+  // The netlist: each feeder renders at its own rate through the same stream
+  // surface, every sample lands in the solver at its own time, earliest
+  // first across the feeders, and the netlist is read once a speaker sample.
+  const netlistNode = netlist ? {
+    pending: [] as number[],
+    rendered: 0,
+    feeders: [...netlistFeeders].map(tag => ({
+      tag,
+      routes: netlist.feeds.filter(feed => feed.tag === tag),
+      native: 0,
+      lanes: [] as Float64Array[],
+      start: 0,
+      next: 0,
+      observed: context.observeStreams?.includes(tag) ?? false,
+      level: 0,
+    })),
+  } : undefined;
+  const renderNetlist = (target: number): void => {
+    if (!netlistNode || !netlist) return;
+    while (netlistNode.rendered < target) {
+      const count = Math.min(MAX_SAMPLES_PER_UPDATE, target - netlistNode.rendered);
+      const end = (netlistNode.rendered + count) / STREAM_AUDIO_RATE;
+      for (const feeder of netlistNode.feeders) {
+        const rate = context.deviceStreamRate?.(feeder.tag) || STREAM_AUDIO_RATE;
+        const last = Math.floor(end * rate);
+        const due = Math.max(0, last - feeder.native);
+        const { lanes } = update(feeder.tag, due, rate, undefined, undefined, feeder.native);
+        feeder.lanes = lanes;
+
+        feeder.start = feeder.native;
+        feeder.next = feeder.native;
+        feeder.native = last;
+      }
+      for (let index = 0; index < count; index++) {
+        const at = (netlistNode.rendered + index + 1) / STREAM_AUDIO_RATE;
+        for (;;) {
+          let earliest: typeof netlistNode.feeders[number] | undefined;
+          let earliestTime = Infinity;
+          for (const feeder of netlistNode.feeders) {
+            if (feeder.next >= feeder.native) continue;
+            const rate = context.deviceStreamRate?.(feeder.tag) || STREAM_AUDIO_RATE;
+            const when = (feeder.next + 1) / rate;
+            if (when <= at && when < earliestTime) { earliest = feeder; earliestTime = when; }
+          }
+          if (!earliest) break;
+          const offset = earliest.next - earliest.start;
+          for (const route of earliest.routes) {
+            let value = 0;
+            if (route.output >= 0) value = earliest.lanes[route.output]?.[offset] ?? 0;
+            else for (const lane of earliest.lanes) value += lane?.[offset] ?? 0;
+            netlist.solver.set(route.input, value * route.gain, earliestTime);
+          }
+          if (earliest.observed) {
+            let value = 0;
+            for (const lane of earliest.lanes) value += lane?.[offset] ?? 0;
+            earliest.level = value;
+          }
+          earliest.next++;
+        }
+        netlistNode.pending.push(netlist.solver.read(at));
+        // A gate on a feeder (kungfum's MSM5205s into its netlist) watches
+        // what it holds at each speaker sample, as a stream's is watched:
+        // every native sample of a 384 kHz chip was millions of writes.
+        for (const feeder of netlistNode.feeders) {
+          if (feeder.observed) context.soundWrite(0, feeder.level, context.fraction(), `${feeder.tag}.stream`);
+        }
+      }
+      // Every sample the feeders rendered is in the solver now; what is left
+      // is scratch, and a save must not carry a buffer whose length is only
+      // how far this chunk happened to reach.
+      for (const feeder of netlistNode.feeders) feeder.lanes = [];
+      netlistNode.rendered += count;
+    }
+  };
+  // A save takes the netlist's node voltages and its feeders' positions too.
+  if (netlistNode && netlist) Object.assign(state, { netlist: netlistNode, solver: netlist.solver });
+  for (const feeder of netlistNode?.feeders ?? []) {
+    // A feeder updates its stream before every write (an AY's register), as
+    // MAME's does: the netlist catches up to now first.
+    context.bindDeviceCall(feeder.tag, 'stream.update', () => { renderNetlist(now()); return 0; });
+    context.bindDeviceCall(feeder.tag, 'stream.end_time', () => (netlistNode?.rendered ?? 0) / STREAM_AUDIO_RATE);
+    context.bindDeviceCall(feeder.tag, 'stream.sample_rate', () => context.deviceStreamRate?.(feeder.tag) || STREAM_AUDIO_RATE);
+  }
   for (const stream of streams) {
     const streamIndex = (surface: unknown) => surfaces(stream.tag).indexOf(surface as SoundStreamSurface);
     context.bindDeviceCall(stream.tag, 'stream.update', (surface?: unknown) => {
@@ -403,14 +600,25 @@ export function createStreamMixer(
     const target = reached();
     if (target <= state.emitted) return;
     for (const stream of streams) render(stream, target);
+    if (netlistNode) renderNetlist(target);
     const frac = context.fraction();
     const muted = context.systemMuted?.() ?? false;
+    for (const stream of observed) {
+      for (let index = 0; index < target - state.emitted; index++) {
+        context.soundWrite(0, stream.pending[index] ?? 0, frac, `${stream.tag}.stream`);
+      }
+    }
     for (let index = 0; index < target - state.emitted; index++) {
       let sum = 0;
       for (const stream of streams) sum += stream.pending[index] ?? 0;
-      emit(muted ? 0 : sum, frac);
+      if (netlistNode) sum += netlistNode.pending[index] ?? 0;
+      // MAME's speaker stage clamps the summed mix to 16 bits (sound.cpp), on
+      // the raw sum, DC and all: boards that sum past full scale clip as
+      // MAME's do (bankp's three SN76489As).
+      emit(muted ? 0 : Math.max(-1, Math.min(1, sum)), frac);
     }
     for (const stream of streams) stream.pending.splice(0, target - state.emitted);
+    netlistNode?.pending.splice(0, target - state.emitted);
     state.emitted = target;
     // A feeder's samples are read again only by readers that have not passed them.
     for (const stream of streams) {
@@ -426,6 +634,14 @@ export function createStreamMixer(
     state,
     reset: () => {
       state.emitted = 0;
+      if (netlistNode) {
+        netlistNode.pending.length = 0;
+        netlistNode.rendered = 0;
+        for (const feeder of netlistNode.feeders) {
+          feeder.native = feeder.start = feeder.next = 0;
+          feeder.lanes = [];
+        }
+      }
       for (const stream of streams) {
         stream.outputGain = 1;
         stream.rendered = 0;
@@ -435,26 +651,70 @@ export function createStreamMixer(
         stream.rawBase = 0;
         stream.resampled = false;
         stream.channels.length = 0;
+        stream.lofi.base = 0;
+        stream.lofi.rate = 0;
+        stream.lofi.history.length = 0;
       }
     },
     tickCpu: cpu => { if (cpu === driver && reached() - state.emitted >= MIX_BATCH) mix(); },
     endFrame: mix,
+    renderTo: seconds => renderNetlist(Math.floor(seconds * STREAM_AUDIO_RATE)),
   };
 }
 
 /** Sound kind `stream`: the streams are the whole mix, played by the shared stream worklet. */
 export function installStreamAudioRuntime(context: SoundRuntimeContext): SoundRuntimeHooks {
-  const tags = soundTags(context.sound);
+  const { sound } = context;
+  const tags = soundTags(sound);
+  const netlistTag = sound.netlist ? sound.netlistTag : undefined;
   const sources = tags.map((tag, chip): StreamSource => {
     // A route into another of the streams (POKEY into Battlezone's DISCRETE)
-    // is that device's input, not the speaker's.
-    const routes = (context.sound.routes ?? []).filter(route => route.chip === chip && !tags.includes(route.target));
-    const inputs = (context.sound.routes ?? []).filter(route => route.target === tag && tags[route.chip] !== undefined)
+    // is that device's input, not the speaker's; one into the netlist is the
+    // netlist's.
+    const routes = (sound.routes ?? []).filter(route => route.chip === chip && !tags.includes(route.target) && route.target !== netlistTag);
+    const inputs = (sound.routes ?? []).filter(route => route.target === tag && tags[route.chip] !== undefined)
       .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain }));
     const source = routes.length
       ? { tag, ...streamRouteGains(routes) }
-      : { tag, gain: context.sound.routes?.some(route => route.chip === chip) ? 0 : 1 };
+      : { tag, gain: sound.routes?.some(route => route.chip === chip) ? 0 : 1 };
     return inputs.length ? { ...source, inputs } : source;
   });
-  return createStreamMixer(context, sources, (sample, frac) => context.soundWrite(0, sample, frac, 'stream.pcm'));
+  // A slot card's own chips (an NES cartridge's VRC6), at their routes' gains.
+  for (const descendant of context.streamDescendants?.() ?? []) {
+    if (!sources.some(source => source.tag === descendant.tag)) sources.push({ tag: descendant.tag, gain: descendant.gain });
+  }
+  const netlist = sound.netlist && netlistTag ? {
+    solver: new GeneratedNetlistSolver(sound.netlist, STREAM_AUDIO_RATE),
+    feeds: (sound.routes ?? []).filter(route => route.target === netlistTag && tags[route.chip] !== undefined)
+      .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain })),
+  } : undefined;
+  const mixer = createStreamMixer(context, sources, (sample, frac) => context.soundWrite(0, sample, frac, 'stream.pcm'), netlist);
+  // The lines a driver writes into the netlist (`NETLIST_LOGIC_INPUT`), each
+  // landing once the netlist has caught up to the write's time. A finder is
+  // live once it is bound, which is what `if (m_audio_BD)` asks.
+  (sound.netlistLogicInputs ?? []).forEach((input, index) => {
+    const send = (value: number): number => {
+      const seconds = context.time?.() ?? 0;
+      mixer.renderTo?.(seconds);
+      netlist?.solver.writeLogic(index, value, seconds);
+      return 0;
+    };
+    const device = {
+      write: (data: number) => send((data >> input.shift) & 1),
+      write_line: (data: number) => send(data ? 1 : 0),
+    };
+    for (const alias of [input.deviceTag, ...input.members]) {
+      context.calls[`${alias}.write`] = device.write;
+      context.calls[`${alias}.write_line`] = device.write_line;
+      const element = /^(\w+)\[(\d+)\]$/.exec(alias);
+      if (element) ((context.state[element[1]!] ??= []) as unknown[])[Number(element[2])] = device;
+      else context.state[alias] = device;
+    }
+  });
+  for (const finder of sound.netlistFinders ?? []) {
+    const element = /^(\w+)\[(\d+)\]$/.exec(finder);
+    if (element) ((context.state[element[1]!] ??= []) as unknown[])[Number(element[2])] ??= 1;
+    else context.state[finder] ??= 1;
+  }
+  return mixer;
 }

@@ -312,6 +312,16 @@ export async function runGameAcceptance(
 
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
+  const streamWavDir = process.env.MAMEKIT_STREAM_WAV;
+  const streamPcm: Record<string, number[]> = {};
+  if (streamWavDir) {
+    process.on('exit', () => {
+      for (const [method, samples] of Object.entries(streamPcm)) {
+        writePcm16Wav(join(streamWavDir, `${contract.game}-${method.replace(/[^\w.-]/g, '_')}.wav`),
+          Float32Array.from(samples), STREAM_WAV_RATE);
+      }
+    });
+  }
   /** Set while the save-state round trip replays; its writes go here instead. */
   let replayWrites: SoundWrite[] | undefined;
   const pendingMutes: { muted: boolean; frac: number }[] = [];
@@ -326,12 +336,27 @@ export async function runGameAcceptance(
       soundWrite: (offset, data, frac, method) => {
         const write = { offset, data, frac, method };
         if (replayWrites) { replayWrites.push(write); return; }
+        // MAMEKIT_STREAM_WAV=<dir>: each observed chip's own stream, as it
+        // reaches the speaker, kept for a WAV of its own (see below).
+        if (streamWavDir && method?.endsWith('.stream')) (streamPcm[method] ??= []).push(Number(data) || 0);
         pendingWrites.push(write);
         allWrites.push(write);
       },
       mute: (muted, frac = 0) => {
         if (!replayWrites) pendingMutes.push({ muted, frac });
       },
+      // A gate on one chip of the mix names its stream: `tms.stream`.
+      // MAMEKIT_OBSERVE_STREAMS=1 watches every chip, so a silent board's
+      // report says which of its streams rendered anything.
+      observeStreams: [
+        ...(contract.audioRequirements ?? [])
+          .filter(requirement => requirement.method.endsWith('.stream'))
+          .map(requirement => requirement.method.slice(0, -'.stream'.length)),
+        ...(process.env.MAMEKIT_OBSERVE_STREAMS === '1'
+          ? (JSON.parse(readFileSync(join(gameDir, 'generated/board.json'), 'utf8')) as { sound?: { deviceTags?: string[] } })
+            .sound?.deviceTags ?? []
+          : []),
+      ],
     },
   );
   assert.equal(board.fbWidth, contract.screen.width);
@@ -841,7 +866,11 @@ export async function runGameAcceptance(
           : undefined,
       })})`,
   );
+  // A board MAME's own code leaves silent (`soundKind: 'none'`, Mario's
+  // uncompiled netlist) makes no sound to prove; every other board must.
+  const silentBoard = config.sound.kind === 'none';
   assert.ok(
+    silentBoard ||
     result.audio.writes > 0,
     `${contract.game}: generated sound has no writes ` +
       `(${JSON.stringify({
@@ -853,6 +882,7 @@ export async function runGameAcceptance(
       })})`,
   );
   assert.ok(
+    silentBoard ||
     audio.audibleRms() > 0.001,
     `${contract.game}: generated sound is silent ` +
       `(${JSON.stringify({
@@ -862,6 +892,18 @@ export async function runGameAcceptance(
           [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
             method,
             allWrites.filter(write => (write.method ?? 'register') === method).length,
+          ]),
+        ),
+        nonzeroMethods: Object.fromEntries(
+          [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
+            method,
+            allWrites.filter(write => (write.method ?? 'register') === method && write.data !== 0).length,
+          ]),
+        ),
+        nanMethods: Object.fromEntries(
+          [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
+            method,
+            allWrites.filter(write => (write.method ?? 'register') === method && Number.isNaN(Number(write.data))).length,
           ]),
         ),
         writes: allWrites.slice(0, 32),
@@ -1120,6 +1162,14 @@ async function createAudioProbe(
   outRoot: string,
 ): Promise<AudioProbe> {
   installWorkletGlobals();
+  // A silent board renders nothing: its result is the empty mix.
+  if (config.sound.kind === 'none') {
+    return {
+      render() {},
+      finish: writes => audioResult(writes, []).result,
+      audibleRms: () => 0,
+    };
+  }
   const factory = AUDIO_PROBES[config.sound.kind];
   assert.ok(
     factory,
@@ -1202,10 +1252,6 @@ function applyBrowserOutputStage(
       y1 = y0;
     }
   }
-  const gain = sound.outputGain ?? 1;
-  if (gain !== 1) {
-    for (let index = 0; index < output.length; index++) output[index] = output[index]! * gain;
-  }
   return output;
 }
 
@@ -1233,6 +1279,9 @@ function audioResult(
     },
   };
 }
+
+/** The rate an observed stream reaches the speaker at (the mix's own). */
+const STREAM_WAV_RATE = 48000;
 
 function writePcm16Wav(path: string, pcm: Float32Array, sampleRate: number): void {
   const bytes = Buffer.alloc(44 + pcm.length * 2);

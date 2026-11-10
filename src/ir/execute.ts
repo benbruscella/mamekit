@@ -481,6 +481,23 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_DRAW_OPAQUE: 0x80,
   // <numbers>: the speaker's sinc kernel steps by `std::numbers::pi / 2 / 4`.
   'std::numbers::pi': Math.PI,
+  // emu/sound.h: a stream that takes the rate of what it connects to. Read as
+  // nothing, every FILTER_RC/BIQUAD and the Game Boy APU allocated at rate 0.
+  SAMPLE_RATE_INPUT_ADAPTIVE: 0xffffffff,
+  SAMPLE_RATE_OUTPUT_ADAPTIVE: 0xfffffffe,
+  SAMPLE_RATE_ADAPTIVE: 0xfffffffd,
+  // The flt_biquad MFB setups take Q = `std::numbers::sqrt2 / 2.0`; unbound
+  // it was 0 and Sounds Good's three biquads rendered NaN.
+  'std::numbers::sqrt2': Math.SQRT2,
+  'std::numbers::e': Math.E,
+  'std::numbers::ln2': Math.LN2,
+  'std::numbers::ln10': Math.LN10,
+  'std::numbers::log2e': Math.LOG2E,
+  'std::numbers::log10e': Math.LOG10E,
+  'std::numbers::inv_pi': 1 / Math.PI,
+  'std::numbers::inv_sqrtpi': 1 / Math.sqrt(Math.PI),
+  'std::numbers::sqrt3': Math.sqrt(3),
+  'std::numbers::inv_sqrt3': 1 / Math.sqrt(3),
   'attotime::never': Infinity,
   // emu/attotime.h: attoseconds are carried as plain numbers.
   ATTOSECONDS_PER_SECOND: 1e18,
@@ -888,6 +905,8 @@ function preparedHandlerRuntime(
       if (args.length) return (value == null ? undefined : (value as (...values: unknown[]) => unknown).apply(target, args)) ?? 0;
       if (typeof value === 'function') return value.call(target);
       if (typeof value === 'number' || typeof value === 'boolean') return value;
+      // device_finder::target() on a finder holding its device: the device.
+      if (property === 'target' && value === undefined) return object;
       return generatedContainerAccessor(object, property);
     },
   } satisfies Omit<GeneratedHandlerRuntime, 'palette'> & { linksGeneration?: number };
@@ -2342,7 +2361,21 @@ export function generatedMacroCall(name: string, args: unknown[]): unknown {
   return 0;
 }
 
+/**
+ * Constants spelled as calls, answered before the macro chain below: Berzerk
+ * draws every unlit pixel as `rgb_t::black()`, and walking the chain's string
+ * and pattern tests for it was a fifth of the machine's time.
+ */
+const CONSTANT_MACROS: ReadonlyMap<string, number> = new Map([
+  ['rgb_t::black', 0xff000000],
+  ['rgb_t::white', 0xffffffff],
+]);
+
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
+  const constant = CONSTANT_MACROS.get(name);
+  if (constant !== undefined) return constant;
+  // MAME's downcast<T>(x) is a checked static_cast: the object itself.
+  if (name === 'downcast' && args.length === 1) return args[0];
   // As the C library and as `std::` spell it: the floppy drive's call_load
   // compares its `write_protected` feature with `std::strcmp`, and the NES
   // loader an `mmc1_type` against the prefix `"MMC1B"` with `strncmp`, which
@@ -2435,6 +2468,20 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // with these, one power-of-two chunk at a time; unbound they answered zero,
   // which turns the decode loop into one that never terminates.
   if (name === 'std::bit_width') return 32 - Math.clz32(toNumber(args[0]) >>> 0);
+  // GCC's bit builtins, which ymfm's count_leading_zeros calls under
+  // __GNUC__: its roundtrip_fp sizes every YM2151 sample's mantissa by it,
+  // and unbound it answered 0, an exponent of 7 on every sample.
+  if (name === '__builtin_clz') return Math.clz32(toNumber(args[0]) >>> 0);
+  if (name === '__builtin_ctz') {
+    const value = toNumber(args[0]) >>> 0;
+    return value ? 31 - Math.clz32(value & -value) : 32;
+  }
+  if (name === '__builtin_popcount') {
+    let value = toNumber(args[0]) >>> 0;
+    let count = 0;
+    for (; value; value &= value - 1) count++;
+    return count;
+  }
   if (name === 'std::bit_ceil') {
     const value = toNumber(args[0]) >>> 0;
     return value <= 1 ? 1 : 2 ** (32 - Math.clz32(value - 1));
@@ -2507,6 +2554,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (/(?:^|::)make_bitmask$/.test(name)) {
     const bits = Math.max(0, Math.min(32, toNumber(args[0])));
     return bits >= 32 ? 0xffffffff : (2 ** bits) - 1;
+  }
+  // util::sext(value, width) (coretmpl.h): the low `width` bits as a signed
+  // number. The HC55516's process_bit sign-extends its shift register with it.
+  if (/(?:^|::)sext$/.test(name)) {
+    const width = Math.max(1, Math.min(32, toNumber(args[1])));
+    const shift = 32 - width;
+    return (toNumber(args[0]) << shift) >> shift;
   }
   if (name === 'std::make_unsigned_t') return toNumber(args[0]) >>> 0;
   if (name === 'std::make_signed_t') return toNumber(args[0]) | 0;
@@ -2711,8 +2765,6 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::lower_bound' || name === 'std::upper_bound') {
     return generatedBoundSearch(name === 'std::lower_bound', args[0], args[1], args[2], args[3]);
   }
-  if (name === 'rgb_t::black') return 0xff000000;
-  if (name === 'rgb_t::white') return 0xffffffff;
   if (name === 'CAP_P') return toNumber(args[0]) * 1e-12;
   if (name === 'CAP_N') return toNumber(args[0]) * 1e-9;
   if (name === 'CAP_U') return toNumber(args[0]) * 1e-6;
@@ -2917,6 +2969,14 @@ function applyIdentifierCall(
   if (handler) return handler(...args.map(callArgument));
   const member = context.bindings.members?.[name];
   if (typeof member === 'function') return member(...args.map(callArgument));
+  // device_finder::target(): the device the finder holds, or null. Irem's
+  // m52_soundc_audio picks an MSM5205 with `(offset & 1) ? m_adpcm2.target()
+  // : m_adpcm1.target()` and then writes through the pointer.
+  const finder = /^(m_\w+)\.target$/.exec(name);
+  if (finder && args.length === 0) {
+    const held = context.bindings.members?.[finder[1]!];
+    return held !== undefined && held !== null ? held : reference(finder[1]!);
+  }
   noteUnresolvedCall(name);
   return reference(`${name}()`);
 }
@@ -3097,6 +3157,11 @@ function evaluateCall(
       }
       // A vector's capacity is the host's business; reserving changes nothing it holds.
       if (Array.isArray(object) && (method === 'reserve' || method === 'shrink_to_fit')) return 0;
+      // device_finder::target() on a finder holding its device: the device.
+      // Irem's m62 audio picks an MSM5205 by `m_adpcm1.target()`.
+      if (method === 'target' && !args.length && typeof (object as Record<string, unknown>).target !== 'function') {
+        return object;
+      }
       const methodValue = (object as Record<string, unknown>)[method];
       if (typeof methodValue === 'function') return methodValue.apply(object, args);
       // A finder member re-pointed by its own setter: `m_screen.set_tag(tag)`

@@ -5,7 +5,7 @@ export const jumpbug = sourceTarget({
   driver: 'src/mame/galaxian/galaxian.cpp',
   machine: { className: 'galaxian_state', name: 'jumpbug' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],

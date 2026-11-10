@@ -13,7 +13,7 @@ export const mario = {
     driver: 'src/mame/nintendo/mario.cpp',
     machine: { className: 'mario_state', name: 'mario' },
     screen: { width: 256, height: 224 },
-    soundKind: 'dac',
+    soundKind: 'none',
     minimumFps: 10,
   }),
   // The title/high-score sequence ignores inputs until roughly frame 1500.

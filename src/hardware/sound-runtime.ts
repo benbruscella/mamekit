@@ -14,8 +14,12 @@ import type { BoardIr } from '../ir/board.ts';
 /** The `sound_stream` a device allocated, which the mixer renders. */
 export interface SoundStreamSurface {
   rate: number;
+  /** The outputs the device's `stream_alloc` asked for. */
+  outputs?: number;
   samples: () => number;
   put: (channel: number, index: number, value: number) => number;
+  /** sound_stream::add, accumulating on the sample put has written. */
+  add?: (channel: number, index: number, value: number) => number;
 }
 
 export interface SoundRuntimeContext {
@@ -35,6 +39,8 @@ export interface SoundRuntimeContext {
   state: Record<string, unknown>;
   /** Forward a register write to the generated worklet. */
   soundWrite(offset: number, data: number, frac?: number, method?: string): void;
+  /** Stream devices whose own samples are reported as `<tag>.stream` (acceptance gates). */
+  observeStreams?: readonly string[];
   /** Push bulk sample bytes to a worklet (the NES DMC cannot read the CPU bus there). */
   soundData(id: number, bytes: Uint8Array): void;
   /** Position within the current video frame, so writes keep their timing. */

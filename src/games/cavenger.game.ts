@@ -5,7 +5,7 @@ export const cavenger = sourceTarget({
   driver: 'src/mame/universal/ladybug.cpp',
   machine: { className: 'ladybug_state', name: 'ladybug' },
   screen: { width: 240, height: 192 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   golden: {
     regions: {
       gfx1: '6126a698',

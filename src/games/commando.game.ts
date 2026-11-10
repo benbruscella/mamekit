@@ -5,7 +5,7 @@ export const commando = sourceTarget({
   driver: 'src/mame/capcom/commando.cpp',
   machine: { className: 'commando_state', name: 'commando' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ym2203',
+  soundKind: 'stream',
   frames: 1800,
   minimumFps: 45,
   checkpoints: [1, 60, 300, 480, 720, 1200, 1800],

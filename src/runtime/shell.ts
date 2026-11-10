@@ -17,7 +17,7 @@ import { missingMedia, putMedia, recordMedia, transportImage, type TransportImag
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler, markBigEndianWords } from '../ir/execute.ts';
-import type { GeneratedAuxiliaryAudioDevice, GeneratedAyChipOutput, GeneratedBiquadStage, GeneratedDacChip, GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 import { fetchRomBytes, fetchSampleSetBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
@@ -152,46 +152,12 @@ export function unresolvedDependencyRomSets(
 }
 
 export interface SoundSpec {
-  /** Generic SoundCore/AudioWorklet processor kind. */
+  /** `stream`, every chip compiled whole in the stream mix, or `none`. */
   kind: string;
-  /** Concrete MAME chip hosted by a shared worklet family (YM2203/YM2610). */
-  deviceType?: string;
-  /** Generated worklet artifact stem when several MAME devices share a processor kind. */
-  worklet?: string;
+  /** The rate the mix posts its samples at (the speaker's). */
   clock?: number;
-  /** rom region holding the wavetable (wsg only) */
-  waveRegion?: string;
-  /** optional source-device sample ROM mixed by the primary worklet */
-  sampleRegion?: string;
-  /** number of sound chips (ay8910: gyruss has 5) */
-  chips?: number;
-  /** MAME device tags in chip-index order. */
-  deviceTags?: string[];
-  /** MAME device type in chip-index order, when a bank mixes several chips. */
-  deviceTypes?: string[];
-  /** Per-chip clock in chip-index order, when a bank clocks them differently. */
-  clocks?: number[];
-  /** Resolution, coding and gain of each DAC, lowered from MAME source. */
-  dacs?: GeneratedDacChip[];
-  /** Per-output routes lowered from MAME add_route calls. */
-  routes?: GeneratedAudioRoute[];
-  /** MAME discrete DAC/filter network mixed with the primary core. */
-  /** Source-routed secondary stream devices mixed by the generated worklet. */
-  auxiliaryDevices?: GeneratedAuxiliaryAudioDevice[];
-  /** Total routed gain of the main-thread streams posted beside the owning chip. */
-  /** FILTER_BIQUAD stages between the sound core and the board output. */
-  filterChain?: GeneratedBiquadStage[];
-  /** MAME DISCRETE_SOUND_START network consuming primary stream outputs. */
-  /** Per AY chip, the load each of its three pins drives (set_resistors_load). */
-  chipOutputs?: GeneratedAyChipOutput[];
-  netlist?: unknown;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
-  /**
-   * The route of a board whose whole mix goes through one gain (a WSG, a TIA,
-   * the NES APU): MAME's own, applied after the worklet.
-   */
-  outputGain?: number;
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */
@@ -1299,32 +1265,16 @@ export async function runShell(
     void audio.start(
       {
         sampleRate: clock,
-        deviceType: cfg.sound.deviceType,
         clock,
-        waveRom: cfg.sound.waveRegion ? regions[cfg.sound.waveRegion] : undefined,
-        sampleRom: cfg.sound.sampleRegion ? regions[cfg.sound.sampleRegion] : undefined,
-        chips: cfg.sound.chips,
-        deviceTags: cfg.sound.deviceTags,
-        deviceTypes: cfg.sound.deviceTypes,
-        clocks: cfg.sound.clocks,
-        dacs: cfg.sound.dacs,
-        routes: cfg.sound.routes,
-        auxiliaryDevices: cfg.sound.auxiliaryDevices?.map(device => ({
-          ...device,
-          ...(device.sampleRegion ? { sampleRom: regions[device.sampleRegion] } : {}),
-        })),
-        filterChain: cfg.sound.filterChain,
-        chipOutputs: cfg.sound.chipOutputs,
-        netlist: cfg.sound.netlist,
         speakerFilter: cfg.sound.speakerFilter,
         refresh: cfg.board.screen.refresh,
         debug: input.debug,
       },
-      `${cfg.runtimeUrl}${cfg.sound.worklet ?? cfg.sound.kind}-worklet.js`,
-      cfg.sound.kind,
-    ).then(() => {
-      audio.setVolume(cfg.sound.outputGain ?? 1);
-    }).catch(err => console.warn('audio unavailable:', err));
+      // Every board plays through the one stream worklet; the mix carries
+      // MAME's route gains already.
+      `${cfg.runtimeUrl}stream-worklet.js`,
+      'stream',
+    ).catch(err => console.warn('audio unavailable:', err));
     const resumeAudio = () => audio.resume();
     addEventListener('pointerdown', resumeAudio, { once: true });
     addEventListener('keydown', resumeAudio, { once: true });
@@ -1347,7 +1297,7 @@ export async function runShell(
   // blit all still happen -- it is the pacing that changes, nothing else.
   // Sound is muted while it runs, because a machine at several times speed is
   // a screech rather than a fast tune.
-  const masterVolume = cfg.sound.outputGain ?? 1;
+  const masterVolume = 1;
   const setFastForward = (on: boolean): void => {
     fastForward = on;
     audio.setVolume(fastForward || warping ? 0 : masterVolume);

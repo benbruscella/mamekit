@@ -8,7 +8,7 @@ export const a2600 = {
     driver: 'src/mame/atari/a2600.cpp',
     machine: { className: 'a2600_state', name: 'a2600' },
     screen: { width: 176, height: 223 },
-    soundKind: 'tia',
+    soundKind: 'stream',
     media: [{ kind: 'cartridge', status: 'accepted', softwareLists: ['a2600'] }],
   },
   scenarios: [{

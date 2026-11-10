@@ -26,7 +26,7 @@ import { cpus } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { GeneratedNetlistPlan } from '../src/mame/netlist-compiler.ts';
-import { GeneratedNetlistSolver } from '../src/mame/netlist-solver.ts';
+import { GeneratedNetlistSolver } from '../src/hardware/speaker/netlist-solver.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);

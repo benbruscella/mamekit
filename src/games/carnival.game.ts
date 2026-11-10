@@ -5,7 +5,7 @@ export const carnival = sourceTarget({
   driver: 'src/mame/sega/vicdual.cpp',
   machine: { className: 'carnival_state', name: 'carnival' },
   screen: { width: 256, height: 224 },
-  soundKind: 'ay8910',
+  soundKind: 'stream',
   minimumAudioRms: 0.05,
   actions: [
     // Vic Dual resets the main CPU on a coin edge. Let that real reset and

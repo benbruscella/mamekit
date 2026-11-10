@@ -5,7 +5,7 @@ export const pengo = sourceTarget({
   driver: 'src/mame/pacman/pengo.cpp',
   machine: { className: 'pengo_state', name: 'pengou' },
   screen: { width: 288, height: 224 },
-  soundKind: 'wsg',
+  soundKind: 'stream',
   frames: 1200,
   minimumFps: 45,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200],

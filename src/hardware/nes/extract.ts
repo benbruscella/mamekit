@@ -7,10 +7,7 @@ import {
   type GeneratedDeviceDefinition,
 } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
-import {
-  compileNesApu,
-  generatedNesApuWorkletSource,
-} from '../../mame/nes-apu-compiler.ts';
+import { compileNesApu } from '../../mame/nes-apu-compiler.ts';
 import {
   HARDWARE_INDEX_ENV,
   indexMameHardware,
@@ -28,8 +25,6 @@ import type {
 } from '../contract.ts';
 import {
   NES_MAME_TYPES,
-  NES_APU_IR_ARTIFACT,
-  NES_APU_WORKLET_ARTIFACT,
   NES_CPU_TYPES,
   nesDeviceIrArtifact,
   nesDeviceModuleArtifact,
@@ -134,12 +129,17 @@ async function extractPresentNes(
   }
   if (!compiled.size) return undefined;
 
+  // The RP2A03's own APU, the device its device_add_mconfig builds
+  // (nes_apu.cpp), compiled whole: a stream device the board holds under the
+  // CPU, every method an entry point (it steps once a CPU clock).
   if (hasApu) {
-    const apu = compileNesApu(input.mameSource);
-    artifacts.push(
-      { path: NES_APU_IR_ARTIFACT, contents: JSON.stringify(apu, null, 2) },
-      { path: NES_APU_WORKLET_ARTIFACT, contents: generatedNesApuWorkletSource(apu) },
-    );
+    const apuType = compileNesApu(input.mameSource).type;
+    const definition = definitions.get(apuType);
+    if (!definition) throw new Error(`NES: ${apuType} is not indexed`);
+    const apu = compileMameDevice(input.mameSource, definition, apuType);
+    if (apu.summary.diagnostics) throw new Error(`NES: ${apuType} has ${apu.summary.diagnostics} compiler diagnostics`);
+    apu.hotMethods = apu.methods.map(method => method.name);
+    compiled.set(apuType, apu);
   }
   const executable: CapabilityExtraction['executable'] = {};
   const entryMethods: Record<string, readonly LoweredMethod[]> = {};

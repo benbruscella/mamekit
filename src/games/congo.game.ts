@@ -5,7 +5,7 @@ export const congo = sourceTarget({
   driver: 'src/mame/sega/zaxxon.cpp',
   machine: { className: 'zaxxon_state', name: 'congo' },
   screen: { width: 256, height: 224 },
-  soundKind: 'sn76489',
+  soundKind: 'stream',
   // PSG routing is corrected; the sample effects still use synthesized
   // approximations, not MAME's gorilla/drum recordings. PCM guards stability.
   golden: {

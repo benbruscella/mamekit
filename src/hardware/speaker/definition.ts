@@ -1,4 +1,5 @@
 import type { PortDeclaration } from '../ports.ts';
+import { SOUND_DEVICE_MAME_TYPES } from '../sound-device/definition.ts';
 
 export const SPEAKER_ID = 'speaker';
 
@@ -26,6 +27,15 @@ export const STREAM_AUDIO_RATE = 48000;
  */
 export const STREAM_SOUND_TYPES: readonly string[] = [
   'SPEAKER_SOUND', 'CASSETTE', 'POKEY', 'SAMPLES', 'DISCRETE', 'SN76477', 'TMS36XX', 'PHOENIX_SOUND',
+  // Compiled by the device capability, which also builds their bus ports: a
+  // speech chip whose BSY a sound CPU polls, the uPD7759 whose BUSY the TMNT
+  // sound CPU polls, and Konami's two PCM chips.
+  'VLM5030', 'UPD7759', 'K007232', 'K053260',
+  // The RP2A03's own APU (nes_apu.cpp), compiled by the NES capability, and
+  // the consoles' sound chips, each compiled by its console's capability:
+  // the TIA's sound half, the C64's SID and the Game Boy's APU.
+  'NES_APU', 'TIA', 'MOS6581', 'MOS8580', 'DMG_APU',
+  ...SOUND_DEVICE_MAME_TYPES,
 ];
 
 /**
