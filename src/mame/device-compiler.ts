@@ -989,6 +989,7 @@ function compileMameDeviceSource(
   // is a struct of its own (`ymfm_output__2`), sized and given methods with
   // its arguments.
   type ClassScope = { root: string; aliases: Map<string, string>; constants: Record<string, number> };
+  const namespacedAliases = namespaceAliasMap(sources);
   const scopes = new Map<string, ClassScope | undefined>();
   const classScope = (instance: string): ClassScope | undefined => {
     const key = instance.replace(/\s+/g, '');
@@ -1021,7 +1022,9 @@ function compileMameDeviceSource(
       // which is opl_registers_base<1>'s 1 -- read unresolved, the flat
       // table's 2 from another header stood in for it.
       const qualified = body.replace(/\b(\w+(?:<[^<>;]*>)?)::([A-Z]\w*)\b/g, (whole, owner: string, name: string) => {
-        const aliased = scope.aliases.get(owner);
+        // Or a namespace's: fm_engine_base<opna_registers>'s `OUTPUTS =
+        // RegisterType::OUTPUTS` is `opn_registers_base<true>`'s.
+        const aliased = scope.aliases.get(owner) ?? namespacedAliases.get(owner);
         const target = aliased ? resolveType(scope, aliased) : owner;
         const value = target === root ? undefined : classScope(target)?.constants[name];
         return value === undefined ? whole : String(value);
@@ -1091,14 +1094,31 @@ function compileMameDeviceSource(
       const target = scope?.aliases.get(alias);
       if (!target) return whole;
       const type = resolveType(scope, target);
-      const value = classScope(type)?.constants[name];
+      const owner = classScope(type);
+      const value = owner?.constants[name];
       if (value !== undefined && /^[A-Z]/.test(name)) return String(value);
+      // A type the aliased class names, in that class's own scope: the
+      // YM2610's `fm_engine::output_data m_last_fm` is
+      // fm_engine_base<opna_registers>'s ymfm_output<2>. Spelled as the bare
+      // base and resolved with no scope, its OUTPUTS read as the chip's 3.
+      if (owner?.aliases.has(name)) return resolveType(owner, owner.aliases.get(name)!);
       const base = type.replace(/\s*<[\s\S]*>$/, '');
       return `${hierarchy.includes(base) ? base : type}::${name}`;
     });
     // `Owner::alias`, Owner any class: the type it names.
-    resolved = resolved.replace(/(?<![\w:])(\w+)::(\w+)\b(?!\s*\()/g, (whole, owner: string, name: string) =>
-      classScope(owner)?.aliases.has(name) ? resolveType(undefined, whole) : whole);
+    resolved = resolved.replace(/(?<![\w:])(\w+)::(\w+)\b(?!\s*\()/g, (whole, owner: string, name: string) => {
+      if (!classScope(owner)?.aliases.has(name)) return whole;
+      // A bare template name is the instance an alias of this class names:
+      // the alias pass has already spelled `fm_engine::output_data` as
+      // `fm_engine_base::output_data`. Resolved with no arguments, OUTPUTS
+      // was the chip's 3, not fm_engine_base<opna_registers>'s 2.
+      const instance = classes.get(owner)?.templateParameters?.length && scope
+        ? [...scope.aliases.values()].map(aliased => resolveType(scope, aliased))
+          .find(aliased => aliased !== owner && aliased.replace(/\s*<[\s\S]*>$/, '') === owner)
+        : undefined;
+      const other = instance ? classScope(instance) : undefined;
+      return other?.aliases.has(name) ? resolveType(other, other.aliases.get(name)!) : resolveType(undefined, whole);
+    });
     if (!scope?.aliases.size) return resolved;
     return resolved.replace(/(?<![\w:.>])(\w+)(?![\w:(])/g, (name: string) =>
       scope.aliases.has(name) ? resolveType(scope, name) : name);
@@ -2360,6 +2380,36 @@ function annotateMemberCallReferences(
     }
     return undefined;
   };
+  // The instance of a function template a call's argument types deduce: ymfm
+  // calls `m_adpcm_a.output(m_last_fm, 0x3f)` on `template<int NumOutputs>
+  // void output(ymfm_output<NumOutputs> &output, ...)`, and its instances are
+  // emitted as output_1 and output_2. Called by the template's own name, the
+  // YM2610 never mixed in a single ADPCM-A or ADPCM-B sample.
+  const deducedInstance = (className: string, method: string, argumentTypes: readonly (string | undefined)[]): string | undefined => {
+    for (const owner of [...classHierarchy(className, classes)].reverse()) {
+      const candidates = [...sourceMethods.filter(candidate => candidate.className === owner), ...inlineMethods(classes.get(owner)!)]
+        .filter(candidate => candidate.name === method);
+      if (!candidates.length) continue;
+      for (const candidate of candidates) {
+        const templateParameters = (candidate as { templateParameters?: readonly string[] }).templateParameters ?? [];
+        if (!templateParameters.length) continue;
+        const bound: Record<string, string> = {};
+        splitMameArgs(candidate.parameters).map(parameter => parameter.trim()).filter(Boolean).forEach((parameter, index) => {
+          const declared = /^([\w:]+)\s*<\s*(\w+)\s*>$/.exec(parameterBaseType(parameter));
+          const argument = argumentTypes[index]?.replace(/\s+/g, '');
+          if (!declared || !argument || !templateParameters.includes(declared[2]!)) return;
+          const template = declared[1]!.split('::').at(-1)!;
+          const value = new RegExp(`^(?:\\w+::)*${template}(?:__|<)(\\d+)>?$`).exec(argument)?.[1];
+          if (value !== undefined) bound[declared[2]!] = value;
+        });
+        if (templateParameters.every(parameter => bound[parameter] !== undefined)) {
+          return `${method}_${templateParameters.map(parameter => bound[parameter]).join('_')}`;
+        }
+      }
+      return undefined;
+    }
+    return undefined;
+  };
   for (const method of device.methods) {
     // What each name is declared as here: a member, shadowed by a parameter
     // or local (`discrete_base_node &node = *m_node_list.back();`).
@@ -2394,7 +2444,9 @@ function annotateMemberCallReferences(
       if (!className) return;
       const argumentTypes = expression.args.map(argument => argument.kind === 'identifier' && types.has(argument.name)
         ? parameterBaseType(`${types.get(argument.name)} ${argument.name}`) : undefined);
-      const chosen = typedOverload(className, expression.callee.property, argumentTypes);
+      const instance = deducedInstance(className, expression.callee.property, argumentTypes);
+      if (instance) (expression.callee as { property: string }).property = instance;
+      const chosen = instance ? undefined : typedOverload(className, expression.callee.property, argumentTypes);
       if (chosen) {
         const parameters = splitMameArgs(chosen.parameters).map(parameter => parameter.trim()).filter(Boolean);
         const references = parameters.flatMap((parameter, index) => /&(?!&)/.test(parameter.replace(/=.*$/, '')) && !/\bconst\b/.test(parameter) ? [index] : []);

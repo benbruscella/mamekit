@@ -124,4 +124,48 @@ for (const chipCase of CASES) {
   assert.deepEqual(render(emit(definition), chipCase), interpreted, `emitted ${chipCase.type} code matches the interpreter`);
 }
 
+// The YM2610's ADPCM-A reaches its output. ymfm mixes it with
+// `m_adpcm_a.output(m_last_fm, 0x3f)` on a `template<int NumOutputs>` method,
+// whose instances are emitted as output_1 and output_2; called by the
+// template's own name it was no call at all, and Metal Slug lost every voice
+// and sampled effect. m_last_fm is `fm_engine::output_data`, the engine's
+// ymfm_output<2>, not the chip's three-output output_data.
+{
+  const definition = compileMameDevice(mameSrc, hardware.get('YM2610')!);
+  const chipClass = definition.allocations?.ym2610;
+  assert.equal(chipClass?.members.find(member => member.name === 'm_last_fm')?.valueType, 'ymfm_output__2', 'm_last_fm is the FM engine\'s output_data');
+  const adpcm = (compiled: GeneratedDeviceDefinition, rom: (offset: number) => number) => {
+    clearGeneratedDevices();
+    registerGeneratedDevice(compiled);
+    const device = createDevice('YM2610', { clock: 8_000_000 });
+    const calls = (device as unknown as { bindings: { calls: Record<string, (...args: unknown[]) => unknown> } }).bindings.calls;
+    // The ADPCM-A ROM in space 0, as Neo Geo's init_ym installs it.
+    (device as unknown as { bindAddressSpace(index: number, read: (address: number) => number, write: () => void): void })
+      .bindAddressSpace(0, rom, () => undefined);
+    const chip = (device as unknown as { members: Record<string, Record<string, (...args: unknown[]) => unknown>> }).members.m_chip!;
+    chip.reset!();
+    // ADPCM-A channel 0: full level, both sides, 0x0000-0x0fff, keyed on.
+    for (const [address, data] of [[0x08, 0xdf], [0x10, 0x00], [0x18, 0x00], [0x20, 0x0f], [0x28, 0x00], [0x01, 0x3f], [0x00, 0x01]] as const) {
+      chip.write!(2, address);
+      chip.write!(3, data);
+    }
+    const output = calls.STRUCT_ARRAY_OF!(1, 'ymfm_output__3') as { data: number[] }[];
+    let energy = 0;
+    for (let index = 0; index < 2048; index++) {
+      chip.generate!(output, 1);
+      energy += Math.abs(output[0]!.data[0]!) + Math.abs(output[0]!.data[1]!);
+    }
+    clearGeneratedDevices();
+    return energy;
+  };
+  // Native ymfm (clang, 3rdparty/ymfm, OPN_FIDELITY_MED), summing
+  // |data[0]| + |data[1]| over 2048 samples: 31191120 over this ROM, 20955120
+  // over a ROM of zeros.
+  const rom = (offset: number) => (offset * 37 + 11) & 0xff;
+  const interpreted = adpcm(definition, rom);
+  assert.equal(interpreted, 31191120, 'a keyed ADPCM-A channel plays native ymfm\'s samples');
+  assert.equal(adpcm(definition, () => 0x00), 20955120, 'what it plays is the ROM it reads');
+  assert.equal(adpcm(emit(definition), rom), interpreted, 'emitted ADPCM-A matches the interpreter');
+}
+
 console.log(`ymfm-chips.spec: ${CASES.map(chipCase => chipCase.type).join(', ')} render native ymfm's samples`);
