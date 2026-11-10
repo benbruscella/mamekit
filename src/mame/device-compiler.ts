@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, parseAddressMaps, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
+import { evalExpr, expandConstexprCalls, parseAddressMaps, parseConstexprFunctions, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import {
   memberMacroParameters,
@@ -874,7 +874,7 @@ function compileMameDeviceSource(
     coreOsdDefines(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
-    ...sources.map(({ source }) => numericConstants(stripCppComments(source))),
+    ...((helpers) => sources.map(({ source }) => numericConstants(stripCppComments(source), {}, helpers)))(constexprHelpers(mameSrc, sources)),
     deviceTypeTokens(sources),
   );
   // A class template's members name their argument's constants
@@ -5092,10 +5092,30 @@ function foreignClassConstants(
   return found;
 }
 
+const RESCAP_FUNCTIONS = new Map<string, ReturnType<typeof parseConstexprFunctions>>();
+
+/** rescap.h's RES_K, CAP_U and friends, and the device's own one-expression constexpr helpers. */
+function constexprHelpers(
+  mameSrc: string,
+  sources: readonly { source: string }[],
+): ReturnType<typeof parseConstexprFunctions> {
+  if (!RESCAP_FUNCTIONS.has(mameSrc)) {
+    const path = join(mameSrc, 'src/devices/machine/rescap.h');
+    RESCAP_FUNCTIONS.set(mameSrc, existsSync(path) ? parseConstexprFunctions(readFileSync(path, 'utf8')) : {});
+  }
+  return Object.assign({}, RESCAP_FUNCTIONS.get(mameSrc), ...sources.map(({ source }) => parseConstexprFunctions(source)));
+}
+
 export function numericConstants(
   source: string,
   /** Constants already known, which the source's own values may be spelled in. */
   seed: Record<string, number> = {},
+  /**
+   * One-expression constexpr helpers a value may call: polepos.cpp's
+   * `static const double r_filt_total = 1.0 / (1.0/RES_K(4.7) + ...)`, which
+   * unexpanded read as 0 and scaled the engine sound to nothing.
+   */
+  functions: Parameters<typeof expandConstexprCalls>[1] = {},
 ): Record<string, number> {
   const expressions = new Map<string, string>();
   // The value runs to the end of the line less any comment. Stopping at the
@@ -5190,7 +5210,8 @@ export function numericConstants(
       // evalExpr substitutes every constant it is given, one by one: with
       // discrete.h's 2,700 node enumerators that is quadratic, so an
       // expression with no names left is evaluated alone.
-      const value = evalExpr(substituted, /[A-Za-z_]/.test(substituted) ? constants : {});
+      const expanded = /\w\s*\(/.test(substituted) ? expandConstexprCalls(substituted, functions) : substituted;
+      const value = evalExpr(expanded, /[A-Za-z_]/.test(expanded) ? constants : {});
       if (value !== null && Number.isFinite(value)) {
         constants[name] = value;
         resolved++;
@@ -5260,7 +5281,7 @@ function constantTables(source: string): Record<string, ConstantTable> {
   // Or a class's own static, defined out of the class as MAME defines one:
   // k053260.cpp's `const int k053260_device::pan_mul[8][2] = { ... };`.
   for (const match of source.matchAll(
-    /(?:\bstatic\s+const\s+\w+\s+|(?:^|[;}])\s*const\s+\w+\s+\w+::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\})\s*\}\s*;/gm,
+    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+\w+::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
   )) {
     const columns = Number(match[3]);
     const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
@@ -5269,9 +5290,13 @@ function constantTables(source: string): Record<string, ConstantTable> {
     tables[match[1]!] = { values, columns };
   }
   for (const match of source.matchAll(
-    /(?:\bstatic\s+(?:const\s+)?\w+\s+|(?<=^|[;}])\s*const\s+\w+\s+\w+::)(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/gm,
+    // The element type may be qualified: okim6295.cpp's
+    // `const sound_stream::sample_t okim6295_device::s_volume_table[16]`, which
+    // missed left every voice's volume undefined and the OKI rendering NaN.
+    // `static constexpr double out_pos_gain[] = {...}` (sn76477.cpp) is one too.
+    /(?:\bstatic\s+(?:const\s+|constexpr\s+)?[\w:]+\s+|(?<=^|[;}])\s*const\s+[\w:]+\s+\w+::)(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/gm,
   )) {
-    if (!/^\s*(?:static\s+)?const\b/.test(match[0])) {
+    if (!/^\s*(?:static\s+)?(?:const|constexpr)\b/.test(match[0])) {
       const uses = source.replace(match[0], '');
       const name = match[1]!;
       if (new RegExp(`\\b${name}\\s*\\[[^\\]]+\\]\\s*(?:[+*/&|^-]?=|\\+\\+|--)`).test(uses) ||

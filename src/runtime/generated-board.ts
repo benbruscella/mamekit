@@ -1404,17 +1404,20 @@ class IrBoard implements Board {
       lumpHosted = outerHosted;
       this.deliveringDeviceTime = outer;
     };
-    // MAME's DISCRETE_SOUND network addresses nodes through the NODE(n) macro,
-    // and a driver handler may poke one directly. Gyruss's i8039 does exactly
-    // that (dac_w writes NODE(16)), and both halves were missing: NODE was
-    // unbound, and m_discrete.write was bound only for hosted firmware MCUs.
-    // Gyruss runs its 8039 as a full CPU, so its entire percussion channel —
-    // the swarm the enemies arrive on — reached the sink as nothing at all.
-    calls['NODE'] = (node: number) => node;
-    calls['m_discrete.write'] = (node: number, value: number) => {
-      sinks.soundWrite(node, value, this.soundFraction(), 'discrete');
-      return 0;
-    };
+    // MAME's DISCRETE_SOUND network addresses nodes through discrete.h's
+    // `NODE(_x) (NODE_00 + (_x) * DISCRETE_MAX_OUTPUTS)`, and a driver handler
+    // may poke one directly: Gyruss's i8039 drives its drum DAC with
+    // `m_discrete->write(NODE(16), data)`. The numbering is the compiled
+    // network's own (NODE_00 and the step to NODE_01). Answered as the bare
+    // index -- what the hand engine before #236 numbered nodes by -- every
+    // such write landed on a node the network does not have, and the drums
+    // and the AY filter selects were silent.
+    const discreteConstants = generatedDeviceDefinition('DISCRETE')?.constants;
+    const node00 = discreteConstants?.NODE_00;
+    const node01 = discreteConstants?.NODE_01;
+    if (node00 !== undefined && node01 !== undefined) {
+      calls['NODE'] = (node: number) => node00 + Number(node) * (node01 - node00);
+    }
     // MAME device_scheduler::abort_timeslice: the executing processor's
     // slice ends after the instruction in progress. Donkey Kong asks for it
     // straight after raising the 8257's DMA requests, so the controller
@@ -5331,13 +5334,20 @@ class IrBoard implements Board {
           );
           return 0;
         };
+      }
+    }
+    // device_t::set_unscaled_clock on any generated device the board drives:
+    // the device's own (its clock, then device_clock_changed). Recorded as
+    // well, so a contract can see the board change it.
+    for (const specification of machine.devices ?? []) {
+      const referent = this.deviceReferents.get(specification.tag) as
+        { set_unscaled_clock?: (clock: number) => unknown } | undefined;
+      if (typeof referent?.set_unscaled_clock !== 'function') continue;
+      for (const alias of [specification.tag, `m_${specification.tag}`, specification.member]
+        .filter((value): value is string => Boolean(value))) {
         this.bindings.calls![`${alias}.set_unscaled_clock`] ??= clock => {
-          sinks.soundWrite(
-            0,
-            Math.round(Number(clock)) & 0xff,
-            this.soundFraction(),
-            `${specification.tag}.set_unscaled_clock`,
-          );
+          referent.set_unscaled_clock!(Number(clock));
+          sinks.soundWrite(0, Math.round(Number(clock)) & 0xff, this.soundFraction(), `${specification.tag}.set_unscaled_clock`);
           return 0;
         };
       }

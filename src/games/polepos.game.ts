@@ -37,9 +37,11 @@ export const polepos = sourceTarget({
     { atFrame: 850, code: 'ArrowRight', heldFrames: 30, releasedFrames: 20 },
     { atFrame: 900, code: 'ArrowUp', heldFrames: 270, releasedFrames: 20 },
   ],
+  // The engine sound device's own stream (polepos_sound_device compiled
+  // whole): the accelerator moves its pitch, so with the throttle held it
+  // reaches many levels.
   audioRequirements: [
-    { method: 'polepos_engine_sound_lsb_w', fromFrame: 900, minimumNonzeroWrites: 50 },
-    { method: 'polepos_engine_sound_msb_w', fromFrame: 900, minimumNonzeroWrites: 50 },
+    { method: 'engine.stream', fromFrame: 900, minimumNonzeroWrites: 50, minimumDistinctValues: 16 },
   ],
   golden: {
     regions: {

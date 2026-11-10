@@ -1233,7 +1233,7 @@ class IrDevice implements Device {
   private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
   /** The image/floppy/cassette surface the host answers (see hostedCalls). */
   private readonly hostedSurface: Record<string, (...args: never[]) => unknown> = {};
-  private readonly clock: number;
+  private clock: number;
   private executedCycles = 0;
   private runningCycles: number | undefined;
   /**
@@ -1833,6 +1833,18 @@ class IrDevice implements Device {
         notify_clock_changed: () => this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0,
         // device_t::type: the number its own DECLARE_DEVICE_TYPE name compiled to.
         type: () => definition.constants?.[definition.type] ?? 0,
+        // device_t::set_unscaled_clock: the new clock, then the device's own
+        // device_clock_changed (notify_clock_changed), which re-rates a sound
+        // chip's stream: Gauntlet sets its TMS5220's pitch this way and
+        // Berzerk its S14001A's speech rate. Only recorded, neither moved.
+        // device_t::unscaled_clock: the clock before any scale, which here is
+        // the clock (Pole Position's engine sound times its pitch by it).
+        unscaled_clock: () => clock,
+        set_unscaled_clock: (next: number) => {
+          clock = Math.trunc(Number(next));
+          this.clock = clock;
+          return this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0;
+        },
         // device_t::owner(): the device that composed this one. A PIT8253's
         // counters reach their chip's out handlers and type through
         // `downcast<pit8253_device *>(owner())`.
@@ -1985,6 +1997,9 @@ class IrDevice implements Device {
     // device_rom_interface is the device's own surface, reached through a
     // reference to it as well: each K053260 voice reads its samples with
     // `m_device.read_byte(...)`, which through `*this` answered 0.
+    if (typeof self.set_unscaled_clock !== 'function') {
+      self.set_unscaled_clock = (next: unknown) => (this.bindings.calls!.set_unscaled_clock as (next: unknown) => unknown)(next);
+    }
     if (definition.romInterface && typeof self.read_byte !== 'function') {
       self.read_byte = (address: unknown) => (this.bindings.calls!.read_byte as (address: unknown) => unknown)(address);
     }

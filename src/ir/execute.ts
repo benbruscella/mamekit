@@ -481,6 +481,11 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   TILEMAP_DRAW_OPAQUE: 0x80,
   // <numbers>: the speaker's sinc kernel steps by `std::numbers::pi / 2 / 4`.
   'std::numbers::pi': Math.PI,
+  // emu/sound.h: a stream that takes the rate of what it connects to. Read as
+  // nothing, every FILTER_RC/BIQUAD and the Game Boy APU allocated at rate 0.
+  SAMPLE_RATE_INPUT_ADAPTIVE: 0xffffffff,
+  SAMPLE_RATE_OUTPUT_ADAPTIVE: 0xfffffffe,
+  SAMPLE_RATE_ADAPTIVE: 0xfffffffd,
   // The flt_biquad MFB setups take Q = `std::numbers::sqrt2 / 2.0`; unbound
   // it was 0 and Sounds Good's three biquads rendered NaN.
   'std::numbers::sqrt2': Math.SQRT2,

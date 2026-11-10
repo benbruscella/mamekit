@@ -887,6 +887,12 @@ export async function runGameAcceptance(
             allWrites.filter(write => (write.method ?? 'register') === method && write.data !== 0).length,
           ]),
         ),
+        nanMethods: Object.fromEntries(
+          [...new Set(allWrites.map(write => write.method ?? 'register'))].map(method => [
+            method,
+            allWrites.filter(write => (write.method ?? 'register') === method && Number.isNaN(Number(write.data))).length,
+          ]),
+        ),
         writes: allWrites.slice(0, 32),
         sharedActivity,
         cpuRegisters: finalCpuRegisters,

@@ -21,10 +21,11 @@ export const venture = sourceTarget({
     { atFrame: 3461, code: 'ArrowUp', heldFrames: 39, releasedFrames: 1 },
     { atFrame: 3501, code: 'ArrowLeft', heldFrames: 30, releasedFrames: 20 },
   ],
+  // The sound board's own stream: its 8253 music and 6840 effects are the
+  // venture_sound_device compiled whole, driven by its 6502 through its own
+  // map, so what proves them is the board's output reaching many levels.
   audioRequirements: [
-    { method: 'sh8253_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
-    { method: 'sh6840_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
-    { method: 'sfxctrl_w', fromFrame: 3100, minimumNonzeroWrites: 100 },
+    { method: 'soundbd.stream', fromFrame: 3100, minimumNonzeroWrites: 100, minimumDistinctValues: 16 },
   ],
   minimumFps: 45,
   minimumAudioRms: 0.02,
