@@ -312,6 +312,16 @@ export async function runGameAcceptance(
 
   const pendingWrites: SoundWrite[] = [];
   const allWrites: SoundWrite[] = [];
+  const streamWavDir = process.env.MAMEKIT_STREAM_WAV;
+  const streamPcm: Record<string, number[]> = {};
+  if (streamWavDir) {
+    process.on('exit', () => {
+      for (const [method, samples] of Object.entries(streamPcm)) {
+        writePcm16Wav(join(streamWavDir, `${contract.game}-${method.replace(/[^\w.-]/g, '_')}.wav`),
+          Float32Array.from(samples), STREAM_WAV_RATE);
+      }
+    });
+  }
   /** Set while the save-state round trip replays; its writes go here instead. */
   let replayWrites: SoundWrite[] | undefined;
   const pendingMutes: { muted: boolean; frac: number }[] = [];
@@ -326,6 +336,9 @@ export async function runGameAcceptance(
       soundWrite: (offset, data, frac, method) => {
         const write = { offset, data, frac, method };
         if (replayWrites) { replayWrites.push(write); return; }
+        // MAMEKIT_STREAM_WAV=<dir>: each observed chip's own stream, as it
+        // reaches the speaker, kept for a WAV of its own (see below).
+        if (streamWavDir && method?.endsWith('.stream')) (streamPcm[method] ??= []).push(Number(data) || 0);
         pendingWrites.push(write);
         allWrites.push(write);
       },
@@ -1266,6 +1279,9 @@ function audioResult(
     },
   };
 }
+
+/** The rate an observed stream reaches the speaker at (the mix's own). */
+const STREAM_WAV_RATE = 48000;
 
 function writePcm16Wav(path: string, pcm: Float32Array, sampleRate: number): void {
   const bytes = Buffer.alloc(44 + pcm.length * 2);

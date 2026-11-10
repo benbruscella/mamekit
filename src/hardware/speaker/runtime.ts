@@ -292,16 +292,26 @@ export function createStreamMixer(
     const from = channel.history.length;
     channel.history.length = from + due;
     channel.history.fill(0, from);
+    // One lane per output, then summed at each output's route gain, as the
+    // speaker-rate path does: a YM2203 at 20.8 kHz writes three SSG outputs
+    // and its FM, routed at 0.4 and 0.2. Written into one slot, each output
+    // overwrote the last and none had its own gain.
+    const lanes: Float64Array[] = [];
+    const lane = (output: number): Float64Array => lanes[Number(output) || 0] ??= new Float64Array(due);
     surface.samples = () => due;
-    surface.put = (_output, at, value) => {
-      if (at >= 0 && at < due) channel.history[from + Number(at)] = Number(value) * channel.outputGain;
+    surface.put = (output, at, value) => {
+      if (at >= 0 && at < due) lane(output)[Number(at)] = Number(value);
       return 0;
     };
-    surface.add = (_output, at, value) => {
-      if (at >= 0 && at < due) channel.history[from + Number(at)] = (channel.history[from + Number(at)] ?? 0) + Number(value) * channel.outputGain;
+    surface.add = (output, at, value) => {
+      if (at >= 0 && at < due) lane(output)[Number(at)]! += Number(value);
       return 0;
     };
     context.callDevice(stream.tag, 'sound_stream_update', surface);
+    lanes.forEach((values, output) => {
+      const weight = (stream.outputGains ? stream.outputGains[output] ?? 0 : 1) * channel.outputGain;
+      if (weight) for (let at = 0; at < due; at++) channel.history[from + at]! += values[at]! * weight;
+    });
     channel.written += due;
   };
   const renderChannels = (stream: typeof streams[number], channels: StreamChannel[], target: number) => {

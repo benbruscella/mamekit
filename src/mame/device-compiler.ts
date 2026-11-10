@@ -1595,6 +1595,32 @@ function compileMameDeviceSource(
       }
     }
   }
+  // A class's non-const static storage, defined out of the class: okiadpcm.cpp's
+  // `int oki_adpcm_state::s_diff_lookup[49*16];`, which compute_tables() fills
+  // and clock() reads, and `bool oki_adpcm_state::s_tables_computed = false;`.
+  // Never declared, both read as nothing: every OKI6295 voice decoded to 0
+  // and the chip was silent.
+  for (const className of hierarchy) {
+    for (const { source } of sources) {
+      for (const match of stripCppComments(source).matchAll(new RegExp(
+        String.raw`(?:^|[;}])\s*((?:unsigned\s+|signed\s+)?[A-Za-z_][\w:]*)\s+${className}::(\w+)\s*(?:\[([^\]]+)\])?\s*(?:=\s*([^;{}()]+))?\s*;`, 'gm'))) {
+        const [, valueType, field, bound, initial] = match;
+        if (/^(?:const|constexpr|static|return)$/.test(valueType!)) continue;
+        const name = emittedMemberName(className, field!);
+        if (members.some(member => member.name === name)) continue;
+        if (bound !== undefined) {
+          const length = evalExpr(bound, constants);
+          if (length === null || !Number.isInteger(length) || length <= 0 || length > 1 << 20) continue;
+          members.push({ name, valueType: valueType!, arrayLength: length, values: new Array<number>(length).fill(0) });
+        } else {
+          const value = initial === undefined ? 0
+            : /^\s*true\s*$/.test(initial) ? 1 : /^\s*false\s*$/.test(initial) ? 0 : evalExpr(initial, constants);
+          if (value === null || !Number.isFinite(value)) continue;
+          members.push({ name, valueType: valueType!, initial: value });
+        }
+      }
+    }
+  }
   const regionResources = Object.fromEntries(members.flatMap(member => {
     // `optional_memory_region m_region_rom(*this, "^maincpu")`: the region
     // itself, asked found(), bytes() and base() (a Neo Geo cartridge's ROMs).
@@ -5022,7 +5048,14 @@ function foreignClassConstants(
   // A class the sources declare but the device does not derive from answers
   // from its own body: a format names `floppy_image::FF_525` and
   // flopimg.h is one of its own sources.
-  for (const [owner, names] of wanted) {
+  // Repeated until nothing more resolves: a class constant may be spelled in
+  // another class's, which a later owner supplies. ymfm's ym2203 declares
+  // `SSG_OUTPUTS = ssg_engine::OUTPUTS`; read before ssg_engine, it fell back
+  // to the leaf name, the YM2610's `SSG_OUTPUTS = 1`, and every YM2203 rotated
+  // its outputs by one -- FM on an SSG route at twice its gain.
+  for (let progress = true; progress && wanted.size;) {
+  progress = false;
+  for (const [owner, names] of [...wanted]) {
     const alias = classes.has(owner) ? undefined : namespaceAliases.get(owner);
     const root = alias?.target ?? owner;
     const declaration = classes.get(root) as { body?: string; templateParameters?: string[] } | undefined;
@@ -5032,14 +5065,18 @@ function foreignClassConstants(
       alias!.args[index] === undefined ? text : text.replace(new RegExp(`\\b${parameter}\\b`, 'g'), alias!.args[index]!), body);
     // With what the class inherits: OPLL's registers take `EG_HAS_REVERB`
     // from `fm_registers_base`.
-    let values = known;
+    let values: Record<string, number> = { ...known, ...found };
     for (const className of classHierarchy(root, classes as Map<string, MameClass>)) {
       values = numericConstants(bound(stripCppComments((classes.get(className) as { body?: string } | undefined)?.body ?? '')), values);
     }
-    for (const name of names) {
-      if (values[name] !== undefined) found[`${owner}::${name}`] = values[name]!;
+    for (const name of [...names]) {
+      if (values[name] === undefined) continue;
+      found[`${owner}::${name}`] = values[name]!;
+      names.delete(name);
+      progress = true;
     }
-    wanted.delete(owner);
+    if (!names.size) wanted.delete(owner);
+  }
   }
   if (!wanted.size) return found;
   // Headers the device's sources include, and theirs in turn, a few levels
