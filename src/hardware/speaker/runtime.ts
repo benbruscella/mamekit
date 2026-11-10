@@ -171,6 +171,9 @@ export function createStreamMixer(
     feeds: sources.some(other => other.inputs?.some(input => input.tag === source.tag)), raw: [] as number[][], rawBase: 0,
     // Set once the device takes a stream below the speaker's rate.
     resampled: false, channels: [] as StreamChannel[],
+    // A chip rendering above the speaker's rate, kept at its own rate for
+    // MAME's resampler (see render): its absolute index and recent samples.
+    lofi: { base: 0, rate: 0, history: [] as number[] },
   }));
   const state = { emitted: 0, streams };
   // The devices an acceptance gate watches, each reported as it renders.
@@ -341,6 +344,13 @@ export function createStreamMixer(
     // spans. A device at machine().sample_rate() (the speaker) renders as is.
     const rate = context.deviceStreamRate?.(stream.tag) ?? 0;
     const native = rate > STREAM_AUDIO_RATE ? rate : 0;
+    // The resampler reads absolute source indices, which hold at one rate: a
+    // chip that changed its own (set_sample_rate) starts its history again.
+    if (native && stream.lofi.rate !== native) {
+      if (stream.lofi.rate) stream.native = Math.floor(stream.rendered * native / STREAM_AUDIO_RATE);
+      stream.lofi.rate = native;
+      stream.lofi.history.length = 0;
+    }
     while (stream.rendered < target) {
       const due = Math.min(MAX_SAMPLES_PER_UPDATE, target - stream.rendered);
       if (!native) {
@@ -365,7 +375,24 @@ export function createStreamMixer(
         for (let at = from; at < to; at++) sum += values[at]!;
         return to > from ? sum / (to - from) : 0;
       });
-      for (const sample of mean(mixed)) stream.pending.push(sample * stream.outputGain * stream.gain);
+      // To the speaker through MAME's own resampler (audio_resampler_lofi,
+      // its default): blocks of 1 + fs/ft native samples averaged, then cubic
+      // interpolation, which rolls the top octave off. A plain mean of each
+      // output's span left an AY at 187.5 kHz up to 6.7 dB brighter than
+      // MAME above 12 kHz (Mat Mania).
+      const lofi = stream.lofi;
+      if (!lofi.history.length) lofi.base = stream.native;
+      for (const sample of mixed) lofi.history.push(sample * stream.outputGain);
+      const out: number[] = [];
+      resampleChannel({ rate: native, outputGain: 1, written: end, base: lofi.base, history: lofi.history, rendered: stream.rendered, pending: out },
+        stream.rendered, due, stream.gain, out);
+      for (const sample of out) stream.pending.push(sample);
+      // Nothing behind the resampler's window is read again.
+      const behind = end - 8 * (2 + Math.floor(native / STREAM_AUDIO_RATE)) - lofi.base;
+      if (behind > RATE_CHANGE_HISTORY) {
+        lofi.history.splice(0, behind - RATE_CHANGE_HISTORY);
+        lofi.base += behind - RATE_CHANGE_HISTORY;
+      }
       if (stream.feeds) keep(stream, lanes, due, mean);
       stream.native = end;
       stream.rendered += due;
@@ -580,6 +607,9 @@ export function createStreamMixer(
         stream.rawBase = 0;
         stream.resampled = false;
         stream.channels.length = 0;
+        stream.lofi.base = 0;
+        stream.lofi.rate = 0;
+        stream.lofi.history.length = 0;
       }
     },
     tickCpu: cpu => { if (cpu === driver && reached() - state.emitted >= MIX_BATCH) mix(); },

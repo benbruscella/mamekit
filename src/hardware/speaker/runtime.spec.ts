@@ -72,17 +72,20 @@ const mixer = (
 
 // A chip that allocated its stream at its own clock steps once a native
 // sample -- an NES cartridge's VRC6 runs at 1.79 MHz -- so it renders at that
-// rate, and each output sample is the mean of the native samples it spans.
+// rate, and reaches the speaker through MAME's own resampler
+// (audio_resampler_lofi): blocks of 1 + fs/ft native samples averaged, cubic
+// interpolation between them, two source samples behind.
 {
   const rendered: { count: number; rate: number }[] = [];
-  let level = 0;
   const chip = mixer({ chip: STREAM_AUDIO_RATE * 4 }, (_tag, surface) => {
     rendered.push({ count: surface.samples(), rate: surface.sample_rate() });
-    for (let index = 0; index < surface.samples(); index++) surface.put(0, index, level++ % 4 < 2 ? 1 : 0);
+    for (let index = 0; index < surface.samples(); index++) surface.put(0, index, 1);
   });
   chip.advance(3 / STREAM_AUDIO_RATE);
   assert.deepEqual(rendered, [{ count: 12, rate: STREAM_AUDIO_RATE * 4 }], 'four native samples per output sample');
-  assert.deepEqual(chip.emitted, [0.25, 0.25, 0.25], 'the mean of each four, at the route gain');
+  chip.advance(61 / STREAM_AUDIO_RATE);
+  assert.deepEqual(chip.emitted.slice(0, 2), [0, 0], 'the resampler starts two source samples behind');
+  for (const sample of chip.emitted.slice(8)) assert.ok(Math.abs(sample - 0.5) < 1e-6, `a held level settles at the route gain (MAME's tables are float32) (${sample})`);
 }
 
 // MAME's `stream.fill`, which a POKEY's sound_stream_update uses, and the
