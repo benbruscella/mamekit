@@ -111,3 +111,38 @@ const mixer = (
 }
 
 console.log('speaker/runtime.spec: speaker-rate and native-rate streams mix at their route gains');
+
+// A chip below the speaker's rate that only feeds another stream device --
+// Berzerk's S14001A at 20-35 kHz into its FILTER_VOLUME -- is read by that
+// device, resampled, at the speaker's rate. Never kept for its reader, the
+// filter heard silence.
+{
+  let seconds = 0;
+  const emitted: number[] = [];
+  const chipSurface = { rate: 24000, outputs: 1, inputs: 0, samples: () => 0, put: (..._: number[]) => 0, add: (..._: number[]) => 0 };
+  const hooks = createStreamMixer({
+    board: { execution: { cpus: [{ tag: 'cpu' }] } },
+    calls: {},
+    time: () => seconds,
+    fraction: () => 0,
+    bindDeviceCall: () => undefined,
+    deviceStreamRate: (tag: string) => (tag === 'chip' ? 24000 : STREAM_AUDIO_RATE),
+    deviceStreams: (tag: string) => (tag === 'chip' ? [chipSurface] : []),
+    callDevice: (tag: string, _method: string, surface: Surface & { get(input: number, index: number): number }) => {
+      for (let index = 0; index < surface.samples(); index++) surface.put(0, index, tag === 'chip' ? 1 : surface.get(0, index));
+      return 0;
+    },
+  } as unknown as SoundRuntimeContext, [
+    { tag: 'chip', gain: 0 },
+    { tag: 'filter', gain: 0.5, inputs: [{ tag: 'chip', output: -1, input: 0, gain: 1 }] },
+  ], sample => emitted.push(sample));
+  // The chip's stream starts with the first frame, as a board's does.
+  seconds = 1 / STREAM_AUDIO_RATE;
+  hooks.tickCpu!('cpu', 1);
+  hooks.endFrame!();
+  seconds = 0.05;
+  hooks.tickCpu!('cpu', 1);
+  hooks.endFrame!();
+  assert.ok(emitted.length >= 2000, 'the frame mixed');
+  assert.ok(Math.abs(emitted.at(-1)! - 0.5) < 1e-6, `the filter passes its slow feeder (${emitted.at(-1)})`);
+}

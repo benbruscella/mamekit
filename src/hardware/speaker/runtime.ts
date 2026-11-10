@@ -77,6 +77,11 @@ interface StreamChannel {
   written: number;
   base: number;
   history: number[];
+  /**
+   * Each output apart, beside `history`, for a stream another device reads:
+   * that reader takes its input before any speaker gain, by output.
+   */
+  lanes?: number[][];
   /** How far this channel has reached the speaker, and what it gave it. */
   rendered: number;
   pending: number[];
@@ -312,22 +317,51 @@ export function createStreamMixer(
       const weight = (stream.outputGains ? stream.outputGains[output] ?? 0 : 1) * channel.outputGain;
       if (weight) for (let at = 0; at < due; at++) channel.history[from + at]! += values[at]! * weight;
     });
+    if (stream.feeds) {
+      channel.lanes ??= [];
+      for (let output = 0; output < Math.max(lanes.length, channel.lanes.length); output++) {
+        const kept = channel.lanes[output] ??= [];
+        kept.length = Math.min(kept.length, from);
+        while (kept.length < from) kept.push(0);
+        const values = lanes[output];
+        for (let at = 0; at < due; at++) kept.push((values?.[at] ?? 0) * channel.outputGain);
+      }
+    }
     channel.written += due;
   };
   const renderChannels = (stream: typeof streams[number], channels: StreamChannel[], target: number) => {
+    // A stream routed into another device is read by output at the speaker's
+    // rate, before its speaker gain, as the other two paths keep it. Never
+    // kept here, Berzerk's S14001A (at 20-35 kHz) fed its FILTER_VOLUME
+    // nothing, and the speech was silent.
+    const fed: Float64Array[] = [];
+    let firstOutput = 0;
     for (const [index, channel] of channels.entries()) {
       updateChannel(stream, index, Math.floor((target - 1) * channel.rate / STREAM_AUDIO_RATE));
+      const outputs = surfaces(stream.tag)[index]?.outputs ?? 1;
       const count = target - channel.rendered;
-      if (count <= 0) continue;
+      if (count <= 0) { firstOutput += outputs; continue; }
       resampleChannel(channel, channel.rendered, count, stream.gain, channel.pending);
+      if (stream.feeds && target > stream.rendered) {
+        const shift = channel.rendered - stream.rendered;
+        channel.lanes?.forEach((history, output) => {
+          const out: number[] = [];
+          resampleChannel({ ...channel, history, pending: out }, channel.rendered, count, 1, out);
+          const lane = fed[firstOutput + output] ??= new Float64Array(target - stream.rendered);
+          out.forEach((value, at) => { if (shift + at >= 0 && shift + at < lane.length) lane[shift + at]! += value; });
+        });
+      }
+      firstOutput += outputs;
       channel.rendered = target;
       // Nothing behind the resampler's window is read again.
       const keep = Math.floor(target * channel.rate / STREAM_AUDIO_RATE) - 8 - channel.base;
       if (keep > RATE_CHANGE_HISTORY) {
         channel.history.splice(0, keep - RATE_CHANGE_HISTORY);
+        for (const lane of channel.lanes ?? []) lane.splice(0, keep - RATE_CHANGE_HISTORY);
         channel.base += keep - RATE_CHANGE_HISTORY;
       }
     }
+    if (stream.feeds && target > stream.rendered) keep(stream, fed, target - stream.rendered, values => values);
     for (let index = stream.rendered; index < target; index++) {
       let sum = 0;
       for (const channel of channels) sum += channel.pending[index - stream.rendered] ?? 0;

@@ -394,6 +394,29 @@ if (allYmOutputs.length !== 1 || allYmOutputs[0]!.channel !== -1 || allYmOutputs
   throw new Error('YM2203 ALL_OUTPUTS did not lower to one route over every stream output');
 }
 
+// A board routed into its owner (`add_route(ALL_OUTPUTS, *this, 1.0)`)
+// leaves through every route of the owner that carries that input: Rampage's
+// Sounds Good board goes to both inputs of its two-channel speaker at 0.75.
+const ownerRoutesGraph: KnowledgeGraph = {
+  meta: graph.meta,
+  nodes: [
+    { id: 'device:board_state.config/sg', label: 'Device', props: { type: 'MIDWAY_SOUNDS_GOOD', cls: 'sg_device', tag: 'sg', config: [] } },
+    { id: 'device:sg_device.device_add_mconfig/filter', label: 'Device', props: { type: 'FILTER_BIQUAD', tag: 'sg:filter', config: [] } },
+    { id: 'route:filter', label: 'AudioRoute', props: { output: 'ALL_OUTPUTS', target: '^', gain: 1 } },
+    { id: 'route:sg/0', label: 'AudioRoute', props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.75, input: 0 } },
+    { id: 'route:sg/1', label: 'AudioRoute', props: { output: 'ALL_OUTPUTS', target: 'speaker', gain: 0.75, input: 1 } },
+  ],
+  edges: [
+    { from: 'device:sg_device.device_add_mconfig/filter', to: 'route:filter', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:board_state.config/sg', to: 'route:sg/0', rel: 'HAS_AUDIO_ROUTE' },
+    { from: 'device:board_state.config/sg', to: 'route:sg/1', rel: 'HAS_AUDIO_ROUTE' },
+  ],
+};
+const ownerRoutes = lowerAudioRoutes(ownerRoutesGraph, [{ id: 'device:sg_device.device_add_mconfig/filter', tag: 'sg:filter' }]);
+if (JSON.stringify(ownerRoutes.map(route => [route.target, route.gain, route.targetInput])) !== JSON.stringify([['speaker', 0.75, 0], ['speaker', 0.75, 1]])) {
+  throw new Error(`a route into the owner must leave by each of the owner's routes: ${JSON.stringify(ownerRoutes)}`);
+}
+
 const filterHandlers = [
   {
     id: 'flat',

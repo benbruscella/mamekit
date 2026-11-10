@@ -1481,24 +1481,23 @@ export function lowerAudioRoutes(
     const singleOutput = config.includes('AY8910_SINGLE_OUTPUT');
     for (const edge of graph.edges.filter(candidate =>
       candidate.from === device.id && candidate.rel === 'HAS_AUDIO_ROUTE')) {
-      let node = byId.get(edge.to);
-      if (!node) continue;
-      let gain = Number(node.props.gain);
+      const own = byId.get(edge.to);
+      if (!own) continue;
       // Which of the chip's outputs this route carries is the chip's own
       // route's to say, wherever the signal goes on from there.
-      const chipOutput = String(node.props.output);
+      const chipOutput = String(own.props.output);
       // A chip routed into its owner (a slot card's AY, the SSIO's two AYs)
-      // reaches the speaker through the owner's own route, at the product of
-      // the gains: the owner's input N comes out of its output N.
-      if (node.props.target === '^' || node.props.target === '^^') {
-        const owner = routeOwner(graph, device.id, node.props.target === '^^');
-        const onward = owner ? resolvedAudioRoute(graph, byId, owner.id, Number(node.props.input)) : undefined;
-        if (!onward && node.props.target === '^^') continue;
-        if (onward) {
-          gain *= onward.gain;
-          node = onward.route;
-        }
+      // reaches the speaker through the owner's own routes, at the product of
+      // the gains: the owner's input N comes out of its output N, on every
+      // route that carries it.
+      let hops = [{ node: own, gain: Number(own.props.gain) }];
+      if (own.props.target === '^' || own.props.target === '^^') {
+        const owner = routeOwner(graph, device.id, own.props.target === '^^');
+        const onward = owner ? resolvedAudioRoutes(graph, byId, owner.id, Number(own.props.input)) : [];
+        if (!onward.length && own.props.target === '^^') continue;
+        if (onward.length) hops = onward.map(next => ({ node: next.route, gain: Number(own.props.gain) * next.gain }));
       }
+      for (const { node, gain } of hops) {
       const target = String(node.props.target);
       const targetInput = Number(node.props.input);
       const rawOutput = chipOutput;
@@ -1519,6 +1518,7 @@ export function lowerAudioRoutes(
           ...(Number.isInteger(targetInput) ? { targetInput } : {}),
         });
       }
+      }
     }
   });
   return routes;
@@ -1531,33 +1531,46 @@ export function lowerAudioRoutes(
  * tags, clocks, modes and routes remain facts from the machine graph.
  */
 /**
- * A device's audio route to a speaker, following routes into an owning device
- * (`add_route(ALL_OUTPUTS, *this, 0.10)` inside the Williams ADPCM board, which
- * the driver routes to "speaker" at 1.0) and multiplying the gains on the way.
+ * A device's audio routes to the speakers, following routes into an owning
+ * device (`add_route(ALL_OUTPUTS, *this, 0.10)` inside the Williams ADPCM
+ * board, which the driver routes to "speaker" at 1.0) and multiplying the
+ * gains on the way. Input N of a device comes out of its output N, on every
+ * route that carries that output or all of them: Rampage's Sounds Good board
+ * goes to both inputs of a two-channel speaker at 0.75, and followed to the
+ * first alone its mono mix was 0.375, 6 dB down.
  */
-function resolvedAudioRoute(
+function resolvedAudioRoutes(
   graph: KnowledgeGraph,
   byId: ReadonlyMap<string, KGNode>,
   deviceId: string,
   firstOutput?: number,
-): { route: KGNode; gain: number } | undefined {
-  let gain = 1;
-  let current = deviceId;
-  for (let depth = 0; depth < 8; depth++) {
-    const edges = graph.edges.filter(candidate =>
-      candidate.from === current && candidate.rel === 'HAS_AUDIO_ROUTE');
-    const edge = depth === 0 && Number.isInteger(firstOutput)
-      ? edges.find(candidate => Number(byId.get(candidate.to)?.props.output) === firstOutput) ?? edges[0]
-      : edges[0];
-    const route = edge ? byId.get(edge.to) : undefined;
-    if (!route) return undefined;
-    gain *= Number(route.props.gain);
-    if (route.props.target !== '^' && route.props.target !== '^^') return { route, gain };
-    const owner = routeOwner(graph, current, route.props.target === '^^');
-    if (!owner) return undefined;
-    current = owner.id;
+  depth = 0,
+): { route: KGNode; gain: number }[] {
+  if (depth >= 8) return [];
+  const edges = graph.edges.filter(candidate =>
+    candidate.from === deviceId && candidate.rel === 'HAS_AUDIO_ROUTE');
+  // A route that names no input reaches input 0 (`u32 channel = 0`).
+  const input = Number.isInteger(firstOutput) ? firstOutput : 0;
+  const carrying = edges.filter(candidate => {
+    const output = String(byId.get(candidate.to)?.props.output);
+    return output === 'ALL_OUTPUTS' || Number(output) === input;
+  });
+  const found: { route: KGNode; gain: number }[] = [];
+  for (const edge of carrying.length ? carrying : edges.slice(0, 1)) {
+    const route = byId.get(edge.to);
+    if (!route) continue;
+    const gain = Number(route.props.gain);
+    if (route.props.target !== '^' && route.props.target !== '^^') {
+      found.push({ route, gain });
+      continue;
+    }
+    const owner = routeOwner(graph, deviceId, route.props.target === '^^');
+    if (!owner) continue;
+    for (const next of resolvedAudioRoutes(graph, byId, owner.id, Number(route.props.input), depth + 1)) {
+      found.push({ route: next.route, gain: gain * next.gain });
+    }
   }
-  return undefined;
+  return found;
 }
 
 
