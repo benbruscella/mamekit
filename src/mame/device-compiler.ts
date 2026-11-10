@@ -3144,7 +3144,20 @@ function methodSignature(name: string, parameters: string): string {
   // `reset(void)` overrides `reset()`: every DISCRETE node defines its methods
   // through DISCRETE_RESET, which spells the empty list as `(void)`.
   const list = parameters.replace(/\s+/g, ' ').trim();
-  return `${name}(${list === 'void' ? '' : list})`;
+  if (list === 'void' || list === '') return `${name}()`;
+  // Types only: an override may name its parameters differently, and is
+  // still the override. ym2610_device_base's `ymfm_external_read(access_class
+  // type, uint32_t offset)` replaces ym_generic_device's `(..., uint32_t
+  // address)`; kept as an overload, the base answered first and every ADPCM
+  // fetch read 0 -- Metal Slug's ADPCM was silent.
+  const types = splitMameArgs(list).map(parameter => {
+    const plain = parameter.replace(/=[\s\S]*$/, '').trim().replace(/\b\w+::/g, '');
+    const named = /^(.*?[\w>*&\]])\s*\b([A-Za-z_]\w*)\s*((?:\[[^\]]*\])*)$/.exec(plain);
+    return (named && !/^(?:const|unsigned|signed|long|short|int|char|bool|float|double|void|struct)$/.test(named[2]!) && named[1]!.trim()
+      ? `${named[1]!.trim()}${named[3] ?? ''}`
+      : plain).replace(/\s+/g, ' ');
+  });
+  return `${name}(${types.join(',')})`;
 }
 
 export function mameDeviceRomSet(
