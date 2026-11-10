@@ -325,7 +325,9 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   s = s.replace(/\b(0[xX][0-9a-fA-F]+|\d+)(?:[uU][lL]{0,2}|[lL]{1,2}[uU]?)\b/g, '$1');
   // So is a float literal's: flt_vol.cpp's constructor sets `m_gain(1.0f)`,
   // which unread was 0, and Berzerk's speech went through a filter at gain 0.
-  s = s.replace(/(\d+\.\d*|\.\d+|\d+(?=[eE]))((?:[eE][+-]?\d+)?)[fF]\b/g, '$1$2');
+  // Only a whole decimal literal: inside hex, `0x8e7f` is popeye's dmasource
+  // end, not `8e7` with a suffix.
+  s = s.replace(/(?<![\w.])(\d+\.\d*|\.\d+|\d+(?=[eE]))((?:[eE][+-]?\d+)?)[fF]\b/g, '$1$2');
   // An unsigned functional cast keeps its width: the AND-gate input merger
   // hands its base `~u32(0)` as both its initial state and its XOR mask.
   for (let cast; (cast = /\b(?:u(8|16|32)|uint(8|16|32)_t)\s*\(/.exec(s));) {

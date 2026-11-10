@@ -371,6 +371,10 @@ eq('expression bitwise precedence', evalExpr('(3 << 4) | (7 & 3) ^ 1'), 48 | (3 
 eq('expression logical and/not', evalExpr('(!(feature & 8)) && (type == 0)', { feature: 2, type: 1 }), 0);
 eq('expression logical or', evalExpr('a || b && 0', { a: 0, b: 1 }), 0);
 eq('expression complement', evalExpr('~0 & 0xff'), 255);
+// A float literal's suffix is dropped (flt_vol's `m_gain(1.0f)`), but never
+// inside a hex literal: popeye maps `0x8c00, 0x8e7f`.
+eq('expression float suffix', evalExpr('1.0f + 0.5f'), 1.5);
+eq('expression hex is not a float', evalExpr('0x8e7f'), 0x8e7f);
 // An unsigned functional cast keeps its width: the AND-gate input merger's
 // constructor passes its base `~u32(0)`.
 eq('expression u32 cast', evalExpr('~u32(0)'), 0xffffffff);
