@@ -1965,9 +1965,14 @@ class IrDevice implements Device {
         // device_t::started(): the OKI asserts it before configuring PIN7.
         started: () => this.deviceStarted ? 1 : 0,
         // device_t::reset(), which a device calls on itself: a TMS5220C
-        // resets when the board pulls its /RS (rsq_w). A class with a reset
-        // method of its own keeps it (the method is found first).
-        reset: () => { this.reset(); return 0; },
+        // resets when the board pulls its /RS (rsq_w). Only for a class with
+        // no `reset` of its own: the call table answers before the method on
+        // a board's effect, and namco_51xx_device::reset(int), which pulses
+        // the MCU's reset line, reset the whole chip on every latch write
+        // instead -- Xevious's 51xx answered late and its attract diverged.
+        ...(definition.methods.some(method => method.name === 'reset') ? {} : {
+          reset: () => { this.reset(); return 0; },
+        }),
         // A source handler named in an address map, `FUNC(cls::method)`,
         // and a lambda given a name for the debugger, `NAME([this]() {...})`.
         FUNC: (handler: unknown) => handler,

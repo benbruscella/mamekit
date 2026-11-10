@@ -157,3 +157,44 @@ With contract input, gyruss is 1.68 onsets a second off MAME, travrusa 0.63,
 junglek 0.59 and btime 0.43, while level and bands match. The AYs render at
 their native rate and are averaged to 48 kHz on the way into the table, where
 MAME's resampler sits. That is the likely difference, unconfirmed.
+
+## 4. FROM #242 (PR #243)
+
+Measured against baseline `e11059da`.
+
+### 4.1 Gauntlet's compiled TMS5220C reports busy where MAME's is ready
+
+Since the TMS5220C compiles whole (#242), Gauntlet's sound CPU reads the
+chip's READY through `switch_6502_r` (`1030`) and sees it busy
+(`30`) at frame 440 where MAME sees it ready (`10`). At frame 479 our sound CPU
+runs its init again (an extra `mixer_w` write MAME never makes), and from there
+its RAM is about 50 bytes further from MAME on every frame (100,457 bytes over
+1,800 frames, against 10,227 at baseline). With no input it also plays sound
+that MAME and the baseline do not (MAME is exactly silent for the first 30 s).
+
+- The baseline's hand engine matched MAME here, bus access for bus access.
+- Between `e172bf9b` (the TMS compiled) and `4a50149c` Gauntlet did not run at
+  all (an unresolved `reset()` in `rsq_w`), so no commit bisects it further.
+- Ruled out: the device self-reset `rsq_w` calls (stubbed to do nothing, the
+  read still differs), emitted struct methods, `started()`, and the new
+  `set_unscaled_clock` forwarding.
+- Where to start: `ready_read()` and the `set_io_ready` timer
+  (`clocks_to_attotime(16)` while the FIFO is full in speak-external mode),
+  against when our stream drains the FIFO.
+
+### 4.2 Venture's compiled sound board renders its jingle without its tone
+
+With no input Venture plays one jingle at 7–8 s. Ours is 5.5 dB quieter over the
+run and, in the jingle, 9–25 dB short from 250 Hz up: the tone is missing and
+what is left falls off evenly from 60 Hz, like a level step. The baseline's hand
+engine was within 0.3 dB.
+
+- Every write the sound CPU makes to the 8253, 6840, filter and effects-control
+  registers is identical to MAME's over the first 600 frames (`--io
+  soundbd:audiocpu:1800-3003:w`), so the difference is in how
+  `exidy_sh8253_sound_device` renders, not in what it is told.
+- The 8253 runs in mode 0 on both sides (control `0x30`), so its outputs change
+  only at terminal count and the tone is not the music path.
+- Where to start: the 6840 channels in `sound_stream_update` (the union
+  `counter`, `sh6840_apply_clock`, `m_sh6840_volume`), rendered at the board's
+  1.79 MHz stream rate.
