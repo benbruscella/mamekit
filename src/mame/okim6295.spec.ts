@@ -37,3 +37,11 @@ stream.put = (_channel, index, value) => { out[index] = value; return 0; };
 stream.add = (_channel, index, value) => { out[index]! += value; return 0; };
 chip.invoke('sound_stream_update', stream);
 assert.ok(out.some(value => value > 0.5), `a playing voice decodes its ADPCM (${out.slice(0, 8).map(value => value.toFixed(3)).join(', ')})`);
+
+// okiadpcm.cpp defines two decoders, and each has a static s_index_shift:
+// oki_adpcm_state's {-1,-1,-1,-1,2,4,6,8} and oki_adpcm2_state's
+// {-2,-2,-2,-2,2,6,9,11}. Taken by name, the OKIM6295 stepped by the second,
+// overshot within a phrase and saturated: Final Fight's attract voice came
+// out in holes. Nibble 7 every sample, MAME's decoder gives these.
+assert.deepEqual(out.slice(0, 5).map(value => Math.round(value * 2048)), [30, 93, 229, 522, 1153],
+  `the OKIM6295 decodes with oki_adpcm_state's own step shifts (${out.slice(0, 5).map(value => Math.round(value * 2048)).join(', ')})`);

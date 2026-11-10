@@ -1172,14 +1172,14 @@ function compileMameDeviceSource(
   const tableNames = Object.keys(sourceTables);
   if (tableNames.length) {
     const reads = new RegExp(`\\b(?:${tableNames.map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*\\[`);
-    for (const list of Object.values(structMethods)) {
+    for (const [struct, list] of Object.entries(structMethods)) {
       list.forEach((method, index) => {
         const body = STRUCT_METHOD_SOURCE.get(method.program);
         if (body === undefined || !reads.test(body)) return;
         const recompiled = compileMethod(
           { kind: 'function', className: '', name: method.name, parameters: method.parameters, body,
             span: { file: '', line: 0, column: 0 } } as unknown as MameFunction,
-          [], sourceTables, functionMacros, memberAliases, stringMacros,
+          [], sourceTables, functionMacros, memberAliases, stringMacros, struct,
         );
         if (!recompiled.program.diagnostics.length) list[index] = { ...method, program: recompiled.program };
       });
@@ -3969,6 +3969,7 @@ function compileMethod(
   functionMacros: readonly FunctionMacro[] = [],
   memberAliases: readonly MemberAliasMacro[] = [],
   stringMacros: Readonly<Record<string, string>> = {},
+  owner: string = method.className ?? '',
 ): GeneratedDeviceMethod {
   let body = expandMemberAliasMacros(
     expandFunctionMacros(expandLocalMacros(method.body), functionMacros),
@@ -4014,7 +4015,15 @@ function compileMethod(
     );
   }
   const subscript = '((?:[^\\[\\]]|\\[[^\\]]*\\])*)';
+  // A table by its bare name, unless the method's own class defines one of
+  // that name: then that one (constantTables keeps both).
+  const tables: Record<string, ConstantTable> = {};
+  for (const [name, table] of Object.entries(sourceTables)) if (!name.includes('::')) tables[name] = table;
   for (const [name, table] of Object.entries(sourceTables)) {
+    const at = name.lastIndexOf('::');
+    if (at > 0 && owner && name.slice(0, at) === owner) tables[name.slice(at + 2)] = table;
+  }
+  for (const [name, table] of Object.entries(tables)) {
     // A table this method declares itself is a local, and the execution-source
     // normalizer folds those together with their declaration. Substituting
     // here as well leaves `static const double TABLE(...) = {...}` behind.
@@ -5383,34 +5392,41 @@ function constantTables(source: string): Record<string, ConstantTable> {
   // Or a class's own static, defined out of the class as MAME defines one:
   // k053260.cpp's `const int k053260_device::pan_mul[8][2] = { ... };`.
   for (const match of source.matchAll(
-    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+\w+::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
+    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
   )) {
-    const columns = Number(match[3]);
-    const values = [...match[4]!.matchAll(/\{([^{}]*)\}/g)]
+    const columns = Number(match[4]);
+    const values = [...match[5]!.matchAll(/\{([^{}]*)\}/g)]
       .flatMap(row => splitMameArgs(row[1]!).map(value => value.trim()).filter(Boolean));
-    if (values.length !== Number(match[2]) * columns) continue;
-    tables[match[1]!] = { values, columns };
+    if (values.length !== Number(match[3]) * columns) continue;
+    tables[match[2]!] = { values, columns };
+    if (match[1]) tables[`${match[1]}::${match[2]}`] = { values, columns };
   }
   for (const match of source.matchAll(
     // The element type may be qualified: okim6295.cpp's
     // `const sound_stream::sample_t okim6295_device::s_volume_table[16]`, which
     // missed left every voice's volume undefined and the OKI rendering NaN.
     // `static constexpr double out_pos_gain[] = {...}` (sn76477.cpp) is one too.
-    /(?:\bstatic\s+(?:const\s+|constexpr\s+)?[\w:]+\s+|(?<=^|[;}])\s*const\s+[\w:]+\s+\w+::)(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/gm,
+    /(?:\bstatic\s+(?:const\s+|constexpr\s+)?[\w:]+\s+|(?<=^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[([^\]]*)\]\s*=\s*\{([^{}]+)\}\s*;/gm,
   )) {
     if (!/^\s*(?:static\s+)?(?:const|constexpr)\b/.test(match[0])) {
       const uses = source.replace(match[0], '');
-      const name = match[1]!;
+      const name = match[2]!;
       if (new RegExp(`\\b${name}\\s*\\[[^\\]]+\\]\\s*(?:[+*/&|^-]?=|\\+\\+|--)`).test(uses) ||
           new RegExp(`(?:&|\\+\\+|--)\\s*${name}\\b`).test(uses) ||
           new RegExp(`\\b${name}\\b(?!\\s*\\[)`).test(uses)) continue;
     }
     // Zero past the last initializer, to the declared length: the TMS36xx's
     // `tune1[96*6]` writes 192 of its 576 entries.
-    const values = splitMameArgs(match[3]!).map(value => value.trim());
-    const declared = match[2]!.trim() ? evalExpr(match[2]!, {}) : null;
+    const values = splitMameArgs(match[4]!).map(value => value.trim());
+    const declared = match[3]!.trim() ? evalExpr(match[3]!, {}) : null;
     if (declared !== null && declared > values.length) values.push(...Array.from({ length: declared - values.length }, () => '0'));
-    tables[match[1]!] = { values };
+    tables[match[2]!] = { values };
+    // Two classes of one source can each define a static of the same name:
+    // okiadpcm.cpp's oki_adpcm_state and oki_adpcm2_state both have an
+    // s_index_shift, and by name alone the second won, so the OKIM6295 stepped
+    // by the MSM6585's shifts and saturated within a phrase. The owner's own
+    // is kept by its qualified name too (see compileMethod).
+    if (match[1]) tables[`${match[1]}::${match[2]}`] = { values };
   }
   // A table of C strings: the CRT format's `static char const *const
   // CRT_C64_SLOT_NAMES[] = { "standard", UNSUPPORTED, "final3", ... }`, the

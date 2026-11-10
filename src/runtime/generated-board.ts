@@ -1105,11 +1105,11 @@ class IrBoard implements Board {
                 return (line: number, state: number) => {
                   const cpu = this.cpus.get(cpuSpec.tag);
                   if (cpu) {
-                    applyGeneratedCpuInputLine(
+                    this.cpuInputLine(
+                      cpuSpec.tag,
                       cpu,
                       line,
                       state,
-                      held => this.cpuHeld.set(cpuSpec.tag, held),
                     );
                   }
                 };
@@ -2599,21 +2599,21 @@ class IrBoard implements Board {
         return 0;
       };
       calls[`m_${specification.tag}.set_input_line`] = (line, state) => {
-        applyGeneratedCpuInputLine(
+        this.cpuInputLine(
+          specification.tag,
           cpu,
           line,
           state,
-          held => this.cpuHeld.set(specification.tag, held),
           state !== 0 ? interruptVector : 0xff,
         );
       };
       calls[`m_${specification.tag}.set_input_line_and_vector`] =
         (line, state, vector) => {
-          applyGeneratedCpuInputLine(
+          this.cpuInputLine(
+            specification.tag,
             cpu,
             line,
             state,
-            held => this.cpuHeld.set(specification.tag, held),
             vector & 0xff,
           );
         };
@@ -3305,6 +3305,14 @@ class IrBoard implements Board {
       processors: [...machine.execution.cpus.map(specification => ({
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
+        // Held in RESET or HALT, MAME's timeslice still books the slice to
+        // the processor (eatcycles): its machine time while it runs again is
+        // the machine's, not short by every cycle it sat out. Rampage's sound
+        // 68000, held 0.9 s at boot, stamped each DAC write 0.9 s behind the
+        // mixer, so none rendered at its own time.
+        eat: (cycles: number) => {
+          this.cpuCycles.set(specification.tag, (this.cpuCycles.get(specification.tag) ?? 0) + cycles);
+        },
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
         // A core MAME stops between bus cycles stands, mid-instruction, at
         // the cycles before this instruction and those it has paid for so far
@@ -3681,11 +3689,40 @@ class IrBoard implements Board {
    * execute_set_input. Arkanoid's Z80 holds its 68705 in reset through the
    * interface's reset_w, and the firmware's handshake depends on the restart.
    */
+  /**
+   * set_input_line on a generated CPU. RESET and HALT driven by another
+   * processor change through scheduler().synchronize(), as
+   * device_input::set_state_synced does, so the processor they hold or
+   * release first runs up to the time the line was driven: Rampage's Z80
+   * asserts its sound 68000's RESET 12 us in, and MAME's 68000 has written
+   * its PIA's DDRs and control registers by then.
+   */
+  private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
+    const apply = () => applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+    if ((line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) && this.synchronizesLineFrom(tag)) this.synchronize(apply);
+    else apply();
+  }
+
+  /** Whether a RESET or HALT on `tag` is driven from another running processor. */
+  private synchronizesLineFrom(tag: string): boolean {
+    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning;
+  }
+
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {
     if (line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) {
-      const held = state !== 0;
-      if (!held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag)) device.reset();
-      this.cpuHeld.set(tag, held);
+      const apply = () => {
+        const held = state !== 0;
+        if (!held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag)) device.reset();
+        this.cpuHeld.set(tag, held);
+      };
+      // device_input::set_state_synced: the line changes through
+      // scheduler().synchronize(), so a processor another one holds or
+      // releases first runs up to the time the line was driven. Rampage's
+      // Z80 asserts the sound 68000's RESET 12 us in; MAME's 68000 has made
+      // its first four PIA writes by then (DDR and control), and without
+      // them its release at 0.9 s wrote the DDR where MAME writes port A.
+      if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
+      else apply();
       return 0;
     }
     // device_input (diexec.cpp): HOLD_LINE reaches the core as ASSERT_LINE
@@ -5838,11 +5875,11 @@ class IrBoard implements Board {
                 set_input_line: (line: number, state: number) => {
                   const cpu = this.cpus.get(scopedCpuTag);
                   if (cpu) {
-                    applyGeneratedCpuInputLine(
+                    this.cpuInputLine(
+                      scopedCpuTag,
                       cpu,
                       line,
                       state,
-                      held => this.cpuHeld.set(scopedCpuTag, held),
                     );
                   }
                 },
