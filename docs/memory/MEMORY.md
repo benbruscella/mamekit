@@ -1,0 +1,164 @@
+# Memory index
+
+- [Worklet backlog latency](worklet-backlog-latency.md) — queued worklet frames are permanent audio lag
+- [Unsigned shift lowering](unsigned-shift-lowering.md) — cpu-codegen's signed `>>` broke m68k SWAP (ghouls #75)
+- [MAME reference capture](mame-reference-capture.md) — user's real MAME 0.289 binary path + Lua write-tap recipe (GC pitfall!)…
+- [Dist rebuild pitfalls](dist-rebuild-pitfalls.md) — single-target gen recompiles the app from the current tree
+- [Known broken targets](known-broken-targets.md) — history of every broken target
+- [Frugal blast radius](frugal-blast-radius.md) — after runtime-wide fixes, derive impacted games by mechanism and hand…
+- [Digdug 2/3 logic rate — SOLVED](digdug-music-overrun.md) — devcb read-transform + OR-chain bugs collapsed the Namco 53xx mode…
+- [Compiler, not porter](compiler-not-porter.md) — core principle: no hand-crafted game-specific files ever
+- [Acceptance harness coverage gap](acceptance-harness-coverage-gap.md) — harness bypasses shell audio path
+- [Gen cache policy](gen-cache-policy.md) — .cache/ tagged with MAME rev OK
+- [Frame render point](frame-render-point.md) — frame-mode video must present at vbstart like MAME, not end-of-frame
+- [Artwork CDN bucket](artwork-cdn-bucket.md) — metadata-REPLACE wipes Content-Type
+- [Defender attract trap](defender-attract-trap.md) — needs ~6 Start presses
+- [Venture silent RIOT IRQ](venture-silent-riot-irq.md) — #63 unfixed
+- [Zaxxon vblank phase](zaxxon-vblank-phase.md) — #70 residual: one vblank ahead of MAME, demo diverges ~frame 354
+- [DAC width from MAME](dac-width-from-mame.md) — DAC bits come from dac.h DAC_GENERATOR
+- [Scanline interleave limit](scanline-interleave-limit.md) — 69us CPU quantum swallows fine handshakes
+- [Stale main dist baseline](stale-main-dist-baseline.md) — the sibling checkout's dist can predate its own source
+- [Codegen/interpreter parity](codegen-interpreter-parity.md) — #77/PR #80: wired-hot handler codegen doubled CPS1 fps and exposed C++…
+- [Acceptance segfault](node-rom-inflate-segfault.md) — zero-byte log = a native crash, retry it
+- [Emitter/interpreter parity](emitter-interpreter-parity.md) — six #77 bugs, all "declared type vs runtime value"
+- [Browser/Node contract divergence](browser-node-contract-divergence.md) — a reset rewinds the frame counter
+- [CPS1 sprite replica](cps1-sprite-replica.md) — DRAWSPRITE is an unexpanded macro, so a handwritten sprite loop in…
+- [Device clock vs beam](device-clock-vs-beam.md) — device timers are armed against raster positions
+- [Pointer member types](pointer-member-types.md) — a dropped `*` made `Number(uint8Array)` stringify the CHR ROM
+- [NES console shelf](nes-console-shelf.md) — support list + fetchable dump + box scan are one derived contract
+- [Single-target gen scope](single-target-gen-scope.md) — device codegen only re-emits under --build-runtime, never a…
+- [e2e live-audio gap](e2e-live-audio-gap.md) — the "audible at full speed" test fails for every game and is…
+- [MAME frame-diff rotation](mame-frame-diff-rotation.md) — ours is native, MAME's is rotated
+- [Latch burst interleave](latch-burst-interleave.md) — our per-scanline quantum is finer than MAME's
+- [16-bit bank windows](sixteen-bit-bank-window.md) — a bankr window read by word returns every other byte
+- [Audio engine placement](audio-engine-placement.md) — worklet vs main thread is decided by what reads the chip back
+- [M68K icount cycles](m68k-icount-cycles.md) — the generated 68000 threw away every in-body cycle charge and lowered…
+- [Cold nvram boot divergence](cold-nvram-boot-divergence.md) — MAME rewrites -nvram_directory on exit
+- [Device-owned gfxdecode](device-owned-gfxdecode.md) — a device_gfx_interface device owns its own gfx table and answers its…
+- [Device handler namespace](device-handler-namespace.md) — device-class handlers share one flat member namespace and were resolved…
+- [Device delegate config](device-delegate-config.md) — set_*_callback is device configuration, bound to the device and kept…
+- [Direct screen shape guards](direct-screen-shape-guards.md) — a failed type guard silently drops a board back to the interpreter…
+- [Arkanoid MCU is live](arkanoid-mcu-live.md) — the PC-keyed boot shim is deleted
+- [Silent mis-lowering](silent-mislowering.md) — `diagnostics: []` is not proof
+- [npm exit codes through a pipe](npm-exit-code-through-pipe.md) — `test:games | tail` reported 0 after dying on game 21 of 56
+- [Atari 2600 milestone](a2600-milestone.md) — #94: carts boot and play at 54-86 fps
+- [MAME framework runtime gaps](mame-framework-runtime-gaps.md) — nine silent framework gaps between "runs" and "draws"
+- [Handler-IR C++ gaps](handler-ir-cpp-gaps.md) — the 2600 was blocked by plain C++, not hardware
+- [ColecoVision milestone](coleco-milestone.md) — #95: VDP + cart bus source-complete
+- [Cart shelf naming](cart-shelf-naming.md) — shelves use MAME short names
+- [Device codegen parity](device-codegen-parity.md) — 3 emitter bugs behind coleco's 17 fps
+- [PORT_CONDITION controls](port-condition-controls.md) — alternate controllers share ports
+- [TIA audio](tia-audio.md) — 2600 sound matches real MAME
+- [Device clock is u32](device-clock-u32.md) — a fractional clock() sent the TIA down a branch MAME never takes
+- [total_cycles mid-instruction](total-cycles-mid-instruction.md) — a frozen cycle count put every 2600 sprite 3px left
+- [Statement macro expansion](statement-macro-expansion.md) — expand statement macros only
+- [a2600 verified behaviour](a2600-verified-behaviour.md) — "can't shoot" in Space Invaders is authentic, matched pull-for-pull vs…
+- [Device children and delegates](device-children-and-delegates.md) — mconfig children, handler delegates and nested timers
+- [Struct field widths](struct-field-widths.md) — untyped struct fields broke a uint8_t carry
+- [MAME listxml port audit](mame-listxml-port-audit.md) — -listxml is ground truth for port power-on values
+- [CPU header comment trap](cpu-header-comment-trap.md) — a block comment with a comma shifted 128 i86 cycle constants
+- [Game Boy milestone](gameboy-milestone.md) — #102/PR #110: LR35902 + PPU + APU + 17 cart boards source-complete
+- [Device machine time](device-machine-time.md) — machine().time ticks once per frame and attotime_to_cycles is unbound
+- [Stale goldens on main](stale-goldens-on-main.md) — 10 of 56 acceptance games already fail on clean main (2026-08-31)
+- [Game Boy blank screen](gameboy-blank-screen.md) — #102: eleven gaps between "runs" and "draws"
+- [Gen cache masks breaks](gen-cache-masks-breaks.md) — a green gen:all is not proof the compiler still builds from source
+- [Dist rebuild breaks sweeps](dist-rebuild-breaks-sweeps.md) — a rebuild mid-sweep fakes a contiguous block of FAILs
+- [Codegen silent zero](codegen-silent-zero.md) — emitted code answers an unresolvable member call with 0
+- [Interpreter share is the budget](interpreter-share-is-the-budget.md) — profile by module then count calls/frame
+- [Declared member widths](declared-member-widths.md) — in-class initializers hid every member
+- [Free-function lowering](free-function-lowering.md) — file-scope C++ helpers were never parsed
+- [Runtime cost of declared types](runtime-cost-of-declared-types.md) — GB 33.7→68.9 fps
+- [Acceptance run flake](acceptance-run-flake.md) — 1-2 of 61 games fail per sweep, different each time, always pass on…
+- [Board sound vs app sound](board-sound-vs-app-sound.md) — two sound plans
+- [Computer software room](computer-software-room.md) — #101: per-list software/<list>.json shelves, software.ts room, MAME…
+- [Dictionary-mode call tables](dictionary-mode-call-tables.md) — c64p 45→66 fps: 1,821-key calls table is V8 dictionary-mode
+- [Branch 101 stale goldens](branch-101-stale-goldens.md) — PR #122 CI: 8 audio contracts, four root causes
+- [e2e webServer is the browser check](e2e-webserver-is-the-browser-check.md) — Playwright's own --serve is the sanctioned browser check without a dev…
+- [Save-state walker](save-state-walker.md) — #129: structural walk + stateKeys/hostModel
+- [Browser memory + ROM library](browser-memory-rom-library.md) — #131/#132: sets, NVRAM and hiscore.dat persist in IndexedDB
+- [Frame-boundary input](frame-boundary-input.md) — #128: advance()'s four phases are load bearing
+- [Attribution from release notes](attribution-from-release-notes.md) — credit = MAMEDEV notes + copyright-holders, never git log
+- [listxml fact oracle](listxml-fact-oracle.md) — audit:facts vs MAME's own -listxml
+- [Warm cache outlives code](warm-cache-outlives-code.md) — .cache keyed only by MAME revision serves the OLD shape
+- [Disabled-target diagnosis](disabled-target-diagnosis.md) — dev-game + MAMEKIT_OUT_ROOT keeps the dev server's dist intact
+- [Wardner DSP handshake](wardner-dsp-handshake.md) — #143 diagnosis: no TMS32010, so the Z80 spins at 0x6cbd on RAM 0x7002
+- [TMS320C10 core](tms320c10-core.md) — #143 fix: wardner boots and the DSP handshake completes
+- [Disabled four status](disabled-four-status.md) — #142: spyhunt + sinistar play
+- [Sinistar works](sinistar-works.md) — #113: cold-CMOS operator menu is authentic (press Advance)
+- [Analog controls unbound](analog-controls-unbound.md) — IPT_AD_STICK/IPT_PADDLE were never bound and KEYMAP stops at BUTTON3
+- [Wardner YM3812](wardner-ym3812.md) — #143 done: YM3812 is a YM3526 the OPL timer runtime already had
+- [Serve from dist](serve-from-dist.md) — `npm run serve` serves dist
+- [Spy Hunter SSIO sound](spyhunt-ssio-sound.md) — three stacked faults: clock() in device_add_mconfig, m_cpu on a map…
+- [device_start scope](device-start-scope.md) — lowering it for every board device broke gauntlet
+- [Palette share adoption](palette-share-adoption.md) — adopt the board's share only when the bus never writes it (wardner yes…
+- [Marble software watchdog](marble-software-watchdog.md) — #93: RAM-exact vs MAME (scheduler synchronize + 68010 prefetch)
+- [MAME scheduler synchronize](mame-scheduler-synchronize.md) — synchronize/lockstep + rounds on a scanline TIMER cadence
+- [Musashi prefetch and slapstic](musashi-prefetch-slapstic.md) — MAME's 68010 prefetches PC+2
+- [Joystick gate and taps](joystick-gate-and-taps.md) — #144: PORT_nWAY never lowered (19 four-way machines)
+- [Pinball support](pinball-support.md) — MAME emulates only 250 of 1973 pinball sets and the whole DMD era is 0…
+- [Issue 149 next four](issue-149-next-four.md) — bombjack+hyperspt landed via generic fixes
+- [Stay on issue branch](stay-on-issue-branch.md) — don't create new branches mid-issue
+- [T-Unit board lessons](tunit-board-lessons.md) — MK/NBA Jam: 12 general gaps (palette LE, finder calls, zero-delay…
+- [CI local checks](ci-local-checks.md) — run `npm run test:current`
+- [Emulation hot paths](emulation-hot-paths.md) — #149 profiling: name-switch dispatch, bus per-access allocation…
+- [Issue 151 next four](issue-151-next-four.md) — btime/bnj pixel-exact (DECO memory-interface 6502s)
+- [Discrete graph lowering](discrete-graph-lowering.md) — bnj sound: op-amp/CR discrete nodes in MAME order, in volts
+- [Semantic baseline attribution](semantic-baseline-attribution.md) — "all 90 changed" is usually a new IR field/schema bump
+- [Save-state compat policy](save-state-compat-policy.md) — old saves are refused, not migrated (legacy EEPROM migration dropped…
+- [Console blank regressions](console-blank-regressions.md) — #155: device clock vs processors, palette_gb, MMC3 IRQ constant
+- [C64 1541 disk bring-up](c64-1541-disk-bringup.md) — #157: eleven silent general gaps behind the 1541
+- [TOSEC shelf provenance](tosec-shelf-provenance.md) — #158: TOSEC names may ship for C64 dumps, but every entry needs a MAME…
+- [Media slots on demand](media-slots-on-demand.md) — #157: a computer title boots with only its own transport slot filled…
+- [Mid-instruction timer order](mid-instruction-timer-order.md) — #157: late timers, 6502 catch-up on time query, per-slice overrun
+- [Disk path performance](disk-path-performance.md) — #157: C64+1541 loading 45.5→32 ms/frame
+- [ROM library](rom-library.md) — #162 make roms-*: blank banks fake cross-system matches
+- [Run data commands yourself](run-data-commands-yourself.md) — build + dry-run .data tooling, hand the user the real moves
+- [C64 speed #161](c64-speed-161.md) — tape 2.9x, disk real time
+- [C64 one-click play #161](c64-autoboot-161.md) — natural keyboard from PORT_CHAR, BOOT_POLICY tape/disk, warp while…
+- [C64 acceptance #161](c64-acceptance-161.md) — c64p basic/tape/disk contract
+- [C64 quickload #161](c64-quickload-161.md) — device_image_interface hosted on IrDevice
+- [C64 cartridges #161](c64-cartridges-161.md) — carts as software parts via the port's own call_load
+- [C64 disk writes #161](c64-disk-writes-161.md) — user ruled: MAMEKIT never keeps/writes disks back (store removed)
+- [Perfect-quantum device access](perfect-quantum-device-access.md) — catch executing devices up to cycle k-1 before read/write
+- [C64 .wav tapes #161](c64-wav-tapes-161.md) — wavfile.cpp compiled (LSB_FIRST forced, Options struct)
+- [Slot card reset and reload](slot-card-reset-and-reload.md) — PR #164: slotChild never reset, ROM_RELOAD dropped, saves record each…
+- [Computer keyboard naming](computer-keyboard-naming.md) — MAME puts C64 keys on PC keys by position (F5 on F3)
+- [ZX Spectrum #165](spectrum-165.md) — 128K banks/specific()/template-on-one-line, Interface 2 card lists +…
+- [Use the user's tree](dont-wipe-served-dist.md) — work in their tree, no side trees
+- [Issue progress comments](issue-progress-comments.md) — post findings/milestones to the GitHub issue as work progresses
+- [SNES long-term goal](snes-long-term-goal.md) — user really wants SNES (#174)
+- [MAME window and cursor](mame-window-flag.md) — SDL_VIDEO_DRIVER=dummy + -window -nomaximize -video none, or MAME takes the screen or cursor
+- [MAME oracle tool](mame-oracle-tool.md) — #170 tools/mame-oracle.ts: snapshot_pixels not screen:pixels, slot opts…
+- [68705 generated (#176)](m68705-generated-176.md) — const noexcept parse lost the /4 clock
+- [Unresolved-call census (#178)](unresolved-call-census-178.md) — tools/unresolved-calls.ts + framework-calls.ts
+- [Node version pin](node-version-pin.md) — shell default is v24.6.0, .nvmrc/CI is 26.8.1: run contracts via fnm…
+- [NES #171 part 2](nes-171-part2.md) — MMC5 speed, frame offset, 5B audible via 7 AY gaps, APU is the…
+- [NES #184 part 3](nes-184-part3.md) — MAME origin board-wide (user-approved), 6502 reset/timer/arg fixes…
+- [VRC7/ymfm #188](vrc7-ymfm-188.md) — ymfm OPLL compiled bit-exact (native clang oracle recipe)
+- [Host machine faults](host-machine-faults.md) — #190: crashes/divergences follow the user's M3 Pro (Linux VM on it…
+- [Sound fidelity #194](sound-fidelity-194.md) — PR #196: CPU-stamped writes (one-line rounds too), shared LOFI…
+- [Z80 CTC + daisy chain #181](z80ctc-daisy-181.md) — CTC compiled whole
+- [Oracle input mirroring #198](oracle-input-mirroring-198.md) — analog values mirrored, per-frame input read-back
+- [MAME baseline #204](mame-baseline-204.md) — `oracle:baseline compare <targets>` is "no worse" for #178
+- [Sample sets #206](sample-sets-206.md) — set_samples_names samples
+- [Oracle MAME-side drift](oracle-mame-side-drift.md) — WORSE can be MAME moving (mslug RTC/host date) or Infinity->Infinity…
+- [Device forks #203](device-forks-203.md) — most SPECIALIZED forks were stale
+- [POKEY #200](pokey-200.md) — compiled whole as a stream device
+- [Ask before MAME sweeps](ask-before-mame-sweeps.md) — full baseline records / multi-job MAME runs need the user's OK first
+- [Hosted MCUs in the round (#222)](hosted-mcus-in-round-222.md) — 7 rules + round-base timer arming (polepos fixed), rejected armLead (perf collapse)
+- [Line event phase (#214)](line-event-phase.md) — frame events fired after their line ran (VBLANK a line late everywhere)
+- [Attotime #220](attotime-220.md) — PR #225: runner on integer attotime, dkong exact 60 frames; compare offset-flip trap, A/B via scratch dist
+- [Sweep watch command](sweep-watch-command.md) — always hand over a paste-ready progress command when a sweep starts
+- [Samples #228](samples-228.md) — compiled whole; zaxxon/panic/congo/tmnt match MAME; qbert bands + gauntlet unresolved
+- [No stash in scripts](stash-in-scripts.md) — a second copy popped it, so "clean main" numbers were the branch
+- [Kept set requirements #232](kept-set-requirements-232.md) — clear only when requirements changed since kept AND the set no longer meets them
+- [Confirm scope on open questions](confirm-scope-on-open-questions.md) — ask before building when an issue leaves design choices open
+- [Sound mix #234](sound-mix-234.md) — every MASTER_GAIN gone, netlists compiled; 51/70 within 1 dB; what the level measure can't say
+- [Netlist native-rate inputs](netlist-native-rate-inputs.md) — never average AY resistances; nltool is the netlist oracle (`npm run test:netlists`)
+- [DISCRETE compile #236](discrete-compile-236.md) — all 18 compiled, stream variants + feeders, hand discrete deleted; phoenix bands + some onsets open
+- [Board devices #237](board-devices-237.md) — baseline 5a11f2aa (53 targets), guard = shrink-only hostModel list, fork probe: most stand-ins compile clean; never edit src during a record
+- [machine_start lifecycle #237](machine-start-lifecycle-237.md) — MAME start/reset order; held resets reach callbacks (latch replay deleted, PIA/MCS-48 DAC writes, M58715 EA view)
+- [Direct-screen removal #240](direct-screen-removal-240.md) — overloads, ctor bodies, pen identity on ind16, ptr-slot pix&, rgb_t tables, codegen scope gaps
+- [Final validation #240](final-validation-240.md) — stale .cache/dev, 2-shard sweeps, recorder vs contract audio, offset-flip WORSE, referent pointer exposure
+- [Sound #242](sound-242.md) — ONE PR for all sound (user ruling), baseline e11059da over 92 targets
+- [Held CPU eats cycles](held-cpu-eats-cycles.md) — #242 rampage buzz: a CPU held in RESET must book its slices or its stream writes stamp behind the mixer
