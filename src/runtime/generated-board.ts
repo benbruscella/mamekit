@@ -51,6 +51,7 @@ import {
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import {
+  HOST_INPUT_LINES,
   HOST_SERVICE_CALLS,
   type BoardEffect,
   type BoardIr,
@@ -327,9 +328,7 @@ export function withSlotCards(machine: BoardIr, cards: Readonly<Record<string, s
   };
 }
 
-const INPUT_LINE_NMI = -1;
-const INPUT_LINE_RESET = -2;
-const INPUT_LINE_HALT = -3;
+const { INPUT_LINE_NMI, INPUT_LINE_RESET, INPUT_LINE_HALT } = HOST_INPUT_LINES;
 const CLEAR_LINE = 0;
 const ASSERT_LINE = 1;
 const HOLD_LINE = 2;

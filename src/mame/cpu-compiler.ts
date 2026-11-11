@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import type { BoardSourceRef, GeneratedHandlerProgram } from '../ir/board.ts';
+import { HOST_INPUT_LINES } from '../ir/board.ts';
 import { parseMameAst, parseMameSource, splitMameArgs } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { indexMameHardware } from './hardware.ts';
@@ -154,10 +155,17 @@ export interface GeneratedCpuDefinition {
    */
   resetInstruction?: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
+  /**
+   * The names execute_set_input gives its two parameters in the core's own
+   * source (`int irqline, int state`); `inputnum, state` when absent.
+   */
+  inputParameters?: [string, string];
   /** Source-derived execution of exactly one instruction or interrupt. */
   step?: GeneratedHandlerProgram;
-  service: GeneratedHandlerProgram;
-  fetch: GeneratedHandlerProgram;
+  /** Before each instruction, when there is no `step`: interrupts and waits. */
+  service?: GeneratedHandlerProgram;
+  /** The opcode fetch into `m_ref`, when there is no `step`. */
+  fetch?: GeneratedHandlerProgram;
   opcodes: GeneratedCpuOpcode[];
   registerBindings?: {
     reg8: string[];
@@ -264,6 +272,7 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
   const headerFile = 'src/devices/cpu/z80/z80.h';
   const aliasesFile = 'src/devices/cpu/z80/z80.inc';
   const dslFile = 'src/devices/cpu/z80/z80.lst';
+  const generatorFile = 'src/devices/cpu/z80/z80make.py';
   const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
   const header = readFileSync(join(mameSrc, headerFile), 'utf8');
   const aliasesSource = readFileSync(join(mameSrc, aliasesFile), 'utf8');
@@ -345,17 +354,22 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
   const fetchAt = serviceOpcode.operations.findIndex(operation =>
     operation.text.trim() === 'PRVPC = PC;');
   if (fetchAt < 0) throw new Error('MAME Z80 service DSL has no instruction fetch boundary');
+  // z80make.py opens the generated execute_run with locals every opcode is
+  // in scope of (`const bool nomreq_en = !m_nomreq_cb.isunset();`); each
+  // program that names one declares it the same way.
+  const locals = generatorLocals(readFileSync(join(mameSrc, generatorFile), 'utf8'));
   const service = compileOpcodeOperations(serviceOpcode.operations.slice(0, fetchAt), {
     continueAsReturn: true,
+    locals,
   });
-  const fetch = compileOpcodeOperations(serviceOpcode.operations.slice(fetchAt));
+  const fetch = compileOpcodeOperations(serviceOpcode.operations.slice(fetchAt), { locals });
   const opcodes = dsl.opcodes
     .filter(opcode => opcode.key !== 'ffff')
     .map(opcode => ({
       key: opcode.key,
       ...(opcode.description ? { description: opcode.description } : {}),
       dispatch: opcode.operations.some(operation => operation.text.trim() === 'goto process;'),
-      program: compileOpcodeOperations(opcode.operations),
+      program: compileOpcodeOperations(opcode.operations, { locals }),
       source: sourceRef(opcode.source.file, opcode.source.line),
     }));
   const start = compileMameHandler(normalizeMameExecutionSource(
@@ -364,18 +378,8 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
   const reset = compileMameHandler(normalizeMameExecutionSource(resetMethod.body));
   const input = compileMameHandler(normalizeMameExecutionSource(inputMethod.body));
   const constants = {
-    ...extractDefineConstants(aliasesSource),
-    ...extractEnumConstants(header, {
-      INPUT_LINE_IRQ0: 0,
-      INPUT_LINE_NMI: -1,
-    }),
-    ...extractConstexprConstants(header),
+    ...headerConstants(mameSrc, aliasesSource, header),
     ...stateIndexConstants(mameSrc),
-    // z80make.py emits these as per-run locals based on whether a devcb is
-    // configured. The generated bus safely ignores an unbound signal, so
-    // keeping both paths enabled preserves configured refresh/nomreq pins.
-    refresh_en: 1,
-    nomreq_en: 1,
     ...daisy.constants,
   };
   const aliases = extractAliases(aliasesSource, header);
@@ -400,12 +404,13 @@ export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
     schemaVersion: 1,
     type: 'Z80',
     dialect: dsl.dialect,
-    sourceFiles: [cppFile, headerFile, aliasesFile, dslFile, ...daisy.sourceFiles],
+    sourceFiles: [cppFile, headerFile, aliasesFile, dslFile, generatorFile, ...daisy.sourceFiles],
     constants,
     aliases,
     ...(stateEntries.length ? { stateEntries } : {}),
     members,
     methods,
+    callbacks: devcbLines(header),
     start,
     reset,
     input,
@@ -772,30 +777,10 @@ function compileMameM6502Variant(
     m_irq_taken = false;
     m_inhibit_interrupts = false;
   `);
-  const constants = {
-    IRQ_LINE: 0,
-    APU_IRQ_LINE: 1,
-    NMI_LINE: -1,
-    V_LINE: 16,
-    INPUT_LINE_IRQ0: 0,
-    INPUT_LINE_NMI: -1,
-    CLEAR_LINE: 0,
-    ASSERT_LINE: 1,
-    F_N: 0x80,
-    F_V: 0x40,
-    F_E: 0x20,
-    F_B: 0x10,
-    F_D: 0x08,
-    F_I: 0x04,
-    F_Z: 0x02,
-    F_C: 0x01,
-  };
+  const constants = headerConstants(mameSrc, header);
   // The core's own devcb lines (`auto sync_cb() { return m_sync_w.bind(); }`)
   // and one-line state accessors a driver may call on it (`get_sync()`).
-  const callbacks: Record<string, string> = {};
-  for (const binding of header.matchAll(/auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g)) {
-    callbacks[binding[2]!] = binding[1]!;
-  }
+  const callbacks: Record<string, string> = devcbLines(header);
   const accessors: Record<string, string> = {};
   for (const accessor of header.matchAll(/\b(\w+)\(\)\s*const\s*\{\s*return\s+(m_\w+)\s*;\s*\}/g)) {
     if (members.some(member => member.name === accessor[2])) accessors[accessor[1]!] = accessor[2]!;
@@ -804,9 +789,7 @@ function compileMameM6502Variant(
     const variantSource = readFileSync(join(mameSrc, variantFile), 'utf8');
     const variantHeader = readFileSync(join(mameSrc, variantHeaderFile), 'utf8');
     const variantUnit = parseMameSource(variantFile, variantSource);
-    for (const binding of variantHeader.matchAll(
-      /auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g,
-    )) callbacks[binding[2]!] = binding[1]!;
+    Object.assign(callbacks, devcbLines(variantHeader));
     const portMembers = /uint8_t\s+(m_pullup[^;]*);/.exec(variantHeader)?.[1];
     if (!portMembers) throw new Error('MAME M6510 port state declaration is missing');
     for (const name of portMembers.split(',').map(value => value.trim())) {
@@ -1094,13 +1077,7 @@ export function compileMameMcs48(
     m_prevpc = m_pc;
   `));
   const fetch = compileMameHandler(normalize('m_ref = opcode_fetch() << 16;'));
-  const constants = {
-    ...extractDefineConstants(cpp),
-    ...extractEnumConstants(header, {
-      CLEAR_LINE: 0,
-      ASSERT_LINE: 1,
-    }),
-  };
+  const constants = headerConstants(mameSrc, cpp, header);
   const { romSize, ramSize, featureMask } = mcs48Geometry(cpp, variant, constants);
   const members = extractMembers(header, {}).filter(member => member.name !== 'm_rtemp');
   const setInitial = (name: string, initial: number): void => {
@@ -1241,24 +1218,11 @@ function compileMameI808x(
   );
   const start = compileMameHandler(normalize(startSource));
   const reset = compileMameHandler(normalize(resetMethod.body));
-  const input = compileMameHandler(
-    normalize(inputMethod.body).replace(/\birqline\b/g, 'inputnum'),
-  );
+  const input = compileMameHandler(normalize(inputMethod.body));
   const step = compileMameHandler(normalize(singleIterationSource(runMethod.body)));
   const constants = {
-    ...extractDefineConstants(header),
+    ...headerConstants(mameSrc, header),
     ...extractGlobalConstants(cpp),
-    ...extractEnumConstants(header, {
-      INPUT_LINE_IRQ0: 0,
-      INPUT_LINE_NMI: -1,
-    }),
-    I8085_INTR_LINE: 0,
-    I8085_RST55_LINE: 1,
-    I8085_RST65_LINE: 2,
-    I8085_RST75_LINE: 3,
-    I8085_TRAP_LINE: -1,
-    CLEAR_LINE: 0,
-    ASSERT_LINE: 1,
   };
   const members: GeneratedCpuMember[] = [
     ...['m_PC', 'm_SP', 'm_AF', 'm_BC', 'm_DE', 'm_HL', 'm_WZ']
@@ -1279,8 +1243,6 @@ function compileMameI808x(
     { name: 'lut_zsp', bits: 8, values: Array(256).fill(0) },
   ];
   const aliases = extractStateAliases(startMethod.body);
-  const service = compileMameHandler('');
-  const fetch = compileMameHandler('');
   const programs = [start, reset, input, step, ...methods.map(method => method.program)];
   return {
     schemaVersion: 1,
@@ -1294,9 +1256,8 @@ function compileMameI808x(
     start,
     reset,
     input,
+    inputParameters: inputParameters(inputMethod.parameters),
     step,
-    service,
-    fetch,
     opcodes: [],
     summary: {
       opcodes: 256,
@@ -1375,11 +1336,11 @@ export function compileMameM6808(mameSrc: string): GeneratedCpuDefinition {
  * variant is therefore a column and an initializer, not a separate core.
  */
 const M68000_VARIANTS = {
-  M68000: { column: 0, initializer: 'init_cpu_m68000', formatWord: false, cpuType: 0x1, prefetch: false },
+  M68000: { column: 0, initializer: 'init_cpu_m68000', formatWord: false, prefetch: false },
   // init_cpu_m68010: `m_state_table = m68ki_instruction_state_table[2]`.
   // MAME's 68010 is still the Musashi core, prefetch queue included; its 68000
   // is the microcoded m68000_device, which this core already matches.
-  M68010: { column: 2, initializer: 'init_cpu_m68010', formatWord: true, cpuType: 0x4, prefetch: true },
+  M68010: { column: 2, initializer: 'init_cpu_m68010', formatWord: true, prefetch: true },
 } as const;
 
 export function compileMameM68000(
@@ -1517,55 +1478,13 @@ ${cpu.prefetch ? `    // m68kcpu.cpp device_reset: "Invalidate the prefetch queu
     m_ir = m68ki_read_imm_16();
     m_ref = m_state[m_ir] << 8;
   `);
+  const headerConstantsRead = headerConstants(mameSrc, readFileSync(join(mameSrc, headerFile), 'utf8'));
   const constants = {
-    CLEAR_LINE: 0,
-    ASSERT_LINE: 1,
-    HOLD_LINE: 2,
-    INPUT_LINE_NMI: -1,
-    CFLAG_SET: 0x100,
-    CFLAG_CLEAR: 0,
-    XFLAG_SET: 0x100,
-    XFLAG_CLEAR: 0,
-    VFLAG_SET: 0x80,
-    VFLAG_CLEAR: 0,
-    NFLAG_SET: 0x80,
-    NFLAG_CLEAR: 0,
-    ZFLAG_SET: 0,
-    ZFLAG_CLEAR: 0xffffffff,
-    INSTRUCTION_YES: 0,
-    RUN_MODE_NORMAL: 0,
-    SFLAG_SET: 4,
-    SFLAG_CLEAR: 0,
-    MFLAG_SET: 2,
-    MFLAG_CLEAR: 0,
-    STOP_LEVEL_STOP: 1,
-    EXCEPTION_RESET: 0,
-    EXCEPTION_BUS_ERROR: 2,
-    EXCEPTION_ADDRESS_ERROR: 3,
-    EXCEPTION_ILLEGAL_INSTRUCTION: 4,
-    EXCEPTION_ZERO_DIVIDE: 5,
-    EXCEPTION_CHK: 6,
-    EXCEPTION_TRAPV: 7,
-    EXCEPTION_PRIVILEGE_VIOLATION: 8,
-    EXCEPTION_TRACE: 9,
-    EXCEPTION_1010: 10,
-    EXCEPTION_1111: 11,
-    EXCEPTION_FORMAT_ERROR: 14,
-    EXCEPTION_UNINITIALIZED_INTERRUPT: 15,
-    EXCEPTION_SPURIOUS_INTERRUPT: 24,
-    EXCEPTION_INTERRUPT_AUTOVECTOR: 24,
-    EXCEPTION_TRAP_BASE: 32,
-    EXCEPTION_MMU_CONFIGURATION: 56,
+    ...headerConstantsRead,
     ...m68000CycleConstants(dataFile, dataSource, operations, cpu.initializer),
-    // m_cpu_type is fixed per variant; the 68010's MOVEC compares it against
-    // these (m68kcpu.h) to decide which control registers exist. No 68000
-    // handler reads it, so the 68000 core is left exactly as it was.
-    ...(cpu.formatWord ? {
-      CPU_TYPE_000: 0x1,
-      CPU_TYPE_010: 0x4,
-      CPU_TYPE_COLDFIRE: 0x1000,
-      m_cpu_type: cpu.cpuType,
-    } : {}),
+    // The variant's `m_cpu_type = CPU_TYPE_010;` from its init_cpu_*: the
+    // 68010's MOVEC compares it against the CPU_TYPE_* masks (m68kcpu.h).
+    m_cpu_type: m68000CpuType(dataSource, cpu.initializer, headerConstantsRead),
   };
   const shiftTable = (name: string): number[] => {
     const body = new RegExp(`${name}\\[65\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`)
@@ -1674,6 +1593,15 @@ function m68000CycleConstants(
     throw new Error(`MAME ${initializer} declares no m_cyc_* cycle counts in ${dataFile}`);
   }
   return constants;
+}
+
+/** What a Musashi variant's init_cpu_* sets `m_cpu_type` to. */
+function m68000CpuType(dataSource: string, initializer: string, constants: Record<string, number>): number {
+  const body = new RegExp(`::${initializer}\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`).exec(dataSource)?.[1] ?? '';
+  const name = /\bm_cpu_type\s*=\s*(\w+)\s*;/.exec(body)?.[1];
+  const value = name === undefined ? undefined : constants[name];
+  if (value === undefined) throw new Error(`MAME ${initializer} sets no m_cpu_type the header defines`);
+  return value;
 }
 
 function normalizeM68000Source(body: string): string {
@@ -2254,16 +2182,11 @@ function compileMameM6800Family(
     m_ref = m_copcodes.read_byte(m_pc.w) << 16;
     m_pc.w++;
   `);
-  const constants = {
-    M6800_IRQ_LINE: 0,
-    M6802_IRQ_LINE: 0,
-    M6800_WAI: 8,
-    M6800_SLP: 0x10,
-    INPUT_LINE_IRQ0: 0,
-    INPUT_LINE_NMI: -1,
-    CLEAR_LINE: 0,
-    ASSERT_LINE: 1,
-  };
+  const constants = headerConstants(
+    mameSrc,
+    header,
+    readFileSync(join(mameSrc, variantHeaderFile), 'utf8'),
+  );
   const members: GeneratedCpuMember[] = [
     ...['m_ppc', 'm_pc', 'm_s', 'm_x', 'm_d', 'm_ea']
       .map(name => ({ name, bits: 16 as const, pair: true })),
@@ -2589,7 +2512,7 @@ DISPATCH11:
     // derives which driver callback is wired to the `line()` devcb.
     upsert('set_lines', 'uint8_t data', 'm_set_lines(0, data);',
       lineAt(methodSource, methodSource.indexOf(`${variant.methodClass}::set_lines`)));
-    variantConstants = extractDefineConstants(methodHeader);
+    variantConstants = headerConstants(mameSrc, methodHeader);
   }
 
   const opcodes = dsl.opcodes.map(opcode => ({
@@ -2674,17 +2597,8 @@ DISPATCH11:
       : (m_opcode == 0x11 ? (0xff11 << 8) : (m_opcode << 16));
   `);
   const constants = {
-    ...extractEnumConstants(header, {
-      M6809_IRQ_LINE: 0,
-      M6809_FIRQ_LINE: 1,
-    }),
-    ...extractDefineConstants(header),
+    ...headerConstants(mameSrc, header),
     ...variantConstants,
-    INPUT_LINE_IRQ0: 0,
-    INPUT_LINE_NMI: -1,
-    CLEAR_LINE: 0,
-    ASSERT_LINE: 1,
-    CC_IF: 0x50,
   };
   const members: GeneratedCpuMember[] = [
     ...['m_pc', 'm_ppc', 'm_d', 'm_x', 'm_y', 'm_u', 'm_s', 'm_temp', 'm_ea']
@@ -2927,18 +2841,7 @@ export function compileMameI8088(
     while (bits) { count += bits & 1; bits >>>= 1; }
     return (count & 1) ? 0 : 1;
   });
-  const constants = {
-    ES: 0, CS: 1, SS: 2, DS: 3,
-    AX: 0, CX: 1, DX: 2, BX: 3, SP: 4, BP: 5, SI: 6, DI: 7,
-    AL: 0, AH: 1, CL: 2, CH: 3, DL: 4, DH: 5, BL: 6, BH: 7,
-    SPL: 8, SPH: 9, BPL: 10, BPH: 11,
-    SIL: 12, SIH: 13, DIL: 14, DIH: 15,
-    ...extractEnumConstants(header, {}),
-  };
-  Object.assign(constants, extractDefineConstants(inline), {
-    INPUT_LINE_IRQ0: 0, INPUT_LINE_NMI: -1, INPUT_LINE_TEST: 20,
-    CLEAR_LINE: 0, ASSERT_LINE: 1, INT_IRQ: 1, NMI_IRQ: 2,
-  });
+  const constants = headerConstants(mameSrc, header, inline);
   const resetFn = sourceFunction('device_reset');
   const inputFn = sourceFunction('execute_set_input');
   const runFn = sourceFunction('execute_run');
@@ -3306,15 +3209,7 @@ export function compileMameZ8002(mameSrc: string): GeneratedCpuDefinition {
     }
     return m_op[opnum];
   `, cppFile, 103);
-  const constants = {
-    ...extractDefineConstants(cpuHeader),
-    ...extractEnumConstants(header, {}),
-    CLEAR_LINE: 0, ASSERT_LINE: 1, HOLD_LINE: 2,
-    INPUT_LINE_NMI: -1, NMI_LINE: -1, NVI_LINE: 0, VI_LINE: 1, BUSREQ_LINE: 3,
-    Z8000_TRAP: 0x80, Z8000_NMI: 0x40, Z8000_SEGTRAP: 0x20,
-    Z8000_NVI: 0x10, Z8000_VI: 0x08, Z8000_SYSCALL: 0x04,
-    Z8000_RESET: 0x02, Z8000_EPU: 0x01,
-  };
+  const constants = headerConstants(mameSrc, cpuHeader, header);
   const reset = compileMameHandler(`
     m_irq_req |= Z8000_RESET;
     m_refresh &= 0x7fff;
@@ -3886,9 +3781,42 @@ function inlineMethodForClass(
     .find(method => method.name === name);
 }
 
+/** execute_set_input's parameter names, as the core's source declares them. */
+function inputParameters(parameters: string): [string, string] {
+  const names = splitMameArgs(parameters).map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1]);
+  if (names.length !== 2 || !names[0] || !names[1]) {
+    throw new Error(`execute_set_input(${parameters}) does not take an input line and a state`);
+  }
+  return [names[0], names[1]];
+}
+
+/**
+ * A core's own devcb lines, from the header's configuration accessors
+ * (`auto nomreq_cb() { return m_nomreq_cb.bind(); }`): member -> the name the
+ * machine configuration binds it by. A call on one reaches the bus as that
+ * signal, and its `isunset()` asks the bus whether the machine bound it.
+ */
+function devcbLines(header: string): Record<string, string> {
+  const lines: Record<string, string> = {};
+  for (const binding of stripCppComments(header).matchAll(/auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g)) {
+    lines[binding[2]!] = binding[1]!;
+  }
+  return lines;
+}
+
+/**
+ * The C++ locals a MAME build script declares around the code it generates:
+ * z80make.py prints `const bool nomreq_en = !m_nomreq_cb.isunset();` at the top
+ * of execute_run, in scope of every opcode. Each is `[name, declaration]`.
+ */
+function generatorLocals(script: string): [string, string][] {
+  return [...script.matchAll(/print\(\s*"((?:\[\[maybe_unused\]\]\s*)?const\s+\w+\s+(\w+)\s*=[^"]*;)"/g)]
+    .map(match => [match[2]!, match[1]!]);
+}
+
 function compileOpcodeOperations(
   operations: OpcodeDslOperation[],
-  options: { continueAsReturn?: boolean } = {},
+  options: { continueAsReturn?: boolean; locals?: [string, string][] } = {},
 ): GeneratedHandlerProgram {
   const source = operations.flatMap(operation => {
     const text = operation.text.trim();
@@ -3901,7 +3829,10 @@ function compileOpcodeOperations(
     }
     return [text];
   }).join('\n');
-  return compileMameHandler(normalizeMameExecutionSource(source));
+  const declarations = (options.locals ?? [])
+    .filter(([name]) => new RegExp(`\\b${name}\\b`).test(source))
+    .map(([, declaration]) => declaration);
+  return compileMameHandler(normalizeMameExecutionSource([...declarations, source].join('\n')));
 }
 
 /**
@@ -4303,15 +4234,58 @@ function typeBits(type: string): 1 | 8 | 16 | 32 {
   return 32;
 }
 
-function extractDefineConstants(source: string): Record<string, number> {
+function extractDefineConstants(source: string, seed: Record<string, number> = {}): Record<string, number> {
   const expressions = new Map<string, string>();
   for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^/\r\n]+)/gm)) {
     expressions.set(match[1]!, match[2]!.trim());
   }
-  return resolveConstants(expressions);
+  return resolveConstants(expressions, seed);
 }
 
-function extractConstexprConstants(source: string): Record<string, number> {
+const FRAMEWORK_LINES = new Map<string, Record<string, number>>();
+
+/**
+ * MAME's line states and input lines (emu/diexec.h), which every core's
+ * execute_set_input and every driver's set_input_line name: CLEAR_LINE,
+ * ASSERT_LINE, HOLD_LINE and INPUT_LINE_IRQ0..9 as MAME numbers them, and the
+ * three scheduler-level lines as the host does (HOST_INPUT_LINES).
+ */
+export function frameworkLineConstants(mameSrc: string): Record<string, number> {
+  let constants = FRAMEWORK_LINES.get(mameSrc);
+  if (!constants) {
+    const header = readFileSync(join(mameSrc, 'src/emu/diexec.h'), 'utf8');
+    constants = { ...extractEnumConstants(header, {}), ...HOST_INPUT_LINES };
+    if (constants.CLEAR_LINE !== 0 || constants.ASSERT_LINE !== 1 || constants.INPUT_LINE_IRQ0 !== 0) {
+      throw new Error('MAME emu/diexec.h line constants did not read');
+    }
+    FRAMEWORK_LINES.set(mameSrc, constants);
+  }
+  return constants;
+}
+
+/**
+ * Every constant a core's header states -- #define, enumerator and constexpr --
+ * resolved together over the framework's lines, so that `#define
+ * I8085_TRAP_LINE INPUT_LINE_NMI` and `M6809_FIRQ_LINE = 1` read alike.
+ */
+function headerConstants(mameSrc: string, ...sources: string[]): Record<string, number> {
+  const framework = frameworkLineConstants(mameSrc);
+  let resolved: Record<string, number> = {};
+  for (let pass = 0; pass < 2; pass++) {
+    for (const source of sources) {
+      const seed = { ...framework, ...resolved };
+      resolved = {
+        ...resolved,
+        ...extractDefineConstants(source, seed),
+        ...extractEnumConstants(source, seed),
+        ...extractConstexprConstants(source, seed),
+      };
+    }
+  }
+  return { ...framework, ...resolved };
+}
+
+function extractConstexprConstants(source: string, seed: Record<string, number> = {}): Record<string, number> {
   const expressions = new Map<string, string>();
   // `static inline constexpr` is the modern MAME spelling; the TMS320C1x
   // interrupt states are declared that way and were invisible without it.
@@ -4320,7 +4294,7 @@ function extractConstexprConstants(source: string): Record<string, number> {
   )) {
     expressions.set(match[1]!, match[2]!.trim());
   }
-  return resolveConstants(expressions);
+  return resolveConstants(expressions, seed);
 }
 
 /**
@@ -4343,13 +4317,13 @@ function extractEnumConstants(
   const resolved = { ...seed };
   for (const match of stripCppComments(source).matchAll(/\benum(?:\s+\w+)?\s*\{([\s\S]*?)\};/g)) {
     let next = 0;
-    for (const rawEntry of match[1]!.split(',')) {
+    for (const rawEntry of splitTopLevelCommas(match[1]!)) {
       const entry = rawEntry.trim();
       if (!entry) continue;
       const parsed = /^(\w+)(?:\s*=\s*([\s\S]+))?$/.exec(entry);
       if (!parsed) continue;
       if (parsed[2]) {
-        const expression = parsed[2]!.replace(/\b[A-Za-z_]\w*\b/g, token =>
+        const expression = hostConstantExpression(parsed[2]!).replace(/\b[A-Za-z_]\w*\b/g, token =>
           Object.hasOwn(resolved, token) ? String(resolved[token]) : token);
         if (/^[\dxa-fA-F\s()+\-~|&<>]+$/.test(expression)) {
           try {
@@ -4387,14 +4361,45 @@ function extractConstructorInitializers(
   return initial;
 }
 
-function resolveConstants(expressions: Map<string, string>): Record<string, number> {
-  const resolved: Record<string, number> = {};
+/** Commas at the top level of a list, outside any parentheses. */
+function splitTopLevelCommas(source: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < source.length; index++) {
+    const character = source[index];
+    if (character === '(') depth++;
+    else if (character === ')') depth--;
+    else if (character === ',' && depth === 0) {
+      parts.push(source.slice(start, index));
+      start = index + 1;
+    }
+  }
+  parts.push(source.slice(start));
+  return parts;
+}
+
+/**
+ * A constant expression as a little-endian host evaluates it, the LSB_FIRST
+ * build every other layout here assumes: util/endianness.h's
+ * `NATIVE_ENDIAN_VALUE_LE_BE(leval, beval)` is `leval` (i86.h numbers its byte
+ * registers this way, as indices into the word register union).
+ */
+function hostConstantExpression(source: string): string {
+  return source.replace(/\bNATIVE_ENDIAN_VALUE_LE_BE\s*\(([^,()]*),[^()]*\)/g, '($1)');
+}
+
+function resolveConstants(
+  expressions: Map<string, string>,
+  seed: Record<string, number> = {},
+): Record<string, number> {
+  const resolved: Record<string, number> = { ...seed };
   let changed = true;
   while (changed) {
     changed = false;
     for (const [name, source] of expressions) {
       if (Object.hasOwn(resolved, name)) continue;
-      const normalized = source.replace(/\b[A-Za-z_]\w*\b/g, token =>
+      const normalized = hostConstantExpression(source).replace(/\b[A-Za-z_]\w*\b/g, token =>
         Object.hasOwn(resolved, token) ? String(resolved[token]) : token);
       if (!/^[\dxa-fA-F\s()+\-~|&<>]+$/.test(normalized)) continue;
       try {
@@ -4408,6 +4413,9 @@ function resolveConstants(expressions: Map<string, string>): Record<string, numb
         // The unresolved constant is retained as a compiler diagnostic later.
       }
     }
+  }
+  for (const name of Object.keys(seed)) {
+    if (!expressions.has(name)) delete resolved[name];
   }
   return resolved;
 }
@@ -4616,19 +4624,9 @@ export function compileMameLr35902(mameSrc: string): GeneratedCpuDefinition {
   )));
   const start = compileMameHandler(normalize(stripMameFrameworkSetup(startMethod.body)));
   const reset = compileMameHandler(normalize(resetMethod.body));
-  const input = compileMameHandler(
-    normalize(inputMethod.body).replace(/\binptnum\b/g, 'inputnum'),
-  );
+  const input = compileMameHandler(normalize(inputMethod.body));
 
-  const constants = {
-    ...extractDefineConstants(cpp),
-    ...extractEnumConstants(cpp, {}),
-    ...extractEnumConstants(header, {}),
-    CLEAR_LINE: 0,
-    ASSERT_LINE: 1,
-  };
-  const service = compileMameHandler('');
-  const fetch = compileMameHandler('');
+  const constants = headerConstants(mameSrc, cpp, header);
   const members = lr35902Members(header);
   const programs = [start, reset, input, step, ...methods.map(method => method.program)];
   return {
@@ -4646,9 +4644,8 @@ export function compileMameLr35902(mameSrc: string): GeneratedCpuDefinition {
     start,
     reset,
     input,
+    inputParameters: inputParameters(inputMethod.parameters),
     step,
-    service,
-    fetch,
     opcodes: [],
     summary: {
       opcodes: 256,
@@ -4775,11 +4772,7 @@ export function compileMameTms320c10(mameSrc: string): GeneratedCpuDefinition {
     unit.functions.filter(fn => fn.className === baseClass).map(fn => [fn.name, fn]),
   );
 
-  const constants = {
-    ...extractDefineConstants(cpp),
-    ...extractConstexprConstants(header),
-    ...extractEnumConstants(header, { CLEAR_LINE: 0, ASSERT_LINE: 1 }),
-  };
+  const constants = headerConstants(mameSrc, cpp, header);
 
   // Word-addressed spaces: MAME declares program, data and io with an address
   // shift of -1, so one source address covers two bus bytes.
@@ -4969,10 +4962,7 @@ export function compileMameTms320c10(mameSrc: string): GeneratedCpuDefinition {
   // The BIO test pin is a devcb the machine configuration binds
   // (`m_dsp->bio().set(...)` in toaplan_dsp.cpp), so reading it goes through
   // the generic CPU signal path under the config accessor's own name.
-  const callbacks: Record<string, string> = {};
-  for (const binding of header.matchAll(
-    /auto\s+(\w+)\(\)\s*\{\s*return\s+(m_\w+)\.bind\(\);\s*\}/g,
-  )) callbacks[binding[2]!] = binding[1]!;
+  const callbacks = devcbLines(header);
   if (!Object.keys(callbacks).length) {
     throw new Error('MAME TMS320C1x header declares no devcb accessor for the BIO pin');
   }

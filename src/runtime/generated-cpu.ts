@@ -126,9 +126,11 @@ callbacks?: Record<string, string>;
   /** MAME's STATE_RESET: the reset sequence is the first instruction after a reset. */
   resetInstruction?: GeneratedHandlerProgram;
   input: GeneratedHandlerProgram;
+  /** execute_set_input's own parameter names; `inputnum, state` when absent. */
+  inputParameters?: [string, string];
   step?: GeneratedHandlerProgram;
-  service: GeneratedHandlerProgram;
-  fetch: GeneratedHandlerProgram;
+  service?: GeneratedHandlerProgram;
+  fetch?: GeneratedHandlerProgram;
   opcodes: CpuOpcode[];
   opcodeDecrypt?: {
     boundary: number;
@@ -386,7 +388,7 @@ class IrCpu implements Cpu {
     }
     this.set('cycles', 0);
     this.set('m_icount', 1);
-    this.execute(this.definition.service);
+    this.execute(this.definition.service!);
     if (this.get('cycles') > 0) return this.get('cycles');
     // The service block handed back the slice: no instruction this time.
     if (this.get('m_icount') <= 0) {
@@ -394,7 +396,7 @@ class IrCpu implements Cpu {
       return 0;
     }
 
-    this.execute(this.definition.fetch);
+    this.execute(this.definition.fetch!);
     let dispatches = 0;
     while (true) {
       if (++dispatches > 8) throw new Error(`${this.definition.type} dispatch loop exceeded 8`);
@@ -447,13 +449,18 @@ class IrCpu implements Cpu {
 
   setInputLine(inputnum: number, state: number): void {
     this.updatePortHandshakeInput(inputnum, state);
-    this.execute(this.definition.input, { inputnum, state });
+    this.input(inputnum, state);
+  }
+
+  private input(inputnum: number, state: number): void {
+    const [line, level] = this.definition.inputParameters ?? ['inputnum', 'state'];
+    this.execute(this.definition.input, { [line]: inputnum, [level]: state });
   }
 
   nmi(): void {
     const inputnum = this.constant('INPUT_LINE_NMI', -1);
-    this.execute(this.definition.input, { inputnum, state: this.constant('ASSERT_LINE', 1) });
-    this.execute(this.definition.input, { inputnum, state: this.constant('CLEAR_LINE', 0) });
+    this.input(inputnum, this.constant('ASSERT_LINE', 1));
+    this.input(inputnum, this.constant('CLEAR_LINE', 0));
   }
 
   get(name: string): number {

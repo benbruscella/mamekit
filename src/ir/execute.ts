@@ -19,6 +19,7 @@ import type {
   GeneratedHandlerProgram,
   GeneratedStateMember,
 } from './board.ts';
+import { HOST_INPUT_LINES } from './board.ts';
 
 /**
  * Where a struct's declared field widths hang, for the interpreter to narrow
@@ -424,9 +425,7 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'filter_rc_device::HIGHPASS': 3,
   'filter_rc_device::AC': 4,
   INPUT_LINE_IRQ0: 0,
-  INPUT_LINE_NMI: -1,
-  INPUT_LINE_RESET: -2,
-  INPUT_LINE_HALT: -3,
+  ...HOST_INPUT_LINES,
   M6801_IRQ1_LINE: 0,
   M6801_IS3_LINE: 2,
   M6802_IRQ_LINE: 0,

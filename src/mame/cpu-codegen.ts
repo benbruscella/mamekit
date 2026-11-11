@@ -1,4 +1,5 @@
 import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
+import { HOST_INPUT_LINES } from '../ir/board.ts';
 import type {
   GeneratedCpuAlias,
   GeneratedCpuDefinition,
@@ -14,13 +15,15 @@ interface EmitContext {
   returnValueType?: string;
 }
 
+// What an emitted core falls back to for a framework name its definition
+// does not carry: diexec.h's line states and IRQ0, and the host's numbering of
+// the scheduler-level lines.
 const DEFAULT_CONSTANTS: Record<string, number> = {
   ASSERT_LINE: 1,
   CLEAR_LINE: 0,
   HOLD_LINE: 2,
   INPUT_LINE_IRQ0: 0,
-  INPUT_LINE_NMI: -1,
-  INPUT_LINE_RESET: -2,
+  ...HOST_INPUT_LINES,
 };
 
 /**
@@ -34,6 +37,7 @@ export function generatedCpuExecutableSource(definition: GeneratedCpuDefinition)
       `cannot emit ${definition.type}: ${definition.summary.diagnostics} compiler diagnostics`,
     );
   }
+  const [inputLine, inputState] = definition.inputParameters ?? ['inputnum', 'state'];
 
   // Only a core that charges a cycle per bus access can answer how far into
   // the current instruction it is; I8080/I8085A keep no such counter.
@@ -520,22 +524,22 @@ ${emitInvokeCases(definition)}
 ${emitProgram(definition.start, contextFor(definition, [], 'void'), 4)}
   }
 
-  private generatedInput(inputnum: number, state: number): void {
+  private generatedInput(${inputLine}: number, ${inputState}: number): void {
 ${emitProgram(
     definition.input,
-    contextFor(definition, [['inputnum', 'int'], ['state', 'int']], 'void'),
+    contextFor(definition, [[inputLine, 'int'], [inputState, 'int']], 'void'),
     4,
   )}
   }
-
+${definition.step ? '' : `
   private generatedService(): void {
-${emitProgram(definition.service, contextFor(definition, [], 'void'), 4)}
+${emitProgram(definition.service!, contextFor(definition, [], 'void'), 4)}
   }
 
   private generatedFetch(): void {
-${emitProgram(definition.fetch, contextFor(definition, [], 'void'), 4)}
+${emitProgram(definition.fetch!, contextFor(definition, [], 'void'), 4)}
   }
-
+`}
 ${methods}
 }
 

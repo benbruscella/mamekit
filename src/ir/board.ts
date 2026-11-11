@@ -156,6 +156,19 @@ export type CpuLine =
   | 'core';
 
 /**
+ * The host's numbers for MAME's scheduler-level input lines. diexec.h numbers
+ * INPUT_LINE_NMI, INPUT_LINE_RESET and INPUT_LINE_HALT from MAX_INPUT_LINES - 3;
+ * the runtime keeps them negative, apart from every line a core numbers for
+ * itself, and every compiled core, device and board resolves the three names
+ * to these. Everything else in diexec.h is read from MAME's source.
+ */
+export const HOST_INPUT_LINES = {
+  INPUT_LINE_NMI: -1,
+  INPUT_LINE_RESET: -2,
+  INPUT_LINE_HALT: -3,
+} as const;
+
+/**
  * How a source drives the pin. MAME's driver_device interrupt generators
  * distinguish these: irqN_line_hold stays asserted until acknowledged,
  * irqN_line_assert leaves the line up, nmi_line_pulse strobes it.
