@@ -163,3 +163,4 @@
 - [Sound #242](sound-242.md) — merged 8213730b (PR #243); ONE PR for all sound; fps floors lowered, perf follow-up #247 4.5
 - [Held CPU eats cycles](held-cpu-eats-cycles.md) — #242 rampage buzz: a CPU held in RESET must book its slices or its stream writes stamp behind the mixer
 - [Outstanding issue](outstanding-issue.md) — follow-ups go in GitHub #247; docs/OUTSTANDING.md is gone
+- [CPU cores #249](cpu-cores-249.md) — one PR, ALL hand CPU layers in scope (rows 41a–i), Musashi first then ask about m68000_device, baseline ff52ccd9
