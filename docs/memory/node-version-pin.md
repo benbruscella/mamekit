@@ -1,6 +1,6 @@
 ---
 name: node-version-pin
-description: "The shell's default Node (fnm default) is not the project's (.nvmrc 26.12.1 since #193); run contracts with `fnm exec --using=26.12.1` or `fnm use` first"
+description: "Check the shell's Node against .nvmrc (26.13.0 since #244, TypeScript 6); run contracts with `fnm exec --using=26.13.0` or `fnm use` first"
 metadata:
   node_type: memory
   type: project
@@ -22,3 +22,8 @@ the emulator. Related: [[acceptance-run-flake]], [[node-rom-inflate-segfault]].
 compiler API, which onboarding.ts/record-goldens.ts use. Use
 `fnm exec --using=26.12.1`. The run-to-run differences were NOT Node: see
 [[host-machine-faults]].
+
+2026-11-11 (#244): `.nvmrc` is now **26.13.0** (also the fnm default on this
+Mac), TypeScript **6.0.3** (the user asked for 6.x; 6 still ships the JS
+compiler API, TS 7 does not), `@types/node` ^26.6.6, Playwright 1.65 (run
+`npx playwright install chromium` after a bump).

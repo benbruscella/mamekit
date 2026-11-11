@@ -30,6 +30,12 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Node 26.13.0 and TypeScript 6 ([#244](https://github.com/benbruscella/mamekit/issues/244))
+
+**For players:** Nothing visible.
+
+**Under the hood:** `.nvmrc` moves from Node 26.12.1 to 26.13.0, and CI picks it up from that file. TypeScript moves from 5.9 to 6.0. It is the last major release with the JavaScript compiler API, which the onboarding and golden-recording tools use. `@types/node` moves to ^26.6.6 and Playwright to 1.65.
+
 ### Discrete sound circuits play from MAME's own tables ([#236](https://github.com/benbruscella/mamekit/issues/236))
 
 **For players:** Eighteen machines with analog sound circuits now play them as MAME does: Asteroids, Battlezone, Bump 'n' Jump, Burger Time, Donkey Kong, Donkey Kong Jr., Elevator Action, Galaga, Galaxian, Gyruss, Jungle King, Moon Patrol, Phoenix, Pole Position, Qix, Space Invaders, Traverse USA and Xevious. Battlezone now has its engine, shell and explosion sounds; before, only its POKEY played. Xevious's attract mode was silent and now plays. Galaxian, Space Invaders and Battlezone were 40 dB or more from MAME with no input and are now within 2 dB. Pole Position, Donkey Kong and Donkey Kong Jr. come within 0.1 dB with contract input. Phoenix's level now matches, but its 250 and 500 Hz bands are still 9 to 14 dB low.
