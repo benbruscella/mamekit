@@ -36,10 +36,10 @@ export const centiped = sourceTarget({
     },
     audio: {
       writes: 959999,
-      nonzeroWrites: 959999,
-      writeHash: '4b7fbf9f',
-      pcmHash: 'cd0f5e74',
-      rms: 0.068571,
+      nonzeroWrites: 959997,
+      writeHash: 'c805cf19',
+      pcmHash: '8f893834',
+      rms: 0.06856,
     },
   },
 });

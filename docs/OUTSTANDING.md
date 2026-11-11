@@ -101,9 +101,10 @@ MAME's 2.65. One candidate, not established: MAME reads past `tune4`'s end
 ### 3.7 Onsets on AY-fed DISCRETE boards (from #236)
 
 With contract input, gyruss is 1.68 onsets a second off MAME, travrusa 0.63,
-junglek 0.59 and btime 0.43, while level and bands match. The AYs render at
-their native rate and are averaged to 48 kHz on the way into the table, where
-MAME's resampler sits. That is the likely difference, unconfirmed.
+junglek 0.59 and btime 0.43, while level and bands match. After #242,
+tutankhm is 0.35 off (4.60 against 4.95) and timeplt 0.20, also AY-fed. The
+AYs render at their native rate and are averaged to 48 kHz on the way into the
+table, where MAME's resampler sits. That is the likely difference, unconfirmed.
 
 ## 4. FROM #242 (PR #243)
 
@@ -146,28 +147,43 @@ engine was within 0.3 dB.
   `counter`, `sh6840_apply_clock`, `m_sh6840_volume`), rendered at the board's
   1.79 MHz stream rate.
 
-### 4.3 Compiled chips still off MAME
+### 4.3 What the final compare still flags
 
-From `oracle:baseline compare --baseline e11059da` on the #242 tree (MAME 0.289).
-Level and bands are |ours − MAME|, baseline → now. Fixed in #242 and gone from
-this table: mslug (YM2610 ADPCM), berzerk (S14001A speech), gng and gunsmoke
-(YM2203), ffight, sf2 and sf2ce (OKIM6295 step table), nbajam, rampage (held
-sound CPU), popeye and xevious.
+From `oracle:baseline compare --baseline e11059da` on `24c605b2` (MAME 0.289,
+107 scenarios). Fixed in #242 and gone from this list: mslug (YM2610 ADPCM),
+berzerk (S14001A speech), gng and gunsmoke (YM2203), ffight, sf2, sf2ce and
+nbajam (OKIM6295 step table), rampage (held sound CPU), spyhunt (ADC setters,
+byte-lane bus), the NES APU (struct initializers), shinobi (forwarding
+accessor), friskyt's contract bands, popeye and xevious. Every other "worse"
+moved less than 0.5 dB in level, 1.5 dB in bands, 0.2 onsets a second, a few
+RAM bytes or pixels, or one frame of first divergence, or is one of these:
 
-| Target | Chip path | No input | Contract |
-|---|---|---|---|
-| mk | Williams ADPCM (YM2151, OKIM6295, DAC) | level 0.76 → 1.49 dB | level 0.05 → 0.44 dB, bands 3.6 → 5.5 dB |
-| spyhunt | SSIO (AY-3-8910 ×2) | bands 5.1 → 24.1 dB | level 8.2 dB, onsets 16.7/s against MAME's 2.0 |
-| nes/smb1, nes/duckhunt | RP2A03 APU | bands ~1 → 6 dB (duckhunt) | bands ~1 → 6–10 dB |
-| shinobi | YM2151 + uPD7759 | level 1.9 → 2.5 dB | level 1.8 → 2.3 dB |
-| wboy | SN76489 ×2 (Sega) | level 1.1 → 5.2 dB | better |
-| elevator, friskyt | AY / SN | level 3.7 dB / 3.0 dB | bands 6.8 dB / 11.7 dB |
-| ladybug, coleco/dkong | SN76489 | bands 16 → 56 dB, 14 → 27 dB | — |
+| Target | Measure, baseline → now | Why |
+|---|---|---|
+| gauntlet | RAM, audio | 4.1 |
+| venture | level 5.2 dB, bands 23–36 dB | 4.2 |
+| mario | no recording | 1.1 (netlist not compiled) |
+| wboy, no input | level 1.1 → 7.8 dB | power-on click, below |
+| mk | level 0.8 → 1.5 dB, contract bands 3.6 → 5.5 dB | gameplay drift, below |
+| rampage, contract | level 0.9 → 2.0 dB | 4.4: −0.6 dB with the filter; the rest is gameplay divergence after frame 600 |
+| upndown, elevator, friskyt, mpatrol, travrusa, no input | level or bands on near-silence | 4.4; with contract input each is better than baseline or within 0.7 dB of it |
+| ladybug, coleco/dkong, no input | bands 16 → 56 dB, 14 → 16 dB | two near-silences; contract audio matches |
+| tutankhm, timeplt, ddragon, a2600/combat, contract | onsets 0.2–0.45 a second off | level and bands within 0.8 dB; tutankhm and timeplt are the AY case in 3.7 |
+| nbajam, contract | onsets 0.02 → 0.46 | the game picks random teams |
+| arkanoid, mk | RAM "compared 1999 of 2000 frames" | 1.4 |
 
-- ladybug and coleco/dkong compare two near-silences with no input (the bands
-  are a ratio of very quiet signals); their contract audio matches.
-- These are being worked in #242; whatever is left at merge stays here with
-  its measurement.
+- **wboy's power-on click.** Every SN76489A write stalls our sound Z80 about
+  170 µs on the chip's READY line, against MAME's 16 µs, so the click at power
+  on is longer. All of the 7.8 dB is in second 0; both sides are silent after
+  that, and the contract run matches (bands 0.6 dB). An A/B with and without
+  the synchronized input lines ruled those out. Where to start: each write
+  (`sn76496_base_device::write`) drops READY and arms `m_ready_timer` for
+  `clock() / (4 * m_clock_divider)`, 16 µs here. READY reaches the Z80's WAIT
+  line through system1.cpp's `sn_ready` input merger. Ours releases WAIT about
+  170 µs later, which looks like the timer being serviced at a slice boundary
+  rather than at its expiry (unconfirmed).
+- **mk.** Sound matches MAME second by second where the game matches; the main
+  CPU drifts in gameplay, as it already did at baseline.
 
 ### 4.4 The compare's reference lacks MAME's speaker high-pass
 
@@ -176,5 +192,7 @@ high-pass (`audio_effects/filter.cpp`: 20 Hz, Q 0.7071) every MAME listener
 hears and our recording carries. On a board with low-frequency content the
 raw level reads several dB worse than it sounds: nbajam's attract DAC passage
 measured −3.3 dB raw and 0.0 dB with the filter applied to MAME's side (599
-against 598 RMS). `tools/compare-audio.mjs` should apply MAME's default
+against 598 RMS). Rampage's contract run reads −19.9 dB raw and −0.6 dB
+filtered over 40 s; upndown's no-input run −4.5 dB raw and −1.5 dB filtered,
+its two sounds within 0.2 dB. `tools/compare-audio.mjs` should apply MAME's default
 high-pass to the reference, read from the compiled filter so it follows MAME.

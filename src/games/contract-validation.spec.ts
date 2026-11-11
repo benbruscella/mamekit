@@ -21,6 +21,16 @@ assert.equal(validateGameContract(candidate, 'candidate'), candidate);
 assert.throws(() => validateGameContract(candidate, 'accepted'), /no recorded golden/);
 assert.throws(() => validateGameContract({ ...candidate, category: 'computers' }, 'accepted'),
   /no recorded golden/);
+// A silent board (`soundKind: 'none'`) records a golden with no audio writes;
+// a board with sound may not.
+const silentGolden: NonNullable<GameTestContract['golden']> = {
+  regions: { maincpu: '00000000' },
+  checkpoints: { 1: { video: '0', state: '0' }, 60: { video: '0', state: '0' } },
+  audio: { writes: 0, nonzeroWrites: 0, writeHash: '0', pcmHash: '0', rms: 0 },
+};
+assert.equal(validateGameContract({ ...candidate, golden: silentGolden }, 'accepted').game, 'demo');
+assert.throws(() => validateGameContract({ ...candidate, soundKind: 'stream', golden: silentGolden }, 'accepted'),
+  /golden has no audio writes/);
 assert.throws(() => validateGameContract({ ...candidate, checkpoints: [60, 1] }, 'candidate'),
   /strictly increasing/);
 assert.throws(() => validateGameContract({

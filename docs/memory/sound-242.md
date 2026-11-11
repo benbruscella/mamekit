@@ -38,3 +38,5 @@ metadata:
 - **Oracle audio artefact:** ours.pcm already carries the browser 20 Hz speaker high-pass and compare-audio adds another; MAME's -wavwrite is pre-effects. DC-step boards (rampage) look worse than they sound.
 - The `--io` tap can't compare a 16-bit bus with umask16 byte devices (MAME logs `ffff`, ours `ff`), so first-difference stops at #0.
 - rtype video (logo/sprites/ground missing) is pre-existing on main (baseline pixels identical) — not #242.
+- **Final compare (2026-11-11)** on 24c605b2: table posted to #242; every material "worse" is in OUTSTANDING 4.3. Triage method: diff each verdict against the previous full compare (movers), then `persec.py` (per-second RMS with MAME's 20 Hz high-pass applied) on a `--keep` run before calling anything a regression.
+- **`npm run test:games:record` stops at the first golden whose sound writes swing ≥5%** (`process.exitCode = 1` + `|| exit 1` in the loop). After a sound rewrite every board swings (stream samples are counted, not register writes), so loop `record-goldens.ts` per game yourself, log each exit, and hand the user the swing list to confirm.
