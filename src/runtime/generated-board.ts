@@ -3708,7 +3708,13 @@ class IrBoard implements Board {
 
   /** Whether a line on `tag` is driven from another running processor. */
   private synchronizesLineFrom(tag: string): boolean {
-    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning;
+    // A device timer's callback is not the running processor, though ours
+    // fire mid-slice: MAME runs them between slices, where a synchronized
+    // line takes effect at once. Deferred to the round's end, the SN76489A's
+    // READY release (a timer, through an input merger onto the Z80's WAIT)
+    // held System 1's sound Z80 170 us per write instead of 16.
+    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning &&
+      generatedTimerExpiry() === undefined;
   }
 
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {

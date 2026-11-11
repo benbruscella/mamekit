@@ -1678,6 +1678,28 @@ function compileMameDeviceSource(
       }
     }
   }
+  // An accessor that forwards to another names the same callback: ymopm.h's
+  // `auto port_write_handler() { return io_write_handler(); }`, the name
+  // System 16A wires the uPD7751's RESET and IRQ to. Unread, the YM2151's CT
+  // port reached nothing and Shinobi never played a voice sample. With no
+  // argument the target's default index applies (`int index = 0`).
+  for (const className of hierarchy) {
+    const body = classes.get(className)?.body ?? '';
+    for (const forward of body.matchAll(/\bauto\s+(\w+)\s*\(\s*\)\s*\{\s*return\s+(\w+)\s*\(\s*([^()]*)\)\s*;\s*\}/g)) {
+      const [, name, target, argument] = forward as unknown as [string, string, string, string];
+      if (callbacks.some(candidate => candidate.signal === name || candidate.aliases?.some(alias => alias.signal === name))) continue;
+      const direct = callbacks.find(candidate => candidate.signal === target);
+      if (direct) {
+        const slot = argument.trim() ? evalExpr(argument.trim(), constants) : 0;
+        if (slot !== null && Number.isInteger(slot)) (direct.aliases ??= []).push({ signal: name, slot });
+        continue;
+      }
+      for (const candidate of callbacks) {
+        const alias = candidate.aliases?.find(entry => entry.signal === target);
+        if (alias) { candidate.aliases!.push({ signal: name, slot: alias.slot }); break; }
+      }
+    }
+  }
   for (const callback of interruptCallbacks) {
     if (callbacks.some(candidate => candidate.signal === callback.signal)) continue;
     callbacks.push({
