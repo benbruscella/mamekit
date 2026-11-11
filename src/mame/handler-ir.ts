@@ -1547,6 +1547,11 @@ class HandlerParser {
       if (stream) this.streamLocals.add(name.text);
       if (stream || declarationType === 'std::string') this.stringLocals.add(name.text);
       if (!value && (stream || declarationType === 'std::string')) value = { kind: 'string', value: '' };
+      // MAME's PAIR union (emucore.h) as a local: one word read and written
+      // as .d, .w.l/.w.h or .b.l/.b.h, as the 6800's `PAIR r,d,b;` uses it.
+      if (!value && declarationType?.replace(/\bconst\b/g, '').trim() === 'PAIR') {
+        value = { kind: 'call', callee: { kind: 'identifier', name: 'PAIR_VALUE' }, args: [] };
+      }
       declarations.push({
         op: 'declare',
         name: name.text,

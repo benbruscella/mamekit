@@ -24,7 +24,9 @@ if (generatedScanlineTriggers(compileMameHandler(`
   throw new Error('non-literal scanline callbacks must retain their full cadence');
 }
 
-for (const type of ['m6802', 'm6803', 'm6808', 'nsc8105', 'm6801u4', 'mc6809']) {
+// The 6800 family runs as its MAME class, whose clock conversion is its own
+// execute_clocks_to_cycles (execute-facts.spec); these are still typed.
+for (const type of ['konami', 'mc6809']) {
   if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
     throw new Error(`${type} must use MAME's divide-by-four execution clock`);
   }

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { compileMameM6801U4 } from '../mame/cpu-compiler.ts';
 import { compileMameDevice } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
@@ -50,14 +49,11 @@ assert.equal(video.plan.ramPalette?.bytesPerEntry, 2);
 assert.equal(video.plan.ramPalette?.endianness, 'big');
 assert.ok(video.handlers.every(handler => !handler.program?.diagnostics.length));
 
-const m6801 = compileMameM6801U4(mameSrc);
-assert.equal(m6801.type, 'M6801U4');
+// The MCU is MAME's m6801u4_cpu_device compiled whole: its ports, timer and
+// RAM are its own internal map, and its ROM the device's own region.
+const m6801 = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('M6801U4')!, 'M6801U4');
 assert.equal(m6801.summary.diagnostics, 0);
-assert.deepEqual(m6801.internal?.ram, [{ start: 0x40, end: 0xff }]);
-assert.deepEqual(
-  m6801.internal?.ports.map(port => [port.directionAddress, port.dataAddress]),
-  [[0x00, 0x02], [0x01, 0x03], [0x04, 0x06], [0x05, 0x07]],
-);
+assert.ok(m6801.spaces?.some(space => space.index === 0 && space.map === 'm6801u4_mem'));
 
 // The YM3526 is MAME's ymfm wrapper compiled whole, over ymfm's OPL engine.
 const opl = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('YM3526')!);

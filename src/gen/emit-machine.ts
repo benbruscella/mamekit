@@ -47,14 +47,8 @@ export function generatedCpuCycleClock(type: string | undefined, rawClock: numbe
   if (type === 'i8085a') return divided(2);
   // tms34010.h execute_clocks_to_cycles: (clocks + 8 - 1) / 8.
   if (type === 'tms34010') return divided(8);
-  if (
-    type === 'konami' || type === 'mc6809' || type === 'm6801u4' || type === 'm6802' ||
-    type === 'm6803' || type === 'm6808' || type === 'nsc8105' ||
-    // The whole m6800/m6801/hd6301 line divides its input clock by 4
-    // (m6800.h/m6801.h execute_cycles_to_clocks); only the external-E-clock
-    // variants (m6803e, mc6809e-style) run 1:1 and stay off this list.
-    type === 'hd63701y0'
-  ) return divided(4);
+  // m6809.h's (clocks + m_clock_divider - 1) / m_clock_divider, 4 on these.
+  if (type === 'konami' || type === 'mc6809') return divided(4);
   // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 and upd7751
   // are plain mcs48_cpu_devices, only i8021/i8022 use the /30 variant.
   if (
@@ -848,6 +842,13 @@ export function lowerGeneratedMachine(
     .filter(path => graph.meta.mameSrc && graph.meta.driverFile && existsSync(path))
     .map(path => readFileSync(path, 'utf8')).join('\n');
   const regionObjects = sourceMemoryRegions(driverSources);
+  // A CPU compiled whole as its MAME class: device_execute_interface's
+  // clocks_to_cycles, from its own execute_clocks_to_cycles run on its clock.
+  const deviceCycleClock = (type: string | undefined, clock: number): number | undefined => {
+    if (!type || !generatedDeviceTypes.has(type) || !graph.meta.mameSrc) return undefined;
+    const facts = mameExecuteFacts(String(graph.meta.mameSrc), type);
+    return facts?.executes && facts.clocksToCycles ? facts.clocksToCycles(generatedCpuClock(clock)) : undefined;
+  };
   const executionCpus = board.cpus.map(cpu => {
     const interruptVectorWriters = inferInterruptVectorWriters(
       cpu.tag,
@@ -897,7 +898,7 @@ export function lowerGeneratedMachine(
         : {}),
       space,
       ...(cpu.io ? { io: { ...cpu.io, space: { ...space, name: 'io' } } } : {}),
-      cycleClock: generatedCpuCycleClock(cpu.type, cpu.clock),
+      cycleClock: deviceCycleClock(deviceByTag.get(cpu.tag)?.type, cpu.clock) ?? generatedCpuCycleClock(cpu.type, cpu.clock),
       ...(interruptMixer !== undefined ? { interruptMixer: Boolean(interruptMixer) } : {}),
       ...(interruptAcknowledge ? { interruptAcknowledge } : {}),
       ...(daisyChain?.length ? { daisyChain: daisyChain as string[] } : {}),
@@ -917,7 +918,8 @@ export function lowerGeneratedMachine(
       tag: device.tag,
       kind: 'cpu' as const,
       clock: generatedCpuClock(device.clock),
-      cycleClock: runtimeCpu?.cycleClock ?? generatedCpuCycleClock(device.type.toLowerCase(), device.clock),
+      cycleClock: runtimeCpu?.cycleClock ?? deviceCycleClock(device.type, device.clock) ??
+        generatedCpuCycleClock(device.type.toLowerCase(), device.clock),
       space: generatedCpuAddressSpace(device.type, device.tag),
     }];
   });

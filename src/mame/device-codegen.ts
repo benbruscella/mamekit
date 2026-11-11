@@ -2,6 +2,7 @@ import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board
 import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDereference, STRING_MUTATORS } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
+import { isNoEffectStatement } from '../ir/framework-calls.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
@@ -169,11 +170,25 @@ export function generatedDeviceMethodsSource(
     [...methodCounts].filter(([, count]) => count > 1).map(([name]) => name),
   );
   const methodsByName = new Map(definition.methods.map(method => [method.name, method]));
+  // A method a member-function-pointer table names: CALL_METHOD reaches it
+  // by that name, out of sight of the static call graph. The 6800's opcode
+  // handlers are its `m_insn` table and run once per instruction.
+  const tableMethods = new Set<string>();
+  const collectNames = (value: unknown): void => {
+    if (typeof value === 'string') { if (methodsByName.has(value)) tableMethods.add(value); }
+    else if (Array.isArray(value)) value.forEach(collectNames);
+    else if (value && typeof value === 'object') Object.values(value).forEach(collectNames);
+  };
+  for (const member of (definition as { members?: { values?: unknown; initialValue?: unknown }[] }).members ?? []) {
+    collectNames(member.values);
+    collectNames(member.initialValue);
+  }
   const roots = definition.methods.filter(method =>
     !overloaded.has(method.name) &&
     method.program.diagnostics.length === 0 &&
     (
       definition.hotMethods?.includes(method.name) ||
+      tableMethods.has(method.name) ||
       definition.timers.some(timer => timer.callback === method.name) ||
       // A bus entry point: MAME spells a memory handler's address as `offs_t`,
       // and a processor calls one once per access. These carry no loop for the
@@ -185,6 +200,8 @@ export function generatedDeviceMethodsSource(
       // device_execute_interface entry points run every device clock, even
       // when their loop only calls helpers and has no switch of its own.
       method.name === 'execute_run' ||
+      // Every input-line change a processor sees (IRQs, NMI, a 6801's IS3).
+      method.name === 'execute_set_input' ||
       isStreamRenderer(method) ||
       installsLambda(method.program.operations) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
@@ -275,9 +292,11 @@ export function generatedDeviceMethodsSource(
 ${[...constantTables].map(([values, name]) => `  const ${name} = [${values}];`).join('\n')}
 ${[...structCopiers.values()].join('\n')}
 ${functions}
-  return {
+  // CALL_METHOD's direct targets: each emitted method by its name.
+  const __methodTable${typescript ? ': Record<string, any>' : ''} = {
     ${entries}
   };
+  return __methodTable;
 })()`;
   return { source, methods: [...supportedNames], links: [...links].sort() };
 }
@@ -541,6 +560,15 @@ function methodClosure(
   };
   roots.forEach(visit);
   return [...selected.values()];
+}
+
+/** Whether evaluating the expression could call or assign anything. */
+function hasCall(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'call' || expression.kind === 'assignment' || expression.kind === 'lambda') return true;
+  return Object.values(expression).some(value =>
+    Array.isArray(value)
+      ? value.some(item => item && typeof item === 'object' && 'kind' in item && hasCall(item as GeneratedExpression))
+      : value && typeof value === 'object' && 'kind' in value && hasCall(value as GeneratedExpression));
 }
 
 export function calledIdentifiers(operations: GeneratedHandlerOperation[]): Set<string> {
@@ -1030,6 +1058,14 @@ function emitOperation(
       (pointee ? ` ${pointee} = runtime.dereference(${localName((operation.target as { name: string }).name)});` : '');
   }
   if (operation.op === 'call') {
+    const callee = operation.expression.kind === 'call' && operation.expression.callee.kind === 'identifier'
+      ? operation.expression.callee.name : undefined;
+    // Its arguments are names or values with no effect of their own (a PC,
+    // a register): nothing is left to evaluate.
+    if (callee && !context.compiled.has(callee) && isNoEffectStatement(callee) &&
+        operation.expression.kind === 'call' && operation.expression.args.every(argument => !hasCall(argument))) {
+      return `${pad}/* ${callee}: no effect */`;
+    }
     return `${pad}${emitExpression(operation.expression, context)};`;
   }
   if (operation.op === 'return') {
@@ -1378,6 +1414,18 @@ function literalValue(expression: GeneratedExpression, context?: EmitContext): n
   }
 }
 
+/**
+ * A framework constant named without its class -- diexec.h's INPUT_LINE_NMI,
+ * which the runtime numbers its own way -- where the device has no member of
+ * that name: the interpreter falls back to the same table. Emitted as a
+ * member read it was 0, so a 6800's IRQ line was taken for its NMI.
+ */
+function frameworkConstant(name: string, context: EmitContext): number | undefined {
+  if (name.includes('::') || DEFAULT_CONSTANTS[name] === undefined) return undefined;
+  if (context.definition.members.some(member => member.name === name)) return undefined;
+  return DEFAULT_CONSTANTS[name];
+}
+
 /** The integer an identifier is emitted as, resolved exactly as emitExpression does. */
 function literalIdentifier(name: string, context: EmitContext): number | undefined {
   if (context.locals.has(name)) return undefined;
@@ -1388,7 +1436,8 @@ function literalIdentifier(name: string, context: EmitContext): number | undefin
     context.definition.constants[name] ??
     (leaf !== name ? DEFAULT_CONSTANTS[name] : undefined) ??
     context.methodConstants?.[leaf] ??
-    context.definition.constants[leaf];
+    context.definition.constants[leaf] ??
+    frameworkConstant(name, context);
   if (constant !== undefined) return Number.isInteger(constant) ? constant : undefined;
   if (context.compiled.has(name)) return undefined;
   const value = Number(constMemberValue(name, context));
@@ -1428,7 +1477,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       context.definition.constants[expression.name] ??
       (leaf !== expression.name ? DEFAULT_CONSTANTS[expression.name] : undefined) ??
       context.methodConstants?.[leaf] ??
-      context.definition.constants[leaf];
+      context.definition.constants[leaf] ??
+      frameworkConstant(expression.name, context);
     if (constant !== undefined) return String(constant);
     if (context.compiled.has(expression.name)) {
       return `method_${safeName(expression.name)}.bind(undefined, runtime)`;
@@ -1979,6 +2029,16 @@ function emitCall(
       return `(${link} ? ${link}(${bound.join(', ')}) : ` +
         `typeof ${member} === 'function' ? ${member}(${args.join(', ')}) : ` +
         `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
+    }
+    // A call through a member-function pointer: the pointer holds a method's
+    // name, and an emitted method of that name is called directly -- the 6800
+    // and MCS-48 dispatch every instruction this way. Anything else takes the
+    // shared path below.
+    if (name === 'CALL_METHOD' && args.length >= 1) {
+      const rest = args.slice(1);
+      return `((__method) => __method ? __method(runtime${rest.length ? `, ${rest.join(', ')}` : ''}) : ` +
+        `(${callLink(context, name)} ? ${callLink(context, name)}(${args.join(', ')}) : ` +
+        `runtime.macro("CALL_METHOD"${args.length ? `, ${args.join(', ')}` : ''})))(__methodTable[${args[0]}])`;
     }
     // <cmath> answers the same everywhere, so it is spelled directly. The
     // speaker's filter takes `std::abs` of 64 taps for every one of 48,000

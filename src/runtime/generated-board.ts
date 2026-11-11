@@ -2,7 +2,8 @@ import { boardConfigFromIr } from '../ir/host-config.ts';
 import { generatedMachine } from './generated-machine.ts';
 import { Bus, byteAddress, type HandlerRegistry, type InstalledRange, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace, type InstalledDelegate } from './address-space-install.ts';
-import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
+import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu, type CpuBus } from './generated-cpu.ts';
+import { DeviceCpu } from './device-cpu.ts';
 import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
 import {
   beginGeneratedTimerDelivery,
@@ -1189,6 +1190,10 @@ class IrBoard implements Board {
           },
           regions,
           ...(specification.romMap?.length ? { romRead: this.deviceRomRead(specification.tag, specification.romMap, regions) } : {}),
+          // A CPU compiled as a device: the spaces its owner maps -- program,
+          // and IO and decrypted opcodes where the driver gives those maps.
+          ...((cpu => cpu ? { configuredSpaces: [0, ...(cpu.io ? [2] : []), ...(cpu.opcode ? [3] : [])] } : {})(
+            machine.execution.cpus.find(candidate => candidate.tag === specification.tag))),
           configuration: config,
           // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
           // lowered from the driver's constant arguments. MAME makes them
@@ -2065,7 +2070,9 @@ class IrBoard implements Board {
 
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? 'Z80';
-      if (!hasGeneratedCpu(type)) {
+      // Or a CPU compiled whole as its MAME class, a generated device that
+      // executes (device-cpu.ts).
+      if (!hasGeneratedCpu(type) && !this.devices.get(specification.tag)?.methodNames().includes('execute_run')) {
         throw new Error(
           `${machine.game}: CPU ${specification.tag}:${type} has no generated executable definition`,
         );
@@ -2334,7 +2341,7 @@ class IrBoard implements Board {
         if (name) cpuDelegates.set(name, { tag: binding.tag, method: binding.method });
       }
       const screenSpec = machine.execution.screen;
-      const cpu = createCpu(type, {
+      const cpuBus: CpuBus = {
         // Exactly the callbacks `signal` below would run for this processor.
         boundSignals: new Set(machine.callbacks
           .filter(callback => callback.ownerTag === specification.tag)
@@ -2514,14 +2521,24 @@ class IrBoard implements Board {
           }
           return result ?? 0;
         },
-      });
+      };
+      // A CPU compiled whole as its MAME class (device-cpu.ts): the generated
+      // device is the core, and this processor slot hosts it.
+      const coreDevice = hasGeneratedCpu(type) ? undefined : this.devices.get(specification.tag);
+      const cpu: Cpu = coreDevice && coreDevice.methodNames().includes('execute_run')
+        ? new DeviceCpu(coreDevice, cpuBus, {
+            setInputLine: (line, state) => { this.deviceInputLine(specification.tag, coreDevice, line, state); },
+            acknowledgeLine: line => this.deviceIrqAcknowledge(specification.tag, coreDevice, line),
+          })
+        : createCpu(type, cpuBus);
       if (specification.interruptMixer !== undefined) {
         cpu.set('m_interrupt_mixer', Number(specification.interruptMixer));
       }
       for (const configuration of machine.devices?.find(device => device.tag === specification.tag)?.configuration ?? []) {
         // A CPU's setters here are numeric; one naming another device's tag
-        // is wiring the board already composed.
-        if (cpu.hasMethod(configuration.method) &&
+        // is wiring the board already composed. A device core was configured
+        // with the rest of the devices.
+        if (!coreDevice && cpu.hasMethod(configuration.method) &&
             configuration.args.every(argument => typeof argument === 'number')) {
           cpu.invoke(configuration.method, ...configuration.args as number[]);
         }
@@ -2773,8 +2790,11 @@ class IrBoard implements Board {
         return cycles - device.get('m_icount');
       },
     });
+    const executionCpuTags = new Set(machine.execution.cpus.map(cpu => cpu.tag));
     const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
       if (!specification.hostTag) return [];
+      // A CPU compiled as a device is the board's processor already.
+      if (executionCpuTags.has(specification.tag)) return [];
       const device = this.devices.get(specification.tag);
       const host = this.devices.get(specification.hostTag);
       // Device ROM regions retain the ROM-set device path (for example

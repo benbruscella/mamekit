@@ -612,6 +612,12 @@ export function mameSubtag(own: string, tag: string): string {
 
 export interface GeneratedDeviceOptions {
   owner?: unknown;
+  /**
+   * The address spaces the owner maps for this device (a CPU's program, IO
+   * and decrypted-opcode maps): what has_configured_map answers, and which
+   * of the spaces memory_space_config declares on condition exist.
+   */
+  configuredSpaces?: readonly number[];
   /** A child of this device the board holds itself, by full tag: its handle there. */
   heldChild?: (tag: string) => object | undefined;
   /** device_sound_interface::get_sound_requested_inputs_mask: the inputs routed into it. */
@@ -1439,7 +1445,7 @@ class IrDevice implements Device {
                 // A file-scope `static const struct` keeps its initializer.
                 : Object.assign(structMember(member.fields, definition.structs, structTypeName(member.valueType)), structuredClone(member.initialValue ?? {})))
         : member.memory
-        ? memoryMember(member, options, definition.structs)
+        ? memoryMember(member, options, definition.structs, definition.spaces?.some(space => space.map) === true)
         : member.values ? [...member.values]
         // A multi-dimensional array needs its inner rows to exist before the
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
@@ -1734,6 +1740,8 @@ class IrDevice implements Device {
           }])),
         // A call through a member-function pointer, which holds the method's
         // name (member-pointers.ts): the T-Unit blitter's dma_draw tables.
+        // A PAIR local (handler-ir): the same union a PAIR member holds.
+        PAIR_VALUE: () => pairValue() as unknown as number,
         CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>
           this.invoke(String(name), ...args),
         // MAME stops on a fatal error; carrying on past one ran on garbage.
@@ -1965,7 +1973,14 @@ class IrDevice implements Device {
         // device_memory_interface::has_configured_map: whether the owner gave
         // the space a map of its own. Nothing here configures one, so a device
         // maps its regions itself (the YM2610's ADPCM ROM).
-        has_configured_map: () => 0,
+        has_configured_map: index => options.configuredSpaces?.includes(Number(index)) ? 1 : 0,
+        // device_memory_interface::has_space: a space memory_space_config
+        // declared. AS_OPCODES is declared only when the owner maps it (the
+        // 6800's `has_configured_map(AS_OPCODES) ? {program, opcodes} : {program}`).
+        has_space: index => {
+          const declared = definition.spaces?.some(space => space.index === Number(index)) ?? false;
+          return declared && (Number(index) !== 3 || options.configuredSpaces?.includes(3) === true) ? 1 : 0;
+        },
         // device_t::started(): the OKI asserts it before configuring PIN7.
         started: () => this.deviceStarted ? 1 : 0,
         // device_t::reset(), which a device calls on itself: a TMS5220C
@@ -2824,6 +2839,16 @@ class IrDevice implements Device {
   bindAddressSpace(index: number, read: (address: number) => number,
     write: (address: number, data: number) => void): void {
     const config = this.definition.spaces?.find(space => space.index === index);
+    // A space with an internal map of its own (a 6801's ports, timer and
+    // RAM): the owner's map is the rest of it. MAME builds the internal map
+    // first, so it takes priority (address_map's constructor).
+    if (config?.map && config.dataBits === 8) {
+      const mapped = this.deviceSpace(index) as { fallback?: { read(address: number): number; write(address: number, data: number): void } } | undefined;
+      if (mapped) {
+        mapped.fallback = { read, write };
+        return;
+      }
+    }
     const space = this.spaces.get(index);
     if (!config || !space || config.dataBits !== 8) {
       throw new Error(`${this.definition.type}: no supported byte address space ${index}`);
@@ -3834,6 +3859,8 @@ function memoryMember(
   member: DeviceMember,
   options: GeneratedDeviceOptions,
   structs?: Readonly<Record<string, readonly StructField[]>>,
+  /** The device builds an address map of its own, which may create the share. */
+  ownMap = false,
 ): ArrayLike<unknown> {
   const memory = member.memory!;
   // A vector its constructor sizes (`m_value_map(1 << bits)`) starts that long.
@@ -3852,6 +3879,10 @@ function memoryMember(
   if (!bytes && /^optional_shared_ptr\b/.test(member.valueType)) {
     return new Uint8Array(0);
   }
+  // A share the device's own address map creates: a 6801's
+  // `map(0x0080, 0x00ff).ram().share(m_internal_ram)`. The map sizes it when
+  // it is built (mappedDeviceSpace), and this member is that memory.
+  if (!bytes && ownMap) return generatedMemoryArray(memory.elementBytes);
   if (!bytes) {
     throw new Error(
       `generated device memory share "${tag ?? memory.share}" is not available for ${member.name}`,
@@ -4132,6 +4163,8 @@ function mappedDeviceSpace(
     write?: (offset: number, data: number) => void;
     storage?: Uint8Array;
     storageOffset?: number;
+    /** RAM: writes land in `storage`. */
+    writable?: boolean;
   };
   const entries: Entry[] = [];
   let unmapped = 0;
@@ -4169,7 +4202,18 @@ function mappedDeviceSpace(
       lr8: handler => chain.r!(handler),
       lw8: handler => chain.w!(handler),
       lrw8: (read, write) => chain.rw!(read, write),
-      ram: () => { entry.storage = memory; entry.storageOffset = undefined; return chain; },
+      ram: () => { entry.storage = memory; entry.storageOffset = undefined; entry.writable = true; return chain; },
+      // `.share(m_internal_ram)`: the entry's memory is the member's, sized to
+      // the entry, as MAME's map allocates a share for its finder.
+      share: target => {
+        if (ArrayBuffer.isView(target)) {
+          const bytes = resizeGeneratedContainer(target, entry.end - entry.start + 1) as Uint8Array;
+          entry.storage = bytes;
+          entry.storageOffset = 0;
+          entry.writable = true;
+        }
+        return chain;
+      },
       // An internal map's `rom()` is the device's own region at the same
       // addresses: the MB88's program space is its firmware.
       rom: () => {
@@ -4181,7 +4225,12 @@ function mappedDeviceSpace(
         return chain;
       },
       region: (tag, offset) => {
-        const bytes = region(String(tag));
+        // DEVICE_SELF ("" in MAME) is the device's own region, as `rom()`
+        // reads it: a 6801U4's or HD63701's on-chip ROM.
+        const named = tag && typeof tag === 'object' && 'reference' in tag
+          ? String((tag as { reference: unknown }).reference) : String(tag);
+        const self = named === 'DEVICE_SELF' || named === '';
+        const bytes = region(self ? 'tag()' : named);
         if (!bytes) throw new Error(`address map names region ${String(tag)}, which was not loaded`);
         entry.storage = bytes;
         entry.storageOffset = Number(offset) || 0;
@@ -4208,15 +4257,15 @@ function mappedDeviceSpace(
   entries.forEach((entry, index) => {
     for (let address = entry.start; address <= entry.end; address++) {
       if (entry.read || entry.storage) readAt[address] = index;
-      if (entry.write || entry.storage === memory) writeAt[address] = index;
+      if (entry.write || entry.writable) writeAt[address] = index;
     }
   });
-  return {
+  const space: GeneratedDeviceSpace & { fallback?: { read(address: number): number; write(address: number, data: number): void } } = {
     memory,
     read_byte: address => {
       const at = address & mask;
       const entry = entries[readAt[at]!];
-      if (!entry) return unmapped;
+      if (!entry) return space.fallback ? space.fallback.read(address) : unmapped;
       if (entry.read) return entry.read(at - entry.start) & 0xff;
       const storage = entry.storage!;
       return storage[entry.storageOffset === undefined ? at : entry.storageOffset + at - entry.start] ?? unmapped;
@@ -4224,12 +4273,16 @@ function mappedDeviceSpace(
     write_byte: (address, data) => {
       const at = address & mask;
       const entry = entries[writeAt[at]!];
-      if (!entry) return 0;
+      if (!entry) {
+        space.fallback?.write(address, data);
+        return 0;
+      }
       if (entry.write) entry.write(at - entry.start, data & 0xff);
-      else entry.storage![at] = data & 0xff;
+      else entry.storage![entry.storageOffset === undefined ? at : entry.storageOffset + at - entry.start] = data & 0xff;
       return 0;
     },
   };
+  return space;
 }
 
 /**

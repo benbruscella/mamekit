@@ -1,0 +1,83 @@
+// A CPU compiled whole as its MAME class, run through DeviceCpu as a board
+// processor runs it: MAME's m6800/m6801 classes, from source, with a bus.
+import assert from 'node:assert/strict';
+import { indexMameHardware } from '../mame/hardware.ts';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { createDevice, registerGeneratedDevice, type Device } from './generated-device.ts';
+import { DeviceCpu } from './device-cpu.ts';
+import type { CpuBus } from './generated-cpu.ts';
+
+const mameSrc = process.env.MAME_SRC ?? '../mame';
+const index = indexMameHardware(mameSrc);
+
+function deviceCpu(type: string, bus: CpuBus): { cpu: DeviceCpu; device: Device } {
+  const definition = compileMameDevice(mameSrc, index.get(type)!, type);
+  assert.equal(definition.summary.diagnostics, 0, `${type} compiles whole`);
+  registerGeneratedDevice(definition);
+  const device = createDevice(type, { tag: 'cpu', clock: 4_000_000, configuredSpaces: [0] });
+  const cpu = new DeviceCpu(device, bus, {
+    setInputLine: (line, state) => { device.call('execute_set_input', line, state === 2 ? 1 : state); },
+    acknowledgeLine: () => 0,
+  });
+  return { cpu, device };
+}
+
+const registers = (device: Device) => (device as unknown as { members: Record<string, { b: { h: number }; w: { l: number } }> }).members;
+
+// The 6803 from m6801.cpp: the reset vector, execute_run's opcode table
+// (m6803_insn, handed down two constructors) and its on-chip port 1, which a
+// write to 0x02 drives through out_p1_cb as MAME drives it: data bits under
+// the direction register, the rest pulled high.
+{
+  const memory = new Uint8Array(0x10000);
+  memory.set([0x86, 0x5a, 0x97, 0x02, 0x01, 0x20, 0xfe], 0x0200); // LDAA #$5A; STAA $02; NOP; BRA *
+  memory[0xfffe] = 0x02;
+  memory[0xffff] = 0x00;
+  const { cpu, device } = deviceCpu('M6803', {
+    read: address => memory[address]!,
+    write: (address, data) => { memory[address] = data; },
+    in: () => 0xff,
+    out: () => {},
+  });
+  const port1: number[] = [];
+  device.on('out_p1_cb', (...args: unknown[]) => { port1.push(Number(args.length >= 3 ? args.at(-2) : args.at(-1))); return 0; });
+  cpu.reset();
+  assert.ok(cpu.run(40) >= 40, 'execute_run spends its slice');
+  assert.equal(registers(device).m_d!.b.h, 0x5a);
+  assert.equal(registers(device).m_pc!.w.l, 0x0205, 'the loop at the end is where it stops');
+  assert.deepEqual(port1, [0xff]);
+  assert.equal(memory[0x02], 0, 'port 1 is on-chip: the write never reaches the bus');
+}
+
+// The 6802's CLI takes a level IRQ only once the instruction after it has run
+// (m6800's own cli handler), so the handler's read of the PIA that drops the
+// line happens exactly once.
+{
+  const memory = new Uint8Array(0x10000);
+  memory.set([0x0e, 0x01, 0x01, 0x20, 0xfe], 0x8000); // CLI; NOP; NOP; BRA *
+  memory.set([0x0e, 0xb6, 0x40, 0x00, 0x3b], 0x9000); // CLI; LDAA $4000; RTI
+  memory[0xfff8] = 0x90;
+  memory[0xfff9] = 0x00;
+  memory[0xfffe] = 0x80;
+  memory[0xffff] = 0x00;
+  let reads = 0;
+  let cpu: DeviceCpu | undefined;
+  ({ cpu } = deviceCpu('M6802', {
+    read: address => {
+      if (address === 0x4000) {
+        reads++;
+        cpu!.setIrqLine(false);
+      }
+      return memory[address]!;
+    },
+    write: (address, data) => { memory[address] = data; },
+    in: () => 0xff,
+    out: () => {},
+  }));
+  cpu.reset();
+  cpu.setIrqLine(true);
+  for (let slice = 0; slice < 8; slice++) cpu.run(8);
+  assert.equal(reads, 1, 'the handler reads the PIA once, and the dropped line is not taken again');
+}
+
+console.log('device-cpu.spec: MAME 6801 and 6802 classes compiled whole run as processors');

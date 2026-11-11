@@ -34,6 +34,7 @@ import { renameShadowedLocals } from '../ir/scope.ts';
 import { preprocessedDeviceTransform } from './preprocessed-device.ts';
 import { CPreprocessor } from './c-preprocessor.ts';
 import { generatedInclude } from './mame-build.ts';
+import { lowerMemberPointerValues } from './member-pointers.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -737,6 +738,30 @@ function compileMameDeviceSource(
       entry.source = entry.source
         .replace(/^typedef\s+[\w\s]+?\s+(\w+)\s*;/gm, (whole, name: string) => scalarAliases.has(name) ? '' : whole)
         .replace(alias, name => scalarAliases.get(name)!);
+    }
+  }
+  // A member-function pointer taken as a value is the method's name, which
+  // CALL_METHOD dispatches by: the 6800's opcode tables are file-scope arrays
+  // of `&m6800_cpu_device::aba`, handed to the constructor as `m_insn`. The
+  // preprocessed reading (preprocessed-device.ts) lowers them the same way.
+  if (!options.transformSource) {
+    const declared = [...new Set(sources.flatMap(({ source }) =>
+      [...source.matchAll(/\b(?:class|struct)\s+(\w+)\b/g)].map(match => match[1]!)))];
+    if (declared.length) {
+      // Only inside a file-scope table's initializer: in a body, `&cls::method`
+      // builds a delegate (`vblank_state_delegate(&watchdog_timer_device::
+      // watchdog_vblank, this)`), which is read as written.
+      const evaluate = (argument: string) => {
+        const value = evalExpr(argument, {});
+        return typeof value === 'number' ? value : null;
+      };
+      for (const entry of sources) {
+        if (!/&\s*\w+\s*::/.test(entry.source)) continue;
+        entry.source = entry.source.replace(
+          /^((?:const\s+)?[\w:]+(?:\s*<[^;{}]*>)?\s+\w+::\w+\s*(?:\[[^\]]*\]\s*)*=\s*\{)([^{};]*(?:\{[^{}]*\}[^{};]*)*)(\}\s*;)/gm,
+          (_whole, head: string, entries: string, tail: string) => head + lowerMemberPointerValues(entries, declared, evaluate) + tail,
+        );
+      }
     }
   }
   for (const library of [
@@ -1800,6 +1825,14 @@ function compileMameDeviceSource(
     member.initialValue = structuredClone(table.initialValue);
     delete member.initial;
   }
+  // A member the constructor chain hands a file-scope table: the 6800's
+  // opcode handlers (method names, CALL_METHOD's) and cycle counts.
+  for (const [name, values] of Object.entries(constructorChain.tables ?? {})) {
+    const member = members.find(candidate => candidate.name === name);
+    if (!member) continue;
+    member.values = values;
+    delete member.initial;
+  }
   // A pointer member the constructor points at a file-scope table holds that
   // table: the speaker's `m_levels(default_levels)`, `{ 0.0, 1.0 }`.
   const tables = constructorTableValues(
@@ -2251,19 +2284,25 @@ function compileMameDeviceSource(
     if (structFields.has(type) && !sourceMethods.some(helper => helper.className === qualified)) return;
     operation.value = { kind: 'call', callee: { kind: 'identifier', name: `new::${type}` }, args };
   });
+  // Collected first and compiled after the walk: each nested class is a whole
+  // compile of its own, and started from inside the walk's recursion, ymfm's
+  // chain of engine, channel and operator classes ran the stack out.
+  const allocatedTypes = new Set<string>();
   for (const method of methods) walkExpressions(method.program.operations, expression => {
     if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
-    const allocated = expression.callee.name.slice(5);
-    if (allocations[allocated]) return;
+    allocatedTypes.add(expression.callee.name.slice(5));
+  });
+  for (const allocated of allocatedTypes) {
+    if (allocations[allocated]) continue;
     const name = instanceNames.get(allocated) ?? allocated;
     const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
     if (instanceNames.has(allocated)) {
       compileNestedClass(allocated, qualified);
-      return;
+      continue;
     }
     if (!classes.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
     compileNestedClass(name, qualified);
-  });
+  }
   // A struct with methods and a constructor of its own, so the methods run
   // emitted: discrete's transform node pushes and pops a `double_stack` for
   // every term of its expression, every sample. Its values stay plain structs
@@ -3336,7 +3375,7 @@ export function mameDeviceShortName(
 export function mameExecuteFacts(
   mameSrc: string,
   type: string,
-): { executes: boolean; minCycles?: number } | undefined {
+): { executes: boolean; minCycles?: number; clocksToCycles?: (clocks: number) => number } | undefined {
   const definition = indexMameHardware(mameSrc).get(type);
   if (!definition) return undefined;
   const className = /^([\w:]+)\s*</.exec(definition.className)?.[1] ?? definition.className;
@@ -3355,7 +3394,33 @@ export function mameExecuteFacts(
       .find(fn => fn.name === 'execute_min_cycles')?.body;
   }).find(found => found !== undefined);
   const minCycles = Number(/^\s*return\s+(\d+)\s*;\s*$/.exec(stripCppComments(body ?? ''))?.[1]);
-  return { executes, ...(Number.isInteger(minCycles) && minCycles > 0 ? { minCycles } : {}) };
+  // device_execute_interface::clocks_to_cycles: the core's own
+  // execute_clocks_to_cycles, run on the clock it is given -- the 6800
+  // family's `(clocks + 4 - 1) / 4`, an MCS-48's `/ 15`. The most derived
+  // definition wins (an i8080 answers `clocks` over the i8085's `/ 2`), and a
+  // core that defines none counts its input clock (diexec.cpp).
+  const clockMethod = [...hierarchy].reverse().concat('device_execute_interface').map(name => {
+    const declaration = classes.get(name);
+    return (declaration ? inlineMethods(declaration) : []).concat(outOfLine.filter(fn => fn.className === name))
+      .find(fn => fn.name === 'execute_clocks_to_cycles');
+  }).find(found => found !== undefined);
+  let clocksToCycles: ((clocks: number) => number) | undefined;
+  if (clockMethod) {
+    const program = compileMameHandler(normalizeMameExecutionSource(clockMethod.body));
+    const parameter = parameterName(splitMameArgs(clockMethod.parameters)[0] ?? 'clocks');
+    if (!program.diagnostics.length) {
+      // Members the constructor chain sets: the 6809's m_clock_divider, 4 on
+      // an MC6809 and 1 on an MC6809E.
+      const members = constructorInitialValues(className, files.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'));
+      // An integer return type (u64), so the quotient is truncated.
+      clocksToCycles = clocks => Math.floor(Number(executeGeneratedProgram(program, { members }, { [parameter]: clocks }).value) || 0);
+    }
+  }
+  return {
+    executes,
+    ...(Number.isInteger(minCycles) && minCycles > 0 ? { minCycles } : {}),
+    ...(clocksToCycles ? { clocksToCycles } : {}),
+  };
 }
 
 function executionClockDivider(source: string): number | undefined {
@@ -4140,7 +4205,9 @@ function compileMethod(
   // every later `m_cprogram13.read_byte(a)` reads through it. The accessor is
   // the space as far as the generated device is concerned.
   body = body.replace(
-    /\b(space\s*\([^()]*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+)\s*\)\s*;/g,
+    // The space may be chosen in place: the 6800 fetches opcodes through
+    // `space(has_space(AS_OPCODES) ? AS_OPCODES : AS_PROGRAM).cache(m_copcodes)`.
+    /\b(space\s*\((?:[^()]|\([^()]*\))*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+)\s*\)\s*;/g,
     '$2 = $1;',
   );
   for (const callback of interruptCallbacks) {
@@ -4354,7 +4421,9 @@ export function memberDeclarations(
   // bit-engine states as `live_info cur_live, checkpoint_live;`. The type may
   // be elaborated: each slapstic state holds `struct test m_bank[4], m_alt, m_bit;`.
   for (const match of declaration.body.matchAll(
-    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s+const)?)\s+([A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
+    // A template type too: the 6800 keeps both its program and opcode
+    // accessors as `memory_access<16, 0, 0, ENDIANNESS_BIG>::cache m_cprogram, m_copcodes;`.
+    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s*<[^;<>\r\n]*(?:<[^;<>\r\n]*>[^;<>\r\n]*)*>(?:::\w+)*)?(?:\s+const)?)\s+([A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
   )) {
     const valueType = match[1]!.replace(/\b(?:struct|union)\s+/, '').replace(/\s+/g, ' ').trim();
     if (/^(?:return|using|typedef|friend|case|goto|delete|throw)$/.test(valueType)) continue;
@@ -4673,6 +4742,12 @@ export interface ConstructorChainValues {
   structs: Record<string, Record<string, unknown>>;
   /** An `address_space_config` member, as its initializer configures it. */
   spaceConfigs: Record<string, { name: string; dataBits: number; addressBits: number; map?: string; endianness?: 'big' | 'little'; addressShift?: number }>;
+  /**
+   * A member the chain points at a file-scope table, as the table's entries:
+   * the 6800's `m_insn(insn)` and `m_cycles(cycles)`, handed `m6803_insn`
+   * and `cycles_6803` by the 6803's constructor two levels down.
+   */
+  tables?: Record<string, (string | number)[]>;
 }
 
 /**
@@ -4780,7 +4855,7 @@ export function constructorInitialValues(
   // A table a class defines at file scope (`m6805_base_device::s_hmos_s_ops = {...}`),
   // its entries numbers or, once its member pointers are lowered, method names.
   const tables = new Map<string, (string | number)[]>();
-  for (const table of source.matchAll(/\b\w+::(\w+)\s*=\s*\{([^{};]*(?:\{[^{}]*\}[^{};]*)*)\}\s*;/g)) {
+  for (const table of source.matchAll(/\b\w+::(\w+)\s*(?:\[[^\]]*\]\s*)*=\s*\{([^{};]*(?:\{[^{}]*\}[^{};]*)*)\}\s*;/g)) {
     const entries = splitMameArgs(table[2]!.replace(/\/\*[\s\S]*?\*\//g, ''))
       .map(entry => entry.trim().replace(/^\((.*)\)$/s, '$1').trim()).filter(Boolean)
       .map(entry => /^"(\w+)"$/.exec(entry)?.[1] ?? constantValue(entry, constants));
@@ -4886,6 +4961,8 @@ export function constructorInitialValues(
           (/^[A-Za-z_]\w*$/.test(passed) && !/^(?:nullptr|NULL|true|false|this)$/.test(passed) && definesFunction(passed) ? passed : undefined);
         const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
         const struct = structArguments[initializer.args[0]!.trim()];
+        const table = tables.get(substitute(initializer.args[0]!.trim()));
+        if (table && chain) (chain.tables ??= {})[member] = table;
         if (struct && chain) chain.structs[member] = struct;
         else if (text !== undefined && strings) strings[member] = text;
         else if (target) pointers[member] = target;

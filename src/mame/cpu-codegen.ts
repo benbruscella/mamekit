@@ -339,7 +339,6 @@ class Generated${safeName(definition.type)} implements Cpu {
   private readonly bus: CpuBus;
   private irqData: number | (() => number) = 0xff;
   private irqHold = false;
-${emitInternalFields(definition)}
 ${fields}
 ${aliases}
 
@@ -353,7 +352,6 @@ ${definition.resetInstruction ? `
   private resetPending = false;
 ` : ''}
   reset(): void {
-    this.resetInternal();
 ${emitProgram(definition.reset, contextFor(definition, [], 'void'), 4)}${definition.resetInstruction ? `
     this.resetPending = true;` : ''}
   }
@@ -451,7 +449,6 @@ ${countsBusCycles ? `
   }
 
   setInputLine(inputnum: number, state: number): void {
-    this.updateInternalInput(inputnum, state);
     this.generatedInput(inputnum, state);
   }
 
@@ -471,7 +468,7 @@ ${countsBusCycles ? `
     return data;
   }
 
-${emitInternalMethods(definition)}
+${emitMemoryMethods(definition)}
 ${definition.strictCalls ? emitStrictHelpers(definition) : ''}
   get(name: string): number {
     switch (name) {
@@ -604,120 +601,18 @@ ${entries}
 `;
 }
 
-function emitInternalFields(definition: GeneratedCpuDefinition): string {
-  const ports = definition.internal?.ports ?? [];
-  return [
-    '  private readonly internalRam = new Uint8Array(0x10000);',
-    `  private readonly portData = new Uint8Array(${ports.length});`,
-    `  private readonly portDirection = new Uint8Array(${ports.length});`,
-    '  private portHandshakeControl = 0;',
-    '  private portHandshakeInputState = 0;',
-    '  private portHandshakeLatched = false;',
-    '  private portHandshakePendingClear = false;',
-  ].join('\n');
-}
-
-function emitInternalMethods(definition: GeneratedCpuDefinition): string {
+function emitMemoryMethods(definition: GeneratedCpuDefinition): string {
   const addressMask = definition.addressMask ?? 0xffff;
-  const ram = definition.internal?.ram ?? [];
-  const ports = definition.internal?.ports ?? [];
-  const handshake = definition.internal?.portHandshake;
-  const ramCondition = ram.length
-    ? ram.map(range =>
-        `(location >= ${range.start} && location <= ${range.end})`).join(' || ')
-    : 'false';
-  const controlRead = handshake ? `
-    if (location === ${handshake.controlAddress}) {
-      if (this.portHandshakeControl & ${handshake.flagMask}) {
-        this.portHandshakePendingClear = true;
-      }
-      return this.portHandshakeControl;
-    }` : '';
-  const portReads = ports.map((port, index) => `
-    if (location === ${port.directionAddress}) return 0xff;
-    if (location === ${port.dataAddress}) {
-      const direction = this.portDirection[${index}];
-${index === handshake?.portIndex
-    ? `      if (this.portHandshakePendingClear) {
-        this.portHandshakeControl &= ~${handshake.flagMask};
-        this.portHandshakePendingClear = false;
-      }
-      const data =
-        (this.portHandshakeControl & ${handshake.latchEnableMask}) ||
-        direction === 0xff
-          ? this.portData[${index}]
-          : (Number(this.bus.signal?.(${JSON.stringify(port.inputSignal)}, 0) ?? 0xff) & ~direction) |
-            (this.portData[${index}] & direction);
-      this.portHandshakeLatched = false;
-      return data & 0xff;`
-    : `      const input = Number(this.bus.signal?.(${JSON.stringify(port.inputSignal)}, 0) ?? 0xff) & 0xff;
-      return direction === 0xff
-        ? this.portData[${index}]
-        : (input & ~direction) | (this.portData[${index}] & direction);`}
-    }`).join('');
-  const controlWrite = handshake ? `
-    if (location === ${handshake.controlAddress}) {
-      this.portHandshakeControl = data;
-      return;
-    }` : '';
-  const portWrites = ports.map((port, index) => `
-    if (location === ${port.directionAddress}) {
-      this.portDirection[${index}] = data;
-      this.emitPort(${index}, ${JSON.stringify(port.outputSignal)}, ${port.outputMask});
-      return;
-    }
-    if (location === ${port.dataAddress}) {
-${index === handshake?.portIndex
-    ? `      if (this.portHandshakePendingClear) {
-        this.portHandshakeControl &= ~${handshake.flagMask};
-        this.portHandshakePendingClear = false;
-      }
-`
-    : ''}      this.portData[${index}] = data;
-      this.emitPort(${index}, ${JSON.stringify(port.outputSignal)}, ${port.outputMask});
-      return;
-    }`).join('');
   const decrypt = definition.opcodeDecrypt;
   const decryptCases = Object.entries(decrypt?.xorByAddress ?? {})
     .map(([address, xor]) => `      case ${address}: return value ^ ${xor};`)
     .join('\n');
-  const updateInput = handshake
-    ? `    if (inputnum !== ${handshake.inputLine}) return;
-    if (
-      !this.portHandshakeInputState &&
-      state !== 0 &&
-      !this.portHandshakeLatched &&
-      (this.portHandshakeControl & ${handshake.latchEnableMask})
-    ) {
-      const direction = this.portDirection[${handshake.portIndex}];
-      const input = Number(
-        this.bus.signal?.(
-          ${JSON.stringify(ports[handshake.portIndex]?.inputSignal ?? '')},
-          0,
-        ) ?? 0xff,
-      ) & 0xff;
-      this.portData[${handshake.portIndex}] =
-        (input & ~direction) | (this.portData[${handshake.portIndex}] & direction);
-      this.portHandshakeLatched = true;
-      this.portHandshakeControl |= ${handshake.flagMask};
-    }
-    this.portHandshakeInputState = state;`
-    : `    void inputnum;
-    void state;`;
   return `  private readMemory(address: number): number {
-    const location = address & ${addressMask};${controlRead}${portReads}
-    if (${ramCondition}) return this.internalRam[location];
-    return this.bus.read(location) & 0xff;
+    return this.bus.read(address & ${addressMask}) & 0xff;
   }
 
   private writeMemory(address: number, value: number): void {
-    const location = address & ${addressMask};
-    const data = value & 0xff;${controlWrite}${portWrites}
-    if (${ramCondition}) {
-      this.internalRam[location] = data;
-      return;
-    }
-    this.bus.write(location, data);
+    this.bus.write(address & ${addressMask}, value & 0xff);
   }
 
   private readOpcode(address: number): number {
@@ -730,24 +625,6 @@ ${decryptCases}
       default: return value;
     }`
     : '    return value;'}
-  }
-
-  private emitPort(index: number, signal: string, outputMask: number): void {
-    const direction = this.portDirection[index];
-    const data = (this.portData[index] & direction) | (direction ^ 0xff);
-    this.bus.signal?.(signal, data & outputMask);
-  }
-
-  private resetInternal(): void {
-    this.portDirection.fill(0);
-    this.portHandshakeControl = 0;
-    this.portHandshakeInputState = 0;
-    this.portHandshakeLatched = false;
-    this.portHandshakePendingClear = false;
-  }
-
-  private updateInternalInput(inputnum: number, state: number): void {
-${updateInput}
   }`;
 }
 
@@ -1402,13 +1279,9 @@ function emitCall(
   }
   if (name === 'READ16BE') {
     const address = dataAddress(args[0] ?? '0');
-    if (!context.definition.internal) {
-      return `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
-        `(((this.readMemory(${address}) & 0xff) << 8) | ` +
-        `(this.readMemory(${address} + 1) & 0xff)))`;
-    }
-    return `(((this.readMemory(${address}) & 0xff) << 8) | ` +
-      `(this.readMemory(${address} + 1) & 0xff))`;
+    return `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
+      `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+      `(this.readMemory(${address} + 1) & 0xff)))`;
   }
   if (name === 'READ16LE') {
     const address = `(${args[0] ?? '0'})`;
@@ -1417,20 +1290,14 @@ function emitCall(
   }
   if (name === 'READ32BE') {
     const address = dataAddress(args[0] ?? '0');
-    if (!context.definition.internal) {
-      const high = `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
-        `(((this.readMemory(${address}) & 0xff) << 8) | ` +
-        `(this.readMemory(${address} + 1) & 0xff)))`;
-      const lowAddress = `(${address} + 2)`;
-      const low = `(this.bus.read16be?.(${lowAddress} & ${addressMask}) ?? ` +
-        `(((this.readMemory(${lowAddress}) & 0xff) << 8) | ` +
-        `(this.readMemory(${lowAddress} + 1) & 0xff)))`;
-      return `(((${high} << 16) | ${low}) >>> 0)`;
-    }
-    return `((((this.readMemory(${address}) & 0xff) << 24) | ` +
-      `((this.readMemory(${address} + 1) & 0xff) << 16) | ` +
-      `((this.readMemory(${address} + 2) & 0xff) << 8) | ` +
-      `(this.readMemory(${address} + 3) & 0xff)) >>> 0)`;
+    const high = `(this.bus.read16be?.(${address} & ${addressMask}) ?? ` +
+      `(((this.readMemory(${address}) & 0xff) << 8) | ` +
+      `(this.readMemory(${address} + 1) & 0xff)))`;
+    const lowAddress = `(${address} + 2)`;
+    const low = `(this.bus.read16be?.(${lowAddress} & ${addressMask}) ?? ` +
+      `(((this.readMemory(${lowAddress}) & 0xff) << 8) | ` +
+      `(this.readMemory(${lowAddress} + 1) & 0xff)))`;
+    return `(((${high} << 16) | ${low}) >>> 0)`;
   }
   if (name === 'READ_VECTOR') {
     return `(++this.cycles, this.readMemory((this.m_ea.w + (${args[0] ?? '0'})) & 0xffff) & 0xff)`;
@@ -1446,14 +1313,10 @@ function emitCall(
   if (name === 'WRITE16BE') {
     const address = dataAddress(args[0] ?? '0');
     const value = `(${args[1] ?? '0'})`;
-    if (!context.definition.internal) {
-      return `(this.bus.write16be ` +
-        `? (this.bus.write16be(${address} & ${addressMask}, ${value} & 0xffff), 0) ` +
-        `: (this.writeMemory(${address}, ${value} >>> 8), ` +
-        `this.writeMemory(${address} + 1, ${value}), 0))`;
-    }
-    return `(this.writeMemory(${address}, ${value} >>> 8), ` +
-      `this.writeMemory(${address} + 1, ${value}), 0)`;
+    return `(this.bus.write16be ` +
+      `? (this.bus.write16be(${address} & ${addressMask}, ${value} & 0xffff), 0) ` +
+      `: (this.writeMemory(${address}, ${value} >>> 8), ` +
+      `this.writeMemory(${address} + 1, ${value}), 0))`;
   }
   if (name === 'WRITE16LE') {
     const address = `(${args[0] ?? '0'})`;
@@ -1464,19 +1327,13 @@ function emitCall(
   if (name === 'WRITE32BE') {
     const address = dataAddress(args[0] ?? '0');
     const value = `(${args[1] ?? '0'})`;
-    if (!context.definition.internal) {
-      return `(this.bus.write16be ` +
-        `? (this.bus.write16be(${address} & ${addressMask}, (${value} >>> 16) & 0xffff), ` +
-        `this.bus.write16be((${address} + 2) & ${addressMask}, ${value} & 0xffff), 0) ` +
-        `: (this.writeMemory(${address}, ${value} >>> 24), ` +
-        `this.writeMemory(${address} + 1, ${value} >>> 16), ` +
-        `this.writeMemory(${address} + 2, ${value} >>> 8), ` +
-        `this.writeMemory(${address} + 3, ${value}), 0))`;
-    }
-    return `(this.writeMemory(${address}, ${value} >>> 24), ` +
+    return `(this.bus.write16be ` +
+      `? (this.bus.write16be(${address} & ${addressMask}, (${value} >>> 16) & 0xffff), ` +
+      `this.bus.write16be((${address} + 2) & ${addressMask}, ${value} & 0xffff), 0) ` +
+      `: (this.writeMemory(${address}, ${value} >>> 24), ` +
       `this.writeMemory(${address} + 1, ${value} >>> 16), ` +
       `this.writeMemory(${address} + 2, ${value} >>> 8), ` +
-      `this.writeMemory(${address} + 3, ${value}), 0)`;
+      `this.writeMemory(${address} + 3, ${value}), 0))`;
   }
   if (name === 'm_opcodes.read_byte') {
     return `((this.bus.readOpcode?.((${args[0] ?? '0'}) & 0xffff) ?? ` +

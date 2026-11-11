@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { compileMameM6803 } from '../mame/cpu-compiler.ts';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { mpatrol } from './mpatrol.game.ts';
 import {
@@ -51,10 +52,11 @@ const flipHandler = graph.nodes.find(node =>
   node.props.method === 'flipscreen_w');
 assert.deepEqual(flipHandler?.props.inputMembers, ['m_dsw2=DSW2']);
 
-const m6803 = compileMameM6803(mameSrc);
-assert.equal(m6803.summary.opcodes, 256);
-assert.equal(m6803.summary.compiledOpcodes, 256);
+// The sound CPU is MAME's m6803_cpu_device compiled whole: its opcode table
+// from m6801.cpp, and its on-chip RAM a share its own internal map creates.
+const m6803 = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('M6803')!, 'M6803');
 assert.equal(m6803.summary.diagnostics, 0);
-assert.deepEqual(m6803.internal?.ram, [{ start: 0x80, end: 0xff }]);
+assert.equal(m6803.members.find(member => member.name === 'm_insn')?.values?.length, 256);
+assert.ok(m6803.spaces?.some(space => space.index === 0 && space.map === 'm6803_mem'));
 
 console.log('mpatrol.spec: game token and MAME-source machine contract passed');

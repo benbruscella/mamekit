@@ -22,6 +22,10 @@ export const DEVICE_MAME_TYPES = [
   // MAME's 6805 core and the 68705's ports, timer and EPROM, read after the C
   // preprocessor (compileMameDevice).
   'M68705P5',
+  // The 6800 family, each its MAME class compiled whole: m6800_cpu_device's
+  // execute_run, and m6801's timer, serial port and on-chip ports in its own
+  // internal map. A board runs them as processors (runtime/device-cpu.ts).
+  'M6802', 'M6808', 'M6803', 'M6801U4', 'HD63701Y0', 'NSC8105',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

@@ -104,6 +104,16 @@ function callMethod(name: string): string {
   return /(\w+)$/.exec(name)?.[1] ?? name;
 }
 
+/**
+ * A call that does nothing at all here -- save-state and debugger
+ * registration, logging, the debugger's per-instruction hook -- so a
+ * statement making it can be left out entirely, as a release build without
+ * the debugger leaves `debugger_instruction_hook` out of every instruction.
+ */
+export function isNoEffectStatement(name: string): boolean {
+  return NO_EFFECT_ROOTS.has(callRoot(name));
+}
+
 /** True when MAMEKIT answers this call on purpose without executing it. */
 export function isDeclaredFrameworkNoOp(name: string): boolean {
   return NO_EFFECT_ROOTS.has(callRoot(name)) ||
