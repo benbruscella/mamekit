@@ -47,11 +47,11 @@ export const mario = {
       1840: { video: 'c69c9e03', state: 'a05e3aff' },
     },
     audio: {
-      writes: 375844,
+      writes: 0,
       nonzeroWrites: 0,
-      writeHash: 'b7d6141a',
-      pcmHash: 'feedb43f',
-      rms: 1,
+      writeHash: '0d4cbb29',
+      pcmHash: '00000000',
+      rms: 0,
     },
   },
 };

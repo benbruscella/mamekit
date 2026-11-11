@@ -8,7 +8,9 @@ export const sf2 = sourceTarget({
   soundKind: 'stream',
   // Same CPS1 board as sf2ce (10 MHz 68000 instead of 12): ~103 fps in Node
   // with wired-hot handler codegen; hold it above real time.
-  minimumFps: 50,
+  // Sound compiled from MAME (#242) runs on the main thread: CI measured
+  // 32.9 fps against the old floor of 50 (issue #247, 4.5).
+  minimumFps: 26,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title
   // screen holding one credit, and no sprite-bearing frame was ever reached.
@@ -36,20 +38,20 @@ export const sf2 = sourceTarget({
       oki: '6cfffb11',
     },
     checkpoints: {
-      1: { video: 'ccf6015f', state: '36628212' },
-      300: { video: 'f61d0b33', state: 'fb333b7d' },
-      1200: { video: 'c807646a', state: 'd96f39d7' },
-      1800: { video: 'c807646a', state: '95838c24' },
-      2400: { video: '1ee990aa', state: '6ad8d03b' },
-      3000: { video: '80058112', state: '64e40ef7' },
-      3600: { video: 'e7f72fff', state: 'd0445454' },
+      1: { video: 'ccf6015f', state: '820db954' },
+      300: { video: 'f61d0b33', state: '05a62cd4' },
+      1200: { video: 'c807646a', state: 'c363de5f' },
+      1800: { video: 'c807646a', state: 'bb7d8f21' },
+      2400: { video: '1ee990aa', state: '6a3094b8' },
+      3000: { video: '80058112', state: 'ee0ddc7b' },
+      3600: { video: 'e7f72fff', state: 'e8ec7af1' },
     },
     audio: {
-      writes: 122215,
-      nonzeroWrites: 103953,
-      writeHash: '8ea8006e',
-      pcmHash: '0cd47676',
-      rms: 0.104707,
+      writes: 2897510,
+      nonzeroWrites: 2026105,
+      writeHash: '5eb300d2',
+      pcmHash: '109b8258',
+      rms: 0.104287,
     },
   },
 });

@@ -41,9 +41,9 @@ export const btime = sourceTarget({
     audio: {
       writes: 1002700,
       nonzeroWrites: 1002700,
-      writeHash: 'a46f99f6',
-      pcmHash: '6922b0e7',
-      rms: 0.119924,
+      writeHash: 'b1a73854',
+      pcmHash: '2e75f1fd',
+      rms: 0.119921,
     },
   },
 });

@@ -3690,22 +3690,31 @@ class IrBoard implements Board {
    * interface's reset_w, and the firmware's handshake depends on the restart.
    */
   /**
-   * set_input_line on a generated CPU. RESET and HALT driven by another
-   * processor change through scheduler().synchronize(), as
-   * device_input::set_state_synced does, so the processor they hold or
-   * release first runs up to the time the line was driven: Rampage's Z80
-   * asserts its sound 68000's RESET 12 us in, and MAME's 68000 has written
-   * its PIA's DDRs and control registers by then.
+   * set_input_line on a generated CPU. A line driven by another processor
+   * changes through scheduler().synchronize(), as device_input::set_state_synced
+   * does for every line, so the processor first runs up to the time the line
+   * was driven and each change lands in order:
+   * - Rampage's Z80 asserts its sound 68000's RESET 12 us in, and MAME's 68000
+   *   has written its PIA's DDRs and control registers by then.
+   * - Shinobi's Z80 pulses the uPD7751's IRQ for 100 us through the YM2151's
+   *   CT port. Applied at once, it was asserted and cleared inside the Z80's
+   *   slice, the MCU never saw it, and no voice sample ever played.
    */
   private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
     const apply = () => applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
-    if ((line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) && this.synchronizesLineFrom(tag)) this.synchronize(apply);
+    if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
     else apply();
   }
 
-  /** Whether a RESET or HALT on `tag` is driven from another running processor. */
+  /** Whether a line on `tag` is driven from another running processor. */
   private synchronizesLineFrom(tag: string): boolean {
-    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning;
+    // A device timer's callback is not the running processor, though ours
+    // fire mid-slice: MAME runs them between slices, where a synchronized
+    // line takes effect at once. Deferred to the round's end, the SN76489A's
+    // READY release (a timer, through an input merger onto the Z80's WAIT)
+    // held System 1's sound Z80 170 us per write instead of 16.
+    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning &&
+      generatedTimerExpiry() === undefined;
   }
 
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {
@@ -3729,8 +3738,17 @@ class IrBoard implements Board {
     // and is remembered, so the core's standard_irq_callback clears it when
     // the interrupt is taken. A raw 2 read as "not asserted" with an
     // interrupt pending.
-    this.deviceLineStates.set(`${tag}:${line}`, state);
-    return Number(device.call('execute_set_input', line, state === HOLD_LINE ? ASSERT_LINE : state)) || 0;
+    const deliver = (): number => {
+      this.deviceLineStates.set(`${tag}:${line}`, state);
+      return Number(device.call('execute_set_input', line, state === HOLD_LINE ? ASSERT_LINE : state)) || 0;
+    };
+    // As every line (see cpuInputLine): driven from another processor, the
+    // change waits until this one has run up to it.
+    if (this.synchronizesLineFrom(tag)) {
+      this.synchronize(() => { deliver(); });
+      return 0;
+    }
+    return deliver();
   }
 
   /**

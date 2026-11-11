@@ -1096,6 +1096,15 @@ blocked target.
 Run it after changes to shared parsing, graph reachability, IR schemas,
 hardware closure resolution, build topology, or app registration.
 
+### FPS ON CI
+
+CI runs at about half local speed. Work that falls into the interpreter,
+wherever codegen declines it, costs fps that a local run hides: removing the
+direct-screen shapes (#240) dropped dkong, dkongjr, elevator and junglek below
+their CI fps floors while local runs still showed 80+ fps. Any change that
+moves work between compiled code and the interpreter checks fps on CI, not
+only locally.
+
 ### BROWSER VERIFICATION
 
 For UI/runtime changes, test the final generated distribution with Playwright

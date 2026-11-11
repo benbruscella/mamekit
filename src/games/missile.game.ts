@@ -44,10 +44,10 @@ export const missile = sourceTarget({
     },
     audio: {
       writes: 1258291,
-      nonzeroWrites: 1258291,
-      writeHash: 'dafdccee',
-      pcmHash: '2ffaad86',
-      rms: 0.942354,
+      nonzeroWrites: 1258289,
+      writeHash: '48f8dd9d',
+      pcmHash: '607a8620',
+      rms: 0.942353,
     },
   },
 });

@@ -124,6 +124,15 @@ for (const chipCase of CASES) {
   assert.deepEqual(render(emit(definition), chipCase), interpreted, `emitted ${chipCase.type} code matches the interpreter`);
 }
 
+// An accessor forwarding to another names the same callback: ymopm.h's
+// `auto port_write_handler() { return io_write_handler(); }` is the CT port
+// System 16A wires to its uPD7751. Unread, Shinobi's voice samples never played.
+{
+  const opm = compileMameDevice(mameSrc, hardware.get('YM2151')!);
+  const io = opm.callbacks.find(callback => callback.signal === 'io_write_handler');
+  assert.deepEqual(io?.aliases, [{ signal: 'port_write_handler', slot: 0 }], 'port_write_handler is io_write_handler slot 0');
+}
+
 // The YM2610's ADPCM-A reaches its output. ymfm mixes it with
 // `m_adpcm_a.output(m_last_fm, 0x3f)` on a `template<int NumOutputs>` method,
 // whose instances are emitted as output_1 and output_2; called by the

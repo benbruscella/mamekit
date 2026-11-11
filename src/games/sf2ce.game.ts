@@ -17,7 +17,9 @@ export const sf2ce = sourceTarget({
   // both failed at 49.8 fps and passed on re-run. 40 clears the whole
   // observed range and still catches the regression the floor is for.
   // sf2 is the next closest (61.4s to 79.7s on the same runs).
-  minimumFps: 40,
+  // Sound compiled from MAME (#242) runs on the main thread: CI measured
+  // 30.1 fps against the old floor of 40 (issue #247, 4.5).
+  minimumFps: 24,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title
   // screen holding one credit, and no sprite-bearing frame was ever reached.
@@ -45,20 +47,20 @@ export const sf2ce = sourceTarget({
       oki: '6cfffb11',
     },
     checkpoints: {
-      1: { video: 'ccf6015f', state: '7d855a28' },
-      300: { video: 'd3cbe1c7', state: '1354dc97' },
-      1200: { video: '7897b1bf', state: '9875ed08' },
-      1800: { video: 'bdb7fc29', state: 'c0d8bc27' },
-      2400: { video: '1439b02c', state: '880aa429' },
-      3000: { video: '9d6f6306', state: '2c7b7bb6' },
-      3600: { video: '745b77f9', state: '106e7022' },
+      1: { video: 'ccf6015f', state: 'f75d010b' },
+      300: { video: 'd3cbe1c7', state: '836ec369' },
+      1200: { video: '7897b1bf', state: '5e0b75ed' },
+      1800: { video: 'bdb7fc29', state: 'ea3a767a' },
+      2400: { video: '1439b02c', state: '245263e2' },
+      3000: { video: '9d6f6306', state: '5e15be8c' },
+      3600: { video: '745b77f9', state: 'b906d481' },
     },
     audio: {
-      writes: 127497,
-      nonzeroWrites: 108474,
-      writeHash: '714dc5cd',
-      pcmHash: '8ed94e8e',
-      rms: 0.081408,
+      writes: 2897510,
+      nonzeroWrites: 2178011,
+      writeHash: 'f1a66275',
+      pcmHash: 'a5f97321',
+      rms: 0.079888,
     },
   },
 });

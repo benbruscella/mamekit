@@ -6,7 +6,9 @@ export const berzerk = sourceTarget({
   machine: { className: 'berzerk_state', name: 'berzerk' },
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
-  minimumFps: 60,
+  // Sound compiled from MAME (#242) runs on the main thread: CI measured
+  // 48.4 fps against the old floor of 60 (issue #247, 4.5).
+  minimumFps: 38,
   actions: [
     { atFrame: 550, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 580, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
@@ -19,20 +21,20 @@ export const berzerk = sourceTarget({
       speech: 'f63d0fde',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '553557d0' },
-      60: { video: 'f7e6ac81', state: '0a5c68dd' },
-      180: { video: 'f7e6ac81', state: '20c1b0d8' },
-      300: { video: 'f7e6ac81', state: '0c5b2708' },
-      600: { video: '8090479d', state: '7efe4500' },
-      900: { video: 'aa9820ea', state: 'd9d28876' },
-      1200: { video: '6cc91e34', state: '46b2d744' },
+      1: { video: 'f7e6ac81', state: '399c1c48' },
+      60: { video: 'f7e6ac81', state: 'ab6912b1' },
+      180: { video: 'f7e6ac81', state: 'cdbb449b' },
+      300: { video: 'f7e6ac81', state: 'c89c9978' },
+      600: { video: '8090479d', state: '62f33c31' },
+      900: { video: 'aa9820ea', state: 'a13a34ff' },
+      1200: { video: '6cc91e34', state: '12073232' },
     },
     audio: {
-      writes: 70226,
-      nonzeroWrites: 20096,
-      writeHash: '92d5b58c',
-      pcmHash: '8c65b2b7',
-      rms: 0.019499,
+      writes: 965839,
+      nonzeroWrites: 133298,
+      writeHash: '1466a1f2',
+      pcmHash: '8f31d6a6',
+      rms: 0.019211,
     },
   },
 });

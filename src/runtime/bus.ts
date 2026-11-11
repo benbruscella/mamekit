@@ -155,6 +155,14 @@ export class Bus {
   private writeFns: WriteHandler[] = [() => { /* open bus */ }];
   private readonly wordReadFns: (WordReadHandler | undefined)[] = [];
   private readonly wordWriteFns: (WordWriteHandler | undefined)[] = [];
+  /** Byte-lane handler ranges by their address span, to compose the two lanes of one span. */
+  private readonly laneRanges = new Map<string, {
+    lane: number;
+    read: ReadHandler | null;
+    write: WriteHandler | null;
+    wordRead: WordReadHandler | null;
+    wordWrite: WordWriteHandler | null;
+  }>();
   /**
    * The decode arrays of the last page each direction touched.
    *
@@ -430,6 +438,47 @@ export class Bus {
     }
     if (r.writeOnly && !r.read) read = null;
     if (r.readOnly && !r.write) write = null;
+
+    // Two byte-lane ranges over the same addresses, one per lane, are one
+    // 16-bit mapping in MAME: a byte access reaches the handler wired to its
+    // own lane, a word access gets its high byte from one and its low byte
+    // from the other. Installed one after the other, the second replaced the
+    // first: Spy Hunter's Cheap Squeak Deluxe maps its PIA on both lanes
+    // (`umask16(0xff00)` for Spy Hunter, `umask16(0x00ff)` for Turbo Tag),
+    // so its 68000 read the high lane through the low-lane handler, failed
+    // its PIA self-test and never played the music.
+    if (lane !== undefined && r.kind === 'handler') {
+      const key = `${r.start}:${r.end}:${r.mirror ?? 0}:${r.select ?? 0}:${r.viewTag ?? ''}:${r.viewEntry ?? 0}`;
+      const own = { lane, read, write, wordRead, wordWrite };
+      const other = this.laneRanges.get(key);
+      if (other && other.lane !== lane) {
+        const mine = byteLane(lane, littleEndian);
+        const myWord = mine === 0 ? 0xff00 : 0x00ff;
+        if (read && other.read) {
+          const ours = read;
+          const theirs = other.read;
+          read = (address, offset) => (address & 1) === mine ? ours(address, offset) : theirs(address, offset);
+        } else read ??= other.read;
+        if (wordRead && other.wordRead) {
+          const ours = wordRead;
+          const theirs = other.wordRead;
+          wordRead = (address, offset) => (ours(address, offset) & myWord) | (theirs(address, offset) & ~myWord & 0xffff);
+        } else wordRead ??= other.wordRead;
+        // Each lane's write handler already ignores the other lane; the
+        // range mapped first is written first, in map order.
+        if (write && other.write) {
+          const ours = write;
+          const theirs = other.write;
+          write = (address, offset, data, mask) => { theirs(address, offset, data, mask); ours(address, offset, data, mask); };
+        } else write ??= other.write;
+        if (wordWrite && other.wordWrite) {
+          const ours = wordWrite;
+          const theirs = other.wordWrite;
+          wordWrite = (address, offset, data) => { theirs(address, offset, data); ours(address, offset, data); };
+        } else wordWrite ??= other.wordWrite;
+      }
+      this.laneRanges.set(key, own);
+    }
 
     const readIdx = read ? this.readFns.push(read) - 1 : 0;
     const writeIdx = write ? this.writeFns.push(write) - 1 : 0;

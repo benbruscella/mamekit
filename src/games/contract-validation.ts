@@ -161,7 +161,10 @@ export function validateGameContract(
   if (contract.golden) {
     invariant(Object.keys(contract.golden.regions).length > 0,
       `${prefix}: golden has no ROM regions`);
-    invariant(contract.golden.audio.writes > 0, `${prefix}: golden has no audio writes`);
+    // A board MAME's own code leaves silent (`soundKind: 'none'`) has no sound
+    // to record, as the acceptance harness already allows; every other must.
+    invariant(contract.soundKind === 'none' || contract.golden.audio.writes > 0,
+      `${prefix}: golden has no audio writes`);
     const goldenFrames = Object.keys(contract.golden.checkpoints).map(Number);
     invariant(JSON.stringify(goldenFrames) === JSON.stringify(contract.checkpoints),
       `${prefix}: golden checkpoints do not match the schedule`);

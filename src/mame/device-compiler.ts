@@ -148,6 +148,8 @@ export interface GeneratedStructField {
   fields?: GeneratedStructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
   union?: true;
+  /** The value its declaration gives a scalar field: nes_defs.h's `u16 lfsr = 1;`. */
+  initial?: number;
 }
 
 export interface GeneratedDeviceCallback {
@@ -1673,6 +1675,28 @@ function compileMameDeviceSource(
         (callback.aliases ??= []).push({ signal: accessor[1]!, slot: element });
       } else {
         callback.signal = accessor[1]!;
+      }
+    }
+  }
+  // An accessor that forwards to another names the same callback: ymopm.h's
+  // `auto port_write_handler() { return io_write_handler(); }`, the name
+  // System 16A wires the uPD7751's RESET and IRQ to. Unread, the YM2151's CT
+  // port reached nothing and Shinobi never played a voice sample. With no
+  // argument the target's default index applies (`int index = 0`).
+  for (const className of hierarchy) {
+    const body = classes.get(className)?.body ?? '';
+    for (const forward of body.matchAll(/\bauto\s+(\w+)\s*\(\s*\)\s*\{\s*return\s+(\w+)\s*\(\s*([^()]*)\)\s*;\s*\}/g)) {
+      const [, name, target, argument] = forward as unknown as [string, string, string, string];
+      if (callbacks.some(candidate => candidate.signal === name || candidate.aliases?.some(alias => alias.signal === name))) continue;
+      const direct = callbacks.find(candidate => candidate.signal === target);
+      if (direct) {
+        const slot = argument.trim() ? evalExpr(argument.trim(), constants) : 0;
+        if (slot !== null && Number.isInteger(slot)) (direct.aliases ??= []).push({ signal: name, slot });
+        continue;
+      }
+      for (const candidate of callbacks) {
+        const alias = candidate.aliases?.find(entry => entry.signal === target);
+        if (alias) { candidate.aliases!.push({ signal: name, slot: alias.slot }); break; }
       }
     }
   }
@@ -6010,9 +6034,18 @@ function structFieldList(
         // A pointer field (desc_s's `const uint8_t *data`) is an address, never
         // narrowed to its pointee's width.
         const pointer = Boolean(field[1]);
+        // A scalar's in-class initializer is where it starts: the NES APU's
+        // noise LFSR is `u16 lfsr = 1;`, and from 0 it never left 0, so the
+        // noise channel played a constant and every NES game lost its noise.
+        const initializer = !pointer && length === undefined
+          ? /=\s*([^{}]+?)\s*$|\{\s*([^{},]+?)\s*\}\s*$/.exec(declarator.trim())
+          : null;
+        const initialText = (initializer?.[1] ?? initializer?.[2])?.replace(/^true$/, '1').replace(/^false$/, '0');
+        const initial = initialText !== undefined ? evalExpr(initialText, constants) : null;
         found.push({ at: statement.index, field: {
           name: field[2]!,
           ...(length !== undefined ? { length } : {}),
+          ...(initial !== null && initial !== 0 && Number.isFinite(initial) ? { initial } : {}),
           ...(integral && !pointer ? { bits, ...(signed ? { signed } : {}) } : { valueType: pointer ? `${qualified(valueType)}*` : qualified(valueType) }),
         } });
       }

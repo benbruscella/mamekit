@@ -9,6 +9,7 @@ import {
   parseIoportMembers,
   driverConstructorCalls,
   resolveMachineLifecycle,
+  constructorConfigCalls,
 } from './build.ts';
 import type { KnowledgeGraph, KGNode } from './types.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
@@ -309,5 +310,27 @@ assert.deepEqual(
   ['base_state.palette_init'],
   'a base constructor body call must run as part of constructing the driver',
 );
+
+// A constructor overload whose body is one setter of several of its own
+// parameters: adc0804.h's `adc0804_device(…, double r, double c) { set_rc(r, c); }`,
+// with rescap.h's component values. Taken one parameter at a time it was
+// dropped, Spy Hunter's ADC ran at a clock of 0 and never converted the pedal.
+{
+  const adc0804 = `class adc0804_device : public device_t
+{
+public:
+	adc0804_device(const machine_config &mconfig, const char *tag, device_t *owner, u32 clock = 0);
+	adc0804_device(const machine_config &mconfig, const char *tag, device_t *owner, double r, double c)
+		: adc0804_device(mconfig, tag, owner, 0U)
+	{
+		set_rc(r, c);
+	}
+	void set_rc(double res, double cap) { m_res = res; m_cap = cap; }
+};`;
+  const rescap = 'constexpr double RES_K(double res) { return res * 1e3; }\nconstexpr double CAP_P(double cap) { return cap * 1e-12; }';
+  const constructed = constructorConfigCalls('ADC0804(config, m_adc, RES_K(10), CAP_P(150));', 'adc0804_device', [adc0804, rescap], {});
+  assert.deepEqual(constructed.calls, ['set_rc(10000,1.5e-10)'], 'a multi-parameter constructor setter is configuration');
+  assert.equal(constructed.clockConsumed, true, 'the third argument is a setter value, not the clock');
+}
 
 console.log('build.spec: derived callback shadowing and device patch composition passed');

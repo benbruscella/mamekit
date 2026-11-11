@@ -230,6 +230,14 @@ apu.invoke('write', 0x00, 0x1f);
 apu.invoke('write', 0x02, 0x20);
 apu.invoke('write', 0x03, 0x08);
 assert.equal(Number(apu.invoke('status_r')) & 1, 1, '$4015 reports the pulse length counter running');
+// A struct field starts where its declaration says: nes_defs.h's noise
+// channel is `u16 lfsr = 1;`. From 0 the LFSR never left 0, so the noise
+// channel played a constant level and every NES game lost its percussion.
+const apuDefinition = JSON.parse(apuArtifact.contents) as { structs: Record<string, { name: string; initial?: number }[]> };
+assert.equal(apuDefinition.structs['apu_t::noise_t']?.find(field => field.name === 'lfsr')?.initial, 1,
+  'the noise LFSR keeps its declared initial value');
+const apuState = (apu as unknown as { members: { m_APU: { noi: { lfsr: number } } } }).members;
+assert.equal(apuState.m_APU.noi.lfsr, 1, 'the running APU starts its noise LFSR at 1');
 clearGeneratedDevices();
 assert.ok(
   txromMethods.some(method => method.name === 'write_h' && method.source.file.endsWith('/mmc3.h')),
