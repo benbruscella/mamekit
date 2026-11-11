@@ -321,6 +321,31 @@ assert.equal(laneBus.read16be(0x061006), 0x8300, 'a word read places the byte on
 assert.equal(laneBus.read(0x070005), 0x82, 'low-lane devices answer on odd addresses');
 assert.equal(laneBus.read16be(0x070004), 0x0082);
 
+// Both lanes of one span, each its own handler, as MAME composes them: the
+// Cheap Squeak Deluxe maps its PIA at 0x18000 with `umask16(0xff00)` (Spy
+// Hunter) and again with `umask16(0x00ff)` (Turbo Tag). Installed in turn,
+// the low lane replaced the high: Spy Hunter's 68000 read its PIA back as
+// nothing, failed its self-test and never played the music.
+const dualWrites: Array<[string, number, number]> = [];
+const dualBus = new Bus([
+  { start: 0x18000, end: 0x18007, mirror: 0x3ff8, umask: 0xff00, kind: 'handler', read: 'high', write: 'highWrite' },
+  { start: 0x18000, end: 0x18007, mirror: 0x3ff8, umask: 0x00ff, kind: 'handler', read: 'low', write: 'lowWrite' },
+], rom, {
+  read: { high: (_address, offset) => 0x80 | offset, low: (_address, offset) => 0x40 | offset },
+  write: {
+    highWrite: (_address, offset, data) => { dualWrites.push(['high', offset, data]); },
+    lowWrite: (_address, offset, data) => { dualWrites.push(['low', offset, data]); },
+  },
+}, {}, 16);
+assert.equal(dualBus.read(0x18000), 0x80, 'a high-lane byte read reaches the high-lane handler');
+assert.equal(dualBus.read(0x18001), 0x40, 'a low-lane byte read reaches the low-lane handler');
+assert.equal(dualBus.read16be(0x18002), 0x8141, 'a word read takes a byte from each lane');
+dualBus.write(0x18000, 0x12);
+dualBus.write(0x18001, 0x34);
+dualBus.write16be(0x18004, 0x5678);
+assert.deepEqual(dualWrites, [['high', 0, 0x12], ['low', 0, 0x34], ['high', 2, 0x56], ['low', 2, 0x78]],
+  'each lane writes only its own handler; a word write reaches both');
+
 // MAME `.bankr()`: a bank window is byte-addressed storage even on a 16-bit
 // bus. Reading it through the native-16-bit handler adapter halves the offset,
 // which returns every other byte of the bank and nothing MAME would show

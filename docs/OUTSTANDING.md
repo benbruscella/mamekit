@@ -27,15 +27,6 @@ DAC engine, 6.8 dB under MAME with the bands up to 55 dB low.
 Start by lowering the missing devices, then `NETLIST_INT_INPUT` (`DAC.VAL`) as
 the netlist's input; the stream mix already runs netlists on the main thread.
 
-### 1.2 Unresolved-call entries match by name, not by game
-
-The acceptance harness passes an unresolved call whenever its name is in
-`KNOWN_UNRESOLVED_CALLS`, whichever game reaches it. A game that newly reaches
-a listed name passes silently. Two did in #237: `configured` (the ADC0804's
-configuration-time `assert()`, spyhunt) and `screen().update_partial`
-(System 16A's video control, shinobi). The games column is only checked when
-someone runs `tools/unresolved-calls.ts`.
-
 ### 1.3 `tools/unresolved-calls.ts` counts a crashed run as reaching nothing
 
 A contract run that ends early still reports its calls up to that point:
@@ -54,38 +45,6 @@ alignment moved from +2 to −1, so one fewer frame lines up. The RAM measure
 should compare bytes per compared frame, or report a changed frame count
 separately.
 
-### 1.5 Small residuals accepted in #237
-
-Each was measured and judged not worth holding the PR for.
-
-| Target | Residual | Notes |
-|---|---|---|
-| shinobi | Level 1.54 → 1.80 dB off (contract) and 1.83 → 1.95 dB (no input). RAM is 108 bytes worse over 1200 frames (244,935). | Bands are better. The new first audio write is MAME's MCS-48 reset write (P1 = 0xff). The first RAM difference (frame 1, `soundcpu:fffa`–`fffd`) is unchanged from baseline. |
-| carnival | Contract pixels 6,919 → 6,960 over all frames; bands 2.36 → 2.60 dB. Contract onsets: ours 0.10/s against MAME's 1.15/s. | The coin now runs MAME's `coin_changed` and `coin_in`. Why the onsets are low is not known. |
-| elevator | Contract onsets 0.72 → 0.92/s off MAME. | Pixels and no-input audio are better than baseline. |
-| mslug | Contract bands 3.80 → 3.90 dB. | RAM and no-input audio are better than baseline. |
-| zaxxon | 24 pixels differ at frame 2 with no input. Frames 1, 3 and 60 match. | Not known whether this predates #237. |
-
-### 1.6 frogger and scramble are silent in attract
-
-With no input, both play nothing: every AY write sets volume 0, on our side
-and MAME's alike. MAME's output still has a DC step when the game unmutes at
-frame 98 (`konami_sound_control_w` bit 4 is `system_mute`), and ours does not
-(frogger now measures −240 dB, about −68 dB at baseline). So the no-input
-audio measures are a ratio of two silences. A likely cause, not verified, is
-that our AY renderer produces no DC at volume 0.
-
-frogger's RAM differs by one audio-CPU stack byte (`audiocpu:43fe`) from
-frame 44. That was already the first difference at baseline, but it used to
-reconverge on some frames and now persists.
-
-### 1.7 Intermediate commits are not tested on their own
-
-The #237 commits are split per item from one working tree. Only the final
-tree was generated and swept, and a few hunks that touched two items went in
-the later commit. An earlier commit in the range may not pass on its own, so
-bisect in whole-PR steps.
-
 ## 2. FROM #240 (PR #241)
 
 Measured against baseline `64d391a1`.
@@ -98,20 +57,6 @@ checkpoints with no input, audio is the same, and the maintainer rates it fine
 as played. Venture already diverges through its silent RIOT IRQ (#63). Not
 root-caused.
 
-### 2.2 Candidate machines regress unnoticed
-
-spectrum and spec128 broke on `main` after #239 (three stacked gaps, fixed in
-#240), and nothing caught it. They are candidate contracts, so only the oracle
-runs them. No issue is filed yet.
-
-### 2.3 CI runs at about half local speed
-
-Work that moves into the interpreter, wherever codegen declines it, costs fps
-that a local run hides. Removing the direct-screen shapes dropped dkong,
-dkongjr, elevator and junglek below their CI fps floors while local runs
-still showed 80+ fps. Seven general codegen fixes landed in #241. Any change
-that moves work into compiled code should check fps on CI, not only locally.
-
 ## 3. FROM EARLIER ITEMS
 
 ### 3.1 Centipede's round placement between timers (from #200)
@@ -122,12 +67,14 @@ pixels differ at frame 300), and its contract audio onsets are worse.
 
 ### 3.2 Marble Madness drift (from #200, larger since #225)
 
-It first differs from MAME at frames 4, 84, 194 and 245, the same as before
-#225, then its game logic flips at frame 819. Against baseline `105af76f`,
-RAM over all frames went from 54,130 to 373,333 bytes at offset 0. In play it
-loses the exact checkpoints at 1800, 2100 and 2400, and contract audio went
-from 2.07 to 8.49 dB off MAME across the bands. Its no-input pixels stay
-exact, and the maintainer rates the game fine as played. Not root-caused.
+Before #242 it first differed from MAME at frames 4, 84, 194 and 245, then its
+game logic flipped at frame 819, losing the exact checkpoints at 1800, 2100
+and 2400 in play. #242's held-processor fix (a processor held in RESET books
+the cycles it sits out, as MAME's `eatcycles` does) brought those back: against
+baseline `e11059da`, the contract pixels are exact at 1800, 2100 and 2400, RAM
+first differs at frame 4 instead of 2, and contract audio is 4.03 dB off MAME
+across the bands instead of 8.47. The residual RAM drift is not root-caused.
+The maintainer rates the game fine as played.
 
 ### 3.3 Spy Hunter is silent with no input (from #221)
 
@@ -199,28 +146,35 @@ engine was within 0.3 dB.
   `counter`, `sh6840_apply_clock`, `m_sh6840_volume`), rendered at the board's
   1.79 MHz stream rate.
 
-### 4.3 Compiled chips still off MAME where the hand engines were close
+### 4.3 Compiled chips still off MAME
 
 From `oracle:baseline compare --baseline e11059da` on the #242 tree (MAME 0.289).
-Each was already present in the first compare of the compiled chips, so none
-comes from the later gap fixes. Level and bands are |ours − MAME|, baseline → now.
+Level and bands are |ours − MAME|, baseline → now. Fixed in #242 and gone from
+this table: mslug (YM2610 ADPCM), berzerk (S14001A speech), gng and gunsmoke
+(YM2203), ffight, sf2 and sf2ce (OKIM6295 step table), nbajam, rampage (held
+sound CPU), popeye and xevious.
 
 | Target | Chip path | No input | Contract |
 |---|---|---|---|
-| mslug | YM2610 (ymfm) | level 0.19 → 21.8 dB, bands 2.2 → 31.2 dB | level 1.2 → 7.2 dB |
-| berzerk | Exidy 6840 + S14001A | bands 0.6 → 100.2 dB | same |
-| gng, gunsmoke | YM2203 ×2 (ymfm) | level 0.1 → 5.9 dB (gng) | level 0.0 → 6.0 / 3.3 dB |
-| ffight, sf2, sf2ce | YM2151 + OKIM6295 | level ~0.1 → 3.8–5.8 dB, bands ~5 → 16–19 dB | similar |
-| nbajam, mk | Williams ADPCM (YM2151, OKIM6295, DAC) | small | level 0.05–0.45 → 1.2–5.6 dB |
-| ladybug, coleco/dkong | SN76489 | bands 16 → 56 dB, 14 → 27 dB | — |
+| mk | Williams ADPCM (YM2151, OKIM6295, DAC) | level 0.76 → 1.49 dB | level 0.05 → 0.44 dB, bands 3.6 → 5.5 dB |
+| spyhunt | SSIO (AY-3-8910 ×2) | bands 5.1 → 24.1 dB | level 8.2 dB, onsets 16.7/s against MAME's 2.0 |
+| nes/smb1, nes/duckhunt | RP2A03 APU | bands ~1 → 6 dB (duckhunt) | bands ~1 → 6–10 dB |
+| shinobi | YM2151 + uPD7759 | level 1.9 → 2.5 dB | level 1.8 → 2.3 dB |
 | wboy | SN76489 ×2 (Sega) | level 1.1 → 5.2 dB | better |
-| rampage | Sounds Good DAC + biquads | level 9.6 → 11.6 dB | level 0.9 → 9.8 dB |
-| nes/smb1, nes/duckhunt | RP2A03 APU | bands ~1 → 6–10 dB | — |
+| elevator, friskyt | AY / SN | level 3.7 dB / 3.0 dB | bands 6.8 dB / 11.7 dB |
+| ladybug, coleco/dkong | SN76489 | bands 16 → 56 dB, 14 → 27 dB | — |
 
-- The ROM side is in place for mslug: both 8 MB ADPCM regions install into the
-  YM2610's spaces (`init_ym`), so its gap is in how ymfm's ADPCM output reaches
-  the mix.
-- The OKI boards became audible only once `add_int` and the volume table were
-  fixed; before that the OKI rendered nothing and the old goldens hid it.
-- popeye (AY `set_flags` dropped from a derived config) and xevious (device
-  self-reset shadowing `namco_51xx_device::reset`) are fixed; see #242.
+- ladybug and coleco/dkong compare two near-silences with no input (the bands
+  are a ratio of very quiet signals); their contract audio matches.
+- These are being worked in #242; whatever is left at merge stays here with
+  its measurement.
+
+### 4.4 The compare's reference lacks MAME's speaker high-pass
+
+MAME's `-wavwrite` records before the speaker's effect chain, whose default
+high-pass (`audio_effects/filter.cpp`: 20 Hz, Q 0.7071) every MAME listener
+hears and our recording carries. On a board with low-frequency content the
+raw level reads several dB worse than it sounds: nbajam's attract DAC passage
+measured −3.3 dB raw and 0.0 dB with the filter applied to MAME's side (599
+against 598 RMS). `tools/compare-audio.mjs` should apply MAME's default
+high-pass to the reference, read from the compiled filter so it follows MAME.

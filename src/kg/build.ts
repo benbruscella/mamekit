@@ -1347,8 +1347,13 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       const deviceClass = deviceTypes[dev.type] ?? (constructorArgument
         ? (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.className
         : undefined);
+      // The class's own header too: a framework device's constructor
+      // overloads live there (adc0804.h's `(…, double r, double c)`).
+      const classSources = deviceClass && constructorArgument
+        ? deviceClassSources(mameSrc, (hardwareIndex ??= indexMameHardware(mameSrc)).get(dev.type)?.sourceFile)
+        : [];
       const constructed = deviceClass
-        ? constructorConfigCalls(dev.config[0] ?? '', deviceClass, [combined, ...externalSources], consts)
+        ? constructorConfigCalls(dev.config[0] ?? '', deviceClass, [combined, ...externalSources, ...classSources], consts)
         : { calls: [], tags: [], clockConsumed: false };
       configCalls.push(...constructed.calls);
       // A finder tag the constructor forwards to a memory share: the Williams
@@ -2977,10 +2982,31 @@ export function constructorConfigCalls(
         .map(statement => /^(set_\w+)\s*\(\s*([^(),]+)\s*\)$/.exec(statement))
         .filter((setter): setter is RegExpExecArray => Boolean(setter && !names.includes(setter[2]!.trim()) &&
           evalExpr(setter[2]!, constants) !== null));
-      if (!setters.length && !fixed.length) continue;
+      // A setter of several of its parameters at once: the ADC0804's
+      // `adc0804_device(…, double r, double c) { set_rc(r, c); }`. Read one
+      // parameter at a time, Spy Hunter's ADC lost its RC, timed every
+      // conversion at a clock of 0 and never finished one: the pedal and
+      // wheel never reached the game.
+      const several = statements
+        .map(statement => /^(set_\w+)\s*\(([^()]*,[^()]*)\)$/.exec(statement))
+        .map(match => match ? { setter: match[1]!, parameters: splitMameArgs(match[2]!).map(argument => argument.trim()) } : undefined)
+        .filter((setter): setter is { setter: string; parameters: string[] } =>
+          Boolean(setter && setter.parameters.every(parameter => names.includes(parameter))));
+      if (!setters.length && !fixed.length && !several.length) continue;
       const tags: { setter: string; argument: string }[] = [];
       const calls = [
         ...fixed.map(setter => `${setter[1]}(${evalExpr(setter[2]!, constants)})`),
+        ...several.flatMap(({ setter, parameters }) => {
+          const values = parameters.map(parameter => {
+            const argument = extra[names.indexOf(parameter)];
+            if (argument === undefined) return undefined;
+            // rescap.h's RES_K(10) and CAP_P(150), as a machine config's own
+            // setters read them.
+            const functions = Object.assign({}, ...sources.map(parseConstexprFunctions));
+            return configArgument(expandConstexprCalls(argument, functions), sources, constants);
+          });
+          return values.every(value => value !== undefined) ? [`${setter}(${values.join(',')})`] : [];
+        }),
         ...setters.flatMap(setter => {
           const position = names.indexOf(setter[2] ?? setter[3]);
           const argument = extra[position];
@@ -2993,7 +3019,12 @@ export function constructorConfigCalls(
           return value === undefined ? [] : [`${setter[1]}(${value})`];
         }),
       ];
-      return { calls, tags, clockConsumed: setters.some(setter => names.indexOf(setter[2] ?? setter[3]) === 0) };
+      return {
+        calls,
+        tags,
+        clockConsumed: setters.some(setter => names.indexOf(setter[2] ?? setter[3]) === 0) ||
+          several.some(({ parameters }) => parameters.includes(names[0]!)),
+      };
     }
   }
   return none;

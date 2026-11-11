@@ -92,6 +92,8 @@ interface StructField {
   fields?: StructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
   union?: true;
+  /** The value its declaration gives a scalar field (`u16 lfsr = 1;`). */
+  initial?: number;
 }
 
 interface DeviceCallback {
@@ -4425,7 +4427,7 @@ function structMember(
       value[field.name] = Array.from({ length: field.length }, () => 0);
       continue;
     }
-    value[field.name] = 0;
+    value[field.name] = field.initial ?? 0;
     // The width travels beside the struct rather than as an accessor on the
     // field. Emitted code narrows inline from the same declaration; the
     // interpreter narrows through this on assignment. Accessors did it for
