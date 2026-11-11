@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import ts from 'typescript';
 
 const root = import.meta.dirname;
 const sharedRuntime = readdirSync(root).filter(file =>
@@ -258,6 +259,383 @@ const SOUND_KINDS: string[] = [];
   assert.deepEqual([...kinds].sort(), [...SOUND_KINDS].sort(),
     'a sound kind that names a chip family is a hand engine; compile the chip and play it through the stream mix ' +
     '(or, if one was removed, delete it from SOUND_KINDS)');
+}
+
+// The CPU cores' hand-written support layer (#249), as two exact lists that
+// may only shrink. Every opcode body already comes from MAME; what is pinned
+// here is the layer around it, read from the compilers' own TypeScript:
+//
+// - HAND_WRITTEN_CPU_LAYERS, per compiler function: each C++ body composed in
+//   TypeScript (a literal handed to compileMameHandler or to a body helper,
+//   or any statement literal), by the name it goes by; how many `.replace`
+//   edits the function makes to MAME's source; and each number typed into a
+//   constant table or an extractor's seed instead of read from a header.
+// - HAND_WRITTEN_CPU_FACTS: per-CPU facts typed in outside the compilers --
+//   the register-file classes the emitter restates for C++ unions, its
+//   internal-peripheral emitters, its execute_run step, and each CPU type a
+//   clock divider, width, endianness, mask or ROM window is typed in for.
+//
+// CPU_COMPILER_IDIOMS are the shared lowering functions every core and device
+// goes through: C++ idioms, not hardware, so the scan skips them.
+const CPU_LAYER_FILES = [
+  'mame/cpu-compiler.ts', 'mame/m6809-dsl.ts', 'mame/tms34010-compiler.ts',
+  'mame/namco51-compiler.ts', 'mame/namco53-compiler.ts',
+];
+const CPU_COMPILER_IDIOMS: Record<string, string> = {
+  normalizeMameExecutionSource: 'C++ the handler parser cannot read (attributes, make_unique, vectors, #define in a body)',
+  stripInactivePreprocessorBranches: 'the C preprocessor\'s #if, evaluated',
+  stripTracingCalls: 'logging and debugger hooks, which change no state',
+  stripMameFrameworkSetup: 'device_start\'s save_item/state_add registration, which the host does',
+  lowerLocalStructs: 'a struct declared with its variable, as a value of its fields',
+  normalizePairLocals: 'MAME\'s PAIR/PAIR16 locals as integers',
+  singleIterationSource: 'one iteration of an execute_run do-while loop',
+  compileOpcodeOperations: 'an opcode DSL\'s statements and cycle charges, in order',
+  parseMameOperationMacros: 'reads a core\'s operation macros',
+  expandMameOperationMacros: 'expands a core\'s operation macros',
+  extractEnumConstants: 'reads enumerators',
+  extractDefineConstants: 'reads #define constants',
+  extractConstexprConstants: 'reads constexpr constants',
+  extractGlobalConstants: 'reads file-scope constexpr constants',
+  resolveConstants: 'evaluates constant expressions read from source',
+  extractMameByteArray: 'reads a byte table',
+  extractNumericArray: 'reads a numeric table',
+  exceptionCycles: 'reads m68ki_exception_cycle_table; its edits strip comments',
+  extractConstructorInitializers: 'reads a constructor\'s member initializers',
+  extractInlineMethods: 'reads a header\'s inline methods',
+  extractObject: 'reads a nested object declaration',
+  extractMembers: 'reads a class\'s members',
+  extractAliases: 'reads register aliases',
+  extractStateEntries: 'reads state_add entries',
+  extractStateAliases: 'reads state_add aliases',
+  stateIndexConstants: 'reads the STATE_GENPC indices',
+  declaredFields: 'reads field declarations',
+  typeBits: 'a C type\'s width',
+  qualifyObjectFields: 'qualifies a nested object\'s fields by its name',
+  inlineMethodForClass: 'finds a class\'s inline override',
+  rewriteMameCall: 'rewrites a call by its parsed arguments',
+  rewriteCall: 'rewrites a call by its parsed arguments',
+  allocIntrinsic: 'the ALLOC primitive for an element type',
+  matchBrace: 'finds a closing brace',
+  matchPair: 'finds a closing bracket',
+  lineAt: 'a source line number',
+  sourceRef: 'a source reference',
+};
+const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
+  'mame/cpu-compiler.ts: compileM6809Core': [
+    '6 source edits', 'body dslSource', 'body fetch', 'body ireg', 'body lmul', 'body program',
+    'body reset', 'body service', 'body set_ireg', 'body set_lines', 'body start',
+    'constant ASSERT_LINE', 'constant CC_IF', 'constant CLEAR_LINE', 'constant INPUT_LINE_IRQ0',
+    'constant INPUT_LINE_NMI', 'constant M6809_FIRQ_LINE', 'constant M6809_IRQ_LINE',
+  ],
+  'mame/cpu-compiler.ts: compileMameI8088': [
+    '24 source edits', 'body fetch', 'body fetch_op', 'body read_byte', 'body read_port_byte',
+    'body read_port_word', 'body read_word', 'body reset', 'body service', 'body start',
+    'body step', 'body update_pc', 'body v30_add4s', 'body v30_popa', 'body v30_pusha',
+    'body write_byte', 'body write_port_byte', 'body write_port_byte_al', 'body write_port_word',
+    'body write_word', 'constant AH', 'constant AL', 'constant AX', 'constant BH', 'constant BL',
+    'constant BP', 'constant BPH', 'constant BPL', 'constant BX', 'constant CH', 'constant CL',
+    'constant CS', 'constant CX', 'constant DH', 'constant DI', 'constant DIH', 'constant DIL',
+    'constant DL', 'constant DS', 'constant DX', 'constant ES', 'constant SI', 'constant SIH',
+    'constant SIL', 'constant SP', 'constant SPH', 'constant SPL', 'constant SS',
+  ],
+  'mame/cpu-compiler.ts: compileMameI808x': [
+    '1 source edits', 'body fetch', 'body service', 'body startSource', 'constant ASSERT_LINE',
+    'constant CLEAR_LINE', 'constant I8085_INTR_LINE', 'constant I8085_RST55_LINE',
+    'constant I8085_RST65_LINE', 'constant I8085_RST75_LINE', 'constant I8085_TRAP_LINE',
+    'constant INPUT_LINE_IRQ0', 'constant INPUT_LINE_NMI',
+  ],
+  'mame/cpu-compiler.ts: compileMameLr35902': [
+    '2 source edits', 'body fetch', 'body service', 'constant ASSERT_LINE', 'constant CLEAR_LINE',
+  ],
+  'mame/cpu-compiler.ts: compileMameM6502MemoryInterface': [
+    '3 source edits',
+  ],
+  'mame/cpu-compiler.ts: compileMameM6502Variant': [
+    '20 source edits', 'body body', 'body dec_SP', 'body fetch', 'body inc_SP',
+    'body page_changing', 'body service', 'body set_h', 'body set_l', 'body start',
+    'constant APU_IRQ_LINE', 'constant ASSERT_LINE', 'constant CLEAR_LINE', 'constant F_B',
+    'constant F_C', 'constant F_D', 'constant F_E', 'constant F_I', 'constant F_N', 'constant F_V',
+    'constant F_Z', 'constant INPUT_LINE_IRQ0', 'constant INPUT_LINE_NMI', 'constant IRQ_LINE',
+    'constant NMI_LINE', 'constant V_LINE',
+  ],
+  'mame/cpu-compiler.ts: compileMameM68000': [
+    'body fetch', 'body input', 'body program', 'body reset', 'body service', 'body start',
+    'constant ASSERT_LINE', 'constant CFLAG_CLEAR', 'constant CFLAG_SET', 'constant CLEAR_LINE',
+    'constant CPU_TYPE_000', 'constant CPU_TYPE_010', 'constant CPU_TYPE_COLDFIRE',
+    'constant EXCEPTION_1010', 'constant EXCEPTION_1111', 'constant EXCEPTION_ADDRESS_ERROR',
+    'constant EXCEPTION_BUS_ERROR', 'constant EXCEPTION_CHK', 'constant EXCEPTION_FORMAT_ERROR',
+    'constant EXCEPTION_ILLEGAL_INSTRUCTION', 'constant EXCEPTION_INTERRUPT_AUTOVECTOR',
+    'constant EXCEPTION_MMU_CONFIGURATION', 'constant EXCEPTION_PRIVILEGE_VIOLATION',
+    'constant EXCEPTION_RESET', 'constant EXCEPTION_SPURIOUS_INTERRUPT', 'constant EXCEPTION_TRACE',
+    'constant EXCEPTION_TRAPV', 'constant EXCEPTION_TRAP_BASE',
+    'constant EXCEPTION_UNINITIALIZED_INTERRUPT', 'constant EXCEPTION_ZERO_DIVIDE',
+    'constant HOLD_LINE', 'constant INPUT_LINE_NMI', 'constant INSTRUCTION_YES',
+    'constant MFLAG_CLEAR', 'constant MFLAG_SET', 'constant NFLAG_CLEAR', 'constant NFLAG_SET',
+    'constant RUN_MODE_NORMAL', 'constant SFLAG_CLEAR', 'constant SFLAG_SET',
+    'constant STOP_LEVEL_STOP', 'constant VFLAG_CLEAR', 'constant VFLAG_SET',
+    'constant XFLAG_CLEAR', 'constant XFLAG_SET', 'constant ZFLAG_CLEAR', 'constant ZFLAG_SET',
+  ],
+  'mame/cpu-compiler.ts: compileMameM6800Family': [
+    '6 source edits', 'body check_irq2', 'body eat_cycles', 'body execute_one', 'body fetch',
+    'body increment_counter', 'body program', 'body service', 'body start', 'body take_trap',
+    'constant ASSERT_LINE', 'constant CLEAR_LINE', 'constant INPUT_LINE_IRQ0',
+    'constant INPUT_LINE_NMI', 'constant M6800_IRQ_LINE', 'constant M6800_SLP',
+    'constant M6800_WAI', 'constant M6802_IRQ_LINE', 'constant XX',
+  ],
+  'mame/cpu-compiler.ts: compileMameMcs48': [
+    '8 source edits', 'body fetch', 'body methods', 'body program', 'body service',
+    'constant ASSERT_LINE', 'constant CLEAR_LINE',
+  ],
+  'mame/cpu-compiler.ts: compileMameTms320c10': [
+    '5 source edits', 'body fetch', 'body program', 'body service', 'constant ASSERT_LINE',
+    'constant CLEAR_LINE',
+  ],
+  'mame/cpu-compiler.ts: compileMameZ80': [
+    '1 source edits', 'body `m_f.${method.name}`', 'body fetchAt', 'constant INPUT_LINE_IRQ0',
+    'constant INPUT_LINE_NMI', 'constant nomreq_en', 'constant refresh_en',
+  ],
+  'mame/cpu-compiler.ts: compileMameZ8002': [
+    '24 source edits', 'body RDOP', 'body fetch', 'body get_operand', 'body input', 'body program',
+    'body reset', 'body service', 'body start', 'constant ASSERT_LINE', 'constant BUSREQ_LINE',
+    'constant CLEAR_LINE', 'constant HOLD_LINE', 'constant INPUT_LINE_NMI', 'constant NMI_LINE',
+    'constant NVI_LINE', 'constant VI_LINE', 'constant Z8000_EPU', 'constant Z8000_NMI',
+    'constant Z8000_NVI', 'constant Z8000_RESET', 'constant Z8000_SEGTRAP',
+    'constant Z8000_SYSCALL', 'constant Z8000_TRAP', 'constant Z8000_VI',
+  ],
+  'mame/cpu-compiler.ts: lr35902ExecuteSource': [
+    '4 source edits',
+  ],
+  'mame/cpu-compiler.ts: m68000SupportMethods': [
+    'body (anonymous)', 'body BIT_B', 'body BIT_F', 'body CFLAG_1', 'body CFLAG_16', 'body CFLAG_8',
+    'body CFLAG_ADD_32', 'body CFLAG_SUB_32', 'body COND_LE', 'body COND_LS', 'body COND_LT',
+    'body EA_A7_PD_8', 'body EA_A7_PI_8', 'body EA_AL_16', 'body EA_AL_32', 'body EA_AL_8',
+    'body EA_AW_16', 'body EA_AW_32', 'body EA_AW_8', 'body EA_PCDI_16', 'body EA_PCDI_32',
+    'body EA_PCDI_8', 'body EA_PCIX_16', 'body EA_PCIX_32', 'body EA_PCIX_8', 'body GET_MSB_16',
+    'body GET_MSB_32', 'body GET_MSB_8', 'body HIGH_NIBBLE', 'body LOW_NIBBLE', 'body MAKE_INT_16',
+    'body MAKE_INT_32', 'body MAKE_INT_8', 'body MASK_OUT_ABOVE_16', 'body MASK_OUT_ABOVE_32',
+    'body MASK_OUT_ABOVE_8', 'body MASK_OUT_BELOW_16', 'body MASK_OUT_BELOW_8', 'body NFLAG_1',
+    'body OPER_I_16', 'body OPER_I_32', 'body OPER_I_8', 'body POW2', 'body ROL_33_64',
+    'body ROR_33_64', 'body VFLAG_1', 'body XFLAG_1', 'body `EA_A${axis}_AI_16`',
+    'body `EA_A${axis}_AI_32`', 'body `EA_A${axis}_AI_8`', 'body `EA_A${axis}_DI_16`',
+    'body `EA_A${axis}_DI_32`', 'body `EA_A${axis}_DI_8`', 'body `EA_A${axis}_IX_16`',
+    'body `EA_A${axis}_IX_32`', 'body `EA_A${axis}_IX_8`', 'body `EA_A${axis}_PD_16`',
+    'body `EA_A${axis}_PD_32`', 'body `EA_A${axis}_PD_8`', 'body `EA_A${axis}_PI_16`',
+    'body `EA_A${axis}_PI_32`', 'body `EA_A${axis}_PI_8`', 'body `NFLAG_${bits}`',
+    'body `OPER_${name}_${bits}`', 'body `ROL_${bits}`', 'body `ROR_${bits}`',
+    'body `VFLAG_ADD_${bits}`', 'body `VFLAG_SUB_${bits}`', 'body `ZFLAG_${bits}`',
+    'body m68ki_branch_16', 'body m68ki_branch_8', 'body m68ki_exception_1010',
+    'body m68ki_exception_1111', 'body m68ki_exception_common', 'body m68ki_exception_format_error',
+    'body m68ki_exception_illegal', 'body m68ki_exception_privilege_violation',
+    'body m68ki_exception_trap', 'body m68ki_exception_trapN', 'body m68ki_fake_pull_16',
+    'body m68ki_fake_pull_32', 'body m68ki_get_ccr', 'body m68ki_get_ea_ix',
+    'body m68ki_get_ea_pcdi', 'body m68ki_get_ea_pcix', 'body m68ki_get_sr', 'body m68ki_jump',
+    'body m68ki_pull_16', 'body m68ki_pull_32', 'body m68ki_push_32', 'body m68ki_read_16',
+    'body m68ki_read_16_fc', 'body m68ki_read_32', 'body m68ki_read_32_fc', 'body m68ki_read_8',
+    'body m68ki_read_8_fc', 'body m68ki_read_imm_16', 'body m68ki_read_imm_32',
+    'body m68ki_read_imm_8', 'body m68ki_read_pcrel_16', 'body m68ki_read_pcrel_32',
+    'body m68ki_read_pcrel_8', 'body m68ki_service_interrupt', 'body m68ki_set_ccr',
+    'body m68ki_set_s_flag', 'body m68ki_set_sr', 'body m68ki_write_16', 'body m68ki_write_16_fc',
+    'body m68ki_write_32', 'body m68ki_write_32_fc', 'body m68ki_write_32_pd', 'body m68ki_write_8',
+    'body m68ki_write_8_fc', 'body m_reset_cb',
+  ],
+  'mame/cpu-compiler.ts: normalizeM68000Source': [
+    '19 source edits',
+  ],
+  'mame/cpu-compiler.ts: normalizeM6809Source': [
+    '50 source edits',
+  ],
+  'mame/m6809-dsl.ts: expandContinuations': [
+    '3 source edits',
+  ],
+  'mame/m6809-dsl.ts: parseM6809Dsl': [
+    '1 source edits',
+  ],
+  'mame/namco51-compiler.ts: compileNamco51Protocol': [
+    'body chip_select', 'body credit', 'body device_reset', 'body player', 'body read',
+    'body reset', 'body rw', 'body switches', 'body vblank', 'body write',
+  ],
+  'mame/namco53-compiler.ts: compileNamco53Protocol': [
+    'body device_reset', 'body read', 'body reset',
+  ],
+  'mame/tms34010-compiler.ts: compileMameTms34010': [
+    '5 source edits', 'body input', 'body reset', 'body step', 'constant INPUT_LINE_HALT',
+  ],
+  'mame/tms34010-compiler.ts: dropCalls': [
+    'body (anonymous)',
+  ],
+  'mame/tms34010-compiler.ts: lowerSpaceAccess': [
+    'body (anonymous)',
+  ],
+  'mame/tms34010-compiler.ts: lowerXyValues': [
+    '2 source edits', 'body (anonymous)',
+  ],
+  'mame/tms34010-compiler.ts: normalize': [
+    '6 source edits',
+  ],
+};
+const HAND_WRITTEN_CPU_FACTS: string[] = [
+  'gen/emit-machine.ts: generatedCpuAddressSpace: m68000',
+  'gen/emit-machine.ts: generatedCpuAddressSpace: m68010',
+  'gen/emit-machine.ts: generatedCpuAddressSpace: tms320c10',
+  'gen/emit-machine.ts: generatedCpuAddressSpace: tms34010',
+  'gen/emit-machine.ts: generatedCpuAddressSpace: v30',
+  'gen/emit-machine.ts: generatedCpuAddressSpace: z8002',
+  'gen/emit-machine.ts: generatedCpuCycleClock: hd63701y0',
+  'gen/emit-machine.ts: generatedCpuCycleClock: i8035',
+  'gen/emit-machine.ts: generatedCpuCycleClock: i8039',
+  'gen/emit-machine.ts: generatedCpuCycleClock: i8085a',
+  'gen/emit-machine.ts: generatedCpuCycleClock: konami',
+  'gen/emit-machine.ts: generatedCpuCycleClock: m58715',
+  'gen/emit-machine.ts: generatedCpuCycleClock: m6801u4',
+  'gen/emit-machine.ts: generatedCpuCycleClock: m6802',
+  'gen/emit-machine.ts: generatedCpuCycleClock: m6803',
+  'gen/emit-machine.ts: generatedCpuCycleClock: m6808',
+  'gen/emit-machine.ts: generatedCpuCycleClock: mb8884',
+  'gen/emit-machine.ts: generatedCpuCycleClock: mc6809',
+  'gen/emit-machine.ts: generatedCpuCycleClock: nsc8105',
+  'gen/emit-machine.ts: generatedCpuCycleClock: tms34010',
+  'gen/emit-machine.ts: generatedCpuCycleClock: upd7751',
+  'gen/emit-machine.ts: lowerGeneratedMachine: i8088',
+  'gen/emit-machine.ts: lowerGeneratedMachine: m68000',
+  'gen/emit-machine.ts: lowerGeneratedMachine: m68010',
+  'gen/emit-machine.ts: lowerGeneratedMachine: rp2a03',
+  'gen/emit-machine.ts: lowerGeneratedMachine: tms34010',
+  'gen/emit-machine.ts: lowerGeneratedMachine: v30',
+  'gen/lower-topology.ts: lowerTopology: HD63701Y0',
+  'gen/lower-topology.ts: lowerTopology: M6801U4',
+  'mame/cpu-codegen.ts: class Pair16',
+  'mame/cpu-codegen.ts: class Pair16Bytes',
+  'mame/cpu-codegen.ts: class Pair32',
+  'mame/cpu-codegen.ts: class Pair32Bytes',
+  'mame/cpu-codegen.ts: class Pair32Words',
+  'mame/cpu-codegen.ts: class WordByteRegisterFile',
+  'mame/cpu-codegen.ts: class XyHalves',
+  'mame/cpu-codegen.ts: class XyRegister',
+  'mame/cpu-codegen.ts: class XyValue',
+  'mame/cpu-codegen.ts: class Z8000RegisterFile',
+  'mame/cpu-codegen.ts: emitInternalFields',
+  'mame/cpu-codegen.ts: emitInternalMethods',
+  'mame/cpu-codegen.ts: execute_run step',
+  'runtime/generated-board-shape.ts: generatedCpuDataWidth: m68000',
+  'runtime/generated-board-shape.ts: generatedCpuDataWidth: m68010',
+  'runtime/generated-board-shape.ts: generatedCpuDataWidth: tms320c10',
+  'runtime/generated-board-shape.ts: generatedCpuDataWidth: tms34010',
+  'runtime/generated-board-shape.ts: generatedCpuDataWidth: v30',
+  'runtime/generated-board-shape.ts: generatedCpuDataWidth: z8002',
+  'runtime/generated-board-shape.ts: generatedCpuEndianness: tms34010',
+  'runtime/generated-board-shape.ts: generatedCpuEndianness: v30',
+];
+{
+  const isString = (node: ts.Node): node is ts.StringLiteral | ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression =>
+    ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node);
+  const textOf = (node: ts.Node) =>
+    ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) ? node.text : node.getText();
+  const enclosing = (node: ts.Node): string => {
+    let name = '(top level)';
+    for (let parent: ts.Node | undefined = node; parent; parent = parent.parent) {
+      if (ts.isFunctionDeclaration(parent) && parent.name) name = parent.name.text;
+    }
+    return name;
+  };
+  const nameOf = (object: ts.ObjectLiteralExpression) => {
+    const named = object.properties.find(property => ts.isPropertyAssignment(property)
+      && property.name.getText() === 'name' && isString(property.initializer));
+    return named && ts.isPropertyAssignment(named) ? textOf(named.initializer) : undefined;
+  };
+  // What a hand body goes by: a helper's leading string (`source('m68ki_read_8',
+  // ...)`), its object's `name`, or the property or variable it is assigned to.
+  const label = (node: ts.Node): string => {
+    for (let parent = node.parent; parent && !ts.isFunctionDeclaration(parent); parent = parent.parent) {
+      if (ts.isCallExpression(parent) && ts.isIdentifier(parent.expression) && parent.arguments.length > 1
+        && isString(parent.arguments[0]!) && parent.arguments[0] !== node
+        && !parent.arguments[0]!.getText().includes(';')) return textOf(parent.arguments[0]!);
+      if (ts.isObjectLiteralExpression(parent) && nameOf(parent)) return nameOf(parent)!;
+      if (ts.isPropertyAssignment(parent)) return nameOf(parent.parent) ?? parent.name.getText();
+      if (ts.isVariableDeclaration(parent)) return parent.name.getText();
+    }
+    return '(anonymous)';
+  };
+  const isReplace = (node: ts.Node): node is ts.CallExpression => ts.isCallExpression(node)
+    && ts.isPropertyAccessExpression(node.expression) && /^replace(?:All)?$/.test(node.expression.name.text);
+  const isHandlerBody = (node: ts.Node) => {
+    for (let parent = node.parent; parent && !ts.isStatement(parent); parent = parent.parent) {
+      if (!ts.isCallExpression(parent) || !ts.isIdentifier(parent.expression)) continue;
+      if (parent.expression.text === 'compileMameHandler') return true;
+      if (/^(?:source|method)$/.test(parent.expression.text) && parent.arguments.at(-1) === node) return true;
+    }
+    return false;
+  };
+  const isNumber = (node: ts.Node): boolean => ts.isNumericLiteral(node)
+    || ts.isPrefixUnaryExpression(node) && ts.isNumericLiteral(node.operand);
+  const inConstantTable = (node: ts.Node): boolean => {
+    for (let parent = node.parent; parent && !ts.isFunctionDeclaration(parent); parent = parent.parent) {
+      if ((ts.isVariableDeclaration(parent) || ts.isPropertyAssignment(parent))
+        && /constants$/i.test(parent.name.getText())) return true;
+      if (ts.isCallExpression(parent) && ts.isIdentifier(parent.expression)
+        && /^extract\w*(?:Constants|Array)$/.test(parent.expression.text)) return true;
+    }
+    return false;
+  };
+  const found: Record<string, string[]> = {};
+  for (const file of CPU_LAYER_FILES) {
+    const unit = ts.createSourceFile(file, readFileSync(join(src, file), 'utf8'), ts.ScriptTarget.Latest, true);
+    const visit = (node: ts.Node): void => {
+      const fn = enclosing(node);
+      if (CPU_COMPILER_IDIOMS[fn] === undefined) {
+        const entries = found[`${file}: ${fn}`] ??= [];
+        if (isReplace(node)) entries.push('edit');
+        else if (isString(node) && !(isReplace(node.parent) && node.parent.arguments[0] !== node)
+          && (isHandlerBody(node)
+            || /;/.test(textOf(node)) && /[A-Za-z_]\w*\s*(?:\(|[-+|&]?=)/.test(textOf(node)))) {
+          entries.push(`body ${label(node)}`);
+        } else if (ts.isPropertyAssignment(node) && isNumber(node.initializer) && inConstantTable(node)) {
+          entries.push(`constant ${node.name.getText()}`);
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(unit);
+  }
+  const layers = Object.fromEntries(Object.entries(found)
+    .filter(([, entries]) => entries.length)
+    .map(([key, entries]) => {
+      const edits = entries.filter(entry => entry === 'edit').length;
+      return [key, [...new Set(entries.filter(entry => entry !== 'edit')),
+        ...edits ? [`${edits} source edits`] : []].sort()];
+    }));
+  assert.deepEqual(layers, Object.fromEntries(Object.entries(HAND_WRITTEN_CPU_LAYERS).map(([key, entries]) =>
+    [key, [...entries].sort()])),
+    'a CPU compiler composes C++, edits MAME\'s source or types a constant in by hand; compile the core\'s own ' +
+    'device_reset/execute_set_input/execute_run and read its headers instead (or, if one was removed, delete ' +
+    'it from HAND_WRITTEN_CPU_LAYERS)');
+  for (const name of Object.keys(CPU_COMPILER_IDIOMS)) {
+    assert.ok(CPU_LAYER_FILES.some(file => new RegExp(`\\bfunction\\s+${name}\\b`)
+      .test(readFileSync(join(src, file), 'utf8'))), `CPU_COMPILER_IDIOMS: ${name} no longer exists; delete its entry`);
+  }
+
+  const facts: string[] = [];
+  const codegen = readFileSync(join(src, 'mame/cpu-codegen.ts'), 'utf8');
+  for (const match of codegen.matchAll(/^class (\w+)(?![$\w])/gm)) facts.push(`mame/cpu-codegen.ts: class ${match[1]}`);
+  for (const match of codegen.matchAll(/^function (emitInternal\w+)/gm)) facts.push(`mame/cpu-codegen.ts: ${match[1]}`);
+  if (/this\.generatedService\(\);/.test(codegen)) facts.push('mame/cpu-codegen.ts: execute_run step');
+  const topology = readFileSync(join(src, 'gen/lower-topology.ts'), 'utf8');
+  const cpuTypes = /const CPU_TYPES[^=]*=\s*\{([^}]*)\}/.exec(topology)?.[1] ?? '';
+  const types = new Set([...cpuTypes.matchAll(/(\w+)\s*:\s*'(\w+)'/g)].flatMap(match => [match[1]!, match[2]!]));
+  for (const file of ['gen/emit-machine.ts', 'runtime/generated-board-shape.ts', 'gen/lower-topology.ts']) {
+    const unit = ts.createSourceFile(file, readFileSync(join(src, file), 'utf8'), ts.ScriptTarget.Latest, true);
+    const visit = (node: ts.Node): void => {
+      // The table itself names which generated core a device type runs.
+      if (ts.isVariableDeclaration(node) && node.name.getText() === 'CPU_TYPES') return;
+      const named = ts.isStringLiteral(node) ? node.text
+        : ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) ? node.name.text : undefined;
+      if (named !== undefined && types.has(named)) facts.push(`${file}: ${enclosing(node)}: ${named}`);
+      ts.forEachChild(node, visit);
+    };
+    visit(unit);
+  }
+  assert.deepEqual([...new Set(facts)].sort(), [...HAND_WRITTEN_CPU_FACTS].sort(),
+    'a per-CPU fact is typed in outside the compiler; read it from the core\'s source instead (or, if one was ' +
+    'removed, delete it from HAND_WRITTEN_CPU_FACTS)');
 }
 
 // A list keyed by a file that is gone would pass silently forever.
