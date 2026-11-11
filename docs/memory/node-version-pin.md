@@ -27,3 +27,11 @@ compiler API, which onboarding.ts/record-goldens.ts use. Use
 Mac), TypeScript **6.0.3** (the user asked for 6.x; 6 still ships the JS
 compiler API, TS 7 does not), `@types/node` ^26.6.6, Playwright 1.65 (run
 `npx playwright install chromium` after a bump).
+
+**TS 6 trap (PR #248 CI):** TS 6 defaults `types` to `[]`. The root tsconfig
+names `node`, so local `tsc --noEmit` stayed clean, but the app build's own
+generated tsconfig (`src/gen/app-build.ts`) relied on the old auto-include and
+failed "Assemble the distribution" on the staged Node-side helpers. After a
+TypeScript bump, prove the app build with `node bin/mamekit.js dev-game pacman`
+(compiles the app into `.cache/dev`, leaves `dist` alone); `audit:generated`
+against an existing dist proves nothing about the compiler.

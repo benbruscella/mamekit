@@ -224,6 +224,11 @@ if (game) {
     compilerOptions: {
       target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler',
       lib: ['ES2022', 'DOM', 'DOM.Iterable'], strict: true,
+      // TypeScript 6 no longer loads every @types package by default. The
+      // staged hardware packages still carry Node-side helpers
+      // (stream-acceptance.ts, nes/ines-mappers.ts), so name Node's types as
+      // the root tsconfig does.
+      types: ['node'],
       resolveJsonModule: false,
       allowImportingTsExtensions: true, rewriteRelativeImportExtensions: true,
       erasableSyntaxOnly: true, verbatimModuleSyntax: true, skipLibCheck: true,

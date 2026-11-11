@@ -34,7 +34,7 @@ MAMEDEV's release notes (see the README).
 
 **For players:** Nothing visible.
 
-**Under the hood:** `.nvmrc` moves from Node 26.12.1 to 26.13.0, and CI picks it up from that file. TypeScript moves from 5.9 to 6.0. It is the last major release with the JavaScript compiler API, which the onboarding and golden-recording tools use. `@types/node` moves to ^26.6.6 and Playwright to 1.65.
+**Under the hood:** `.nvmrc` moves from Node 26.12.1 to 26.13.0, and CI picks it up from that file. TypeScript moves from 5.9 to 6.0. It is the last major release with the JavaScript compiler API, which the onboarding and golden-recording tools use. TypeScript 6 no longer loads every `@types` package by default, so the app build's generated tsconfig now names `node`, as the root one does. `@types/node` moves to ^26.6.6 and Playwright to 1.65.
 
 ### Discrete sound circuits play from MAME's own tables ([#236](https://github.com/benbruscella/mamekit/issues/236))
 
