@@ -4288,31 +4288,58 @@ function mappedDeviceSpace(
 /**
  * MAME's PAIR union on a little-endian host: `b` the bytes low to high, `w`
  * the halves, `d` the word, and their signed readings. The word lives in a
- * typed array, so a save state carries it like any other register.
+ * typed array, so a save state carries it like any other register; the views
+ * are made the first time they are read, and are no state of their own.
+ * Built for every PAIR local an instruction declares (the 6800's
+ * `PAIR r,d,b;`), so nothing here is defined per instance.
  */
+class PairLanes {
+  readonly #word: Uint32Array;
+  readonly #bits: number;
+  readonly #signed: boolean;
+  constructor(word: Uint32Array, bits: number, signed: boolean) {
+    this.#word = word;
+    this.#bits = bits;
+    this.#signed = signed;
+  }
+  #get(index: number): number {
+    const bits = this.#bits;
+    const value = (this.#word[0]! >>> (index * bits)) & ((1 << bits) - 1);
+    return this.#signed && value & (1 << (bits - 1)) ? value - (1 << bits) : value;
+  }
+  #set(index: number, value: number): void {
+    const bits = this.#bits;
+    const mask = (((1 << bits) - 1) << (index * bits)) >>> 0;
+    this.#word[0] = ((this.#word[0]! & ~mask) | ((Number(value) << (index * bits)) & mask)) >>> 0;
+  }
+  get l(): number { return this.#get(0); }
+  set l(value: number) { this.#set(0, value); }
+  get h(): number { return this.#get(1); }
+  set h(value: number) { this.#set(1, value); }
+  get h2(): number { return this.#get(2); }
+  set h2(value: number) { this.#set(2, value); }
+  get h3(): number { return this.#get(3); }
+  set h3(value: number) { this.#set(3, value); }
+}
+
+class PairValue {
+  readonly word = new Uint32Array(1);
+  #b?: PairLanes;
+  #sb?: PairLanes;
+  #w?: PairLanes;
+  #sw?: PairLanes;
+  get d(): number { return this.word[0]!; }
+  set d(value: number) { this.word[0] = Number(value) >>> 0; }
+  get sd(): number { return this.word[0]! | 0; }
+  set sd(value: number) { this.word[0] = Number(value) >>> 0; }
+  get b(): PairLanes { return this.#b ??= new PairLanes(this.word, 8, false); }
+  get sb(): PairLanes { return this.#sb ??= new PairLanes(this.word, 8, true); }
+  get w(): PairLanes { return this.#w ??= new PairLanes(this.word, 16, false); }
+  get sw(): PairLanes { return this.#sw ??= new PairLanes(this.word, 16, true); }
+}
+
 function pairValue(): Record<string, unknown> {
-  const word = new Uint32Array(1);
-  const field = (shift: number, bits: number, signed: boolean) => ({
-    get: () => {
-      const value = (word[0]! >>> shift) & ((1 << bits) - 1);
-      return signed && value & (1 << (bits - 1)) ? value - (1 << bits) : value;
-    },
-    set: (value: number) => {
-      const mask = (((1 << bits) - 1) << shift) >>> 0;
-      word[0] = ((word[0]! & ~mask) | ((Number(value) << shift) & mask)) >>> 0;
-    },
-    enumerable: true,
-  });
-  const lanes = (bits: number, names: string[], signed: boolean) =>
-    Object.defineProperties({}, Object.fromEntries(names.map((name, index) => [name, field(index * bits, bits, signed)])));
-  return Object.defineProperties({ word }, {
-    d: { get: () => word[0]!, set: (value: number) => { word[0] = Number(value) >>> 0; }, enumerable: true },
-    sd: { get: () => word[0]! | 0, set: (value: number) => { word[0] = Number(value) >>> 0; }, enumerable: true },
-    b: { value: lanes(8, ['l', 'h', 'h2', 'h3'], false), enumerable: true },
-    sb: { value: lanes(8, ['l', 'h', 'h2', 'h3'], true), enumerable: true },
-    w: { value: lanes(16, ['l', 'h'], false), enumerable: true },
-    sw: { value: lanes(16, ['l', 'h'], true), enumerable: true },
-  });
+  return new PairValue() as unknown as Record<string, unknown>;
 }
 
 /**

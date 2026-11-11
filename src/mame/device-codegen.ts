@@ -1741,6 +1741,30 @@ const PURE_MATH: Record<string, { call: string; arity: number }> = Object.fromEn
   [`std::${name as string}`, { call: call as string, arity: arity as number }],
 ]));
 
+const PAIR_VIEWS: Record<string, Record<string, string>> = {
+  w: { l: 'u16', h: 'u16' },
+  sw: { l: 's16', h: 's16' },
+  b: { l: 'u8', h: 'u8', h2: 'u8', h3: 'u8' },
+  sb: { l: 's8', h: 's8', h2: 's8', h3: 's8' },
+};
+
+function pairViewType(expression: GeneratedExpression, context: EmitContext): string | undefined {
+  if (expression.kind !== 'member') return undefined;
+  const holder = (value: GeneratedExpression): boolean => {
+    if (value.kind !== 'identifier') return false;
+    const declared = context.locals.has(value.name)
+      ? context.locals.get(value.name)
+      : context.definition.members.find(member => member.name === value.name)?.valueType;
+    return declared?.replace(/\bconst\b/g, '').trim() === 'PAIR';
+  };
+  if (holder(expression.object)) {
+    return expression.property === 'd' ? 'u32' : expression.property === 'sd' ? 's32' : undefined;
+  }
+  const view = expression.object;
+  if (view.kind === 'member' && holder(view.object)) return PAIR_VIEWS[view.property]?.[expression.property];
+  return undefined;
+}
+
 function expressionValueType(
   expression: GeneratedExpression,
   context: EmitContext,
@@ -1750,6 +1774,11 @@ function expressionValueType(
     return context.definition.members.find(member => member.name === expression.name)?.valueType;
   }
   if (expression.kind === 'cast') return expression.valueType;
+  // MAME's PAIR union: each view is an integer of its width -- `.d` the word,
+  // `.w.l`/`.w.h` its halves, `.b.l`... its bytes, and the `s` forms signed.
+  // The 6800 steps its program counter as `m_pc.w.l++` on every fetch.
+  const pairView = pairViewType(expression, context);
+  if (pairView) return pairView;
   // A struct field declares its width, so `m_line.window_start_y_index + 4` is
   // known integer arithmetic and needs neither the runtime's `add` nor its
   // pointer tests. The Game Boy PPU's per-dot window check does five of these.
@@ -2559,6 +2588,14 @@ function emitAssignment(
       : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     return `runtime.writeIndex(${object}, ${index}, ${next})`;
   }
+  // A PAIR assigned from a PAIR copies the word, as the union is copied:
+  // the 6800's `m_ppc = m_pc` keeps the previous PC, not a second name for
+  // the current one.
+  if (operator === '=' && expression.kind === 'identifier' &&
+      expressionValueType(expression, context)?.replace(/\bconst\b/g, '').trim() === 'PAIR' &&
+      expressionValueType(value, context)?.replace(/\bconst\b/g, '').trim() === 'PAIR') {
+    return `(${emitExpression(expression, context)}.d = (${right}).d)`;
+  }
   // C++ struct assignment copies: `cur_live = checkpoint_live` on the 64H156
   // must leave two structs, not one object under two names.
   if (operator === '=' && expression.kind === 'identifier' && !context.locals.has(expression.name)) {
@@ -2587,7 +2624,8 @@ function emitAssignment(
   // A struct field or member declared with a width is an integer, whatever
   // spelling (if any) the target carries.
   const next = pointerAssignment(target.code, operator, right,
-    target.valueType ?? (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : target.pointerArithmetic ? 'auto*' : undefined));
+    pairViewType(expression, context) ?? target.valueType ??
+      (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : target.pointerArithmetic ? 'auto*' : undefined));
   if (expression.kind === 'unary' && expression.operator === '*') {
     return `${target.code} = ${next}`;
   }

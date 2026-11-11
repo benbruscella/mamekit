@@ -161,6 +161,10 @@ export function isGeneratedStruct(value: unknown): value is Record<string, unkno
  * element by element. Returns the target.
  */
 export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
+  if (isPairValue(target) && isPairValue(source) && target !== source) {
+    target.d = source.d;
+    return target;
+  }
   if (!isGeneratedStruct(target) || !source || typeof source !== 'object' || target === source) return source;
   const from = source as Record<string, unknown>;
   // A struct's fields never change once it is built, so their names are read
@@ -192,7 +196,20 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
  * VLM5030 aims `m_coeff = &vlm5030_coeff;` at its coefficient table, and
  * copied from a pointer the table stayed zero and Hyper Sports lost its speech.
  */
+/**
+ * MAME's PAIR union as the device runtime builds it (one word behind its
+ * views): assigned from another, it takes the word, as the union is copied.
+ */
+function isPairValue(value: unknown): value is { word: Uint32Array; d: number } {
+  return Boolean(value) && typeof value === 'object' &&
+    (value as { word?: unknown }).word instanceof Uint32Array && 'd' in (value as object);
+}
+
 function copiesStruct(target: unknown, value: unknown): boolean {
+  if (isPairValue(target)) {
+    const source = isLValue(value) ? value.get() : value;
+    return isPairValue(source) && source !== target;
+  }
   if (!isGeneratedStruct(target)) return false;
   const source = isLValue(value) ? value.get() : value;
   return Boolean(source) && typeof source === 'object' && !isGeneratedPointer(source);
