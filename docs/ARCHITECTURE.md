@@ -885,7 +885,7 @@ frontier, logic outputs through `nld_d_to_a_proxy`, and a one-input `TRUTH_TABLE
 inverter. A device outside that set stops the compile, so generation fails rather
 than playing an approximation. Mario's netlist is one: its VCOs and TTL need a
 digital simulator that doesn't exist yet, so it is left out with a warning and
-Mario is silent until it compiles (OUTSTANDING.md).
+Mario is silent until it compiles (issue #247, 1.1).
 
 `src/hardware/speaker/netlist-solver.ts` runs the plan in the stream mix, as a
 node of `createStreamMixer`, the way MAME's

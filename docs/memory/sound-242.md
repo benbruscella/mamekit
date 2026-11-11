@@ -14,7 +14,7 @@ metadata:
 - All of sound lands in ONE PR; the issue is not split. The issue body's "One PR" section says so; the family order (ymfm, read-back chips, simple chips, board sound devices) is only the commit order inside it.
 - Issue body expanded at the user's request: 57 HAND_WRITTEN_ENGINES = ~15 engines × (core, frame renderer, mixer, processor), plus duplicates (MSM5205 ×3, OKI ×2, uPD7759 ×2); step 8 CI fps check names all 13 YM2151 machines (not only CPS1/S16/Konami).
 
-- tia, sid and gameboy are IN the new sound-kind guard and move to `sound.kind = stream` too (user picked "fold them in"), so the guard reaches empty and the stream worklet is the only playback worklet. Follow-ups live in docs/OUTSTANDING.md, never duplicated in the issue (user ruling).
+- tia, sid and gameboy are IN the new sound-kind guard and move to `sound.kind = stream` too (user picked "fold them in"), so the guard reaches empty and the stream worklet is the only playback worklet. Follow-ups live in issue #247 (was docs/OUTSTANDING.md, deleted 2026-11-11 at the user's request), never duplicated in the feature issue (user ruling).
 
 **Baseline:** `oracle:baseline record --jobs 4` from e11059da (user said "GO!"), into `.oracle/baseline/e11059da`, 107 scenarios / 92 targets. dist was built from d89969ca, whose src tree equals e11059da's.
 
@@ -38,5 +38,5 @@ metadata:
 - **Oracle audio artefact:** ours.pcm already carries the browser 20 Hz speaker high-pass and compare-audio adds another; MAME's -wavwrite is pre-effects. DC-step boards (rampage) look worse than they sound.
 - The `--io` tap can't compare a 16-bit bus with umask16 byte devices (MAME logs `ffff`, ours `ff`), so first-difference stops at #0.
 - rtype video (logo/sprites/ground missing) is pre-existing on main (baseline pixels identical) — not #242.
-- **Final compare (2026-11-11)** on 24c605b2: table posted to #242; every material "worse" is in OUTSTANDING 4.3. Triage method: diff each verdict against the previous full compare (movers), then `persec.py` (per-second RMS with MAME's 20 Hz high-pass applied) on a `--keep` run before calling anything a regression.
+- **Final compare (2026-11-11)** on 24c605b2: table posted to #242; every material "worse" is in #247 section 4.3. Triage method: diff each verdict against the previous full compare (movers), then `persec.py` (per-second RMS with MAME's 20 Hz high-pass applied) on a `--keep` run before calling anything a regression.
 - **`npm run test:games:record` stops at the first golden whose sound writes swing ≥5%** (`process.exitCode = 1` + `|| exit 1` in the loop). After a sound rewrite every board swings (stream samples are counted, not register writes), so loop `record-goldens.ts` per game yourself, log each exit, and hand the user the swing list to confirm.

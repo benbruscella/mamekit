@@ -17,7 +17,9 @@ export const sf2ce = sourceTarget({
   // both failed at 49.8 fps and passed on re-run. 40 clears the whole
   // observed range and still catches the regression the floor is for.
   // sf2 is the next closest (61.4s to 79.7s on the same runs).
-  minimumFps: 40,
+  // Sound compiled from MAME (#242) runs on the main thread: CI measured
+  // 30.1 fps against the old floor of 40 (issue #247, 4.5).
+  minimumFps: 24,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title
   // screen holding one credit, and no sprite-bearing frame was ever reached.

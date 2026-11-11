@@ -162,3 +162,4 @@
 - [Final validation #240](final-validation-240.md) — stale .cache/dev, 2-shard sweeps, recorder vs contract audio, offset-flip WORSE, referent pointer exposure
 - [Sound #242](sound-242.md) — ONE PR for all sound (user ruling), baseline e11059da over 92 targets
 - [Held CPU eats cycles](held-cpu-eats-cycles.md) — #242 rampage buzz: a CPU held in RESET must book its slices or its stream writes stamp behind the mixer
+- [Outstanding issue](outstanding-issue.md) — follow-ups go in GitHub #247; docs/OUTSTANDING.md is gone
