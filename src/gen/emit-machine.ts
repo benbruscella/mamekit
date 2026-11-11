@@ -44,7 +44,6 @@ export function generatedCpuClock(clock: number): number {
 export function generatedCpuCycleClock(type: string | undefined, rawClock: number): number {
   const clock = generatedCpuClock(rawClock);
   const divided = (divider: number): number => Math.floor((clock + divider - 1) / divider);
-  if (type === 'i8085a') return divided(2);
   // tms34010.h execute_clocks_to_cycles: (clocks + 8 - 1) / 8.
   if (type === 'tms34010') return divided(8);
   // m6809.h's (clocks + m_clock_divider - 1) / m_clock_divider, 4 on these.

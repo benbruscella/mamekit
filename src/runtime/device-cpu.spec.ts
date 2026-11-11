@@ -80,4 +80,27 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.equal(reads, 1, 'the handler reads the PIA once, and the dropped line is not taken again');
 }
 
-console.log('device-cpu.spec: MAME 6801 and 6802 classes compiled whole run as processors');
+// The 8080 from i8085.cpp: OUT reaches the IO space, and an IRQ taken after EI
+// fetches the vector the board gave with the line (an RST, as invaders' is).
+{
+  const memory = new Uint8Array(0x10000);
+  memory.set([0x3e, 0x5a, 0xd3, 0x03, 0xfb, 0x00, 0xc3, 0x45, 0x00], 0x0040); // MVI A,$5A; OUT 3; EI; NOP; JMP $45
+  memory.set([0xc3, 0x40, 0x00], 0x0000); // JMP $40
+  memory.set([0x3e, 0x77, 0xd3, 0x04, 0x76], 0x0008); // RST 1: MVI A,$77; OUT 4; HLT
+  const writes: string[] = [];
+  const { cpu, device } = deviceCpu('I8080', {
+    read: address => memory[address]!,
+    write: (address, data) => { memory[address] = data; },
+    in: () => 0xff,
+    out: (port, data) => { writes.push(`${port}=${data.toString(16)}`); },
+  });
+  cpu.reset();
+  cpu.run(40);
+  assert.deepEqual(writes, ['3=5a']);
+  cpu.setIrqLine(true, 0xcf);
+  cpu.run(60);
+  assert.deepEqual(writes, ['3=5a', '4=77'], 'RST 1 from the data bus');
+  assert.equal(device.get('m_halt'), 1, 'HLT');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802 and 8080 classes compiled whole run as processors');

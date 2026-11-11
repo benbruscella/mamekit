@@ -1114,136 +1114,6 @@ export function compileMameMcs48(
 }
 
 /**
- * Compile MAME's shared 8080/8085 implementation with the i8080 subclass
- * overrides selected. Unlike the Z80 core, this CPU has no opcode DSL: MAME's
- * executable source is a single 256-case `execute_one` switch.
- */
-export function compileMameI8080(mameSrc: string): GeneratedCpuDefinition {
-  return compileMameI808x(mameSrc, 'I8080');
-}
-
-/** Compile the 8085A variant from the same MAME switch core. */
-export function compileMameI8085A(mameSrc: string): GeneratedCpuDefinition {
-  return compileMameI808x(mameSrc, 'I8085A');
-}
-
-function compileMameI808x(
-  mameSrc: string,
-  variant: 'I8080' | 'I8085A',
-): GeneratedCpuDefinition {
-  const cppFile = 'src/devices/cpu/i8085/i8085.cpp';
-  const headerFile = 'src/devices/cpu/i8085/i8085.h';
-  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
-  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
-  const unit = parseMameSource(cppFile, cpp);
-  const sourceMethods = unit.functions.filter(fn => fn.className === 'i8085a_cpu_device');
-  const find = (name: string) => sourceMethods.find(fn => fn.name === name);
-  const startMethod = find('device_start');
-  const resetMethod = find('device_reset');
-  const inputMethod = find('execute_set_input');
-  const runMethod = find('execute_run');
-  if (!startMethod || !resetMethod || !inputMethod || !runMethod || !find('execute_one')) {
-    throw new Error('MAME I8080 source is missing start/reset/input/execute definitions');
-  }
-
-  const normalize = (source: string): string => normalizeI8080Source(
-    normalizeMameExecutionSource(source),
-  );
-  const excluded = new Set([
-    'memory_space_config',
-    'device_config_complete',
-    'device_clock_changed',
-    'device_start',
-    'device_reset',
-    'state_import',
-    'state_export',
-    'state_string_export',
-    'create_disassembler',
-    'execute_run',
-  ]);
-  const methods = sourceMethods
-    .filter(fn => !excluded.has(fn.name))
-    .map(fn => ({
-      name: fn.name,
-      parameters: fn.parameters,
-      program: compileMameHandler(normalize(fn.body)),
-      source: sourceRef(fn.span.file, fn.span.line),
-    }));
-  for (const name of ['ret_taken', 'jmp_taken', 'call_taken', 'is_8085']) {
-    const inline = inlineMethodForClass(
-      header,
-      name,
-      variant === 'I8085A' || name === 'ret_taken'
-        ? 'i8085a_cpu_device'
-        : 'i8080_cpu_device',
-    );
-    if (!inline) throw new Error(`MAME ${variant} source is missing ${name} override`);
-    methods.push({
-      name,
-      parameters: inline.parameters,
-      program: compileMameHandler(normalize(inline.body)),
-      source: sourceRef(headerFile, lineAt(header, inline.start)),
-    });
-  }
-
-  const startSource = startMethod.body.slice(
-    0,
-    startMethod.body.indexOf('init_tables();') + 'init_tables();'.length,
-  );
-  const start = compileMameHandler(normalize(startSource));
-  const reset = compileMameHandler(normalize(resetMethod.body));
-  const input = compileMameHandler(normalize(inputMethod.body));
-  const step = compileMameHandler(normalize(singleIterationSource(runMethod.body)));
-  const constants = {
-    ...headerConstants(mameSrc, header),
-    ...extractGlobalConstants(cpp),
-  };
-  const members: GeneratedCpuMember[] = [
-    ...['m_PC', 'm_SP', 'm_AF', 'm_BC', 'm_DE', 'm_HL', 'm_WZ']
-      .map(name => ({ name, bits: 16 as const, pair: true })),
-    ...[
-      'm_halt', 'm_im', 'm_status', 'm_after_ei', 'm_nmi_state',
-      'm_trap_im_copy', 'm_sod_state', 'm_ietemp',
-    ].map(name => ({ name, bits: 8 as const })),
-    { name: 'm_trap_pending', bits: 1 },
-    { name: 'm_in_acknowledge', bits: 1 },
-    // MAME's cycle budget is a signed int and intentionally becomes negative.
-    { name: 'm_icount' },
-    { name: 'm_irq_state', bits: 8, values: [0, 0, 0, 0] },
-    { name: 'lut_cycles_8080', bits: 8, values: extractNumericArray(cpp, 'lut_cycles_8080') },
-    { name: 'lut_cycles_8085', bits: 8, values: extractNumericArray(cpp, 'lut_cycles_8085') },
-    { name: 'lut_cycles', bits: 8, values: Array(256).fill(0) },
-    { name: 'lut_zs', bits: 8, values: Array(256).fill(0) },
-    { name: 'lut_zsp', bits: 8, values: Array(256).fill(0) },
-  ];
-  const aliases = extractStateAliases(startMethod.body);
-  const programs = [start, reset, input, step, ...methods.map(method => method.program)];
-  return {
-    schemaVersion: 1,
-    type: variant,
-    dialect: 'mame-cpp-switch',
-    sourceFiles: [cppFile, headerFile],
-    constants,
-    aliases,
-    members,
-    methods,
-    start,
-    reset,
-    input,
-    inputParameters: inputParameters(inputMethod.parameters),
-    step,
-    opcodes: [],
-    summary: {
-      opcodes: 256,
-      compiledOpcodes: step.diagnostics.length ? 0 : 256,
-      methods: methods.length,
-      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
-      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
-    },
-  };
-}
-
-/**
  * Compile the original 24-bit Motorola 68000 from MAME's generated Musashi
  * handler and decode tables.  MAME keeps one full-instruction function per
  * decode state; the opcode table expands those states across all 65,536
@@ -3034,10 +2904,6 @@ function extractMameByteArray(
   return values;
 }
 
-function normalizeI8080Source(source: string): string {
-  return normalizePairLocals(source);
-}
-
 function normalizeM6809Source(source: string): string {
   const wordLocals = new Set(
     [...source.matchAll(/\b(?:u?int16_t|[us]16)\s+([A-Za-z_]\w*)\b/g)]
@@ -3209,26 +3075,6 @@ function singleIterationSource(source: string): string {
     throw new Error('MAME I8080 execute_run source shape changed');
   }
   return `m_icount = 0;\n${source.slice(0, doAt)}\n${source.slice(open + 1, close)}\nreturn -m_icount;`;
-}
-
-function extractGlobalConstants(source: string): Record<string, number> {
-  const expressions = new Map<string, string>();
-  for (const match of source.matchAll(/\bconstexpr\s+\w+\s+(\w+)\s*=\s*([^;]+);/g)) {
-    expressions.set(match[1]!, match[2]!.trim());
-  }
-  return resolveConstants(expressions);
-}
-
-function extractNumericArray(source: string, name: string): number[] {
-  const match = new RegExp(`${name}\\s*\\[[^\\]]+\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`).exec(source);
-  if (!match) throw new Error(`MAME I8080 source is missing ${name}`);
-  const values = match[1]!
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .split(',')
-    .map(value => Number(value.trim()))
-    .filter(Number.isFinite);
-  if (values.length !== 256) throw new Error(`${name} contains ${values.length}, expected 256`);
-  return values;
 }
 
 /**
@@ -3717,7 +3563,7 @@ function extractAliases(source: string, header: string): Record<string, Generate
     member.bits ?? 32,
   ]));
   const aliases: Record<string, GeneratedCpuAlias> = {};
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^/\r\n]+)/gm)) {
+  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^/\r\n]+)/gm)) {
     const name = match[1]!;
     const value = match[2]!.trim();
     let target: RegExpExecArray | null;
@@ -3777,7 +3623,7 @@ function typeBits(type: string): 1 | 8 | 16 | 32 {
 
 function extractDefineConstants(source: string, seed: Record<string, number> = {}): Record<string, number> {
   const expressions = new Map<string, string>();
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^/\r\n]+)/gm)) {
+  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^/\r\n]+)/gm)) {
     expressions.set(match[1]!, match[2]!.trim());
   }
   return resolveConstants(expressions, seed);

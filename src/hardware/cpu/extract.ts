@@ -1,6 +1,4 @@
 import {
-  compileMameI8080,
-  compileMameI8085A,
   compileMameI8088,
   compileMameHd6309E,
   compileMameKonami,
@@ -35,8 +33,6 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   Z8002: compileMameZ8002,
   SEGA_315_5098: source => ({ ...compileMameZ80(source), type: 'SEGA_315_5098' }),
   SEGA_315_5177: source => ({ ...compileMameZ80(source), type: 'SEGA_315_5177' }),
-  I8080: compileMameI8080,
-  I8085A: compileMameI8085A,
   I8088: compileMameI8088,
   V30: compileMameV30,
   I8035: source => compileMameMcs48(source, 'I8035'),

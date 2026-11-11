@@ -26,6 +26,8 @@ export const DEVICE_MAME_TYPES = [
   // execute_run, and m6801's timer, serial port and on-chip ports in its own
   // internal map. A board runs them as processors (runtime/device-cpu.ts).
   'M6802', 'M6808', 'M6803', 'M6801U4', 'HD63701Y0', 'NSC8105',
+  // i8085.cpp's i8085a_cpu_device and its i8080 subclass, execute_run and all.
+  'I8080', 'I8085A',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

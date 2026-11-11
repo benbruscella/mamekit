@@ -1,7 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, expandConstexprCalls, parseAddressMaps, parseConstexprFunctions, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
+import { evalExpr, expandConstexprCalls, parseAddressMaps, parseEnumConstants, parseConstexprFunctions, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
+import { HOST_INPUT_LINES } from '../ir/board.ts';
 import {
   memberMacroParameters,
   parseMameAst,
@@ -1013,7 +1014,7 @@ function compileMameDeviceSource(
   // 68705's timer raised its interrupt on no line at all.
   const pendingDefines = new Map<string, string>();
   for (const { source } of sources) {
-    for (const match of stripCppComments(source).matchAll(/^\s*#define\s+([A-Za-z_]\w*)\s+([^\r\n]+)/gm)) {
+    for (const match of stripCppComments(source).matchAll(/^[ \t]*#define[ \t]+([A-Za-z_]\w*)[ \t]+([^\r\n]+)/gm)) {
       if (constants[match[1]!] === undefined) pendingDefines.set(match[1]!, match[2]!.trim());
     }
   }
@@ -5130,17 +5131,13 @@ function constantValue(expression: string, env: Record<string, number>): number 
 function coreLineStates(mameSrc: string): Record<string, number> {
   const header = join(mameSrc, 'src/emu/diexec.h');
   if (!existsSync(header)) return {};
-  const body = /enum\s+line_state\s*\{([^}]*)\}/.exec(readFileSync(header, 'utf8'))?.[1];
-  if (!body) return {};
-  const states: Record<string, number> = {};
-  let next = 0;
-  for (const entry of body.split(',')) {
-    const match = /^\s*(\w+)\s*(?:=\s*(-?\d+))?/.exec(entry.replace(/\/\/.*$/gm, ''));
-    if (!match) continue;
-    next = match[2] === undefined ? next : Number(match[2]);
-    states[match[1]!] = next++;
-  }
-  return states;
+  // Both of diexec.h's enums: line_state, and the input lines a core's header
+  // names its own by (`#define I8085_TRAP_LINE INPUT_LINE_NMI`), the three
+  // scheduler-level lines numbered as the host delivers them.
+  const source = readFileSync(header, 'utf8');
+  const text = source.slice(0, source.indexOf('\nclass '));
+  const lines: Record<string, number> = { ...parseEnumConstants(text), ...HOST_INPUT_LINES };
+  return lines.CLEAR_LINE === 0 && lines.ASSERT_LINE === 1 && lines.INPUT_LINE_IRQ0 === 0 ? lines : {};
 }
 
 /**
@@ -5448,11 +5445,14 @@ export function numericConstants(
   functions: Parameters<typeof expandConstexprCalls>[1] = {},
 ): Record<string, number> {
   const expressions = new Map<string, string>();
+  // The define's whitespace is horizontal only (as parseDefines has it): with
+  // `\s`, an include guard's bare `#define MAME_CPU_I8085_I8085_H` took the
+  // next line as its value, and i8085.h's I8085_INTR_LINE was never defined.
   // The value runs to the end of the line less any comment. Stopping at the
   // first `/` instead cut every dividing macro in half -- VLM5030's
   // `#define IP_SIZE_NORMAL (160/FR_SIZE)` read as `(160` -- and its speed
   // table then gave every frame zero samples.
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n]+)/gmi)) {
+  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^\r\n]+)/gmi)) {
     const value = match[2]!.replace(/\/\/.*$|\/\*.*?\*\//g, '').trim();
     if (value) expressions.set(match[1]!, value);
   }

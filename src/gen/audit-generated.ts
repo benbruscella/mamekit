@@ -170,23 +170,22 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         }
       }
     }
+    // The 8080 is MAME's i8080_cpu_device compiled whole by the device compiler.
     const i8080 = manifest.hardware?.find(hardware => hardware.type === 'I8080');
-    if (i8080) {
-      if (!i8080.executable || !i8080.executableArtifact) {
-        failures.push('I8080 is not emitted as executable source-derived hardware');
-      } else {
-        const definitionPath = join(outRoot, 'runtime/generated', i8080.executableArtifact);
-        if (existsSync(definitionPath)) {
-          const definition = JSON.parse(readFileSync(definitionPath, 'utf8')) as {
-            summary?: { opcodes?: number; compiledOpcodes?: number; diagnostics?: number };
-            step?: { diagnostics?: string[] };
-          };
-          if (definition.summary?.opcodes !== 256 ||
-              definition.summary.compiledOpcodes !== definition.summary.opcodes ||
-              definition.summary.diagnostics !== 0 ||
-              definition.step?.diagnostics?.length) {
-            failures.push('I8080 executable artifact is incomplete or has compiler diagnostics');
-          }
+    if (i8080 && (!i8080.executable ||
+        i8080.executableKind !== 'device' ||
+        !i8080.executableArtifact)) {
+      failures.push('I8080 is not emitted as an executable source-derived device');
+    } else if (i8080) {
+      const definitionPath = join(outRoot, 'runtime/generated', i8080.executableArtifact!);
+      if (existsSync(definitionPath)) {
+        const definition = JSON.parse(readFileSync(definitionPath, 'utf8')) as {
+          hierarchy?: string[];
+          summary?: { diagnostics?: number };
+        };
+        if (!definition.hierarchy?.includes('i8085a_cpu_device') ||
+            definition.summary?.diagnostics !== 0) {
+          failures.push('I8080 executable artifact is incomplete or has compiler diagnostics');
         }
       }
     }

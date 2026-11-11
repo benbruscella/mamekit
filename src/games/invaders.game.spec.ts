@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { compileMameI8080 } from '../mame/cpu-compiler.ts';
 import { compileMameDevice } from '../mame/device-compiler.ts';
-import { deviceDefinitionsFromSource } from '../mame/hardware.ts';
+import { deviceDefinitionsFromSource, indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { invaders } from './invaders.game.ts';
 import {
@@ -63,11 +62,16 @@ assert.deepEqual(video.plan.bitmap, {
   },
 });
 
-const cpu = compileMameI8080(mameSrc);
-assert.equal(cpu.summary.opcodes, 256);
-assert.equal(cpu.summary.compiledOpcodes, 256);
+// The CPU is MAME's i8080_cpu_device compiled whole: i8085.cpp's execute_run
+// and execute_one, with the 8080's own cycle table chosen by its init_tables.
+const cpu = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('I8080')!, 'I8080');
 assert.equal(cpu.summary.diagnostics, 0);
-assert.ok(cpu.step && !cpu.step.diagnostics.length);
+assert.ok(cpu.methods.some(method => method.name === 'execute_run'));
+assert.ok(cpu.methods.some(method => method.name === 'execute_one'));
+// i8085.h's lines: INTR right after the bare include guard, and TRAP as
+// diexec.h's NMI in the board's numbering.
+assert.equal(cpu.constants.I8085_INTR_LINE, 0);
+assert.equal(cpu.constants.I8085_TRAP_LINE, -1);
 
 const machineSource = 'src/devices/machine/mb14241.cpp';
 const machineText = readFileSync(join(mameSrc, machineSource), 'utf8');

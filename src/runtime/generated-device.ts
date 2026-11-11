@@ -1852,10 +1852,14 @@ class IrDevice implements Device {
         // device_t::unscaled_clock: the clock before any scale, which here is
         // the clock (Pole Position's engine sound times its pitch by it).
         unscaled_clock: () => clock,
+        // As device.cpp has it: nothing when the clock is unchanged, and the
+        // notification only to a device that has started.
         set_unscaled_clock: (next: number) => {
-          clock = Math.trunc(Number(next));
+          const changed = Math.trunc(Number(next));
+          if (changed === clock) return 0;
+          clock = changed;
           this.clock = clock;
-          return this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0;
+          return this.deviceStarted && this.methods.has('device_clock_changed') ? this.call('device_clock_changed') : 0;
         },
         // device_t::owner(): the device that composed this one. A PIT8253's
         // counters reach their chip's out handlers and type through
@@ -2355,8 +2359,30 @@ class IrDevice implements Device {
     // `device_delegate::isnull()`: set exactly when something bound it. The
     // generic cartridge slot loads through its owner's delegate when there is
     // one and reads the ROM itself when there is not.
+    // And `device_delegate::resolve_safe(dflt)` (devdelegate.h): a delegate
+    // nothing bound becomes MAME's default, a call answering `dflt` (or
+    // nothing, for a void one). The 8085 resolves its optional CLK output so
+    // and calls it from device_start whether or not a driver set_clk_out it.
     for (const delegate of this.delegateNames) {
       this.bindings.calls![`${delegate}.isnull`] ??= () => this.bindings.calls![delegate] ? 0 : 1;
+      // `device_delegate::set(nullptr)`: unbound again, as the NES PPU's
+      // device_config_complete leaves its scanline, hblank and latch
+      // delegates for a cartridge to set when it starts.
+      this.bindings.calls![`${delegate}.set`] ??= (target: unknown) => {
+        if (typeof target === 'function') this.bindings.calls![delegate] = target as (...args: unknown[]) => unknown;
+        else if (!target) delete this.bindings.calls![delegate];
+        else throw new Error(`${this.definition.type}: ${delegate}.set with a ${typeof target}`);
+        this.refreshCallLinks();
+        return 0;
+      };
+      this.bindings.calls![`${delegate}.resolve_safe`] ??= (...dflt: unknown[]) => {
+        if (!this.bindings.calls![delegate]) {
+          const result = dflt.length ? Number(dflt[0]) : 0;
+          this.bindings.calls![delegate] = () => result;
+          this.refreshCallLinks();
+        }
+        return 0;
+      };
     }
     // Every binding the constructor installs is in place; resolve the links
     // the emitted methods read before any of them can run.
@@ -2364,6 +2390,13 @@ class IrDevice implements Device {
     if (definition.construct) this.invoke(definition.construct, ...(options.constructorArgs ?? []));
     if (definition.clockConstructor) this.invoke(definition.clockConstructor.method, 0, 0, 0, constructorArgument);
     options.configure?.(this);
+    // device_t::config_complete, which MAME runs on every device once the
+    // machine configuration is complete and before anything starts. The 8085
+    // resolves its CLK output delegate there and drives it with clock() / 2.
+    // (A floppy drive runs it as its constructor: floppy-compiler.ts.)
+    if (definition.construct !== 'device_config_complete' && this.methods.has('device_config_complete')) {
+      this.call('device_config_complete');
+    }
     const start = (): void => {
       // device_t::resolve_objects, which MAME runs once every device exists
       // and before any starts: pit8253 sets each counter's index, clock and

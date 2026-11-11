@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {
-  compileMameI8080,
   compileMameI8088,
   compileMameKonami,
   compileMameKonami1,
@@ -445,11 +444,6 @@ m6502.step();
 assert.equal(m6502.get('m_A'), 0x00);
 assert.equal(m6502.get('m_P') & 1, 1);
 
-const i8080Definition = compileMameI8080(process.env.MAME_SRC ?? '../mame');
-assert.match(
-  generatedCpuExecutableSource(i8080Definition),
-  /typeof source === 'function' \? source\(\) : source/,
-);
 const emptyProgram = { operations: [], diagnostics: [] };
 const lazyIrqDefinition: GeneratedCpuDefinition = {
   type: 'LAZY_IRQ_TEST',
@@ -523,6 +517,7 @@ const irqAckSource = generatedCpuExecutableSource({
   },
 });
 assert.match(irqAckSource, /bus\.signal\?\.\('irqack_cb', 1\)/);
+assert.match(irqAckSource, /typeof source === 'function' \? source\(\) : source/);
 assert.equal(
   irqAckSource.match(/this\.acknowledgeIrq\(0\)/g)?.length,
   1,

@@ -12,7 +12,7 @@ export const CPU_ID = 'cpu';
 /** MAME device types with a generated core, in emit order. */
 export const CPU_MAME_TYPES = [
   'Z80', 'Z8002', 'SEGA_315_5098', 'SEGA_315_5177',
-  'I8080', 'I8085A', 'I8088', 'V30', 'I8035', 'I8039', 'MB8884', 'M58715', 'UPD7751', 'M6502', 'M6507',
+  'I8088', 'V30', 'I8035', 'I8039', 'MB8884', 'M58715', 'UPD7751', 'M6502', 'M6507',
   'KONAMI', 'KONAMI1', 'MC6809', 'MC6809E', 'HD6309E',
   'M68000', 'M68010',
   'RP2A03', 'RP2A03G', 'M6510',

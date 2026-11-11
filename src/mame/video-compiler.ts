@@ -2213,7 +2213,7 @@ export function gfxRenderScale(graph: KnowledgeGraph, machineId: string): number
 
 function sourceNumericConstants(source: string): Record<string, number> {
   const expressions = new Map<string, string>();
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^/\r\n]+)/gm)) {
+  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^/\r\n]+)/gm)) {
     if (!match[2]!.includes('(') || /^\s*\(+[\dA-Za-z_]/.test(match[2]!)) {
       expressions.set(match[1]!, match[2]!.trim());
     }
