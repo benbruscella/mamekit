@@ -64,7 +64,17 @@ export function stripComments(src: string): string {
  * `#define YMFM_DEBUG_LOG_WAVFILES (0)` in ymfm_fm.h and tests it, as
  * `#if (YMFM_DEBUG_LOG_WAVFILES)`, in ymfm_fm.ipp as well.
  */
-export function resolveLiteralConditionals(src: string, defined = new Map<string, string>()): string {
+export function resolveLiteralConditionals(
+  src: string,
+  defined = new Map<string, string>(),
+  /**
+   * Names the translation unit only ever `#undef`s, never defines: an
+   * `#ifdef` of one is dead and an `#ifndef` live. tms5220.h opens with
+   * `#undef TMS5220_PERFECT_INTERPOLATION_HACK`, and read as two live
+   * branches its `int16_t m_current_energy` was declared again as int32_t.
+   */
+  undefinedNames: ReadonlySet<string> = new Set(),
+): string {
   const lines = src.split('\n');
   // Each open block: whether it is a literal one we resolve, whether its
   // current branch is live, and whether some earlier branch already was.
@@ -79,6 +89,9 @@ export function resolveLiteralConditionals(src: string, defined = new Map<string
     // define is one of two alternatives.
     const certain = stack.every(block => block.literal && block.live);
     if (define && certain) defined.set(define[1]!, define[2]!);
+    // A define with no value is still a define, for `#ifdef`.
+    const bare = /^\s*#\s*define\s+(\w+)\s*(?:\/\/.*|\/\*.*\*\/\s*)?$/.exec(line);
+    if (bare && certain && !defined.has(bare[1]!)) defined.set(bare[1]!, '');
     const undef = /^\s*#\s*undef\s+(\w+)/.exec(line);
     if (undef) defined.delete(undef[1]!);
     const directive = /^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b\s*(.*)$/.exec(line);
@@ -93,8 +106,15 @@ export function resolveLiteralConditionals(src: string, defined = new Map<string
         stack.push({ literal: true, live: true, taken: true, guard: true });
         return line;
       }
-      const isLiteral = keyword === 'if' && Boolean(literal);
-      const live = isLiteral ? Number(literal![1]) !== 0 : true;
+      // `#ifdef X` is decided when X is certainly defined (an unconditional
+      // `#define` seen before it, as tms5220.cpp's `#define FAST_START_HACK 1`
+      // before its `#ifdef FAST_START_HACK`) or certainly not (undefinedNames).
+      const known = keyword !== 'if' && /^\w+$/.test(rest) && (defined.has(rest) || undefinedNames.has(rest));
+      const isLiteral = (keyword === 'if' && Boolean(literal)) || known;
+      const present = defined.has(rest);
+      const live = known
+        ? (keyword === 'ifdef' ? present : !present)
+        : isLiteral ? Number(literal![1]) !== 0 : true;
       const printed = outerLive();
       stack.push({ literal: isLiteral, live, taken: live });
       return isLiteral || !printed ? '' : line;

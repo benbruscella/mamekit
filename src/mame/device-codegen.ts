@@ -269,6 +269,9 @@ export function generatedDeviceMethodsSource(
   const source = `(() => {
   const cppMin = (a${operand}, b${operand}) => (b < a ? b : a);
   const cppMax = (a${operand}, b${operand}) => (a < b ? b : a);
+  const cppStringText = (value${typescript ? ': unknown' : ''}) => typeof value === 'string' ? value
+    : typeof value === 'number' || typeof value === 'boolean' ? String(Number(value))
+    : value === undefined || value === null ? '' : String(value);
 ${[...constantTables].map(([values, name]) => `  const ${name} = [${values}];`).join('\n')}
 ${[...structCopiers.values()].join('\n')}
 ${functions}
@@ -1831,6 +1834,7 @@ function emitCall(
         !context.definition.methods.some(method => method.name === name)) {
       return `${name === 'std::min' ? 'cppMin' : 'cppMax'}(+(${args[0]}), +(${args[1]}))`;
     }
+    if (name === 'STRING_APPEND') return `(cppStringText(${args[0] ?? "''"}) + cppStringText(${args[1] ?? "''"}))`;
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;

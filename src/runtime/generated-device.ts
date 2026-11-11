@@ -403,6 +403,8 @@ export interface Device {
   /** Install a machine-config map over a declared byte-wide device space. */
   bindAddressSpace?(index: number, read: (address: number) => number,
     write: (address: number, data: number) => void): void;
+  /** The MAME address-space indices the device declares (memory_space_config). */
+  spaceIndices?(): readonly number[];
   reset(): void;
   tick(seconds: number): void;
   /** MAME's `device_pre_save` on the device and the devices inside it, before a state save. */
@@ -2813,6 +2815,10 @@ class IrDevice implements Device {
 
   cycleClock(): number {
     return this.clock / (this.definition.clockDivider ?? 1);
+  }
+
+  spaceIndices(): readonly number[] {
+    return (this.definition.spaces ?? []).map(space => space.index);
   }
 
   bindAddressSpace(index: number, read: (address: number) => number,

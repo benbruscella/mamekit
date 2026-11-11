@@ -515,6 +515,13 @@ export function executeGeneratedHandler(
   return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
 }
 
+/** The text a std::string append adds for a value: a string as itself, a number in decimal. */
+export function cppStringText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint' || typeof value === 'boolean') return String(Number(value));
+  return value === undefined || value === null ? '' : String(value);
+}
+
 export function executeGeneratedProgram(
   program: GeneratedHandlerProgram,
   bindings: GeneratedHandlerBindings,
@@ -2435,6 +2442,9 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // placeholder, not hardware, and it is answered first because a renderer
   // carries dozens of them through its hottest loop.
   if (name === 'TRACE_NOOP') return 0;
+  // std::string's append, as handler-ir lowers `s += v` and `stream << v` on a
+  // string local: the text of a number in decimal, as ostream writes it.
+  if (name === 'STRING_APPEND') return `${cppStringText(args[0])}${cppStringText(args[1])}`;
   if (name === 'BIT') {
     // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
     const width = args.length > 2 ? toNumber(args[2]) : 1;

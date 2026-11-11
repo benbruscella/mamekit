@@ -19,6 +19,7 @@ import {
   expandFunctionMacros,
 } from './preprocessor.ts';
 import { monomorphizeClassTemplate } from './function-template.ts';
+import { lowerMemberPointerCalls } from './member-pointers.ts';
 
 export interface GeneratedCpuAlias {
   member: string;
@@ -3831,6 +3832,10 @@ export function lowerLocalStructs(source: string): string {
 
 export function normalizeMameExecutionSource(source: string): string {
   source = lowerLocalStructs(source);
+  // A call through a member-function pointer -- `(this->*m_opcode_table[op])()`,
+  // how MAME's MCS-48 and TMS320C1x dispatch every opcode -- is the
+  // CALL_METHOD intrinsic on the method name the pointer holds.
+  source = lowerMemberPointerCalls(source);
   // A variadic template pack is always empty here: mamekit specializes only
   // the argument lists its call sites name, and it cannot expand a pack. C++
   // discards the branch in that case, so the text goes before parsing --

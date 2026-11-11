@@ -33,6 +33,7 @@ import { monomorphizeFunctionTemplate } from './function-template.ts';
 import { renameShadowedLocals } from '../ir/scope.ts';
 import { preprocessedDeviceTransform } from './preprocessed-device.ts';
 import { CPreprocessor } from './c-preprocessor.ts';
+import { generatedInclude } from './mame-build.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -361,6 +362,13 @@ export interface GeneratedDeviceDefinition {
      * start: `space(0).install_rom(...)` over a region (a YM2610's ADPCM).
      */
     installed?: true;
+    /** The address_space_config's byte order (`ENDIANNESS_BIG`). */
+    endianness?: 'big' | 'little';
+    /**
+     * Its address shift: -1 a word-addressed space (TMS320C1x), +3 a
+     * bit-addressed one (TMS34010), 0 one address per byte.
+     */
+    addressShift?: number;
   }[];
   start?: string;
   reset?: string;
@@ -481,11 +489,21 @@ export function compileMameDevice(
     });
   }
   const callsForeignMacros = transformSource?.foreignMacros === true || callsForeign;
-  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros) return device;
+  // Or one whose source includes something that is not a header: an opcode
+  // file (`6805ops.hxx`, `m6809.hxx`) is code meant to be read after the
+  // preprocessor. As written, a 6805's handlers are macro heads that define
+  // nothing, and once its member-pointer dispatch lowered, that compiled with
+  // no diagnostic at all -- and no instructions.
+  const readAfterPreprocessor = transformSource?.nonHeader === true;
+  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros && !readAfterPreprocessor) return device;
   if (!transformSource) return device;
   const preprocessed = compileMameDeviceSource(mameSrc, definition, type, compiling, { ...options, transformSource });
+  // Read after the preprocessor because of an include, it is taken when it
+  // finds code the plain reading does not: a 6805's handlers are macro heads
+  // until expanded (611 methods against 148).
+  const findsMore = readAfterPreprocessor && preprocessed.methods.length > device.methods.length;
   return preprocessed.summary.diagnostics < device.summary.diagnostics ||
-    ((declaresClasses || callsForeignMacros) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
+    ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
 }
 
 /**
@@ -527,7 +545,7 @@ function macroDeclaresClasses(mameSrc: string, files: readonly string[]): boolea
 function preprocessedSources(
   mameSrc: string,
   device: GeneratedDeviceDefinition,
-): (((file: string, source: string) => string) & { foreignMacros?: boolean; foreignNames?: ReadonlySet<string> }) | undefined {
+): (((file: string, source: string) => string) & { foreignMacros?: boolean; foreignNames?: ReadonlySet<string>; nonHeader?: boolean }) | undefined {
   const text = new Map<string, string>();
   const read = (file: string) => {
     if (!text.has(file)) text.set(file, existsSync(join(mameSrc, file)) ? readFileSync(join(mameSrc, file), 'utf8') : '');
@@ -577,7 +595,7 @@ function preprocessedSources(
   });
   if (!nonHeader && !foreignMacros && !calledForeign.size) return undefined;
   const transform = (file: string, source: string) => transforms.reduce((current, step) => step(file, current), source);
-  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign });
+  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign, nonHeader });
 }
 
 interface DeviceCompileOptions {
@@ -683,13 +701,44 @@ function compileMameDeviceSource(
   // Defines carry from file to file in include order, as the preprocessor
   // sees them.
   const defines = new Map<string, string>();
+  // Names the sources #undef and never #define: undefined everywhere, as the
+  // preprocessor sees them once the header that undefines them is included.
+  const texts = new Map(sourceFiles.map(file => [file, readFileSync(join(mameSrc, file), 'utf8')]));
+  const undefined_ = new Set<string>();
+  const definedAnywhere = new Set<string>();
+  for (const text of texts.values()) {
+    for (const match of text.matchAll(/^\s*#\s*undef\s+(\w+)/gm)) undefined_.add(match[1]!);
+    for (const match of text.matchAll(/^\s*#\s*define\s+(\w+)/gm)) definedAnywhere.add(match[1]!);
+  }
+  for (const name of definedAnywhere) undefined_.delete(name);
   const sources = sourceFiles.map(file => {
     // `#if 1 ... #else ... #endif` keeps the branch the preprocessor keeps:
     // the speaker's device_start builds its sinc kernel under `#if 1` and a
     // flat one under `#else`, and both used to run, the second winning.
-    const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'), defines);
+    const source = resolveLiteralConditionals(
+      spliceBodyIncludes(mameSrc, file, texts.get(file)!),
+      defines,
+      undefined_,
+    );
     return { file, source: options.transformSource ? options.transformSource(file, source) : source };
   });
+  // A file-scope typedef of a scalar names that type through the whole
+  // translation unit: nec.cpp's `typedef uint16_t WORD;` is what every
+  // `(WORD)` cast in its instruction includes means.
+  const scalarAliases = new Map<string, string>();
+  for (const { source } of sources) {
+    for (const alias of stripCppComments(source).matchAll(
+      /^typedef\s+((?:unsigned\s+|signed\s+)?(?:u?int(?:8|16|32|64)_t|[us](?:8|16|32|64)|char|short|int|long))\s+(\w+)\s*;/gm,
+    )) scalarAliases.set(alias[2]!, alias[1]!);
+  }
+  if (scalarAliases.size) {
+    const alias = new RegExp(`\\b(?:${[...scalarAliases.keys()].join('|')})\\b`, 'g');
+    for (const entry of sources) {
+      entry.source = entry.source
+        .replace(/^typedef\s+[\w\s]+?\s+(\w+)\s*;/gm, (whole, name: string) => scalarAliases.has(name) ? '' : whole)
+        .replace(alias, name => scalarAliases.get(name)!);
+    }
+  }
   for (const library of [
     ...formatLibrarySources(mameSrc, sources),
     ...helperLibrarySources(mameSrc, sources),
@@ -3461,6 +3510,72 @@ function composeChildSlot(
   return undefined;
 }
 
+/**
+ * Where an `#include` resolves, as localSourceFiles follows it: beside the
+ * including file, under src/devices, under 3rdparty, then MAME's GEN_DIR.
+ */
+function resolveMameInclude(mameSrc: string, includingAbsolute: string, include: string): string | undefined {
+  return [
+    join(dirname(includingAbsolute), include),
+    join(mameSrc, 'src/devices', include),
+    join(mameSrc, '3rdparty', include),
+  ].find(candidate => existsSync(candidate)) ?? generatedInclude(mameSrc, include);
+}
+
+/**
+ * An `#include` inside a function body is that file's text in that place, as
+ * the C preprocessor has it. MAME's 6809 is written so:
+ *
+ *   void m6809_base_device::execute_one()
+ *   {
+ *     switch(pop_state())
+ *     {
+ *   #include "cpu/m6809/m6809.hxx"
+ *     }
+ *   }
+ *
+ * and read without the text the switch had no cases: the whole instruction
+ * set dropped, with no diagnostic. An include at file level is a separate
+ * source, which localSourceFiles already follows.
+ */
+function spliceBodyIncludes(mameSrc: string, file: string, source: string): string {
+  if (!/^[ \t]*#[ \t]*include\b/m.test(source)) return source;
+  const absolute = join(mameSrc, file);
+  const lines = source.split('\n');
+  let depth = 0;
+  let blockComment = false;
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex]!;
+    const include = /^[ \t]*#[ \t]*include[ \t]+"([^"]+)"/.exec(line);
+    if (include && depth > 0 && !blockComment) {
+      const resolved = resolveMameInclude(mameSrc, absolute, include[1]!);
+      if (!resolved) throw new Error(`${file}:${lineIndex + 1}: #include "${include[1]}" inside a function resolves nowhere`);
+      lines[lineIndex] = spliceBodyIncludes(mameSrc, relative(mameSrc, resolved), readFileSync(resolved, 'utf8'));
+      continue;
+    }
+    for (let index = 0; index < line.length; index++) {
+      const character = line[index]!;
+      if (blockComment) {
+        if (character === '*' && line[index + 1] === '/') { blockComment = false; index++; }
+      } else if (character === '/' && line[index + 1] === '/') {
+        break;
+      } else if (character === '/' && line[index + 1] === '*') {
+        blockComment = true;
+        index++;
+      } else if (character === '"' || character === '\'') {
+        for (index++; index < line.length && line[index] !== character; index++) {
+          if (line[index] === '\\') index++;
+        }
+      } else if (character === '{') {
+        depth++;
+      } else if (character === '}') {
+        depth--;
+      }
+    }
+  }
+  return lines.join('\n');
+}
+
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
   const files: string[] = [];
   const seen = new Set<string>();
@@ -3501,11 +3616,11 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
       // `3rdparty` is the other: MAME's FM chips are wrappers over the bundled
       // ymfm library (`#include "ymfm/src/ymfm_opl.h"`), and the chip a
       // DS1001 holds as `m_chip` is declared nowhere else.
-      const included = [
-        join(dirname(absolute), match[1]!),
-        join(mameSrc, 'src/devices', match[1]!),
-        join(mameSrc, '3rdparty', match[1]!),
-      ].find(candidate => existsSync(candidate));
+      //
+      // Last, GEN_DIR: what MAME's build generates rather than the tree
+      // holding it -- the 6809's `#include "cpu/m6809/m6809.hxx"`, which
+      // m6809make.py writes from m6809.lst (mame-build.ts).
+      const included = resolveMameInclude(mameSrc, absolute, match[1]!);
       if (!included) continue;
       visit(included);
       // An .ipp carries the templates; the plain header beside it carries the
@@ -4557,7 +4672,7 @@ export interface ConstructorChainValues {
   /** A struct member the chain builds from a brace list, as its fields' values. */
   structs: Record<string, Record<string, unknown>>;
   /** An `address_space_config` member, as its initializer configures it. */
-  spaceConfigs: Record<string, { name: string; dataBits: number; addressBits: number; map?: string }>;
+  spaceConfigs: Record<string, { name: string; dataBits: number; addressBits: number; map?: string; endianness?: 'big' | 'little'; addressShift?: number }>;
 }
 
 /**
@@ -4780,8 +4895,11 @@ export function constructorInitialValues(
         const name = /^"([^"]*)"$/.exec(initializer.args[0]!.trim())?.[1];
         if (name === undefined || !/^ENDIANNESS_\w+$/.test(initializer.args[1]!.trim())) continue;
         const map = selectedMapConstructor(argTexts[5] ?? initializer.args[5] ?? '', text => constantValue(text, { ...constants, ...env }));
+        const order = /^ENDIANNESS_(BIG|LITTLE)$/.exec(initializer.args[1]!.trim())?.[1];
         chain.spaceConfigs[memberName(className, initializer.name)] = {
           name, dataBits: args[2]!, addressBits: args[3]!, ...(map ? { map } : {}),
+          ...(order ? { endianness: order === 'BIG' ? 'big' as const : 'little' as const } : {}),
+          ...(args.length > 4 && args[4] ? { addressShift: args[4] } : {}),
         };
       }
     }
@@ -5533,49 +5651,70 @@ function deviceAddressSpaces(
   chainConfigs: ConstructorChainValues['spaceConfigs'] = {},
 ): NonNullable<GeneratedDeviceDefinition['spaces']> {
   const spaces: NonNullable<GeneratedDeviceDefinition['spaces']> = [];
-  const configs = new Map<string, { name: string; dataBits: number; addressBits: number; map: string }>();
+  const configs = new Map<string, { name: string; dataBits: number; addressBits: number; map: string; endianness?: 'big' | 'little'; addressShift?: number }>();
+  const spaceOrder = (endianness: string, shift: unknown): { endianness?: 'big' | 'little'; addressShift?: number } => ({
+    ...(endianness === 'BIG' || endianness === 'LITTLE' ? { endianness: endianness === 'BIG' ? 'big' as const : 'little' as const } : {}),
+    ...(Number.isInteger(shift) && shift !== 0 ? { addressShift: Number(shift) } : {}),
+  });
+  // What the constructor chain built, with the arguments each constructor was
+  // handed: a 6800's `m_program_config(..., internal)` and an MCS-48's
+  // address width from its feature mask are only known this way.
+  const chained = new Map<string, { name: string; dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number }>();
   for (const [member, config] of Object.entries(chainConfigs)) {
     if (config.map) configs.set(member, { ...config, map: config.map });
+    else chained.set(member, config);
   }
   for (const owner of hierarchy) {
     const escaped = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     for (const match of source.matchAll(new RegExp(
-      `(m_\\w*space_config\\w*)\\s*\\(\\s*"([^"]*)"\\s*,\\s*ENDIANNESS_\\w+\\s*,` +
+      `(m_\\w*config\\w*)\\s*\\(\\s*"([^"]*)"\\s*,\\s*ENDIANNESS_(\\w+)\\s*,` +
       `\\s*([^,]+),\\s*([^,]+),\\s*([^,]+),\\s*address_map_constructor\\s*\\(\\s*FUNC\\s*\\(\\s*${escaped}::(\\w+)`,
       'g',
     ))) {
-      const dataBits = evalExpr(match[3]!.trim(), constants);
-      const addressBits = evalExpr(match[4]!.trim(), constants);
+      const dataBits = evalExpr(match[4]!.trim(), constants);
+      const addressBits = evalExpr(match[5]!.trim(), constants);
+      const addressShift = evalExpr(match[6]!.trim(), constants);
       if (!Number.isInteger(dataBits) || !Number.isInteger(addressBits)) continue;
       configs.set(match[1]!, {
         name: match[2]!,
         dataBits: Number(dataBits),
         addressBits: Number(addressBits),
-        map: match[6]!,
+        map: match[7]!,
+        ...spaceOrder(match[3]!, addressShift),
       });
     }
   }
   // A space configured with no map of its own: what the device installs into
   // it itself at start (a YM2610's ADPCM ROM, `space(0).install_rom(...)`).
-  const unmapped = new Map<string, { name: string; dataBits: number; addressBits: number }>();
+  const unmapped = new Map<string, { name: string; dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number }>(chained);
   for (const match of source.matchAll(
     // The address shift is optional: `m_data_config("data", ENDIANNESS_BIG, 8, 8)`
     // is the Namco WSG's waveform space, which it fills from its own region.
-    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_\w+\s*,\s*([^,()]+),\s*([^,()]+)(?:,\s*([^,()]+))?\)/g,
+    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_(\w+)\s*,\s*([^,()]+),\s*([^,()]+)(?:,\s*([^,()]+))?\)/g,
   )) {
-    if (configs.has(match[1]!)) continue;
-    const dataBits = evalExpr(match[3]!.trim(), constants);
-    const addressBits = evalExpr(match[4]!.trim(), constants);
+    if (configs.has(match[1]!) || unmapped.has(match[1]!)) continue;
+    const dataBits = evalExpr(match[4]!.trim(), constants);
+    const addressBits = evalExpr(match[5]!.trim(), constants);
     if (!Number.isInteger(dataBits) || !Number.isInteger(addressBits)) continue;
-    unmapped.set(match[1]!, { name: match[2]!, dataBits: Number(dataBits), addressBits: Number(addressBits) });
+    unmapped.set(match[1]!, {
+      name: match[2]!,
+      dataBits: Number(dataBits),
+      addressBits: Number(addressBits),
+      ...spaceOrder(match[3]!, match[6] === undefined ? 0 : evalExpr(match[6].trim(), constants)),
+    });
   }
   if (!configs.size && !unmapped.size) return spaces;
   const vector = methodBodies.get('memory_space_config');
   if (vector === undefined) return spaces;
+  const seen = new Set<number>();
   for (const pair of vector.matchAll(
     /std::make_pair\s*\(\s*(\w+)\s*,\s*&\s*(m_\w+)\s*\)/g,
   )) {
     const index = Number(evalExpr(pair[1]!, constants));
+    // memory_space_config may answer in branches (`has_configured_map(AS_OPCODES)
+    // ? {program, opcodes} : {program}`): a space is the same in each.
+    if (seen.has(index)) continue;
+    seen.add(index);
     const installed = unmapped.get(pair[2]!);
     if (installed && Number.isInteger(index)) {
       spaces.push({ index, ...installed, installed: true });
@@ -5590,22 +5729,31 @@ function deviceAddressSpaces(
     // driver here does not.
     const statements = [...map.matchAll(/\bmap\s*\(([^)]*)\)\s*\.\s*(\w+)\s*\(\s*\)/g)];
     if (statements.length !== 1 || statements[0]![2] !== 'ram') {
-      // A map that decodes more than RAM, handed down the constructor chain
-      // as an `address_map_constructor`: the 68705's internal map of ports,
-      // timer, RAM and EPROM, which the host builds by running the method.
-      if (chainConfigs[pair[2]!]?.map === config.map) {
-        spaces.push({ index, name: config.name, addressBits: config.addressBits, dataBits: config.dataBits, map: config.map });
-      }
+      // A map that decodes more than RAM: the 68705's internal map of ports,
+      // timer, RAM and EPROM, or a 6801's on-chip ports, timer and serial
+      // registers. The host builds it by running the method, as MAME does,
+      // and a CPU's owner maps the rest of the space (internal first, so it
+      // takes priority, as address_map's constructor has it).
+      const { map: _map, ...facts } = config;
+      spaces.push({ index, ...facts, map: config.map });
       continue;
     }
     const [start, end] = splitMameArgs(statements[0]![1]!)
       .map(value => Number(evalExpr(value.trim(), constants)));
-    if (start !== 0 || end !== (1 << config.addressBits) - 1) continue;
+    // RAM over part of the space is a map like any other: the M6802's 128
+    // bytes at 0x0000, its owner's map around them.
+    if (start !== 0 || end !== (1 << config.addressBits) - 1) {
+      const { map: _map, ...facts } = config;
+      spaces.push({ index, ...facts, map: config.map });
+      continue;
+    }
     spaces.push({
       index,
       name: config.name,
       addressBits: config.addressBits,
       dataBits: config.dataBits,
+      ...(config.endianness ? { endianness: config.endianness } : {}),
+      ...(config.addressShift ? { addressShift: config.addressShift } : {}),
       ram: true,
     });
   }
@@ -6096,6 +6244,26 @@ function inlineConstructor(
     if (close < 0) continue;
     const body = text.slice(open + 1, close);
     const head = new RegExp(`(?:^|[;{}\\s])${leaf}\\s*\\(`, 'g');
+    // A class that declares no constructor has the implicit default one,
+    // which runs only its members' initializers: m6502_device::mi_default,
+    // the memory interface every 6502 allocates in device_start. An abstract
+    // class (a pure virtual `= 0`) has no instances to construct: ymfm's
+    // ymfm_engine_callbacks is what a chip points at its own owner through.
+    // Only a class with code of its own: an `enum class` reads as one here,
+    // and a plain data struct (atarimo's `dual_entry`) is its fields.
+    const isEnum = /\benum\s+$/.test(text.slice(Math.max(0, declaration.index - 8), declaration.index));
+    const hasMethods = /\b\w+\s*\([^;{}]*\)\s*(?:const\s*)?(?:override\s*)?[;{]/.test(body);
+    if (![...body.matchAll(head)].length && !isEnum && /^\s*class\b/.test(declaration[0]) && hasMethods &&
+        !/\)\s*(?:const\s*)?(?:override\s*)?=\s*0\s*;/.test(body)) {
+      return {
+        className: qualified,
+        name: leaf,
+        parameters: '',
+        body: '',
+        initializers: [],
+        span: { file, line: 1, column: 1 },
+      } as unknown as ReturnType<typeof parseMameConstructors>[number];
+    }
     for (const match of body.matchAll(head)) {
       const parametersOpen = (match.index ?? 0) + match[0].length - 1;
       let depth = 0;

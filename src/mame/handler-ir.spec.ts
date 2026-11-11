@@ -640,9 +640,33 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
     return total;
   `);
   assert.equal(executeGeneratedProgram(ran, {}).value, 100);
-  // A backward jump has no structured form and must stay visible.
-  const backward = compileMameHandler(`again: x = 1; goto again;`);
-  assert.deepEqual(backward.diagnostics, ['unsupported goto again']);
+  // A backward jump: the body is flattened into one dispatch (parse()).
+  const backward = compileMameHandler(`
+    int n = 0;
+  again:
+    n += 1;
+    if (n < 3) goto again;
+    return n;
+  `);
+  assert.deepEqual(backward.diagnostics, []);
+  assert.equal(executeGeneratedProgram(backward, {}).value, 3);
+  // Into a loop from before it, and again from inside it, as z80make.py's
+  // execute_run enters its fast loop at `process:`.
+  const intoLoop = compileMameHandler(`
+    int r = 0;
+    if (skip) goto process;
+    r += 1000;
+    while (1) {
+      r += 1;
+    process:
+      r += 10;
+      if (r < 50) goto process;
+      return r;
+    }
+  `);
+  assert.deepEqual(intoLoop.diagnostics, []);
+  assert.equal(executeGeneratedProgram(intoLoop, { members: { skip: 1 } }).value, 50);
+  assert.equal(executeGeneratedProgram(intoLoop, { members: { skip: 0 } }).value, 1011);
 }
 
 // A goto between the case bodies of one switch, forward and back (MAME's
@@ -668,11 +692,138 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
   assert.equal(run(2), 1010);
   assert.equal(run(3), 10);
   assert.equal(run(4), 14);
-  // Inside a loop in the case the jump would continue that loop instead.
-  assert.deepEqual(
-    compileMameHandler(`switch (op) { case 0: a: x = 1; break; case 1: while (y) goto a; }`).diagnostics,
-    ['unsupported goto a'],
-  );
+  // A jump from inside a loop in a case: the loop is flattened into the
+  // switch, so the jump dispatches again rather than continuing the loop.
+  const fromLoop = compileMameHandler(`switch (op) { case 0: a: x = 1; break; case 1: while (y) goto a; x = 7; }`);
+  assert.deepEqual(fromLoop.diagnostics, []);
+  const loopMembers: Record<string, unknown> = { op: 1, y: 1, x: 0 };
+  executeGeneratedProgram(fromLoop, { members: loopMembers });
+  assert.equal(loopMembers.x, 1);
+}
+
+// The state machine m6809make.py writes: `switch(pop_state())` with a case
+// per state that jumps to its label, and labels inside an instruction's
+// `if`, inside a wait loop and inside an addressing mode's own switch --
+// where the instruction stopped when its cycles ran out and resumes next
+// time. Each shape is flattened into the outer switch and runs as C++ does.
+{
+  const machine = compileMameHandler(`
+    int r = 0;
+    switch (m_state) {
+    case 0: goto MAIN;
+    case 7: goto s7;
+    case 9: goto s9;
+    MAIN:
+      r += 1;
+      if (native == 0) {
+        r += 10;
+        if (budget <= 0) { m_state = 7; return r; }
+    s7:
+        r += 100;
+      }
+      r += 1000;
+      while (wait) {
+        if (budget <= 0) { m_state = 9; return r; }
+    s9:
+        wait = wait - 1;
+        r += 10000;
+      }
+      return r;
+    }
+    return -1;
+  `);
+  assert.deepEqual(machine.diagnostics, []);
+  const step = (members: Record<string, unknown>) => executeGeneratedProgram(machine, { members }).value;
+  assert.equal(step({ m_state: 0, native: 0, budget: 1, wait: 0 }), 1111);
+  const stopped: Record<string, unknown> = { m_state: 0, native: 0, budget: 0, wait: 0 };
+  assert.equal(step(stopped), 11);
+  assert.equal(stopped.m_state, 7);
+  assert.equal(step({ m_state: 7, native: 0, budget: 1, wait: 0 }), 1100);
+  assert.equal(step({ m_state: 0, native: 1, budget: 1, wait: 0 }), 1001);
+  assert.equal(step({ m_state: 9, native: 0, budget: 1, wait: 2 }), 20000);
+
+  const nested = compileMameHandler(`
+    int r = 0;
+    switch (m_state) {
+    case 0: goto A;
+    case 5: goto s5;
+    A:
+      switch (mode) {
+      case 1: r += 1;
+      s5: r += 2; break;
+      case 2: r += 4; break;
+      }
+      r += 100;
+      return r;
+    }
+    return -1;
+  `);
+  assert.deepEqual(nested.diagnostics, []);
+  const nest = (m_state: number, mode: number) => executeGeneratedProgram(nested, { members: { m_state, mode } }).value;
+  assert.equal(nest(0, 1), 103);
+  assert.equal(nest(0, 2), 104);
+  assert.equal(nest(0, 3), 100);
+  assert.equal(nest(5, 0), 102);
+
+  const counted = compileMameHandler(`
+    int r = 0;
+    switch (m_state) {
+    case 0: goto A;
+    case 3: goto L;
+    A:
+      for (i = 0; i < 5; i++) {
+        if (i == 1) continue;
+    L:
+        r += 1;
+        if (i == 3) break;
+      }
+      return r * 10 + i;
+    }
+    return -1;
+  `);
+  assert.deepEqual(counted.diagnostics, []);
+  assert.equal(executeGeneratedProgram(counted, { members: { m_state: 0, i: 0 } }).value, 33);
+  assert.equal(executeGeneratedProgram(counted, { members: { m_state: 3, i: 2 } }).value, 23);
+}
+
+// std::string and string streams: empty when declared, `+=` and `<<` append
+// (a number in decimal, as ostream writes it), `.str()` reads the stream --
+// z80daisy.cpp's daisy_show_chain.
+{
+  const stream = compileMameHandler('std::ostringstream result; int x = 5; result << "a" << x << "-"; return result.str();');
+  assert.deepEqual(stream.diagnostics, []);
+  assert.equal(executeGeneratedProgram(stream, {}).value, 'a5-');
+  const text = compileMameHandler('std::string r; r += "ab"; r += "c"; return r;');
+  assert.equal(executeGeneratedProgram(text, {}).value, 'abc');
+}
+
+// A case inside a nested statement (Duff's device), as m6502make.py writes a
+// page-crossing access the instruction can stop in: entering at the case
+// runs the rest of the block and everything after it.
+{
+  const duff = compileMameHandler(`
+    int r = 0;
+    switch (s) {
+    case 0:
+      r += 1;
+      if (p) {
+        [[fallthrough]];
+    case 5:
+        r += 10;
+      }
+      r += 100;
+      break;
+    default:
+      r = -1;
+    }
+    return r;
+  `.replaceAll('[[fallthrough]];', ''));
+  assert.deepEqual(duff.diagnostics, []);
+  const enter = (s: number, p: number) => executeGeneratedProgram(duff, { members: { s, p } }).value;
+  assert.equal(enter(0, 1), 111);
+  assert.equal(enter(0, 0), 101);
+  assert.equal(enter(5, 0), 110);
+  assert.equal(enter(9, 0), -1);
 }
 
 // std::tie assigns a tuple's elements to names that already exist, as the

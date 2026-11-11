@@ -293,6 +293,7 @@ assert.deepEqual(generatedVdp.spaces, [{
   name: 'vram',
   addressBits: 14,
   dataBits: 8,
+  endianness: 'big', // address_space_config("vram", ENDIANNESS_BIG, ...)
   ram: true,
 }], 'the TMS9928A must carry its own 16K VRAM space');
 assert.equal(

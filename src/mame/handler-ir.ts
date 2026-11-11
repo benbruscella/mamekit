@@ -221,11 +221,64 @@ class HandlerParser {
   private readonly labels = new Map<GeneratedHandlerOperation, string>();
 
   parse(): GeneratedHandlerProgram {
-    const operations = this.parseOperations();
+    let operations = this.parseOperations();
+    // A jump no enclosing switch or later label could take: into a loop from
+    // before it, or backward. z80make.py's execute_run runs its slow path,
+    // then `goto process;` into the middle of the fast `while (true)` loop,
+    // whose instructions `goto process;` again. The body is one case of a
+    // switch entered at the top, and lowerSwitchGotos flattens it like any.
+    if (this.gotos.size && [...this.gotos.values()].some(label =>
+      [...this.labels.values()].includes(label))) {
+      const lowered = this.lowerSwitchGotos({ kind: 'number', value: 0 },
+        [{ values: [{ kind: 'number', value: 0 }], body: operations }]);
+      operations = Array.isArray(lowered) ? lowered : [lowered];
+    }
+    operations = this.stripLabelMarks(operations);
+    // `stream.str()`: the string a string stream holds is the local itself.
+    if (this.streamLocals.size) {
+      walkExpressions(operations, expression => {
+        if (expression.kind === 'call' && !expression.args.length && expression.callee.kind === 'member' &&
+            expression.callee.property === 'str' && expression.callee.object.kind === 'identifier' &&
+            this.streamLocals.has(expression.callee.object.name)) {
+          const name = expression.callee.object.name;
+          for (const key of Object.keys(expression)) delete (expression as unknown as Record<string, unknown>)[key];
+          Object.assign(expression, { kind: 'identifier', name });
+        }
+      });
+    }
     for (const [, label] of this.gotos) {
       this.diagnostics.push(`unsupported goto ${label}`);
     }
     return { operations, diagnostics: this.diagnostics };
+  }
+
+  /**
+   * A label's mark stays in its list until a `goto` to it is lowered: an
+   * enclosing switch may still need it (lowerSwitchGotos). What is left once
+   * the whole body is read marks nothing anyone jumps to.
+   */
+  private stripLabelMarks(list: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
+    return list.filter(operation => !this.labels.has(operation)).map(operation => {
+      switch (operation.op) {
+        case 'if':
+          return { ...operation, then: this.stripLabelMarks(operation.then),
+            ...(operation.else ? { else: this.stripLabelMarks(operation.else) } : {}) };
+        case 'for':
+          return { ...operation, initialize: this.stripLabelMarks(operation.initialize),
+            iterate: this.stripLabelMarks(operation.iterate), body: this.stripLabelMarks(operation.body) };
+        case 'while': case 'do-while':
+          return { ...operation, body: this.stripLabelMarks(operation.body) };
+        case 'switch':
+          return { ...operation, cases: operation.cases.map(entry => ({ ...entry, body: this.stripLabelMarks(entry.body) })) };
+        default:
+          return operation;
+      }
+    });
+  }
+
+  /** A real `break`/`continue`, not a goto's or a label's placeholder. */
+  private isExit(operation: GeneratedHandlerOperation, op: 'break' | 'continue'): boolean {
+    return operation.op === op && !this.gotos.has(operation) && !this.labels.has(operation);
   }
 
   private parseOperations(stop = ''): GeneratedHandlerOperation[] {
@@ -267,9 +320,11 @@ class HandlerParser {
       });
       return found;
     };
-    if (!jumps(before)) return [...before, ...after];
+    // Nothing before it jumps here: the mark stays for an enclosing switch
+    // whose cases jump into this list (lowerSwitchGotos).
+    if (!jumps(before)) return [...before, operations[at]!, ...after];
     const exitsOwnLevel = (list: GeneratedHandlerOperation[]): boolean => list.some(operation =>
-      ((operation.op === 'break' || operation.op === 'continue') && !this.gotos.has(operation)) ||
+      this.isExit(operation, 'break') || this.isExit(operation, 'continue') ||
       (operation.op === 'if' && nestedOperations(operation).some(exitsOwnLevel)));
     // A local declared before the jump stays in scope after the label, so a
     // scalar the code after the label reads is declared ahead of the wrapper
@@ -297,7 +352,7 @@ class HandlerParser {
         : undefined;
     }).filter((operation): operation is GeneratedHandlerOperation => operation !== undefined);
     // Unlowered, the goto placeholder survives and parse() reports it.
-    if (exitsOwnLevel(before) || unhoistable) return [...before, ...after];
+    if (exitsOwnLevel(before) || unhoistable) return [...before, operations[at]!, ...after];
     const raise: GeneratedHandlerOperation[] = [
       { op: 'assign', target: { kind: 'identifier', name: flag }, operator: '=', value: { kind: 'number', value: 1 } },
       { op: 'break' },
@@ -354,6 +409,45 @@ class HandlerParser {
         this.tokens[this.index + 1]?.text === ':') {
       const label = this.take().text;
       this.take();
+      const mark: GeneratedHandlerOperation = { op: 'continue' };
+      this.labels.set(mark, label);
+      return mark;
+    }
+    // MAME's release build defines NDEBUG (scripts/genie.lua), so <cassert>'s
+    // assert is `((void)0)`: its argument is never evaluated, and may be
+    // anything -- z80make.py ends a switch with
+    // `assert((void("switch statement above must cover all possible cases!"), false));`.
+    if (this.atText('assert') && this.tokens[this.index + 1]?.text === '(') {
+      this.take();
+      let depth = 0;
+      do {
+        const token = this.take();
+        if (token.text === '(') depth++;
+        else if (token.text === ')') depth--;
+      } while (depth > 0 && !this.at('eof'));
+      this.consume(';');
+      return undefined;
+    }
+    // A case label inside a nested statement of a switch: a mark the switch
+    // jumps to (parseSwitch).
+    const enclosing = this.switchCases.at(-1);
+    if (enclosing && (this.atText('case') || (this.atText('default') && this.tokens[this.index + 1]?.text === ':'))) {
+      const label = `__case_${this.nestedCaseSerial++}`;
+      if (this.consume('default')) {
+        enclosing.push({ label });
+      } else {
+        this.take();
+        const value = this.parseExpression();
+        if (!value) {
+          this.unsupportedStatement('invalid switch case');
+          return undefined;
+        }
+        enclosing.push({ values: [value], label });
+      }
+      if (!this.consume(':')) {
+        this.unsupportedStatement('switch case without colon');
+        return undefined;
+      }
       const mark: GeneratedHandlerOperation = { op: 'continue' };
       this.labels.set(mark, label);
       return mark;
@@ -420,12 +514,16 @@ class HandlerParser {
       return undefined;
     }
     if (expression.kind === 'assignment') {
-      const assignments: GeneratedHandlerOperation[] = tieAssignments(expression, start.offset) ?? [{
-        op: 'assign',
-        target: expression.target,
-        operator: expression.operator,
-        value: expression.value,
-      }];
+      const appendsString = expression.operator === '+=' && expression.target.kind === 'identifier' &&
+        this.stringLocals.has(expression.target.name);
+      const assignments: GeneratedHandlerOperation[] = tieAssignments(expression, start.offset) ?? [appendsString
+        ? this.stringAppend(expression.target, expression.value)
+        : {
+          op: 'assign',
+          target: expression.target,
+          operator: expression.operator,
+          value: expression.value,
+        }];
       // A C++ prefix update is an lvalue (`++cursor &= mask`). JavaScript
       // assignment expressions are values, so retain the update as a separate
       // operation. Evaluate the RHS first, as C++17 assignment requires.
@@ -467,6 +565,9 @@ class HandlerParser {
         this.unsupportedStatement(`invalid assignment at byte ${start.offset}`);
         return undefined;
       }
+      if (operator === '+=' && expression.kind === 'identifier' && this.stringLocals.has(expression.name)) {
+        return this.stringAppend(expression, value);
+      }
       return { op: 'assign', target: expression, operator, value };
     }
     if (this.peek().text === '++' || this.peek().text === '--') {
@@ -486,6 +587,9 @@ class HandlerParser {
       this.unsupportedStatement(`unsupported expression statement at byte ${start.offset}`);
       return undefined;
     }
+    // `result << a << b;` on a string stream appends each operand in turn.
+    const appended = this.streamAppend(expression);
+    if (appended) return appended;
     const operation = this.expressionStatement(expression);
     // `m_rom_view[i + 1];` names a view entry and nothing more. MAME creates
     // the empty entry on first use; a view here is built from its installs,
@@ -497,6 +601,32 @@ class HandlerParser {
       return undefined;
     }
     return operation;
+  }
+
+  /** Locals declared as string streams, and as strings (streams included). */
+  private readonly streamLocals = new Set<string>();
+  private readonly stringLocals = new Set<string>();
+
+  /** `s += v` on a string local: STRING_APPEND, which every executor defines. */
+  private stringAppend(target: GeneratedExpression, value: GeneratedExpression): GeneratedHandlerOperation {
+    return {
+      op: 'assign',
+      target,
+      operator: '=',
+      value: { kind: 'call', callee: { kind: 'identifier', name: 'STRING_APPEND' }, args: [target, value] },
+    };
+  }
+
+  private streamAppend(expression: GeneratedExpression): GeneratedHandlerOperation[] | undefined {
+    const operands: GeneratedExpression[] = [];
+    let left: GeneratedExpression = expression;
+    while (left.kind === 'binary' && left.operator === '<<') {
+      operands.unshift(left.right);
+      left = left.left;
+    }
+    if (left.kind !== 'identifier' || !this.streamLocals.has(left.name) || !operands.length) return undefined;
+    const stream = left;
+    return operands.map(value => this.stringAppend(stream, value));
   }
 
   /**
@@ -776,6 +906,35 @@ class HandlerParser {
       return undefined;
     }
     const cases: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[] = [];
+    const nestedCases: { values?: GeneratedExpression[]; label: string }[] = [];
+    this.switchCases.push(nestedCases);
+    try {
+      this.parseSwitchCases(cases);
+    } finally {
+      this.switchCases.pop();
+    }
+    if (!this.consume('}')) {
+      this.unsupportedStatement('unterminated switch');
+      return undefined;
+    }
+    // A case inside a nested statement of this switch (Duff's device, which
+    // m6502make.py writes for every page-crossing access) is entered by a
+    // jump: a case of the switch's own, first so nothing falls into it.
+    cases.unshift(...nestedCases.map(entry => {
+      const jump: GeneratedHandlerOperation = { op: 'break' };
+      this.gotos.set(jump, entry.label);
+      return { ...(entry.values ? { values: entry.values } : {}), body: [jump] };
+    }));
+    return this.lowerSwitchGotos(expression, cases);
+  }
+
+  /** For each switch being read, the cases met inside its nested statements. */
+  private readonly switchCases: { values?: GeneratedExpression[]; label: string }[][] = [];
+  private nestedCaseSerial = 0;
+
+  private parseSwitchCases(
+    cases: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[],
+  ): void {
     while (!this.at('eof') && !this.atText('}')) {
       const values: GeneratedExpression[] = [];
       let isDefault = false;
@@ -787,18 +946,18 @@ class HandlerParser {
           const value = this.parseExpression();
           if (!value) {
             this.unsupportedStatement('invalid switch case');
-            return undefined;
+            return;
           }
           values.push(value);
         }
         if (!this.consume(':')) {
           this.unsupportedStatement('switch case without colon');
-          return undefined;
+          return;
         }
       }
       if (!values.length && !isDefault) {
         this.unsupportedStatement('switch body before first case');
-        return undefined;
+        return;
       }
       let body: GeneratedHandlerOperation[] = [];
       cases.push({ ...(isDefault ? {} : { values }), body });
@@ -822,96 +981,286 @@ class HandlerParser {
         else if (statement) body.push(statement);
       }
     }
-    if (!this.consume('}')) {
-      this.unsupportedStatement('unterminated switch');
-      return undefined;
-    }
-    return this.lowerSwitchGotos(expression, cases);
   }
 
   /**
-   * `goto` between the case bodies of one switch, forward or back: MAME's
+   * `goto` within one switch, to a label anywhere in its cases: MAME's
    * mathbox enters a shared tail of another command's code from two cases
-   * (`goto step_048;`, `goto step_0bf;`). Each such label became a case of
-   * its own above; a jump to it is the switch dispatched again on that case:
+   * (`goto step_048;`), and the code m6809make.py writes is nothing else --
+   * `switch(pop_state()) { case 55: goto state_55; ... }` with `state_55:`
+   * inside an `if` of an instruction, or inside SYNC's wait loop, where the
+   * instruction stopped when its cycles ran out. Every jump is the switch
+   * dispatched again:
    *
    *   int __switch = expression;
    *   while (1) { switch (__switch) { ...goto L -> { __switch = <L>; continue; }... } break; }
    *
-   * A `continue` of the switch's own would now reach the wrapper instead of
-   * an enclosing loop, and a goto inside a loop in a case would continue that
-   * loop, so either leaves the goto unlowered (and reported).
+   * A label at the switch's own level is a case of its own. A label inside an
+   * `if`, `while`, `do`, or `for` -- or a loop that jumps -- is flattened into
+   * the switch: the statement becomes cases in its own order, its condition a
+   * jump around them, its `break`/`continue` jumps to the cases after it and
+   * at its top. Locals declared in a flattened case are declared before the
+   * wrapper, since a later case reads what an earlier one set.
+   *
+   * A `continue` at a case's own level belongs to a loop around the switch,
+   * and would reach the wrapper instead, so it leaves the jumps unlowered (and
+   * reported); so does a label inside a nested switch.
    */
   private lowerSwitchGotos(
     expression: GeneratedExpression,
     parsed: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[],
   ): GeneratedHandlerOperation | GeneratedHandlerOperation[] {
-    // A case is dispatched on a value no real case can have: a label's index,
-    // negated past anything an unsigned offset or register holds.
-    const labelValue = (index: number): GeneratedExpression => ({ kind: 'number', value: -0x40000000 - index });
-    const labels = parsed.flatMap(entry => entry.label ? [entry.label] : []);
-    const cases = parsed.map(entry => {
-      const { label, ...rest } = entry;
-      return label ? { ...rest, values: [labelValue(labels.indexOf(label))] } : rest;
-    });
-    const plain: GeneratedHandlerOperation = { op: 'switch', expression, cases };
-    if (!labels.length) return plain;
-    let lowerable = true;
-    let jumped = false;
-    const visit = (list: GeneratedHandlerOperation[], inLoop: boolean): void => {
-      for (const operation of list) {
-        const target = this.gotos.get(operation);
-        if (target !== undefined && labels.includes(target)) {
-          jumped = true;
-          if (inLoop) lowerable = false;
+    type Operation = GeneratedHandlerOperation;
+    type Case = Extract<Operation, { op: 'switch' }>['cases'][number];
+    // Unlowered here, a label at this switch's level goes back to being a
+    // mark in the case that falls into it: a jump to it may come from an
+    // enclosing switch (m6809make.py's `case 195: goto state_195;` reaches a
+    // label inside an addressing mode's own switch).
+    const plain = (): Operation => {
+      const cases: Case[] = [];
+      for (const entry of parsed) {
+        const { label, ...rest } = entry;
+        if (label === undefined || !cases.length) {
+          cases.push(label === undefined ? rest : { ...rest, values: [this.labelValue(0)] });
           continue;
         }
-        if (operation.op === 'continue' && !inLoop) lowerable = false;
+        const mark: Operation = { op: 'continue' };
+        this.labels.set(mark, label);
+        const previous = cases[cases.length - 1]!;
+        cases[cases.length - 1] = { ...previous, body: [...previous.body, mark, ...entry.body] };
+      }
+      return { op: 'switch', expression, cases };
+    };
+
+    // The labels this switch can be entered at: its own, and the marks inside
+    // its cases that a goto in its cases names.
+    const marks = new Map<Operation, string>();
+    const targets = new Set<string>();
+    const scan = (list: Operation[]): void => walkOperations(list, operation => {
+      const mark = this.labels.get(operation);
+      if (mark !== undefined) marks.set(operation, mark);
+      const target = this.gotos.get(operation);
+      if (target !== undefined) targets.add(target);
+    });
+    for (const entry of parsed) scan(entry.body);
+    const regionLabels = new Set<string>([
+      ...parsed.flatMap(entry => entry.label ? [entry.label] : []),
+      ...[...marks.values()].filter(label => targets.has(label)),
+    ]);
+    if (![...regionLabels].some(label => targets.has(label))) return plain();
+
+    const isTarget = (operation: Operation): boolean => {
+      const label = this.labels.get(operation);
+      return label !== undefined && regionLabels.has(label);
+    };
+    const isRegionGoto = (operation: Operation): boolean => {
+      const target = this.gotos.get(operation);
+      return target !== undefined && regionLabels.has(target);
+    };
+    const deep = (operation: Operation, test: (candidate: Operation) => boolean): boolean => {
+      let found = false;
+      walkOperations([operation], candidate => { if (test(candidate)) found = true; });
+      return found;
+    };
+    const loop = (operation: Operation): boolean =>
+      operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while';
+    const needsFlattening = (operation: Operation): boolean =>
+      deep(operation, isTarget) || (loop(operation) && deep(operation, isRegionGoto));
+
+    // What stays unlowered: a `continue` outside every loop of the cases,
+    // which belongs to a loop around the switch and would reach the wrapper.
+    let lowerable = true;
+    const check = (list: Operation[], inLoop: boolean): void => {
+      for (const operation of list) {
+        if (this.isExit(operation, 'continue') && !inLoop) lowerable = false;
         if (operation.op === 'if') {
-          visit(operation.then, inLoop);
-          if (operation.else) visit(operation.else, inLoop);
-        } else if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
-          visit(operation.body, true);
+          check(operation.then, inLoop);
+          if (operation.else) check(operation.else, inLoop);
+        } else if (loop(operation)) {
+          for (const nested of nestedOperations(operation)) check(nested, true);
         } else if (operation.op === 'switch') {
-          for (const entry of operation.cases) visit(entry.body, inLoop);
+          for (const entry of operation.cases) check(entry.body, inLoop);
         }
       }
     };
-    for (const entry of cases) visit(entry.body, false);
-    if (!jumped || !lowerable) return plain;
-    const selector = `__switch_${labels.join('_')}`;
-    const rewrite = (list: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] => list.flatMap(operation => {
-      const target = this.gotos.get(operation);
-      if (target !== undefined && labels.includes(target)) {
-        this.gotos.delete(operation);
-        return [
-          { op: 'assign', target: { kind: 'identifier', name: selector }, operator: '=', value: labelValue(labels.indexOf(target)) },
-          { op: 'continue' },
-        ] as GeneratedHandlerOperation[];
+    for (const entry of parsed) check(entry.body, false);
+    if (!lowerable) return plain();
+
+    const order: string[] = [];
+    const indexOf = (label: string): number => {
+      let index = order.indexOf(label);
+      if (index < 0) { order.push(label); index = order.length - 1; }
+      return index;
+    };
+    // Switch-level labels keep the numbering plainCases() gives them.
+    for (const entry of parsed) if (entry.label) indexOf(entry.label);
+    // Named by its labels when they are all the switch's own (as it always
+    // was); a flattened switch has too many for a name, so it is numbered.
+    const ownLabels = parsed.flatMap(entry => entry.label ? [entry.label] : []);
+    const nestedTargets = [...marks.values()].some(label => regionLabels.has(label));
+    const selector = nestedTargets || parsed.some(entry => entry.body.some(operation => needsFlattening(operation)))
+      ? `__switch_${this.switchSerial++}`
+      : `__switch_${ownLabels.join('_')}`;
+    let synthetic = 0;
+    const fresh = (what: string): string => `${selector}_${what}_${synthetic++}`;
+    const jump = (label: string): Operation[] => [
+      { op: 'assign', target: { kind: 'identifier', name: selector }, operator: '=', value: this.labelValue(indexOf(label)) },
+      { op: 'continue' },
+    ];
+    const not = (condition: GeneratedExpression): GeneratedExpression => ({ kind: 'unary', operator: '!', operand: condition });
+    interface Exits { breakTo: string; continueTo: string }
+
+    // Rewrite jumps inside a statement that is kept whole: region gotos, and
+    // the flattened loop's own break/continue (not those of a loop or switch
+    // of the statement's own).
+    const rewrite = (list: Operation[], exits: Exits | undefined, ownBreak: boolean, ownContinue: boolean): Operation[] =>
+      list.flatMap(operation => {
+        if (isRegionGoto(operation)) {
+          const label = this.gotos.get(operation)!;
+          this.gotos.delete(operation);
+          return jump(label);
+        }
+        if (exits && ownBreak && this.isExit(operation, 'break')) return jump(exits.breakTo);
+        if (exits && ownContinue && this.isExit(operation, 'continue')) return jump(exits.continueTo);
+        switch (operation.op) {
+          case 'if':
+            return [{ ...operation, then: rewrite(operation.then, exits, ownBreak, ownContinue),
+              ...(operation.else ? { else: rewrite(operation.else, exits, ownBreak, ownContinue) } : {}) }];
+          case 'switch':
+            return [{ ...operation, cases: operation.cases.map(entry => ({ ...entry, body: rewrite(entry.body, exits, false, ownContinue) })) }];
+          case 'for':
+            return [{ ...operation, body: rewrite(operation.body, exits, false, false) }];
+          case 'while': case 'do-while':
+            return [{ ...operation, body: rewrite(operation.body, exits, false, false) }];
+          default:
+            return [operation];
+        }
+      });
+
+    const cases: Case[] = [];
+    let current: Operation[] = [];
+    const open = (label: string): void => {
+      current = [];
+      cases.push({ values: [this.labelValue(indexOf(label))], body: current });
+    };
+    const flattenList = (list: Operation[], exits: Exits | undefined): void => {
+      for (const operation of list) {
+        if (this.labels.has(operation)) {
+          if (isTarget(operation)) open(this.labels.get(operation)!);
+          continue;
+        }
+        if (needsFlattening(operation)) flatten(operation, exits);
+        else current.push(...rewrite([operation], exits, true, true));
       }
+    };
+    const flatten = (operation: Operation, exits: Exits | undefined): void => {
       if (operation.op === 'if') {
-        return [{ ...operation, then: rewrite(operation.then), ...(operation.else ? { else: rewrite(operation.else) } : {}) }];
+        const done = fresh('endif');
+        const otherwise = operation.else ? fresh('else') : done;
+        current.push({ op: 'if', condition: not(operation.condition), then: jump(otherwise) });
+        flattenList(operation.then, exits);
+        if (operation.else) {
+          current.push(...jump(done));
+          open(otherwise);
+          flattenList(operation.else, exits);
+        }
+        open(done);
+      } else if (operation.op === 'while') {
+        const top = fresh('while');
+        const done = fresh('wend');
+        open(top);
+        current.push({ op: 'if', condition: not(operation.condition), then: jump(done) });
+        flattenList(operation.body, { breakTo: done, continueTo: top });
+        current.push(...jump(top));
+        open(done);
+      } else if (operation.op === 'do-while') {
+        const top = fresh('do');
+        const test = fresh('dotest');
+        const done = fresh('dend');
+        open(top);
+        flattenList(operation.body, { breakTo: done, continueTo: test });
+        open(test);
+        current.push({ op: 'if', condition: operation.condition, then: jump(top) });
+        open(done);
+      } else if (operation.op === 'switch') {
+        // Evaluated once, then a jump to the case it selects; the cases keep
+        // their order, so one still falls into the next, and `break` leaves.
+        const value = fresh('selected');
+        const done = fresh('send');
+        current.push({ op: 'declare', name: value, valueType: 'int', value: operation.expression });
+        const entries = operation.cases.map(entry => ({ entry, label: fresh(entry.values ? 'case' : 'default') }));
+        for (const { entry, label } of entries) {
+          if (!entry.values) continue;
+          const condition = entry.values
+            .map((candidate): GeneratedExpression => ({ kind: 'binary', operator: '==', left: { kind: 'identifier', name: value }, right: candidate }))
+            .reduce((left, right) => ({ kind: 'binary', operator: '||', left, right }));
+          current.push({ op: 'if', condition, then: jump(label) });
+        }
+        const fallback = entries.find(({ entry }) => !entry.values);
+        current.push(...jump(fallback ? fallback.label : done));
+        for (const { entry, label } of entries) {
+          open(label);
+          flattenList(entry.body, { breakTo: done, continueTo: exits?.continueTo ?? '' });
+        }
+        open(done);
+      } else if (operation.op === 'for') {
+        const top = fresh('for');
+        const step = fresh('forstep');
+        const done = fresh('fend');
+        current.push(...rewrite(operation.initialize, exits, true, true));
+        open(top);
+        current.push({ op: 'if', condition: not(operation.condition), then: jump(done) });
+        flattenList(operation.body, { breakTo: done, continueTo: step });
+        open(step);
+        current.push(...operation.iterate);
+        current.push(...jump(top));
+        open(done);
       }
-      if (operation.op === 'switch') {
-        return [{ ...operation, cases: operation.cases.map(entry => ({ ...entry, body: rewrite(entry.body) })) }];
+    };
+    for (const entry of parsed) {
+      current = [];
+      const { label, ...rest } = entry;
+      cases.push(label ? { ...rest, values: [this.labelValue(indexOf(label))], body: current } : { ...rest, body: current });
+      flattenList(entry.body, undefined);
+    }
+
+    // A local one case declares is in scope in the cases after it.
+    const hoisted = new Map<string, Operation>();
+    const hoist = (list: Operation[]): Operation[] => list.flatMap(operation => {
+      if (operation.op === 'declare' && !(operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+          ['ARRAY', 'ALLOC'].includes(operation.value.callee.name))) {
+        if (!hoisted.has(operation.name)) {
+          hoisted.set(operation.name, { op: 'declare', name: operation.name,
+            ...(operation.valueType ? { valueType: operation.valueType } : {}) } as Operation);
+        }
+        return operation.value
+          ? [{ op: 'assign', target: { kind: 'identifier', name: operation.name }, operator: '=', value: operation.value } as Operation]
+          : [];
       }
       return [operation];
     });
+    // Hoisted whether or not anything was flattened: a jump re-enters the
+    // switch, and a local the cases share must outlive the dispatch.
+    const loweredCases = cases.map(entry => ({ ...entry, body: hoist(entry.body) }));
     return [
+      ...hoisted.values(),
       { op: 'declare', name: selector, valueType: 'int', value: expression },
       {
         op: 'while',
         condition: { kind: 'number', value: 1 },
         body: [
-          {
-            op: 'switch',
-            expression: { kind: 'identifier', name: selector },
-            cases: cases.map(entry => ({ ...entry, body: rewrite(entry.body) })),
-          },
+          { op: 'switch', expression: { kind: 'identifier', name: selector }, cases: loweredCases },
           { op: 'break' },
         ],
       },
     ];
+  }
+
+  private switchSerial = 0;
+
+  /** A case for a label: a value no real case can have, negated past any offset or register. */
+  private labelValue(index: number): GeneratedExpression {
+    return { kind: 'number', value: -0x40000000 - index };
   }
 
   private parseMutation(terminator: string): GeneratedHandlerOperation | undefined {
@@ -1191,10 +1540,17 @@ class HandlerParser {
           args: [],
         };
       }
+      // A default-constructed std::string is empty, and so is a string stream,
+      // which is a string here: `<<` appends to it and `.str()` reads it
+      // (z80daisy.cpp's daisy_show_chain builds its text in one).
+      const stream = /^std::(?:o|io)?stringstream$/.test(declarationType ?? '');
+      if (stream) this.streamLocals.add(name.text);
+      if (stream || declarationType === 'std::string') this.stringLocals.add(name.text);
+      if (!value && (stream || declarationType === 'std::string')) value = { kind: 'string', value: '' };
       declarations.push({
         op: 'declare',
         name: name.text,
-        ...(declarationType ? { valueType: declarationType } : {}),
+        ...(declarationType ? { valueType: stream ? 'std::string' : declarationType } : {}),
         ...(value ? { value } : {}),
         // A function-local static keeps its value between calls; the device
         // compiler gives it storage that outlives the call.
@@ -1605,7 +1961,7 @@ class HandlerParser {
   }
 
   /**
-   * `[capture] (params) [mutable] [-> type] { body }`.
+   * `[capture] [(params)] [mutable] [-> type] { body }`.
    *
    * A plain capture is skipped: what a MAME lambda captures by name is `this`
    * or an enclosing local, and the body already runs in that scope. An
@@ -1645,9 +2001,12 @@ class HandlerParser {
       if (!this.consume(',')) break;
     }
     if (!this.consume(']')) return undefined;
-    if (!this.consume('(')) return undefined;
     const parameters: string[] = [];
-    if (!this.consume(')')) {
+    // The parameter list may be left out when there are none:
+    // `state_add<uint32_t>(STATE_GENPCBASE, "CURPC", [this] { return ...; })`.
+    const listed = this.consume('(');
+    if (!listed && !this.atText('{') && !this.atText('mutable') && !this.atText('->')) return undefined;
+    if (listed && !this.consume(')')) {
       while (!this.at('eof')) {
         const words: string[] = [];
         let nesting = 0;
