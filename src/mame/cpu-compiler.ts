@@ -167,15 +167,6 @@ export interface GeneratedCpuDefinition {
   /** The opcode fetch into `m_ref`, when there is no `step`. */
   fetch?: GeneratedHandlerProgram;
   opcodes: GeneratedCpuOpcode[];
-  registerBindings?: {
-    reg8: string[];
-    reg16: string[];
-    index: {
-      selector: string;
-      mask: number;
-      members: Record<string, string>;
-    };
-  };
   opcodeDecrypt?: {
     boundary: number;
     addressMask: number;
@@ -2646,27 +2637,6 @@ DISPATCH11:
     service,
     fetch,
     opcodes,
-    registerBindings: {
-      reg8: ['m_d.b.h', 'm_d.b.l'],
-      reg16: ['m_d', 'm_x', 'm_y', 'm_u', 'm_s'],
-      index: {
-        selector: 'm_opcode',
-        mask: variant.methodClass ? 0x70 : 0x60,
-        members: {
-          '0': 'm_x',
-          '32': 'm_y',
-          ...(variant.methodClass ? {
-            '48': 'm_y',
-            '80': 'm_u',
-            '96': 'm_s',
-            '112': 'm_pc',
-          } : {
-            '64': 'm_u',
-            '96': 'm_s',
-          }),
-        },
-      },
-    },
     ...(variant.opcodeDecrypt ? { opcodeDecrypt: variant.opcodeDecrypt } : {}),
     summary: {
       opcodes: opcodes.length,
