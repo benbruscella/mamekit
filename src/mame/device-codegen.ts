@@ -1513,6 +1513,13 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       // `*this` is the device's own object, never a pointer or an array:
       // POKEY hands it to a channel's inc_chan on every clock.
       if (expression.operand.kind === 'identifier' && expression.operand.name === 'this' && !context.boardScope) return operand;
+      // `*(uint16_t *)p`: the word at p, read straight from the bytes.
+      if (expression.operand.kind === 'cast' && expression.operand.pointer) {
+        const view = packedPointerView(expression.operand.valueType);
+        if (view === 'false' || view === 'true') {
+          return `runtime.packedWord(${emitExpression(expression.operand.operand, context)}, ${view})`;
+        }
+      }
       return `runtime.dereference(${operand})`;
     }
     return expression.operator === '!' ? `((${operand}) ? 0 : 1)` : `(${expression.operator}${operand})`;
@@ -1621,6 +1628,17 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       // Pointers order by where they point within their memory.
       if (operator !== '===' && operator !== '!==' && (leftType?.includes('*') || rightType?.includes('*'))) {
         return `((runtime.pointerOffset(${left}) ${operator} runtime.pointerOffset(${right})) ? 1 : 0)`;
+      }
+      // Two declared integers (or literals) compare as they are: Number() of
+      // an integer is the integer, and the 6809 tests `m_icount <= 0` and its
+      // dispatch selector on every instruction.
+      // Not a bool: one may hold a JavaScript boolean, and `true === 1` is
+      // false. Not 64-bit: a wide value is an object Number() reads.
+      const integral = (value: GeneratedExpression, type: string | undefined) =>
+        (value.kind === 'number' && Number.isFinite(value.value)) ||
+        (type !== undefined && !/\bbool\b|64/.test(type) && integerBitsForType(type));
+      if (integral(expression.left, leftType) && integral(expression.right, rightType)) {
+        return `(((${left}) ${operator} (${right})) ? 1 : 0)`;
       }
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
@@ -2697,7 +2715,15 @@ function pointerAssignment(
       ? `((${current}) & (${right}))`
       : `runtime.andAssign(${current}, ${right})`;
   }
-  // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical.
+  // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical,
+  // a declared signed one is arithmetic, and only an undeclared one asks the
+  // runtime. The 6809 pops a state with `m_state >>= 9` every instruction.
+  if (operator === '>>=' && /^(?:const\s+)?(?:uint(?:8|16|32)_t|u(?:8|16|32)|unsigned(?:\s+int)?|offs_t)$/.test(valueType ?? '')) {
+    return `((${current}) >>> (${right}))`;
+  }
+  if (operator === '>>=' && /^(?:const\s+)?(?:int(?:8|16|32)_t|s(?:8|16|32)|int|signed(?:\s+int)?)$/.test(valueType ?? '')) {
+    return `((${current}) >> (${right}))`;
+  }
   return operator === '='
     ? right
     : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);

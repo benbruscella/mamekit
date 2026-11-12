@@ -24,16 +24,8 @@ if (generatedScanlineTriggers(compileMameHandler(`
   throw new Error('non-literal scanline callbacks must retain their full cadence');
 }
 
-// The 6800 family runs as its MAME class, whose clock conversion is its own
-// execute_clocks_to_cycles (execute-facts.spec); these are still typed.
-for (const type of ['konami', 'mc6809']) {
-  if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
-    throw new Error(`${type} must use MAME's divide-by-four execution clock`);
-  }
-}
-if (generatedCpuCycleClock('mc6809e', 1_000_000) !== 1_000_000) {
-  throw new Error('externally-clocked MC6809E must retain its configured execution clock');
-}
+// The 6800 and 6809 families run as their MAME classes, whose clock
+// conversion is their own execute_clocks_to_cycles (execute-facts.spec).
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 
@@ -42,7 +34,7 @@ import type { BoardConfig } from '../runtime/types.ts';
 if (generatedCpuCycleClock('m6510', 17_734_472 / 18) !== 985_248) {
   throw new Error('a CPU clock must be truncated to MAME\'s u32');
 }
-if (generatedCpuCycleClock('mc6809', 3_579_545.25) !== 894_887) {
+if (generatedCpuCycleClock('tms34010', 3_579_545.25) !== 447_444) {
   throw new Error('a dividing core must use MAME\'s (clocks + n - 1) / n');
 }
 // The generated TMS34010 converts its bit addresses to bytes at every access

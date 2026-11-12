@@ -278,7 +278,7 @@ const SOUND_KINDS: string[] = [];
 // CPU_COMPILER_IDIOMS are the shared lowering functions every core and device
 // goes through: C++ idioms, not hardware, so the scan skips them.
 const CPU_LAYER_FILES = [
-  'mame/cpu-compiler.ts', 'mame/m6809-dsl.ts', 'mame/tms34010-compiler.ts',
+  'mame/cpu-compiler.ts', 'mame/tms34010-compiler.ts',
   'mame/namco51-compiler.ts', 'mame/namco53-compiler.ts',
 ];
 const CPU_COMPILER_IDIOMS: Record<string, string> = {
@@ -320,10 +320,6 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   sourceRef: 'a source reference',
 };
 const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
-  'mame/cpu-compiler.ts: compileM6809Core': [
-    '6 source edits', 'body dslSource', 'body fetch', 'body ireg', 'body lmul', 'body program',
-    'body reset', 'body service', 'body set_ireg', 'body set_lines', 'body start',
-  ],
   'mame/cpu-compiler.ts: compileMameI8088': [
     '24 source edits', 'body fetch', 'body fetch_op', 'body read_byte', 'body read_port_byte',
     'body read_port_word', 'body read_word', 'body reset', 'body service', 'body start',
@@ -393,15 +389,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
   'mame/cpu-compiler.ts: normalizeM68000Source': [
     '19 source edits',
   ],
-  'mame/cpu-compiler.ts: normalizeM6809Source': [
-    '50 source edits',
-  ],
-  'mame/m6809-dsl.ts: expandContinuations': [
-    '3 source edits',
-  ],
-  'mame/m6809-dsl.ts: parseM6809Dsl': [
-    '1 source edits',
-  ],
   'mame/namco51-compiler.ts: compileNamco51Protocol': [
     'body chip_select', 'body credit', 'body device_reset', 'body player', 'body read',
     'body reset', 'body rw', 'body switches', 'body vblank', 'body write',
@@ -432,8 +419,6 @@ const HAND_WRITTEN_CPU_FACTS: string[] = [
   'gen/emit-machine.ts: generatedCpuAddressSpace: tms34010',
   'gen/emit-machine.ts: generatedCpuAddressSpace: v30',
   'gen/emit-machine.ts: generatedCpuAddressSpace: z8002',
-  'gen/emit-machine.ts: generatedCpuCycleClock: konami',
-  'gen/emit-machine.ts: generatedCpuCycleClock: mc6809',
   'gen/emit-machine.ts: generatedCpuCycleClock: tms34010',
   'gen/emit-machine.ts: lowerGeneratedMachine: i8088',
   'gen/emit-machine.ts: lowerGeneratedMachine: m68000',

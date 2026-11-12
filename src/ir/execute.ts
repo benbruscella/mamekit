@@ -848,6 +848,7 @@ function preparedHandlerRuntime(
     },
     fieldAddress: generatedMemberAddress,
     objectAddress: generatedObjectAddress,
+    packedWord: generatedPackedWord,
     addressOf: (value, index) => isGeneratedPointer(value)
       ? {
         generatedPointer: true,
@@ -4012,9 +4013,23 @@ function offsetPointer(pointer: GeneratedPointer, offset: number): GeneratedPoin
   return { ...pointer, offset: pointer.offset + offset };
 }
 
+/**
+ * The object a union-field pointer's path ends in, kept on the pointer out of
+ * sight of a save state (the union and the path are what it saves): the
+ * 6809 reads and writes its accumulators through one on every instruction.
+ */
+const PATH_HOLDER = Symbol('mamekit.pathHolder');
+function pathHolder(pointer: GeneratedPointer): Record<string, unknown> {
+  const cached = (pointer as { [PATH_HOLDER]?: Record<string, unknown> })[PATH_HOLDER];
+  if (cached) return cached;
+  const holder = pointer.path!.slice(0, -1).reduce<unknown>((at, key) => (at as Record<string, unknown>)[key], pointer.source) as Record<string, unknown>;
+  Object.defineProperty(pointer, PATH_HOLDER, { value: holder, enumerable: false, configurable: true });
+  return holder;
+}
+
 function pointerValue(pointer: GeneratedPointer, index: number): unknown {
   const offset = pointer.offset + index;
-  if (pointer.path) return offset === 0 ? pointer.path.reduce<unknown>((at, key) => (at as Record<string, unknown>)[key], pointer.source) ?? 0 : 0;
+  if (pointer.path) return offset === 0 ? pathHolder(pointer)[pointer.path.at(-1)!] ?? 0 : 0;
   if (pointer.target) return offset === 0 ? pointer.target.get() : 0;
   return indexValue(pointer.source, offset);
 }
@@ -4022,9 +4037,7 @@ function pointerValue(pointer: GeneratedPointer, index: number): unknown {
 function setPointerValue(pointer: GeneratedPointer, index: number, value: unknown): void {
   const offset = pointer.offset + index;
   if (pointer.path) {
-    if (offset !== 0) return;
-    const holder = pointer.path.slice(0, -1).reduce<unknown>((at, key) => (at as Record<string, unknown>)[key], pointer.source);
-    (holder as Record<string, unknown>)[pointer.path.at(-1)!] = value;
+    if (offset === 0) pathHolder(pointer)[pointer.path.at(-1)!] = value;
     return;
   }
   if (pointer.target) {
@@ -4154,8 +4167,16 @@ export function generatedValuesEqual(left: unknown, right: unknown): boolean {
       leftValue.min_y === rightValue.min_y && leftValue.max_y === rightValue.max_y;
   }
   if (isGeneratedPointer(leftValue) && isGeneratedPointer(rightValue)) {
+    // A union field's pointer names its field by path: the 6809's
+    // device_pre_save asks `m_reg8 == &m_q.r.a` and then `== &m_q.r.b`, and
+    // with the union alone compared, B read as A and a load re-aimed every
+    // accumulator operation at A.
+    const leftPath = leftValue.path;
+    const rightPath = rightValue.path;
     return leftValue.source === rightValue.source &&
-      leftValue.offset === rightValue.offset;
+      leftValue.offset === rightValue.offset &&
+      (leftPath === rightPath || (leftPath !== undefined && rightPath !== undefined &&
+        leftPath.length === rightPath.length && leftPath.every((key, index) => key === rightPath[index])));
   }
   // A container's begin() is the container itself (generatedContainerAccessor),
   // and an iterator into it is a pointer: `buf.begin() == it` is the pointer
@@ -4495,6 +4516,24 @@ export function generatedByteView(value: unknown): unknown {
 
 export function generatedPackedView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
   return packedByteView(value, signed);
+}
+
+/**
+ * `*(uint16_t *)p` over bytes: the word at the pointer, little-endian as the
+ * host reads it, aligned or not -- the T-Unit's LSB_FIRST pixel extractor,
+ * once per pixel, with no view built for it. A big-endian region or anything
+ * that is not a byte pointer is read through its view as before.
+ */
+export function generatedPackedWord(value: unknown, signed: boolean): number {
+  const pointer = value as GeneratedPointer | undefined;
+  const direct = pointer && typeof pointer === 'object' && pointer.generatedPointer === true && pointer.target === undefined &&
+    pointer.source instanceof Uint8Array ? pointer.source : undefined;
+  if (direct && !isBigEndianWords(direct)) {
+    const at = pointer!.offset;
+    const word = (direct[at] ?? 0) | ((direct[at + 1] ?? 0) << 8);
+    return signed ? (word << 16) >> 16 : word;
+  }
+  return toNumber(dereferenceGeneratedValue(packedByteView(value, signed)));
 }
 
 /** The source spelling of an assignment target, for diagnostics. */

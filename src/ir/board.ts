@@ -1336,6 +1336,8 @@ export interface GeneratedHandlerRuntime {
   fieldAddress(object: unknown, property: string): unknown;
   /** `&call()` where the call answers an object: the object. */
   objectAddress(value: unknown): unknown;
+  /** `*(uint16_t *)p` over bytes: the word there, little-endian, aligned or not. */
+  packedWord(value: unknown, signed: boolean): number;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */

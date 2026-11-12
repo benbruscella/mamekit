@@ -33,7 +33,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { UNION_VIEW, buildCallLinks, generatedMemberAddress, generatedObjectAddress, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
+import { UNION_VIEW, buildCallLinks, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -183,6 +183,8 @@ export interface GeneratedDeviceExecutionContext {
   fieldAddress(object: unknown, property: string): unknown;
   /** `&call()` where the call answers an object (generatedObjectAddress). */
   objectAddress(value: unknown): unknown;
+  /** `*(uint16_t *)p` over bytes (generatedPackedWord). */
+  packedWord(value: unknown, signed: boolean): number;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
@@ -2077,6 +2079,7 @@ class IrDevice implements Device {
       },
       fieldAddress: generatedMemberAddress,
       objectAddress: generatedObjectAddress,
+      packedWord: generatedPackedWord,
       // An array first: probing it for a pointer's tag is the slow case.
       addressOf: (value, index) => Array.isArray(value) || ArrayBuffer.isView(value)
         ? { generatedPointer: true, source: value as ArrayLike<number> & { [index: number]: number }, offset: index }

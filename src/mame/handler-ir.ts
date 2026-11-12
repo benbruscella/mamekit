@@ -1085,6 +1085,18 @@ class HandlerParser {
     };
     for (const entry of parsed) check(entry.body, false);
     if (!lowerable) return plain();
+    // Labels numbered just past the cases when every case is a literal, so
+    // the dispatch is one dense range V8 can make a jump table of: the
+    // 6809's execute_one re-enters this switch on every instruction, and
+    // labels far below its states made each dispatch a search.
+    const literals = parsed.flatMap(entry => entry.values ?? []);
+    const dense = literals.length > 0 && literals.every(value => value.kind === 'number' && Number.isInteger(value.value));
+    const caseValues = dense ? literals.map(value => (value as { value: number }).value) : [];
+    const outerBase = this.labelBase;
+    this.labelBase = dense ? Math.max(...caseValues) + 1 : undefined;
+    const labelBase = this.labelBase;
+    const lowestCase = dense ? Math.min(...caseValues) : 0;
+    try {
 
     const order: string[] = [];
     const indexOf = (label: string): number => {
@@ -1242,9 +1254,18 @@ class HandlerParser {
     // Hoisted whether or not anything was flattened: a jump re-enters the
     // switch, and a local the cases share must outlive the dispatch.
     const loweredCases = cases.map(entry => ({ ...entry, body: hoist(entry.body) }));
+    // A value at or past the labels is no case of the switch's own: it takes
+    // the default (or nothing), as below the lowest case it does.
+    const selected: GeneratedExpression = { kind: 'identifier', name: selector };
+    const guard: Operation[] = labelBase === undefined ? [] : [{
+      op: 'if',
+      condition: { kind: 'binary', operator: '>=', left: selected, right: { kind: 'number', value: labelBase } },
+      then: [{ op: 'assign', target: selected, operator: '=', value: { kind: 'number', value: lowestCase - 1 } }],
+    }];
     return [
       ...hoisted.values(),
       { op: 'declare', name: selector, valueType: 'int', value: expression },
+      ...guard,
       {
         op: 'while',
         condition: { kind: 'number', value: 1 },
@@ -1254,13 +1275,18 @@ class HandlerParser {
         ],
       },
     ];
+    } finally {
+      this.labelBase = outerBase;
+    }
   }
 
   private switchSerial = 0;
+  /** Where the switch being lowered numbers its labels (lowerSwitchGotos). */
+  private labelBase: number | undefined;
 
-  /** A case for a label: a value no real case can have, negated past any offset or register. */
+  /** A case for a label: past the switch's cases, else a value no real case can have. */
   private labelValue(index: number): GeneratedExpression {
-    return { kind: 'number', value: -0x40000000 - index };
+    return { kind: 'number', value: this.labelBase !== undefined ? this.labelBase + index : -0x40000000 - index };
   }
 
   private parseMutation(terminator: string): GeneratedHandlerOperation | undefined {

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { lowerAudioRoutes } from '../gen/emit-machine.ts';
-import { compileMameKonami1 } from '../mame/cpu-compiler.ts';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { executeGeneratedProgram } from '../runtime/generated-handler.ts';
 import { rocnrope } from './rocnrope.game.ts';
@@ -25,11 +26,13 @@ assert.ok(devices.some(node =>
 assert.ok(devices.some(node =>
   node.props.type === 'TIMEPLT_AUDIO' && node.props.tag === 'timeplt_audio'));
 
-const cpu = compileMameKonami1(mameSrc);
-assert.equal(cpu.type, 'KONAMI1');
-assert.equal(cpu.summary.compiledOpcodes, 768);
+// The CPU is MAME's konami1_device compiled whole: the 6809 state machine
+// m6809make.py generates, behind its own mi_konami1, whose read_opcode
+// unscrambles each opcode byte by its address.
+const cpu = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('KONAMI1')!, 'KONAMI1');
 assert.equal(cpu.summary.diagnostics, 0);
-assert.ok(cpu.opcodeDecrypt);
+assert.ok(cpu.methods.some(method => method.name === 'execute_one'));
+assert.ok(cpu.hierarchy.includes('m6809_base_device'));
 
 const video = compileMameVideo(graph, mameSrc, machine.id);
 assert.ok(video, 'Roc’n Rope MAME video source must lower to executable video IR');
