@@ -290,6 +290,11 @@ export interface IrInputPorts {
 export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
   members?: Record<string, unknown>;
+  /**
+   * Members declared as pointers (`PAIR16 *m_reg16`): assigning one aims it,
+   * never copies into what it points at, though that is a struct.
+   */
+  pointerMembers?: ReadonlySet<string>;
   getters?: Record<string, () => unknown>;
   setters?: Record<string, (value: number) => void>;
   inputs?: IrInputPorts;
@@ -1583,7 +1588,7 @@ function compileFastAssign(
         // C++ struct assignment copies into the struct, as the interpreter's
         // own store does: ymfm hands its operator map back through
         // `operator_mapping &dest` as `dest = s_fixed_map`.
-        if (operator === '=' && copiesStruct(current, value)) {
+        if (operator === '=' && !context.localTypes[name]?.includes('*') && copiesStruct(current, value)) {
           copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
           return;
         }
@@ -1593,7 +1598,7 @@ function compileFastAssign(
         return;
       }
       const current = context.bindings.getters?.[name]?.() ?? context.bindings.members?.[name];
-      if (operator === '=' && copiesStruct(current, value)) {
+      if (operator === '=' && !context.bindings.pointerMembers?.has(name) && copiesStruct(current, value)) {
         copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
         return;
       }
@@ -3280,7 +3285,10 @@ function assign(
     const current = Object.hasOwn(context.locals, target.name)
       ? localReference?.get() ?? local
       : context.bindings.getters?.[target.name]?.() ?? context.bindings.members?.[target.name];
-    if (operator === '=' && copiesStruct(current, value)) {
+    const aims = Object.hasOwn(context.locals, target.name)
+      ? Boolean(context.localTypes[target.name]?.includes('*'))
+      : Boolean(context.bindings.pointerMembers?.has(target.name));
+    if (operator === '=' && !aims && copiesStruct(current, value)) {
       copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
       return;
     }
@@ -3882,6 +3890,7 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
     if (isLValue(local) && local.address) return local.address();
     const value = isLValue(local) ? local.get() : evaluate(expression, context);
     if (isPairValue(value) || isGeneratedStruct(value)) return value;
+    if (value && typeof value === 'object' && (value as { [UNION_VIEW]?: unknown })[UNION_VIEW]) return generatedObjectAddress(value);
   }
   if (expression.kind === 'member') {
     const address = generatedMemberAddress(evaluate(expression.object, context), expression.property);
@@ -3926,6 +3935,11 @@ export function generatedMemberAddress(raw: unknown, property: string): unknown 
 /** `&value` where the value is an object -- a PAIR16 register a call hands back: the object. */
 export function generatedObjectAddress(value: unknown): unknown {
   if (isPairValue(value) || isGeneratedStruct(value)) return value;
+  // A view inside a union (the 6809's D, `m_q.p.d`): its union and path.
+  const view = value && typeof value === 'object'
+    ? (value as { [UNION_VIEW]?: { root: object; path: readonly string[] } })[UNION_VIEW]
+    : undefined;
+  if (view) return { generatedPointer: true, source: view.root, path: view.path, offset: 0 };
   throw new Error('address of a call result that is not an object');
 }
 

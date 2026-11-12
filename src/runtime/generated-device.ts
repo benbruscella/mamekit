@@ -1712,6 +1712,7 @@ class IrDevice implements Device {
     const palette: number[] = [];
     this.bindings = {
       members: this.members,
+      pointerMembers: new Set(definition.members.filter(member => /\*\s*$/.test(member.valueType ?? '')).map(member => member.name)),
       getters,
       setters,
       constants: definition.constants,

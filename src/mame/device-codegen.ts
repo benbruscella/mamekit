@@ -754,6 +754,14 @@ export function supportsMethod(
             expression.operand.kind === 'call' &&
             expression.operand.callee.kind === 'member'
           ) ||
+          // `&regop16()`: a compiled method answering an object (a PAIR16
+          // register) by reference, whose address is that object
+          // (runtime.objectAddress). The 6809's stack choice compares it.
+          (
+            expression.operand.kind === 'call' &&
+            expression.operand.callee.kind === 'identifier' &&
+            compiled.has(expression.operand.callee.name)
+          ) ||
           (
             expression.operand.kind === 'identifier' &&
             (

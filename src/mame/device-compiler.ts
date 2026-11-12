@@ -36,6 +36,7 @@ import { preprocessedDeviceTransform } from './preprocessed-device.ts';
 import { CPreprocessor } from './c-preprocessor.ts';
 import { generatedInclude } from './mame-build.ts';
 import { lowerMemberPointerValues } from './member-pointers.ts';
+import { integerType, rewriteTypeTemplateCalls, typeInstanceName, typePositions, type DeductionScope, type TypeTemplate } from './template-deduction.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -1341,9 +1342,19 @@ function compileMameDeviceSource(
   // Every body, an overridden base's included: avgdvg_device_base allocates
   // the AVG's timers in the device_start avg_device overrides and chains to.
   const allMethodBodies: string[] = [];
+  // The device's own type templates (set_flags<T>), filled once the source
+  // methods are known; each call names its instance (template-deduction.ts).
+  const typeTemplates = new Map<string, TypeTemplate>();
+  const typeTemplateSources = new Map<string, MameFunction[]>();
+  const pendingTypeInstances: [string, string][] = [];
+  let deductionScope: ((method: MameFunction) => DeductionScope) | undefined;
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
     specialized.body = expandDynamicMacros(expandLocalMacros(specialized.body), dynamicMacros);
+    if (typeTemplates.size && deductionScope && !specialized.templateParameters?.length) {
+      specialized.body = rewriteTypeTemplateCalls(specialized.body, typeTemplates, deductionScope(specialized),
+        (name, type) => pendingTypeInstances.push([name, type]));
+    }
     // Recorded even for an ignored method: `memory_space_config` is not
     // executable device behaviour, but it is where the space indices are said.
     methodBodies.set(specialized.name, specialized.body);
@@ -1394,6 +1405,56 @@ function compileMameDeviceSource(
   };
 
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
+  // Type templates of the hierarchy: one type parameter, declared as the type
+  // of some parameter, so a call deduces it.
+  for (const className of hierarchy) {
+    const candidates = [
+      ...sourceMethods.filter(candidate => candidate.className === className),
+      ...(classes.get(className) ? inlineMethods(classes.get(className)!) : []),
+    ];
+    for (const candidate of candidates) {
+      const [parameter, ...more] = candidate.templateParameters ?? [];
+      const positions = parameter && !more.length ? typePositions(candidate.parameters, parameter) : undefined;
+      if (!positions) continue;
+      const entry = typeTemplates.get(candidate.name) ?? { name: candidate.name, parameter, positions: new Map() };
+      const arity = candidate.parameters.split(',').filter(part => part.trim() && part.trim() !== 'void').length;
+      entry.positions.set(arity, positions);
+      typeTemplates.set(candidate.name, entry);
+      typeTemplateSources.set(candidate.name, [...(typeTemplateSources.get(candidate.name) ?? []), candidate]);
+    }
+  }
+  if (typeTemplates.size) {
+    const memberTypes = new Map<string, string>();
+    for (const className of hierarchy) {
+      const declaration = classes.get(className);
+      if (declaration) for (const member of memberDeclarations(declaration, constants)) memberTypes.set(member.name, member.valueType);
+    }
+    const returnTypes = new Map<string, string | undefined>();
+    const returns = (name: string): string | undefined => {
+      if (returnTypes.has(name)) return returnTypes.get(name);
+      let found: string | undefined;
+      for (const className of [...hierarchy].reverse()) {
+        const body = stripCppComments(classes.get(className)?.body ?? '');
+        const declared = new RegExp(`(?:^|[;{}:])\\s*(?:(?:virtual|static|inline|constexpr)\\s+)*((?:unsigned\\s+|signed\\s+)?[\\w:]+)\\s*&?\\s*${name}\\s*\\(`, 'm').exec(body);
+        if (declared) { found = declared[1]; break; }
+      }
+      returnTypes.set(name, found);
+      return found;
+    };
+    const known = (type: string) => integerType(type) !== undefined || /^PAIR(?:16)?$/.test(type) || structFields.has(type);
+    deductionScope = method => {
+      const locals = new Map<string, string>();
+      for (const declared of `${method.parameters},${method.body}`.matchAll(
+        /(?:^|[;{}(,])\s*(?:const\s+)?((?:unsigned\s+|signed\s+)?[A-Za-z_][\w:]*)\s*&?\s+(\w+)\s*(?=[=;,)\[{])/g)) {
+        if (known(declared[1]!) && !locals.has(declared[2]!)) locals.set(declared[2]!, declared[1]!);
+      }
+      return {
+        variable: name => locals.get(name) ?? memberTypes.get(name),
+        fields: type => structFields.get(type),
+        returns,
+      };
+    };
+  }
   // A configuration statement calls the device through its finder; without
   // the receiver it names the instance as the device's own code would. A
   // qualified reference is this device's only when the class is one of its.
@@ -1471,6 +1532,24 @@ function compileMameDeviceSource(
     }
   }
 
+  // Each type template's instances its calls named, T bound to the type:
+  // `set_flags__T_uint16_t` is set_flags with `uint16_t` for T, its
+  // `sizeof(T)` the width. An instance may name others in turn.
+  const generatedTypeInstances = new Set<string>();
+  while (pendingTypeInstances.length) {
+    const [name, type] = pendingTypeInstances.shift()!;
+    const instance = typeInstanceName(name, type);
+    if (generatedTypeInstances.has(instance)) continue;
+    generatedTypeInstances.add(instance);
+    const parameter = typeTemplates.get(name)!.parameter;
+    // `sizeof(T)` is the type's width, a constant once T is bound.
+    const bytes = { uint8_t: 1, int8_t: 1, bool: 1, uint16_t: 2, int16_t: 2, uint64_t: 8, int64_t: 8 }[type] ?? 4;
+    const bind = (text: string) => text.replace(new RegExp(`\\b${parameter}\\b`, 'g'), type)
+      .replace(new RegExp(`\\bsizeof\\s*\\(\\s*${type}\\s*\\)`, 'g'), String(bytes));
+    for (const template of typeTemplateSources.get(name) ?? []) {
+      replaceOrAppend({ ...template, name: instance, parameters: bind(template.parameters), body: bind(template.body), templateParameters: undefined });
+    }
+  }
   // File-scope helpers the device's own methods call. They belong to no class,
   // so the hierarchy walk above never reaches them, and an unresolved call
   // answers zero rather than failing: `convert_output` in gb.cpp turns a
