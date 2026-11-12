@@ -15,7 +15,22 @@
  * In atarimo.h that closer sits in a line comment thirty lines past the
  * struct this has to read. Strings are tracked for the same reason.
  */
+const STRIPPED = new Map<string, string>();
+
 export function stripCppComments(source: string): string {
+  const cached = STRIPPED.get(source);
+  if (cached !== undefined) return cached;
+  const stripped = stripCppCommentsOnce(source);
+  // The device compiler strips the same large headers once per question it
+  // asks of them; the last few are kept.
+  if (source.length > 4096) {
+    if (STRIPPED.size >= 8) STRIPPED.delete(STRIPPED.keys().next().value!);
+    STRIPPED.set(source, stripped);
+  }
+  return stripped;
+}
+
+function stripCppCommentsOnce(source: string): string {
   let out = '';
   let index = 0;
   while (index < source.length) {

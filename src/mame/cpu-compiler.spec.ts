@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import {
   compileMameI8088,
   compileMameM68000,
-  compileMameM6502,
   compileMameRp2a03,
   compileMameV30,
   compileMameZ8002,
@@ -341,31 +340,6 @@ rp2a03.step();
 assert.equal(rp2a03.get('m_A'), 0x42, 'a call converts its arguments to the parameter types');
 assert.ok(generatedCpuExecutableSource(rp2a03Definition).length > 100_000);
 
-const m6502Definition = compileMameM6502(process.env.MAME_SRC ?? '../mame');
-assert.equal(m6502Definition.type, 'M6502');
-assert.equal(m6502Definition.summary.compiledOpcodes, 256);
-assert.equal(m6502Definition.summary.diagnostics, 0);
-assert.ok(m6502Definition.sourceFiles.includes('src/devices/cpu/m6502/dm6502.lst'));
-clearGeneratedCpus();
-registerGeneratedCpu(m6502Definition);
-const m6502Memory = new Uint8Array(0x10000);
-// SED ; LDA #$45 ; ADC #$55 — NMOS decimal mode must produce BCD $00 + carry.
-m6502Memory.set([0xf8, 0xa9, 0x45, 0x69, 0x55], 0x8000);
-m6502Memory[0xfffc] = 0x00;
-m6502Memory[0xfffd] = 0x80;
-const m6502 = createCpu('M6502', {
-  read: address => m6502Memory[address]!,
-  write: (address, data) => { m6502Memory[address] = data; },
-  in: () => 0xff,
-  out: () => {},
-});
-m6502.reset();
-assert.equal(m6502.step(), 7);
-m6502.step();
-m6502.step();
-m6502.step();
-assert.equal(m6502.get('m_A'), 0x00);
-assert.equal(m6502.get('m_P') & 1, 1);
 
 const emptyProgram = { operations: [], diagnostics: [] };
 const lazyIrqDefinition: GeneratedCpuDefinition = {

@@ -914,6 +914,13 @@ function emitMethod(
     return `${localName(parameter.name)}${annotation}${fallback === undefined ? '' : ` = ${fallback}`}`;
   }).join(', ');
   const returned = returnedReference ? `\n    return ${localName(returnedReference)};` : '';
+  // A narrow integer parameter takes its value converted, as a C++ call does:
+  // the 6502's `set_l(uint16_t base, uint8_t val)` is handed `TMP + m_Y`, and
+  // unconverted every page-crossing dummy read went to the next page.
+  const narrowed = parameters
+    .filter(parameter => NARROW_PARAMETER.test(parameter.valueType.replace(/\bconst\b/g, '').trim()))
+    .map(parameter => `    ${localName(parameter.name)} = ${wrapType(localName(parameter.name), parameter.valueType)};\n`)
+    .join('');
   // Emitted first, read once: the body below refers to these by their local.
   const body = emitOperations(method.program.operations, context, 4);
   const hoisted = [...(context.hoisted ?? [])]
@@ -932,7 +939,7 @@ function emitMethod(
   const emitted = `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
     const members = runtime.members;${linked}${temps}
 ${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
-${hoisted}${hoisted ? '\n' : ''}${body}${returned}
+${narrowed}${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   }`;
   // `*p` through a copy of its own: V8 keeps one feedback vector a function,
   // so a single shared dereference saw every object shape of every method
@@ -1975,10 +1982,17 @@ function emitCall(
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;
     }
     if (name === 'BITSWAP') {
-      const source = args[0] ?? '0';
+      // The source is evaluated once, as bitswap<N>()'s argument is: the
+      // DECO C10707 bitswaps every opcode it reads with
+      // `bitswap<8>(m_cprogram.read_byte(adr), ...)`, and repeated per bit
+      // that was eight bus reads a fetch.
+      const plain = /^[\w.$]+$/.test(args[0] ?? '0');
+      const held = plain ? undefined : methodTemp(context);
+      const source = held ?? args[0] ?? '0';
       const bits = args.slice(1);
-      return `(${bits.map((bit, index) =>
-        `(((${source}) >>> (${bit})) & 1) << ${bits.length - index - 1}`).join(' | ') || '0'})`;
+      const swapped = bits.map((bit, index) =>
+        `(((${source}) >>> (${bit})) & 1) << ${bits.length - index - 1}`).join(' | ') || '0';
+      return held ? `(${held} = ${args[0]}, ${swapped})` : `(${swapped})`;
     }
     if (name === 'rgb_t' && expression.args.every(argument => argument.kind === 'number')) {
       return String(applyGeneratedMacro(name, expression.args.map(argument =>
@@ -3411,6 +3425,9 @@ function packedPointerView(valueType: string | undefined): string | undefined {
   if (/^(?:s32|int32_t)$/.test(pointee)) return "'s32'";
   return undefined;
 }
+
+/** The value parameter types a call converts its argument to, narrower than the int it computes in. */
+const NARROW_PARAMETER = /^(?:u8|uint8_t|s8|int8_t|u16|uint16_t|s16|int16_t|unsigned short|short)$/;
 
 function wrapType(value: string, valueType?: string): string {
   if (valueType?.includes('*')) {

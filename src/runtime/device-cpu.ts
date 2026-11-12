@@ -42,8 +42,10 @@ export class DeviceCpu implements Cpu {
   private readonly host: DeviceCpuHost;
   /** What the board gave with the line: set_input_line_and_vector's vector. */
   private irqVector: number | (() => number) | undefined;
-  /** The slice in progress: its budget, as execute_run started it. */
+  /** The piece of the slice in progress: its budget, as execute_run started it. */
   private target: number | undefined;
+  /** abort_timeslice was asked for during this slice. */
+  private aborted = false;
 
   constructor(device: Device, bus: CpuBus, host: DeviceCpuHost) {
     this.device = device;
@@ -77,18 +79,32 @@ export class DeviceCpu implements Cpu {
   }
 
   /**
-   * A timeslice: execute_run spends `cycles` from m_icount and stops when it is
-   * gone (or the slice is aborted). What it overran is spent too, as in MAME.
+   * A timeslice, as MAME's scheduler runs one: execute_run is given the
+   * cycles up to the next device timer's expiry, the timer fires, and the
+   * core resumes from wherever its icount ran out -- mid-instruction, for a
+   * core that keeps its place there (the 6502's m_inst_substate, the Z80's
+   * m_ref). The board's `parked` hook answers the cycles to the next timer
+   * for the processor whose time drives them, and the whole rest of the
+   * slice for any other. Each piece starts with the position reported
+   * (`timing`), which is what advances the device timers. What execute_run
+   * overran is spent too, as in MAME.
    */
   run(cycles: number): number {
-    this.bus.timing?.(0, cycles);
-    this.target = cycles;
+    this.aborted = false;
     let ran = 0;
-    try {
-      ran = this.device.runCycles?.(cycles) ?? 0;
-    } finally {
-      this.target = undefined;
-    }
+    do {
+      this.bus.timing?.(ran, cycles);
+      const room = cycles - ran;
+      // A one-cycle piece needs no bound (lockstep runs every slice so).
+      const until = room > 1 ? this.bus.parked?.(ran, cycles) ?? room : room;
+      const piece = Math.max(1, Math.min(room, until));
+      this.target = piece;
+      try {
+        ran += this.device.runCycles?.(piece) ?? 0;
+      } finally {
+        this.target = undefined;
+      }
+    } while (ran < cycles && !this.aborted);
     const settled = Math.min(ran, cycles);
     this.bus.timing?.(settled, settled);
     return ran;
@@ -96,6 +112,7 @@ export class DeviceCpu implements Cpu {
 
   /** MAME abort_timeslice: execute_run returns after the instruction in progress. */
   abortTimeslice(): void {
+    this.aborted = true;
     this.device.abortTimeslice?.();
   }
 

@@ -1,10 +1,6 @@
 import {
   compileMameI8088,
   compileMameM68000,
-  compileMameM6502,
-  compileMameM6507,
-  compileMameM6510,
-  compileMameM6502MemoryInterface,
   compileMameRp2a03,
   compileMameZ8002,
   compileMameTms320c10,
@@ -24,11 +20,6 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   Z8002: compileMameZ8002,
   I8088: compileMameI8088,
   V30: compileMameV30,
-  M6502: compileMameM6502,
-  M6507: compileMameM6507,
-  M6510: compileMameM6510,
-  DECO_CPU7: source => compileMameM6502MemoryInterface(source, 'DECO_CPU7'),
-  DECO_C10707: source => compileMameM6502MemoryInterface(source, 'DECO_C10707'),
   M68000: compileMameM68000,
   // Its own decode column and initializer, not a relabelled 68000: see
   // M68000_VARIANTS in cpu-compiler.ts.

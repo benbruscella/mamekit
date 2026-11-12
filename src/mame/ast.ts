@@ -108,8 +108,25 @@ export interface MameAst {
   units: MameTranslationUnit[];
 }
 
-/** Replace comments with spaces while preserving byte offsets and newlines. */
+const MASKED = new Map<string, string>();
+
+/**
+ * Replace comments with spaces while preserving byte offsets and newlines.
+ * Kept for the last few large sources: the parser masks the same whole file
+ * once per function and call chain it reads from it.
+ */
 export function maskComments(source: string): string {
+  const cached = MASKED.get(source);
+  if (cached !== undefined) return cached;
+  const masked = maskCommentsOnce(source);
+  if (source.length > 4096) {
+    if (MASKED.size >= 8) MASKED.delete(MASKED.keys().next().value!);
+    MASKED.set(source, masked);
+  }
+  return masked;
+}
+
+function maskCommentsOnce(source: string): string {
   const chars = [...source];
   let i = 0;
   while (i < chars.length) {
@@ -1085,9 +1102,22 @@ export function splitMameArgs(source: string): string[] {
   return args;
 }
 
+/**
+ * The few sources line starts were last built for. parseCallChain is handed
+ * the whole file each time it reads one call chain from it, and rebuilt per
+ * chain the line index was nine tenths of compiling the 6502 (958 methods).
+ */
+const LINE_STARTS = new Map<string, number[]>();
+
 function buildLineStarts(source: string): number[] {
+  const cached = LINE_STARTS.get(source);
+  if (cached) return cached;
   const starts = [0];
   for (let i = 0; i < source.length; i++) if (source[i] === '\n') starts.push(i + 1);
+  if (source.length > 4096) {
+    if (LINE_STARTS.size >= 8) LINE_STARTS.delete(LINE_STARTS.keys().next().value!);
+    LINE_STARTS.set(source, starts);
+  }
   return starts;
 }
 

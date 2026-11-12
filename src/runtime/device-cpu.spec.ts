@@ -307,4 +307,83 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.equal(memory[0xc003], 0x77, 'LR35902: an enabled VBL interrupt vectors to 0040');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80 and LR35902 classes compiled whole run as processors');
+// The 6502 family from m6502.cpp, its operation lists through m6502make.py.
+// A page-crossing `LDA abs,Y` makes its dummy read on the old page, through
+// `set_l(uint16_t, uint8_t)` narrowing its argument; the 6507's constructor
+// narrows its program space to 13 bits, so its reset vector is at $1FFC; the
+// RP2A03 ignores decimal mode; Data East's parts decrypt opcodes in their own
+// memory interfaces (the C10707 swaps bits 5 and 6 of each; the CPU-7 the
+// opcode after a write, at `(pc & 0x104) == 0x104`).
+{
+  const run6502 = (type: string, program: number[], origin = 0x0300) => {
+    const memory = new Uint8Array(0x10000);
+    memory.set(program, origin);
+    memory[0xfffc] = origin & 0xff;
+    memory[0xfffd] = origin >> 8;
+    memory[0xfffe] = 0x00; // IRQ at $0400
+    memory[0xffff] = 0x04;
+    memory.set([0xee, 0x02, 0x20, 0x40], 0x0400); // INC $2002; RTI
+    const reads: number[] = [];
+    const { cpu } = deviceCpu(type, {
+      read: address => { reads.push(address); return memory[address]!; },
+      write: (address, data) => { memory[address] = data; },
+      in: () => 0xff,
+      out: () => {},
+    });
+    cpu.reset();
+    cpu.run(200);
+    return { cpu, memory, reads };
+  };
+  // LDY #$10; LDA $20F8,Y; STA $2000; SED; CLC; LDA #$09; ADC #$01; CLD; STA $2001; CLI; JMP *
+  const program = [0xa0, 0x10, 0xb9, 0xf8, 0x20, 0x8d, 0x00, 0x20, 0xf8, 0x18, 0xa9, 0x09, 0x69, 0x01, 0xd8,
+    0x8d, 0x01, 0x20, 0x58, 0x4c, 0x13, 0x03];
+  const m6502 = run6502('M6502', program);
+  // Two reads at PC, three on the stack, then the vector: seven cycles on the bus.
+  assert.deepEqual(m6502.reads.slice(2, 7), [0x0100, 0x01ff, 0x01fe, 0xfffc, 0xfffd],
+    'M6502: reset is an instruction (stack reads, then the vector)');
+  assert.ok(m6502.reads.includes(0x2008) && m6502.reads.includes(0x2108), 'M6502: abs,Y crossing a page reads the old page first');
+  assert.equal(m6502.memory[0x2001], 0x10, 'M6502: decimal ADC');
+  m6502.cpu.setIrqLine(true);
+  m6502.cpu.run(100);
+  assert.ok(m6502.memory[0x2002]! >= 1, 'M6502: IRQ after CLI');
+  assert.equal(run6502('RP2A03G', program).memory[0x2001], 0x0a, 'RP2A03: decimal mode ignored');
+  const m6507 = run6502('M6507', program);
+  assert.ok(m6507.reads.includes(0x1ffc) && !m6507.reads.includes(0xfffc), 'M6507: 13-bit space, vector at $1FFC');
+  // LDA #$5A; STA $2000; JMP *, every opcode with bits 5 and 6 swapped.
+  assert.equal(run6502('DECO_C10707', [0xc9, 0x5a, 0x8d, 0x00, 0x20, 0x2c, 0x05, 0x03]).memory[0x2000], 0x5a,
+    'DECO C10707: opcodes unscrambled, each fetched once');
+  // LDA #$11; STA $2000; then at $0305 LDA #$77 scrambled (0x4D); STA $2001; JMP *
+  const cpu7 = run6502('DECO_CPU7', [0xa9, 0x11, 0x8d, 0x00, 0x20, 0x4d, 0x77, 0x8d, 0x01, 0x20, 0x4c, 0x0a, 0x03]);
+  assert.equal(cpu7.memory[0x2001], 0x77, 'DECO CPU-7: the opcode after a write at (pc & 0x104) == 0x104 is unscrambled');
+
+  // The 6510's on-chip port (mi_6510): $00 is the direction register and $01
+  // the port, which write_callback drives with `(port & dir) | (pullup & ~dir)`;
+  // both accesses also reach the external bus, as MAME's do. Its ANE uses the
+  // C64's 0xEE magic constant.
+  {
+    const memory = new Uint8Array(0x10000);
+    // LDA #$2F; STA $00; LDA #$37; STA $01; LDA #$00; LDX #$FF; ANE #$FF; STA $2000; JMP *
+    memory.set([0xa9, 0x2f, 0x85, 0x00, 0xa9, 0x37, 0x85, 0x01, 0xa9, 0x00, 0xa2, 0xff, 0x8b, 0xff,
+      0x8d, 0x00, 0x20, 0x4c, 0x11, 0x03], 0x0300);
+    memory[0xfffc] = 0x00;
+    memory[0xfffd] = 0x03;
+    const writes: [number, number][] = [];
+    const port: number[] = [];
+    const { cpu, device } = deviceCpu('M6510', {
+      read: address => memory[address]!,
+      write: (address, data) => { writes.push([address, data]); memory[address] = data; },
+      in: () => 0xff,
+      out: () => {},
+    });
+    device.on('write_callback', (...args: unknown[]) => { port.push(Number(args.length >= 3 ? args.at(-2) : args.at(-1))); return 0; });
+    device.call('set_pulls', 0x17, 0xc8);
+    cpu.reset();
+    cpu.run(200);
+    assert.ok(writes.some(([address, data]) => address === 0 && data === 0x2f) &&
+      writes.some(([address, data]) => address === 1 && data === 0x37), 'M6510: port writes reach the external bus');
+    assert.equal(port.at(-1), 0x37, 'M6510: write_callback carries (port & dir) | (pullup & ~dir)');
+    assert.equal(memory[0x2000], 0xee, 'M6510: ANE with the 0xEE constant');
+  }
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902 and 6502-family classes compiled whole run as processors');

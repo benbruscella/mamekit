@@ -1103,6 +1103,17 @@ class IrBoard implements Board {
               if (method === 'adjust_icount') {
                 return (delta: number) => this.adjustGeneratedIcount(cpuSpec.tag, delta);
               }
+              // device_execute_interface::spin_until_time: the processor is
+              // suspended, eating its cycles, until that much time has passed
+              // -- the same charge from where it stands as a negative
+              // adjust_icount. The C64's VIC-II burns its BA cycles so
+              // (`m_cpu->spin_until_time(m_cpu->cycles_to_attotime(m_rdy_cycles))`);
+              // unanswered, they were never taken.
+              if (method === 'spin_until_time') {
+                return (seconds: number) => this.adjustGeneratedIcount(
+                  cpuSpec.tag, -Math.ceil(Number(seconds) / this.secondsPerCycleOf(cpuSpec) - CYCLE_ROUNDING),
+                );
+              }
               if (method === 'set_input_line') {
                 return (line: number, state: number) => {
                   const cpu = this.cpus.get(cpuSpec.tag);
@@ -2564,7 +2575,7 @@ class IrBoard implements Board {
       // time never runs backwards. The C64's datassette stopped itself
       // whenever its read timer fell due inside the instruction that started
       // the motor: MAME's cassette refuses to move to a negative position.
-      if (specification.tag === timerClockCpu?.tag && cpuFacts.suspendsMidInstruction && cpu.elapsedCycles) {
+      if (specification.tag === timerClockCpu?.tag && this.suspendsMidInstruction(specification) && cpu.elapsedCycles) {
         this.catchUpDeviceTime = (lag = 0) => {
           if (this.deliveringDeviceTime || !this.coreExecuting || this.runningCpu !== specification.tag) return;
           // The processor began this slice where its last one overran to.
@@ -3361,7 +3372,7 @@ class IrBoard implements Board {
         // A core MAME stops between bus cycles stands, mid-instruction, at
         // the cycles before this instruction and those it has paid for so far
         // (the access in progress included, as total_cycles counts it).
-        ...(generatedCpuFacts(specification.type ?? '').suspendsMidInstruction ? {
+        ...(this.suspendsMidInstruction(specification) ? {
           position: () => this.runningStalled + this.runningSliceCycles + (this.cpus.get(specification.tag)?.elapsedCycles?.() ?? 0),
         } : {}),
         run: (cycles: number) => {
@@ -4426,9 +4437,19 @@ class IrBoard implements Board {
    * MAME 0.289; now none). Undefined where the timer clock's processor
    * finishes each instruction first, so there is nothing to catch up.
    */
+  /**
+   * Whether MAME's core for this processor stops between an instruction's
+   * cycles: a generated core's fact, or a core compiled whole whose class
+   * keeps an m_inst_substate (the 6502 family).
+   */
+  private suspendsMidInstruction(specification: { tag: string; type?: string }): boolean {
+    return generatedCpuFacts(specification.type ?? '').suspendsMidInstruction === true ||
+      this.devices.get(specification.tag)?.suspendsMidInstruction?.() === true;
+  }
+
   private deviceAccessLag(device: Device): number | undefined {
     const timerClockCpu = this.machine.execution.cpus[0];
-    if (!timerClockCpu || !generatedCpuFacts(timerClockCpu.type ?? '').suspendsMidInstruction) return undefined;
+    if (!timerClockCpu || !this.suspendsMidInstruction(timerClockCpu)) return undefined;
     return this.machine.execution.perfectQuantum === true &&
       device.methodNames().includes('execute_run') ? 1 : 0;
   }

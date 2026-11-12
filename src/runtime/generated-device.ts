@@ -286,6 +286,8 @@ export interface GeneratedDeviceDefinition {
    */
   clockConstructor?: { method: string; clock: number };
   constants: Record<string, number>;
+  /** A core that stops between an instruction's cycles (device-compiler.ts). */
+  suspendsMidInstruction?: true;
   /** device_state_interface's state_add table (device-compiler.ts GeneratedDeviceStateEntry). */
   stateEntries?: { index: number; name: string; mask?: number; import?: true; export?: true; read: string; write: string }[];
   members: DeviceMember[];
@@ -459,6 +461,8 @@ export interface Device {
   /** All numeric constants declared by this generated device family. */
   constants(): Readonly<Record<string, number>>;
   methodNames(): readonly string[];
+  /** Whether the core stops between an instruction's cycles (its m_inst_substate). */
+  suspendsMidInstruction?(): boolean;
   /** device_state_interface::state_int over the core's own state_add table. */
   stateInt?(index: number): number | undefined;
   /** device_state_interface::set_state_int over the same table. */
@@ -1307,8 +1311,8 @@ class IrDevice implements Device {
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
       // its map tests state the constructor sets (the 68705's port masks).
-      if (config.installed) this.spaces.set(config.index, installableDeviceSpace(config.addressBits));
-      else if (!config.map) this.spaces.set(config.index, generatedDeviceSpace(config.addressBits));
+      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits), config.addressBits));
+      else if (!config.map) this.spaces.set(config.index, withSpaceConfig(generatedDeviceSpace(config.addressBits), config.addressBits));
     }
     const resourceCache = options.resourceCache ?? {};
     const resourceOptions = { ...options, resourceCache };
@@ -2270,6 +2274,9 @@ class IrDevice implements Device {
       callParameters[method.name] = parameters;
       this.methodParams.set(method, names);
       this.methodDefaults.set(method, parameters.map(parameterDefault));
+      // As a C++ call converts them: an 8- or 16-bit value parameter (see
+      // NARROW_PARAMETER in device-codegen.ts, which the emitted body applies).
+      this.methodNarrowing.set(method, parameters.map(parameterNarrowing));
       referenceCalls[method.name] = (...args) => {
         const selected = this.selectMethod(method.name, args);
         return selected
@@ -2761,6 +2768,7 @@ class IrDevice implements Device {
   }
 
   private readonly preparedCalls = new Map<string, (...args: GeneratedCallArgument[]) => unknown>();
+  private readonly methodNarrowing = new WeakMap<DeviceMethod, (((value: number) => number) | undefined)[]>();
 
   /**
    * `prepareCall`, made once per method. A call that arrives by name -- a
@@ -2862,6 +2870,10 @@ class IrDevice implements Device {
     return [...this.methods.keys()];
   }
 
+  suspendsMidInstruction(): boolean {
+    return this.definition.suspendsMidInstruction === true;
+  }
+
   /**
    * MAME's device_state_interface: a state_add entry by index, read through
    * the generated reader after the core's state_export when `.callexport()`
@@ -2929,7 +2941,7 @@ class IrDevice implements Device {
     if (existing) return existing;
     const config = this.definition.spaces?.find(space => space.index === index);
     if (!config?.map) return undefined;
-    const space = mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup);
+    const space = withSpaceConfig(mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup), config.addressBits);
     this.spaces.set(index, space);
     return space;
   }
@@ -3525,8 +3537,11 @@ class IrDevice implements Device {
         );
       }
       const locals: Record<string, unknown> = {};
+      const narrowing = this.methodNarrowing.get(method);
       for (let index = 0; index < parameterNames.length; index++) {
-        locals[parameterNames[index]!] = args[index] ?? defaults?.[index] ?? 0;
+        const argument = args[index] ?? defaults?.[index] ?? 0;
+        const narrow = narrowing?.[index];
+        locals[parameterNames[index]!] = narrow && typeof argument === 'number' ? narrow(argument) : argument;
       }
       const value = executeGeneratedProgram(method.program, this.bindings, locals).value;
       // C++ converts the result to the declared return type, as emitted code does.
@@ -4184,6 +4199,12 @@ export interface GeneratedDeviceSpace {
    */
   read_interruptible?(address: number): number;
   write_interruptible?(address: number, data: number): number;
+  /**
+   * address_space::addr_width(), from the space's config: the 6502 picks its
+   * memory interface by it (`addr_width() > 14 ? mi_default : mi_default14`),
+   * and unanswered every 6502 took the 14-bit one and left m_program unbound.
+   */
+  addr_width?(): number;
   /** The backing bytes, for board wiring and for reading state back in tests. */
   readonly memory: Uint8Array;
 }
@@ -4368,6 +4389,12 @@ function deviceMemoryView(): DeviceMemoryView {
       return Reflect.get(target, property, receiver);
     },
   });
+}
+
+/** A space's config answers, as address_space reads them from its address_space_config. */
+function withSpaceConfig<T extends GeneratedDeviceSpace>(space: T, addressBits: number): T {
+  space.addr_width = () => addressBits;
+  return space;
 }
 
 /** The Z80's `m_data.read_interruptible(a)`: the space's own access (GeneratedDeviceSpace). */
@@ -5014,4 +5041,15 @@ export function memoryRegionObject(bytes: Uint8Array | undefined): unknown {
 /** The `const device_state_entry &` a core's state_import/state_export reads its index from. */
 function stateEntryHandle(index: number): GeneratedCallArgument {
   return { index: () => index } as unknown as GeneratedCallArgument;
+}
+
+/** How a call converts its argument to a narrow integer value parameter (`uint8_t val`), or nothing. */
+function parameterNarrowing(parameter: string): ((value: number) => number) | undefined {
+  if (/[*&\[]/.test(parameter)) return undefined;
+  const type = parameter.replace(/=.*$/, '').replace(/\bconst\b/g, '').trim().replace(/\s+\w+$/, '').trim();
+  if (type === 'u8' || type === 'uint8_t') return value => value & 0xff;
+  if (type === 's8' || type === 'int8_t') return value => value << 24 >> 24;
+  if (type === 'u16' || type === 'uint16_t' || type === 'unsigned short') return value => value & 0xffff;
+  if (type === 's16' || type === 'int16_t' || type === 'short') return value => value << 16 >> 16;
+  return undefined;
 }

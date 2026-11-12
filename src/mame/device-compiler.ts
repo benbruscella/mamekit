@@ -243,6 +243,13 @@ export interface GeneratedDeviceDefinition {
    * `.callimport()` say so.
    */
   stateEntries?: GeneratedDeviceStateEntry[];
+  /**
+   * A core that keeps its place between an instruction's cycles in an
+   * `m_inst_substate` member (the 6502 family checks its icount before every
+   * cycle), so the board brings device time up to where it stands when a
+   * device asks the time mid-instruction (generated-board catchUpDeviceTime).
+   */
+  suspendsMidInstruction?: true;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
@@ -492,7 +499,13 @@ export function compileMameDevice(
   options: DeviceCompileOptions = {},
 ): GeneratedDeviceDefinition {
   const device = compileMameDeviceReading(mameSrc, definition, type, compiling, options);
-  if (!options.transformSource) attachStateEntries(mameSrc, device);
+  if (!options.transformSource) {
+    attachStateEntries(mameSrc, device);
+    if (device.sourceFiles.some(file => /\.h$/.test(file) && existsSync(join(mameSrc, file)) &&
+      /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {
+      device.suspendsMidInstruction = true;
+    }
+  }
   return device;
 }
 
@@ -508,14 +521,17 @@ function distateIndices(mameSrc: string): Record<string, number> {
 }
 
 /**
- * The core's `state_add` table, read from its own lowered device_start: the
+ * The core's `state_add` table, read from its own lowered device_start (or
+ * the init() it calls): the
  * index each register is published under, its name, `.mask(n)`, whether
  * `.callimport()`/`.callexport()` follow, and the lvalue it names, which
  * becomes a generated reader and writer. An entry over something that is no
  * lvalue (a lambda) is left out; nothing reads it as a register.
  */
 function attachStateEntries(mameSrc: string, device: GeneratedDeviceDefinition): void {
-  const starts = device.methods.filter(method => method.name === 'device_start');
+  // device_start's own, or a helper it calls: the 6502 family registers its
+  // table in init().
+  const starts = device.methods.filter(method => method.name === 'device_start' || method.name === 'init');
   if (!starts.length) return;
   const indices = { ...distateIndices(mameSrc), ...device.constants };
   const indexOf = (expression: GeneratedExpression): number | undefined => {
@@ -6156,6 +6172,25 @@ function deviceAddressSpaces(
       addressBits: Number(addressBits),
       ...spaceOrder(match[3]!, match[6] === undefined ? 0 : evalExpr(match[6].trim(), constants)),
     });
+  }
+  // A constructor body that edits a config its base built: the 6507's
+  // `m_program_config.m_addr_width = 13`, which MAME's 13-bit 2600 map relies
+  // on for every mirror (and for the reset vector at $1FFC). Applied base
+  // first, so the most derived class's edit stands.
+  for (const owner of hierarchy) {
+    const escaped = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const constructor of source.matchAll(new RegExp(`\\b${escaped}::${escaped}\\s*\\(`, 'g'))) {
+      const end = source.indexOf('\n}', constructor.index);
+      const body = source.slice(constructor.index, end < 0 ? undefined : end);
+      for (const edit of body.matchAll(/\b(m_\w*config\w*)\s*\.\s*m_addr_width\s*=\s*([^;]+);/g)) {
+        const width = evalExpr(edit[2]!.trim(), constants);
+        if (!Number.isInteger(width)) continue;
+        for (const table of [configs, unmapped] as const) {
+          const config = table.get(edit[1]!);
+          if (config) table.set(edit[1]!, { ...config, addressBits: Number(width) } as never);
+        }
+      }
+    }
   }
   if (!configs.size && !unmapped.size) return spaces;
   const vector = methodBodies.get('memory_space_config');

@@ -12,11 +12,9 @@ export const CPU_ID = 'cpu';
 /** MAME device types with a generated core, in emit order. */
 export const CPU_MAME_TYPES = [
   'Z8002',
-  'I8088', 'V30', 'M6502', 'M6507',
+  'I8088', 'V30',
   'M68000', 'M68010',
-  'RP2A03', 'RP2A03G', 'M6510',
-  // Data East's encrypted 6502s: the stock core behind their own memory interface.
-  'DECO_CPU7', 'DECO_C10707',
+  'RP2A03', 'RP2A03G',
   'TMS320C10',
   'TMS34010',
 ] as const;

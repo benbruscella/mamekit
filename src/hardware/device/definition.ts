@@ -38,6 +38,10 @@ export const DEVICE_MAME_TYPES = [
   'Z80', 'SEGA_315_5098', 'SEGA_315_5177',
   // lr35902.cpp's Sharp core, opc_main.hxx and opc_cb.hxx in its execute_run.
   'LR35902',
+  // m6502.cpp and its subclasses, their operation lists through m6502make.py:
+  // the 6507's 13-bit space, the 6510's port, and Data East's encrypted parts
+  // behind their own memory interfaces.
+  'M6502', 'M6507', 'M6510', 'DECO_CPU7', 'DECO_C10707',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',
