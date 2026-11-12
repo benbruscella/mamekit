@@ -28,6 +28,8 @@ export const DEVICE_MAME_TYPES = [
   'M6802', 'M6808', 'M6803', 'M6801U4', 'HD63701Y0', 'NSC8105',
   // i8085.cpp's i8085a_cpu_device and its i8080 subclass, execute_run and all.
   'I8080', 'I8085A',
+  // mcs48.cpp's mcs48_cpu_device: its internal ROM a view its EA pin selects.
+  'I8035', 'I8039', 'MB8884', 'M58715', 'UPD7751',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

@@ -476,7 +476,11 @@ export function compileMameDevice(
   // runs: DISCRETE's ~80 node classes are DISCRETE_CLASS_STEP_RESET(...) and
   // friends, and read as written it compiled with no node at all.
   const declaresClasses = macroDeclaresClasses(mameSrc, device.sourceFiles);
-  const transformSource = preprocessedSources(mameSrc, device);
+  // Or whose methods a macro heads: mcs48.cpp writes its 256 opcode handlers
+  // `OPHANDLER( add_a_r0 ) { ... }`, `void mcs48_cpu_device::add_a_r0()`
+  // once expanded, and as written defines none of them.
+  const definesMethods = macroDefinesMethods(mameSrc, device.sourceFiles);
+  const transformSource = preprocessedSources(mameSrc, device, definesMethods);
   // Or one whose code names a macro only another directory's header defines:
   // the Namco 54xx writes `NAMCO_54XX_0_DATA(base)`, which is discrete.h's
   // NODE_RELATIVE, a node number only once expanded.
@@ -497,13 +501,13 @@ export function compileMameDevice(
   // nothing, and once its member-pointer dispatch lowered, that compiled with
   // no diagnostic at all -- and no instructions.
   const readAfterPreprocessor = transformSource?.nonHeader === true;
-  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros && !readAfterPreprocessor) return device;
+  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros && !readAfterPreprocessor && !definesMethods) return device;
   if (!transformSource) return device;
   const preprocessed = compileMameDeviceSource(mameSrc, definition, type, compiling, { ...options, transformSource });
   // Read after the preprocessor because of an include, it is taken when it
   // finds code the plain reading does not: a 6805's handlers are macro heads
   // until expanded (611 methods against 148).
-  const findsMore = readAfterPreprocessor && preprocessed.methods.length > device.methods.length;
+  const findsMore = (readAfterPreprocessor || definesMethods) && preprocessed.methods.length > device.methods.length;
   return preprocessed.summary.diagnostics < device.summary.diagnostics ||
     ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
 }
@@ -535,6 +539,17 @@ function macroDeclaresClasses(mameSrc: string, files: readonly string[]): boolea
   });
 }
 
+/** Whether a function-like macro in these files heads a member function: `void cls::_name()`. */
+function macroDefinesMethods(mameSrc: string, files: readonly string[]): boolean {
+  return files.some(file => {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) return false;
+    const text = stripCppComments(readFileSync(path, 'utf8')).replace(/\\\r?\n/g, ' ');
+    return [...text.matchAll(/^\s*#\s*define\s+\w+\(([^)]*)\)([^\n]*)$/gm)]
+      .some(match => /^\s*[\w:<>*&\s]+\s+\w+::\w+\s*\([^)]*\)\s*(?:const\s*)?$/.test(match[2]!));
+  });
+}
+
 /**
  * The preprocessor pass compileMameDevice retries a device with: every source
  * file that defines a class of the device's hierarchy is preprocessed, each
@@ -547,6 +562,8 @@ function macroDeclaresClasses(mameSrc: string, files: readonly string[]): boolea
 function preprocessedSources(
   mameSrc: string,
   device: GeneratedDeviceDefinition,
+  /** A macro heads its methods (macroDefinesMethods): read it preprocessed. */
+  definesMethods = false,
 ): (((file: string, source: string) => string) & { foreignMacros?: boolean; foreignNames?: ReadonlySet<string>; nonHeader?: boolean }) | undefined {
   const text = new Map<string, string>();
   const read = (file: string) => {
@@ -595,7 +612,7 @@ function preprocessedSources(
       classes: hierarchy,
     });
   });
-  if (!nonHeader && !foreignMacros && !calledForeign.size) return undefined;
+  if (!nonHeader && !foreignMacros && !calledForeign.size && !definesMethods) return undefined;
   const transform = (file: string, source: string) => transforms.reduce((current, step) => step(file, current), source);
   return Object.assign(transform, { foreignMacros, foreignNames: calledForeign, nonHeader });
 }
@@ -758,9 +775,27 @@ function compileMameDeviceSource(
       };
       for (const entry of sources) {
         if (!/&\s*\w+\s*::/.test(entry.source)) continue;
+        // A table spelled through the file's own macro is read expanded, as
+        // the preprocessor hands it over: mcs48.cpp's 256 opcode handlers
+        // are `OP(add_a_r0)`, with `#define OP(_a) &mcs48_cpu_device::_a`.
+        const spelled = [...entry.source.matchAll(/^[ \t]*#define[ \t]+(\w+)\(([^)]*)\)[ \t]+([^\r\n]*::[^\r\n]*)$/gm)]
+          .map(([, name, parameters, body]) => ({
+            call: new RegExp(`\\b${name}\\s*\\(([^()]*)\\)`, 'g'),
+            parameters: parameters!.split(',').map(parameter => parameter.trim()),
+            body: body!.trim(),
+          }));
+        const expand = (entries: string) => spelled.reduce((text, macro) => text.replace(macro.call, (_call, args: string) => {
+          const values = splitMameArgs(args).map(value => value.trim());
+          return macro.parameters.reduce((body, parameter, index) =>
+            body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), values[index] ?? ''), macro.body);
+        }), entries);
         entry.source = entry.source.replace(
           /^((?:const\s+)?[\w:]+(?:\s*<[^;{}]*>)?\s+\w+::\w+\s*(?:\[[^\]]*\]\s*)*=\s*\{)([^{};]*(?:\{[^{}]*\}[^{};]*)*)(\}\s*;)/gm,
-          (_whole, head: string, entries: string, tail: string) => head + lowerMemberPointerValues(entries, declared, evaluate) + tail,
+          // Comments out first: after mcs48.cpp's row label `// 00` the next
+          // `&mcs48_cpu_device::ins_a_bus` follows a digit, which the lowering
+          // reads as a bitwise AND.
+          (_whole, head: string, entries: string, tail: string) =>
+            head + lowerMemberPointerValues(expand(stripCppComments(entries)), declared, evaluate) + tail,
         );
       }
     }
@@ -4462,8 +4497,9 @@ export function memberDeclarations(
     // `std::unique_ptr<fm_channel<RegisterType>> m_channel[CHANNELS];`.
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     // `char const *m_default_card;` -- east const, as generic_slot_device
-    // spells all three of its strings.
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?(?:\s+const)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    // spells all three of its strings. The pointer may be const itself: the
+    // MCS-48's `const mcs48_ophandler *const m_opcode_table;`.
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?(?:\s+const)?)\s*(\*)\s*(?:const\s+)?(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     // A builtin spelled in more than one word -- VLM5030's
     // `unsigned int m_current_energy;` -- and a pointer to a struct the
     // source names with its elaborated specifier, `const struct
@@ -4857,7 +4893,8 @@ export function constructorInitialValues(
   // its entries numbers or, once its member pointers are lowered, method names.
   const tables = new Map<string, (string | number)[]>();
   for (const table of source.matchAll(/\b\w+::(\w+)\s*(?:\[[^\]]*\]\s*)*=\s*\{([^{};]*(?:\{[^{}]*\}[^{};]*)*)\}\s*;/g)) {
-    const entries = splitMameArgs(table[2]!.replace(/\/\*[\s\S]*?\*\//g, ''))
+    // Both comment forms out: mcs48.cpp labels each opcode row `// 00`.
+    const entries = splitMameArgs(table[2]!.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, ''))
       .map(entry => entry.trim().replace(/^\((.*)\)$/s, '$1').trim()).filter(Boolean)
       .map(entry => /^"(\w+)"$/.exec(entry)?.[1] ?? constantValue(entry, constants));
     if (entries.length && entries.every(entry => entry !== undefined)) tables.set(table[1]!, entries as (string | number)[]);

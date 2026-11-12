@@ -7,7 +7,6 @@ import {
   compileMameMc6809,
   compileMameM68000,
   compileMameM6502,
-  compileMameMcs48,
   compileMameRp2a03,
   compileMameV30,
   compileMameZ8002,
@@ -47,17 +46,6 @@ import {
   registerGeneratedCpu,
   type GeneratedCpuDefinition,
 } from '../runtime/generated-cpu.ts';
-
-const i8039Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8039');
-const i8035Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'I8035');
-const mb8884Definition = compileMameMcs48(process.env.MAME_SRC ?? '../mame', 'MB8884');
-assert.equal(i8035Definition.type, 'I8035');
-assert.equal(i8039Definition.type, 'I8039');
-assert.equal(mb8884Definition.type, 'MB8884');
-assert.equal(i8039Definition.members.find(member => member.name === 'm_ram_size')?.initial, 128);
-assert.equal(i8035Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
-assert.equal(mb8884Definition.members.find(member => member.name === 'm_ram_size')?.initial, 64);
-assert.equal(mb8884Definition.members.find(member => member.name === 'm_dataptr')?.values?.length, 64);
 
 const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
 assert.equal(definition.summary.opcodes, 1536);

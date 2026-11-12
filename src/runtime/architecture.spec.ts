@@ -344,9 +344,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
   'mame/cpu-compiler.ts: compileMameM68000': [
     'body fetch', 'body input', 'body program', 'body reset', 'body service', 'body start',
   ],
-  'mame/cpu-compiler.ts: compileMameMcs48': [
-    '8 source edits', 'body fetch', 'body methods', 'body program', 'body service',
-  ],
   'mame/cpu-compiler.ts: compileMameTms320c10': [
     '5 source edits', 'body fetch', 'body program', 'body service',
   ],
@@ -435,14 +432,9 @@ const HAND_WRITTEN_CPU_FACTS: string[] = [
   'gen/emit-machine.ts: generatedCpuAddressSpace: tms34010',
   'gen/emit-machine.ts: generatedCpuAddressSpace: v30',
   'gen/emit-machine.ts: generatedCpuAddressSpace: z8002',
-  'gen/emit-machine.ts: generatedCpuCycleClock: i8035',
-  'gen/emit-machine.ts: generatedCpuCycleClock: i8039',
   'gen/emit-machine.ts: generatedCpuCycleClock: konami',
-  'gen/emit-machine.ts: generatedCpuCycleClock: m58715',
-  'gen/emit-machine.ts: generatedCpuCycleClock: mb8884',
   'gen/emit-machine.ts: generatedCpuCycleClock: mc6809',
   'gen/emit-machine.ts: generatedCpuCycleClock: tms34010',
-  'gen/emit-machine.ts: generatedCpuCycleClock: upd7751',
   'gen/emit-machine.ts: lowerGeneratedMachine: i8088',
   'gen/emit-machine.ts: lowerGeneratedMachine: m68000',
   'gen/emit-machine.ts: lowerGeneratedMachine: m68010',

@@ -57,7 +57,9 @@ check('a MAME type resolves to its capability', () => {
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2203')?.id, 'sound-device');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'YM2149')?.id, 'sound-device');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'AY8912')?.id, 'sound-device');
-  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'I8035')?.id, 'cpu');
+  // An MCS-48 is its MAME class compiled whole, run as a processor (DeviceCpu).
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'I8035')?.id, 'device');
+  assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'Z80')?.id, 'cpu');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'SEGA_315_5098')?.id, 'cpu');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'M68705P5')?.id, 'device');
   assert.equal(capabilityForType(HARDWARE_CAPABILITIES, 'NOT_A_CHIP'), undefined);

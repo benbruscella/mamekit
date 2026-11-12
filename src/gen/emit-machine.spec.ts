@@ -34,11 +34,6 @@ for (const type of ['konami', 'mc6809']) {
 if (generatedCpuCycleClock('mc6809e', 1_000_000) !== 1_000_000) {
   throw new Error('externally-clocked MC6809E must retain its configured execution clock');
 }
-for (const type of ['i8035', 'i8039', 'mb8884']) {
-  if (generatedCpuCycleClock(type, 6_000_000) !== 400_000) {
-    throw new Error(`${type} must use MAME's divide-by-fifteen execution clock`);
-  }
-}
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 

@@ -10,11 +10,11 @@ import type { CpuBus } from './generated-cpu.ts';
 const mameSrc = process.env.MAME_SRC ?? '../mame';
 const index = indexMameHardware(mameSrc);
 
-function deviceCpu(type: string, bus: CpuBus): { cpu: DeviceCpu; device: Device } {
+function deviceCpu(type: string, bus: CpuBus, regions: Record<string, Uint8Array> = {}): { cpu: DeviceCpu; device: Device } {
   const definition = compileMameDevice(mameSrc, index.get(type)!, type);
   assert.equal(definition.summary.diagnostics, 0, `${type} compiles whole`);
   registerGeneratedDevice(definition);
-  const device = createDevice(type, { tag: 'cpu', clock: 4_000_000, configuredSpaces: [0] });
+  const device = createDevice(type, { tag: 'cpu', clock: 4_000_000, configuredSpaces: [0], regions });
   const cpu = new DeviceCpu(device, bus, {
     setInputLine: (line, state) => { device.call('execute_set_input', line, state === 2 ? 1 : state); },
     acknowledgeLine: () => 0,
@@ -103,4 +103,35 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.equal(device.get('m_halt'), 1, 'HLT');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802 and 8080 classes compiled whole run as processors');
+// The MCS-48 from mcs48.cpp. R0 is m_regptr[0], a pointer into the RAM its
+// own data map shares as "data" (m_dataptr). An 8039 has no ROM and runs from
+// the bus; an M58715's 2K is a view of its own region that EA takes away,
+// and the external ROM under it shows through (memory_view::disable).
+{
+  // MOV A,#n; MOV R0,A; MOV A,#0; MOV A,R0; OUTL P1,A; JMP $07
+  const program = (value: number) => [0x23, value, 0xa8, 0x23, 0x00, 0xf8, 0x39, 0x04, 0x07];
+  const run = (type: string, regions: Record<string, Uint8Array>, ea?: boolean) => {
+    const external = new Uint8Array(0x1000);
+    external.set(program(0x22));
+    const p1: number[] = [];
+    const { cpu, device } = deviceCpu(type, {
+      read: address => external[address]!,
+      write: () => {},
+      in: () => 0xff,
+      out: () => {},
+    }, regions);
+    device.on('p1_out_cb', (...args: unknown[]) => { p1.push(Number(args.length >= 3 ? args.at(-2) : args.at(-1))); return 0; });
+    if (ea !== undefined) cpu.setInputLine(device.constant('MCS48_INPUT_EA')!, ea ? 1 : 0);
+    cpu.reset();
+    cpu.run(30);
+    return p1;
+  };
+  // device_reset puts port 1 in input mode, 0xff, before the program runs.
+  assert.deepEqual(run('I8039', {}), [0xff, 0x22], 'an 8039 runs from the bus');
+  const internal = new Uint8Array(0x800);
+  internal.set(program(0x11));
+  assert.deepEqual(run('M58715', { cpu: internal }), [0xff, 0x11], 'EA low: the internal ROM view');
+  assert.deepEqual(run('M58715', { cpu: internal }, true), [0xff, 0x22], 'EA high: the view disabled, the bus beneath');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080 and MCS-48 classes compiled whole run as processors');

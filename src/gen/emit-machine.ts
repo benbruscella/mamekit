@@ -48,12 +48,6 @@ export function generatedCpuCycleClock(type: string | undefined, rawClock: numbe
   if (type === 'tms34010') return divided(8);
   // m6809.h's (clocks + m_clock_divider - 1) / m_clock_divider, 4 on these.
   if (type === 'konami' || type === 'mc6809') return divided(4);
-  // MCS-48 divides by 15 (mcs48.h execute_cycles_to_clocks); m58715 and upd7751
-  // are plain mcs48_cpu_devices, only i8021/i8022 use the /30 variant.
-  if (
-    type === 'i8035' || type === 'i8039' || type === 'mb8884' || type === 'm58715' ||
-    type === 'upd7751'
-  ) return divided(15);
   return clock;
 }
 

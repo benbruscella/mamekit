@@ -32,6 +32,7 @@ import {
   resizeGeneratedContainer,
   resizeGeneratedVector,
 } from './generated-handler.ts';
+import { installedViewEntry, type InstalledView } from './address-space-install.ts';
 import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
@@ -1423,6 +1424,10 @@ class IrDevice implements Device {
                 : new IrMemoryBank())
           : /^simple_list<[^>]+>$/.test(member.valueType)
             ? new IrSimpleList()
+          // A view the device's own address map installs: the MCS-48's
+          // internal ROM, which its EA pin selects or takes away.
+          : member.valueType === 'memory_view'
+            ? deviceMemoryView()
           // MAME's PAIR register union (emucore.h): one 32-bit word read as
           // .d, .w.l/.w.h or .b.l/.b.h/.b.h2/.b.h3. The 6805 keeps PC, S and
           // EA in one and writes them by halves (`rm16(vector, m_pc)`).
@@ -1800,6 +1805,9 @@ class IrDevice implements Device {
         emu_file: () => new IrEmuFile(options.samplePath ?? {}) as unknown as number,
         flac_decoder: file => new IrFlacDecoder(file as unknown as IrEmuFile) as unknown as number,
         'util::string_format': (format, ...args) => mameStringFormat(format, ...args) as unknown as number,
+        // And unqualified, as emucore.h's `using util::string_format;` lets a
+        // device write it: the MCS-48 names its register states `R%d`.
+        string_format: (format, ...args) => mameStringFormat(format, ...args) as unknown as number,
         // `device().subtag(tag)`, resolved as MAME's device_t::subtag does:
         // `^` climbs to the owner, a leading `:` is absolute, anything else
         // is below this device. An NES card allocates its PRG as
@@ -2782,6 +2790,12 @@ class IrDevice implements Device {
     return overloads.length
       ? Math.max(...overloads.map(method => splitParameters(method.parameters).length))
       : 0;
+  }
+
+  /** The member a share finder of this tag binds: `required_shared_ptr<u8> m_dataptr(*this, "data")`. */
+  sharedMember(tag: string): unknown {
+    const member = this.definition.members.find(candidate => candidate.memory?.kind === 'shared' && candidate.memory.share === tag);
+    return member ? this.members[member.name] : undefined;
   }
 
   /** One of the device's own address spaces, a mapped one built on first use. */
@@ -4174,6 +4188,53 @@ function cassetteImage(file?: Uint8Array) {
 }
 
 /**
+ * MAME's `memory_view` as a device's own address map holds it: `view[n]` is
+ * entry n's map, which records into that entry, and `select(n)`/`disable()`
+ * choose what the view's range decodes. The selection is machine state;
+ * what each entry maps is rebuilt by the map that recorded it.
+ */
+class DeviceMemoryView {
+  selected = -1;
+  /** Entry n's builder: set when a map installs the view (`.view(m_view)`). */
+  builder: ((slot: number) => unknown) | undefined;
+  readonly slots = new Map<number, unknown[]>();
+  stateKeys(): readonly string[] {
+    return ['selected'];
+  }
+  exists(): number {
+    return this.builder ? 1 : 0;
+  }
+  select(entry: unknown): number {
+    this.selected = Number(entry);
+    return 0;
+  }
+  disable(): number {
+    this.selected = -1;
+    return 0;
+  }
+  entry(): number {
+    return this.selected;
+  }
+}
+
+function deviceMemoryView(): DeviceMemoryView {
+  return new Proxy(new DeviceMemoryView(), {
+    get(target, property, receiver) {
+      if (typeof property === 'string' && /^\d+$/.test(property)) {
+        if (target.builder) return target.builder(Number(property));
+        // Installed into another space instead (`cart_space()->install_view(
+        // 0xa000, 0xbfff, m_view_ram)`, a Game Boy cartridge's RAM window):
+        // that space's recorder takes the entry's installs.
+        const installed = (target as { __installedView?: InstalledView }).__installedView;
+        if (installed) return installedViewEntry(installed, Number(property));
+        throw new Error('memory_view indexed before a map or install_view installed it');
+      }
+      return Reflect.get(target, property, receiver);
+    },
+  });
+}
+
+/**
  * A space MAME fills from an address map rather than backing with RAM. The
  * device's own map method is run against a builder that records each
  * `map(start, end)` entry and what it is wired to -- a handler, a lambda, RAM,
@@ -4198,6 +4259,8 @@ function mappedDeviceSpace(
     storageOffset?: number;
     /** RAM: writes land in `storage`. */
     writable?: boolean;
+    /** `.view(m_view)`: the range decodes through the view's selected entry. */
+    view?: DeviceMemoryView;
   };
   const entries: Entry[] = [];
   let unmapped = 0;
@@ -4225,9 +4288,11 @@ function mappedDeviceSpace(
       ? (offset, data = 0) => Number(declared >= 2 ? device.call(name, offset, data) : device.call(name, data)) || 0
       : offset => Number(declared >= 1 ? device.call(name, offset) : device.call(name)) || 0;
   };
-  const map = Object.assign((start: number, end: number) => {
+  // A map builder over one list of entries: the space's own, or one entry
+  // of a view (`m_rom_view[0](0, end).rom()`), which MAME builds the same way.
+  const builder = (list: Entry[]) => Object.assign((start: number, end: number) => {
     const entry: Entry = { start: Number(start) & mask, end: Number(end) & mask };
-    entries.push(entry);
+    list.push(entry);
     const chain: Record<string, (...args: unknown[]) => unknown> = {
       r: handler => { entry.read = callable(handler, false); return chain; },
       w: handler => { entry.write = callable(handler, true); return chain; },
@@ -4238,7 +4303,10 @@ function mappedDeviceSpace(
       ram: () => { entry.storage = memory; entry.storageOffset = undefined; entry.writable = true; return chain; },
       // `.share(m_internal_ram)`: the entry's memory is the member's, sized to
       // the entry, as MAME's map allocates a share for its finder.
-      share: target => {
+      // `.share("data")` names it by tag: the member whose finder is that
+      // share (the MCS-48's `m_dataptr(*this, "data")`).
+      share: tag => {
+        const target = typeof tag === 'string' ? device.sharedMember(tag) : tag;
         if (ArrayBuffer.isView(target)) {
           const bytes = resizeGeneratedContainer(target, entry.end - entry.start + 1) as Uint8Array;
           entry.storage = bytes;
@@ -4275,6 +4343,18 @@ function mappedDeviceSpace(
       unmapr: () => chain.nopr!(),
       unmapw: () => chain.nopw!(),
       unmaprw: () => chain.noprw!(),
+      // A view over the range: MAME's memory_view, its entries built through
+      // `view[n]` and chosen with select()/disable().
+      view: target => {
+        if (!(target instanceof DeviceMemoryView)) throw new Error('address map installs a view that is not a memory_view member');
+        entry.view = target;
+        target.builder = slot => {
+          let slotEntries = target.slots.get(slot) as Entry[] | undefined;
+          if (!slotEntries) target.slots.set(slot, slotEntries = []);
+          return builder(slotEntries);
+        };
+        return chain;
+      },
       mirror: () => chain,
       mask: () => chain,
     };
@@ -4284,20 +4364,23 @@ function mappedDeviceSpace(
     unmap_value_low: () => { unmapped = 0; return 0; },
     global_mask: () => 0,
   });
+  const map = builder(entries);
   device.call(mapMethod, map as unknown as number);
   const readAt = new Int32Array(size).fill(-1);
   const writeAt = new Int32Array(size).fill(-1);
   entries.forEach((entry, index) => {
     for (let address = entry.start; address <= entry.end; address++) {
-      if (entry.read || entry.storage) readAt[address] = index;
-      if (entry.write || entry.writable) writeAt[address] = index;
+      if (entry.read || entry.storage || entry.view) readAt[address] = index;
+      if (entry.write || entry.writable || entry.view) writeAt[address] = index;
     }
   });
-  const space: GeneratedDeviceSpace & { fallback?: { read(address: number): number; write(address: number, data: number): void } } = {
+  type Fallback = { read(address: number): number; write(address: number, data: number): void };
+  const space: GeneratedDeviceSpace & { fallback?: Fallback } = {
     memory,
     read_byte: address => {
       const at = address & mask;
-      const entry = entries[readAt[at]!];
+      const index = readAt[at]!;
+      const entry = index < 0 ? undefined : resolve(index, at, false);
       if (!entry) return space.fallback ? space.fallback.read(address) : unmapped;
       if (entry.read) return entry.read(at - entry.start) & 0xff;
       const storage = entry.storage!;
@@ -4305,16 +4388,37 @@ function mappedDeviceSpace(
     },
     write_byte: (address, data) => {
       const at = address & mask;
-      const entry = entries[writeAt[at]!];
+      const index = writeAt[at]!;
+      const entry = index < 0 ? undefined : resolve(index, at, true);
       if (!entry) {
         space.fallback?.write(address, data);
         return 0;
       }
       if (entry.write) entry.write(at - entry.start, data & 0xff);
-      else entry.storage![entry.storageOffset === undefined ? at : entry.storageOffset + at - entry.start] = data & 0xff;
+      else if (entry.writable) entry.storage![entry.storageOffset === undefined ? at : entry.storageOffset + at - entry.start] = data & 0xff;
       return 0;
     },
   };
+  // The entry an address decodes to. A view's range is its selected entry's
+  // mapping there; with no entry selected, or none covering the address, the
+  // view is transparent (memory.rst): what the map had under it, and then
+  // the bus the internal map sits over -- the MCS-48's external program
+  // ROM once EA takes its internal ROM away.
+  function resolve(index: number, at: number, writing: boolean): Entry | undefined {
+    const entry = entries[index]!;
+    if (!entry.view) return entry;
+    const covers = (candidate: Entry) => candidate.start <= at && at <= candidate.end &&
+      (writing ? Boolean(candidate.write || candidate.writable) : Boolean(candidate.read || candidate.storage));
+    const selected = entry.view.selected < 0 ? undefined : entry.view.slots.get(entry.view.selected) as Entry[] | undefined;
+    if (selected) {
+      for (let slot = selected.length - 1; slot >= 0; slot--) if (covers(selected[slot]!)) return selected[slot];
+    }
+    for (let below = index - 1; below >= 0; below--) {
+      const candidate = entries[below]!;
+      if (!candidate.view && covers(candidate)) return candidate;
+    }
+    return undefined;
+  }
   return space;
 }
 
