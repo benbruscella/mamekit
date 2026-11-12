@@ -27,5 +27,8 @@ Host flakes: zero-byte acceptance logs (native crash), SIGILL/SIGSEGV workers in
 
 Guard draft: scratchpad cpu-guard.ts (TS-AST scan; 321 layer entries + 52 facts at ff52ccd9); extend to tms34010/namco5x compilers.
 
+TEST POLICY (user, 2026-11-12): "wait until you have done all CPUs and then we test and baseline and fix" — no per-family oracle compares or golden re-records; move every CPU first, then one round of oracle compare vs ff52ccd9 + goldens + fixes. Per family: unit specs + dev-game acceptance (state-hash-only diffs OK) + commit.
+Progress 2026-11-12: ff9be0f7 I8080/I8085A (invaders, phoenix state-only); 1288e639 MCS-48 (7 games state-only). Goldens pending for those 9. Found and filed: Game Boy cart RAM views never applied (#247 section 5.1).
+
 **Why:** the user owns scope and PR shape; see [[confirm-scope-on-open-questions]], [[sound-242]].
 **How to apply:** no new branches; don't edit src or rebuild dist while the record runs ([[board-devices-237]] trap). Related: [[mame-baseline-204]], [[musashi-prefetch-slapstic]], [[m68k-icount-cycles]].

@@ -1549,8 +1549,10 @@ class HandlerParser {
       if (!value && (stream || declarationType === 'std::string')) value = { kind: 'string', value: '' };
       // MAME's PAIR union (emucore.h) as a local: one word read and written
       // as .d, .w.l/.w.h or .b.l/.b.h, as the 6800's `PAIR r,d,b;` uses it.
-      if (!value && declarationType?.replace(/\bconst\b/g, '').trim() === 'PAIR') {
-        value = { kind: 'call', callee: { kind: 'identifier', name: 'PAIR_VALUE' }, args: [] };
+      // PAIR16 the same over one 16-bit word (the 6809's `PAIR16 temp;`).
+      const pairType = declarationType?.replace(/\bconst\b/g, '').trim();
+      if (!value && (pairType === 'PAIR' || pairType === 'PAIR16')) {
+        value = { kind: 'call', callee: { kind: 'identifier', name: `${pairType}_VALUE` }, args: [] };
       }
       declarations.push({
         op: 'declare',

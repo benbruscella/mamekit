@@ -46,8 +46,6 @@ export function generatedCpuCycleClock(type: string | undefined, rawClock: numbe
   const divided = (divider: number): number => Math.floor((clock + divider - 1) / divider);
   // tms34010.h execute_clocks_to_cycles: (clocks + 8 - 1) / 8.
   if (type === 'tms34010') return divided(8);
-  // m6809.h's (clocks + m_clock_divider - 1) / m_clock_divider, 4 on these.
-  if (type === 'konami' || type === 'mc6809') return divided(4);
   return clock;
 }
 

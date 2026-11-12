@@ -1332,6 +1332,10 @@ export interface GeneratedHandlerRuntime {
     source: ArrayLike<number> & { [index: number]: number };
     offset: number;
   };
+  /** `&object.field`: a union field by its union and path, else the field's slot. */
+  fieldAddress(object: unknown, property: string): unknown;
+  /** `&call()` where the call answers an object: the object. */
+  objectAddress(value: unknown): unknown;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */

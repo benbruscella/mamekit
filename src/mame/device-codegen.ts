@@ -573,11 +573,18 @@ function hasCall(expression: GeneratedExpression): boolean {
 
 export function calledIdentifiers(operations: GeneratedHandlerOperation[]): Set<string> {
   const names = new Set<string>();
+  // An assignment to a call's result runs that method's `name=` (the
+  // compiler's setter for a reference-returning method: the 6809's regop8).
+  const assigned = (target: GeneratedExpression) => {
+    if (target.kind === 'call' && target.callee.kind === 'identifier') names.add(`${target.callee.name}=`);
+  };
   visitOperations(operations, operation => {
+    if (operation.op === 'assign') assigned(operation.target);
     visitOperationExpressions(operation, expression => {
       if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
         names.add(expression.callee.name);
       }
+      if (expression.kind === 'assignment') assigned(expression.target);
     });
   });
   return names;
@@ -1748,21 +1755,30 @@ const PAIR_VIEWS: Record<string, Record<string, string>> = {
   sb: { l: 's8', h: 's8', h2: 's8', h3: 's8' },
 };
 
+/** Which of emucore.h's unions a local or member holds, if one. */
+function pairKind(value: GeneratedExpression, context: EmitContext): 'PAIR' | 'PAIR16' | undefined {
+  if (value.kind !== 'identifier') return undefined;
+  const declared = (context.locals.has(value.name)
+    ? context.locals.get(value.name)
+    : context.definition.members.find(member => member.name === value.name)?.valueType)?.replace(/\bconst\b/g, '').trim();
+  return declared === 'PAIR' || declared === 'PAIR16' ? declared : undefined;
+}
+
 function pairViewType(expression: GeneratedExpression, context: EmitContext): string | undefined {
   if (expression.kind !== 'member') return undefined;
-  const holder = (value: GeneratedExpression): boolean => {
-    if (value.kind !== 'identifier') return false;
-    const declared = context.locals.has(value.name)
-      ? context.locals.get(value.name)
-      : context.definition.members.find(member => member.name === value.name)?.valueType;
-    return declared?.replace(/\bconst\b/g, '').trim() === 'PAIR';
+  // PAIR's word is `.d`; PAIR16's is `.w` (the 6809's `m_pc.w`).
+  const words: Record<string, Record<string, string>> = {
+    PAIR: { d: 'u32', sd: 's32' },
+    PAIR16: { w: 'u16', sw: 's16' },
   };
-  if (holder(expression.object)) {
-    return expression.property === 'd' ? 'u32' : expression.property === 'sd' ? 's32' : undefined;
-  }
+  const own = pairKind(expression.object, context);
+  if (own) return words[own]![expression.property];
   const view = expression.object;
-  if (view.kind === 'member' && holder(view.object)) return PAIR_VIEWS[view.property]?.[expression.property];
-  return undefined;
+  const holder = view.kind === 'member' ? pairKind(view.object, context) : undefined;
+  if (view.kind !== 'member' || !holder) return undefined;
+  if (holder === 'PAIR16' && view.property !== 'b' && view.property !== 'sb') return undefined;
+  if (holder === 'PAIR16' && !['l', 'h'].includes(expression.property)) return undefined;
+  return PAIR_VIEWS[view.property]?.[expression.property];
 }
 
 function expressionValueType(
@@ -2531,6 +2547,15 @@ function emitAssignment(
   right = emitExpression(value, context),
 ): string {
   if (expression.kind === 'call') {
+    // A method returning a reference is assigned through its `name=`, the
+    // operator applied to what the getter reads (the 6809's `ireg() += 2`).
+    if (expression.callee.kind === 'identifier' && context.compiled.has(`${expression.callee.name}=`) &&
+        context.compiled.has(expression.callee.name) && /^(?:[-+*/%&|^]|<<|>>)?=$/.test(operator)) {
+      const args = expression.args.map(argument => emitExpression(argument, context));
+      const next = operator === '=' ? right
+        : `((${emitExpression(expression, context)}) ${operator.slice(0, -1)} (${right}))`;
+      return `method_${safeName(`${expression.callee.name}=`)}(runtime, ${[...args, next].join(', ')})`;
+    }
     if (operator !== '=' || expression.callee.kind !== 'member') {
       throw new Error('device codegen only supports assignment to member call results');
     }
@@ -2591,10 +2616,13 @@ function emitAssignment(
   // A PAIR assigned from a PAIR copies the word, as the union is copied:
   // the 6800's `m_ppc = m_pc` keeps the previous PC, not a second name for
   // the current one.
-  if (operator === '=' && expression.kind === 'identifier' &&
-      expressionValueType(expression, context)?.replace(/\bconst\b/g, '').trim() === 'PAIR' &&
-      expressionValueType(value, context)?.replace(/\bconst\b/g, '').trim() === 'PAIR') {
+  const pairType = (candidate: GeneratedExpression) => expressionValueType(candidate, context)?.replace(/\bconst\b/g, '').trim();
+  if (operator === '=' && expression.kind === 'identifier' && pairType(expression) === 'PAIR' && pairType(value) === 'PAIR') {
     return `(${emitExpression(expression, context)}.d = (${right}).d)`;
+  }
+  // PAIR16 the same, by its 16-bit word: the 6809's `m_ppc = m_pc`.
+  if (operator === '=' && expression.kind === 'identifier' && pairType(expression) === 'PAIR16' && pairType(value) === 'PAIR16') {
+    return `(${emitExpression(expression, context)}.w = (${right}).w)`;
   }
   // C++ struct assignment copies: `cur_live = checkpoint_live` on the 64H156
   // must leave two structs, not one object under two names.
@@ -2711,6 +2739,24 @@ function emitAddressOf(
   if (expression.kind === 'member' && structFieldIsStruct(expression, context.definition)) {
     return emitExpression(expression, context);
   }
+  // A PAIR or PAIR16 is an object too: `&m_s` is the 6809's stack register.
+  if (expression.kind === 'identifier' && pairKind(expression, context)) {
+    return emitExpression(expression, context);
+  }
+  // A reference parameter's address is its argument's (execute.ts lValue):
+  // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }`.
+  if (expression.kind === 'identifier' && context.wrappedReferences.has(expression.name)) {
+    const name = localName(expression.name);
+    return `(${name}.address ? ${name}.address() : ({ generatedPointer: true, target: ${name}, offset: 0 }))`;
+  }
+  // A field's: in a union, the union and its path (runtime.fieldAddress).
+  if (expression.kind === 'member') {
+    return `runtime.fieldAddress(${emitExpression(expression.object, context)}, ${JSON.stringify(expression.property)})`;
+  }
+  // A call answering an object: that object (`&regop16() == &m_s`).
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
+    return `runtime.objectAddress(${emitExpression(expression, context)})`;
+  }
   // `&m_value` on a scalar: the interpreter answers with a pointer whose target
   // is the slot's own get/set pair (execute.ts addressOf), so a callee that
   // stores through it -- `get_sample(..., &m_value)` -- writes the member with
@@ -2739,8 +2785,15 @@ function emitReferenceArgument(
   }
   const target = targetInfo(expression, context);
   const annotation = context.typescript ? ': any' : '';
+  // Its own address too, for a callee that takes it (`m_reg8 = &reg`): only
+  // a field's, which can name a union; anything else keeps the slot itself.
+  const address = expression.kind === 'member'
+    ? `, address: () => runtime.fieldAddress(${emitExpression(expression.object, context)}, ${JSON.stringify(expression.property)})`
+    : expression.kind === 'identifier' && (pairKind(expression, context) || namesStructMember(expression.name, context))
+      ? `, address: () => ${emitExpression(expression, context)}`
+      : '';
   return `({ generatedLValue: true, get: () => ${emitExpression(expression, context)}, ` +
-    `set: (value${annotation}) => { ${target.code} = ${wrapTarget('value', target)}; } })`;
+    `set: (value${annotation}) => { ${target.code} = ${wrapTarget('value', target)}; }${address} })`;
 }
 
 /**
@@ -2754,7 +2807,20 @@ function singleReturnedReference(
   const assigned = (tryParseParameters(method.parameters) ?? []).filter(parameter =>
     isMutableReference(parameter.valueType) &&
     assignsIdentifier(method.program.operations, parameter.name));
+  // Handing the value back cannot stand in for a reference the method keeps
+  // the address of (the 6809's `m_reg8 = &reg`): that one stays a reference.
+  if (assigned.length === 1 && takesAddress(method.program.operations, assigned[0]!.name)) return undefined;
   return assigned.length === 1 ? assigned[0]!.name : undefined;
+}
+
+/** Whether `&name` appears in these operations. */
+function takesAddress(operations: GeneratedHandlerOperation[], name: string): boolean {
+  let taken = false;
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'unary' && expression.operator === '&' &&
+        expression.operand.kind === 'identifier' && expression.operand.name === name) taken = true;
+  }));
+  return taken;
 }
 
 function containsReturn(operations: GeneratedHandlerOperation[]): boolean {
@@ -2901,6 +2967,14 @@ function assignsIdentifier(
         expression.target.kind === 'identifier' &&
         expression.target.name === name
       ) {
+        assigned = true;
+      }
+      // Its address taken is as good as written: the 6809's
+      // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }` keeps it, and every
+      // `regop8() = ...` writes through. Passed by value, that wrote a dead
+      // local and accumulator A never changed.
+      if (expression.kind === 'unary' && expression.operator === '&' &&
+          expression.operand.kind === 'identifier' && expression.operand.name === name) {
         assigned = true;
       }
     });

@@ -33,7 +33,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { buildCallLinks, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
+import { UNION_VIEW, buildCallLinks, generatedMemberAddress, generatedObjectAddress, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -179,6 +179,10 @@ export interface GeneratedDeviceExecutionContext {
   /** C++ struct assignment into an existing struct member (see copyGeneratedStruct). */
   copyStruct(target: unknown, source: unknown): unknown;
   addressOf(value: unknown, index: number): GeneratedPointer;
+  /** `&object.field` (execute.ts generatedMemberAddress). */
+  fieldAddress(object: unknown, property: string): unknown;
+  /** `&call()` where the call answers an object (generatedObjectAddress). */
+  objectAddress(value: unknown): unknown;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
@@ -1435,6 +1439,10 @@ class IrDevice implements Device {
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, () => pairValue())
                 : pairValue())
+          : /^PAIR16$/.test(member.valueType.replace(/\bconst\b/g, '').trim())
+            ? (member.arrayLength
+                ? Array.from({ length: member.arrayLength }, () => pair16Value())
+                : pair16Value())
           // A class the device declares inside itself and holds by value (the
           // Z80 PIO's two `pio_port`s): each is an object with its own methods
           // and state, built from its allocation, not a number to call into.
@@ -1747,6 +1755,7 @@ class IrDevice implements Device {
         // name (member-pointers.ts): the T-Unit blitter's dma_draw tables.
         // A PAIR local (handler-ir): the same union a PAIR member holds.
         PAIR_VALUE: () => pairValue() as unknown as number,
+        PAIR16_VALUE: () => pair16Value() as unknown as number,
         CALL_METHOD: (name: unknown, ...args: GeneratedCallArgument[]) =>
           this.invoke(String(name), ...args),
         // MAME stops on a fatal error; carrying on past one ran on garbage.
@@ -2065,6 +2074,8 @@ class IrDevice implements Device {
         }
         return next;
       },
+      fieldAddress: generatedMemberAddress,
+      objectAddress: generatedObjectAddress,
       // An array first: probing it for a pointer's tag is the slow case.
       addressOf: (value, index) => Array.isArray(value) || ArrayBuffer.isView(value)
         ? { generatedPointer: true, source: value as ArrayLike<number> & { [index: number]: number }, offset: index }
@@ -2371,6 +2382,16 @@ class IrDevice implements Device {
     // nothing bound becomes MAME's default, a call answering `dflt` (or
     // nothing, for a void one). The 8085 resolves its optional CLK output so
     // and calls it from device_start whether or not a driver set_clk_out it.
+    // A reference-returning method's setter (the compiler's `regop8=`), which
+    // an assignment to the call's result runs (execute.ts assignCallResult).
+    for (const method of definition.methods) {
+      if (method.name.endsWith('=') && !method.name.includes('::')) {
+        this.bindings.calls![method.name] ??= (...args: unknown[]) => {
+          const selected = this.selectMethod(method.name, args as GeneratedCallArgument[])!;
+          return this.executeMethod(selected, this.methodParams.get(selected)!, args as GeneratedCallArgument[]);
+        };
+      }
+    }
     for (const delegate of this.delegateNames) {
       this.bindings.calls![`${delegate}.isnull`] ??= () => this.bindings.calls![delegate] ? 0 : 1;
       // `device_delegate::set(nullptr)`: unbound again, as the NES PPU's
@@ -4431,10 +4452,10 @@ function mappedDeviceSpace(
  * `PAIR r,d,b;`), so nothing here is defined per instance.
  */
 class PairLanes {
-  readonly #word: Uint32Array;
+  readonly #word: Uint32Array | Uint16Array;
   readonly #bits: number;
   readonly #signed: boolean;
-  constructor(word: Uint32Array, bits: number, signed: boolean) {
+  constructor(word: Uint32Array | Uint16Array, bits: number, signed: boolean) {
     this.#word = word;
     this.#bits = bits;
     this.#signed = signed;
@@ -4448,6 +4469,7 @@ class PairLanes {
     const bits = this.#bits;
     const mask = (((1 << bits) - 1) << (index * bits)) >>> 0;
     this.#word[0] = ((this.#word[0]! & ~mask) | ((Number(value) << (index * bits)) & mask)) >>> 0;
+    // (A Uint16Array keeps the low half of the same expression.)
   }
   get l(): number { return this.#get(0); }
   set l(value: number) { this.#set(0, value); }
@@ -4477,6 +4499,27 @@ class PairValue {
 
 function pairValue(): Record<string, unknown> {
   return new PairValue() as unknown as Record<string, unknown>;
+}
+
+/**
+ * MAME's PAIR16 (emucore.h): one 16-bit word read as `w`/`sw` or by its bytes,
+ * `b.l`/`b.h` and `sb.l`/`sb.h`, on a little-endian host. The 6809 keeps PC,
+ * X, Y, U, S and its effective address in one each.
+ */
+class Pair16Value {
+  readonly word = new Uint16Array(1);
+  #b?: PairLanes;
+  #sb?: PairLanes;
+  get w(): number { return this.word[0]!; }
+  set w(value: number) { this.word[0] = Number(value); }
+  get sw(): number { return (this.word[0]! << 16) >> 16; }
+  set sw(value: number) { this.word[0] = Number(value); }
+  get b(): PairLanes { return this.#b ??= new PairLanes(this.word, 8, false); }
+  get sb(): PairLanes { return this.#sb ??= new PairLanes(this.word, 8, true); }
+}
+
+function pair16Value(): Record<string, unknown> {
+  return new Pair16Value() as unknown as Record<string, unknown>;
 }
 
 /**
@@ -4614,6 +4657,11 @@ function structMember(
   // hash table: the 64H156's 22-field live state then cost a hash probe on
   // every field it touches, sixteen million cycles a second, and the gate
   // array alone took two thirds of a C64 frame.
+  // A union type is held as one anonymous union (structDeclarations): the
+  // member is that union, the 6809's `M6809Q m_q`.
+  if (fields.length === 1 && !fields[0]!.name && fields[0]!.union && fields[0]!.fields) {
+    return unionMember(fields[0]!.fields);
+  }
   const value: Record<string, unknown> = {};
   const widths: Record<string, number> = {};
   for (const field of fields) {
@@ -4682,9 +4730,33 @@ function structMember(
 
 /** A plain field's size in bytes, as a union lays it out (no padding: MAME's are byte-packed lanes). */
 function unionFieldBytes(field: StructField): number {
-  const each = field.fields ? field.fields.reduce((total, inner) => total + unionFieldBytes(inner), 0) : (field.bits ?? 32) / 8;
+  const inner = field.fields ?? PAIR_UNIONS[field.valueType ?? ''];
+  const each = inner
+    // A nested union is as wide as its widest member; a struct is their sum.
+    ? (field.union || (!field.fields && inner)
+        ? Math.max(0, ...inner.map(unionFieldBytes))
+        : inner.reduce((total, member) => total + unionFieldBytes(member), 0))
+    : (field.bits ?? 32) / 8;
   return each * (field.length ?? 1);
 }
+
+/** emucore.h's PAIR16 and PAIR as union fields: their views over two and four bytes. */
+const PAIR_UNIONS: Record<string, StructField[]> = {
+  PAIR16: [
+    { name: 'b', fields: [{ name: 'l', bits: 8 }, { name: 'h', bits: 8 }] },
+    { name: 'sb', fields: [{ name: 'l', bits: 8, signed: true }, { name: 'h', bits: 8, signed: true }] },
+    { name: 'w', bits: 16 },
+    { name: 'sw', bits: 16, signed: true },
+  ],
+  PAIR: [
+    { name: 'b', fields: ['l', 'h', 'h2', 'h3'].map(name => ({ name, bits: 8 as const })) },
+    { name: 'sb', fields: ['l', 'h', 'h2', 'h3'].map(name => ({ name, bits: 8 as const, signed: true })) },
+    { name: 'w', fields: [{ name: 'l', bits: 16 }, { name: 'h', bits: 16 }] },
+    { name: 'sw', fields: [{ name: 'l', bits: 16, signed: true }, { name: 'h', bits: 16, signed: true }] },
+    { name: 'd', bits: 32 },
+    { name: 'sd', bits: 32, signed: true },
+  ],
+};
 
 /**
  * A union's storage: one little-endian byte store every member views from
@@ -4697,15 +4769,22 @@ function unionFieldBytes(field: StructField): number {
 function unionMember(fields: readonly StructField[]): Record<string, unknown> {
   const size = Math.max(1, ...fields.map(unionFieldBytes));
   const bytes = new Uint8Array(size);
-  const view = (inner: readonly StructField[], base: number): Record<string, unknown> => {
-    const target: Record<string, unknown> = {};
+  const union: Record<string, unknown> = {};
+  // Each view knows its union and its path there, so a field's address can
+  // name the union a save state keeps (execute.ts generatedFieldAddress).
+  const mark = (target: Record<string, unknown>, path: readonly string[]) =>
+    Object.defineProperty(target, UNION_VIEW, { value: { root: union, path }, enumerable: false, configurable: true });
+  // A struct's members follow one another; a union's all start at its base.
+  const layout = (target: Record<string, unknown>, inner: readonly StructField[], base: number, overlapping: boolean, path: readonly string[]) => {
     let offset = base;
     for (const field of inner) {
-      define(target, field, offset, true);
+      define(target, field, overlapping ? base : offset, true, path);
       offset += unionFieldBytes(field);
     }
     return target;
   };
+  const view = (inner: readonly StructField[], base: number, overlapping: boolean, path: readonly string[]): Record<string, unknown> =>
+    layout(mark({}, path), inner, base, overlapping, path);
   const scalar = (field: StructField, at: number) => {
     const width = (field.bits ?? 32) / 8;
     return {
@@ -4724,11 +4803,20 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
       },
     };
   };
-  const define = (target: Record<string, unknown>, field: StructField, at: number, enumerable: boolean) => {
-    if (field.fields) {
+  const define = (target: Record<string, unknown>, field: StructField, at: number, enumerable: boolean, path: readonly string[]) => {
+    // An anonymous member's fields are its holder's own (m6809.h's
+    // `union { struct { uint8_t f, e, b, a; }; ... } r;`).
+    if (field.fields && !field.name) {
+      layout(target, field.fields, at, Boolean(field.union), path);
+      return;
+    }
+    const pair = !field.fields ? PAIR_UNIONS[field.valueType ?? ''] : undefined;
+    if (field.fields || pair) {
+      const inner = field.fields ?? pair!;
+      const overlapping = Boolean(field.union) || Boolean(pair);
       const nested = field.length
-        ? Array.from({ length: field.length }, (_, index) => view(field.fields!, at + index * unionFieldBytes({ ...field, length: 1 })))
-        : view(field.fields, at);
+        ? Array.from({ length: field.length }, (_, index) => view(inner, at + index * unionFieldBytes({ ...field, length: 1 }), overlapping, [...path, field.name, String(index)]))
+        : view(inner, at, overlapping, [...path, field.name]);
       Object.defineProperty(target, field.name, { value: nested, enumerable, configurable: true });
     } else if (field.length) {
       const width = (field.bits ?? 32) / 8;
@@ -4739,11 +4827,11 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
       Object.defineProperty(target, field.name, { ...scalar(field, at), enumerable, configurable: true });
     }
   };
-  const union: Record<string, unknown> = {};
+  mark(union, []);
   // The widest member, a plain one where two are as wide (`w` over `b`).
-  const rank = (field: StructField) => unionFieldBytes(field) * 2 + (field.fields || field.length ? 0 : 1);
+  const rank = (field: StructField) => unionFieldBytes(field) * 2 + (field.fields || field.length || PAIR_UNIONS[field.valueType ?? ''] ? 0 : 1);
   const widest = fields.reduce((best, field) => rank(field) > rank(best) ? field : best, fields[0]!);
-  for (const field of fields) define(union, field, 0, field === widest);
+  for (const field of fields) define(union, field, 0, field === widest, []);
   Object.defineProperty(union, GENERATED_STRUCT, { value: true, enumerable: false, configurable: true });
   return union;
 }

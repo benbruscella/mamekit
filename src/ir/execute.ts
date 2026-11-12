@@ -30,6 +30,12 @@ export const GENERATED_FIELD_WIDTHS = Symbol.for('mamekit.fieldWidths');
 
 /** Marks a C struct instance the host built from a declared shape. */
 export const GENERATED_STRUCT = Symbol.for('mamekit.struct');
+/**
+ * On each view of a union's storage: the union it belongs to and the field
+ * path to the view, so a field's address names something a save state keeps
+ * (the union itself, which saves its bytes once) rather than the view.
+ */
+export const UNION_VIEW = Symbol.for('mamekit.unionView');
 
 /** How a growable vector makes a new element (another vector, a struct). */
 const GENERATED_ELEMENT = Symbol.for('mamekit.vectorElement');
@@ -162,7 +168,7 @@ export function isGeneratedStruct(value: unknown): value is Record<string, unkno
  */
 export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
   if (isPairValue(target) && isPairValue(source) && target !== source) {
-    target.d = source.d;
+    target.word[0] = source.word[0]!;
     return target;
   }
   if (!isGeneratedStruct(target) || !source || typeof source !== 'object' || target === source) return source;
@@ -197,12 +203,15 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
  * copied from a pointer the table stayed zero and Hyper Sports lost its speech.
  */
 /**
- * MAME's PAIR union as the device runtime builds it (one word behind its
- * views): assigned from another, it takes the word, as the union is copied.
+ * MAME's PAIR and PAIR16 unions as the device runtime builds them (one word
+ * behind their views): assigned from another, one takes the word, as the
+ * union is copied.
  */
-function isPairValue(value: unknown): value is { word: Uint32Array; d: number } {
-  return Boolean(value) && typeof value === 'object' &&
-    (value as { word?: unknown }).word instanceof Uint32Array && 'd' in (value as object);
+function isPairValue(value: unknown): value is { word: Uint32Array | Uint16Array } {
+  if (!value || typeof value !== 'object') return false;
+  const word = (value as { word?: unknown }).word;
+  return (word instanceof Uint32Array && 'd' in (value as object)) ||
+    (word instanceof Uint16Array && 'w' in (value as object));
 }
 
 function copiesStruct(target: unknown, value: unknown): boolean {
@@ -334,6 +343,8 @@ export interface GeneratedLValue {
   readonly generatedLValue: true;
   get(): unknown;
   set(value: unknown): void;
+  /** The storage's own address, when a reference parameter's is taken (`m_reg8 = &reg`). */
+  address?(): unknown;
 }
 
 export type GeneratedCallArgument = unknown | GeneratedLValue;
@@ -355,6 +366,8 @@ interface GeneratedPointer {
   readonly source?: unknown;
   readonly offset: number;
   readonly target?: GeneratedLValue;
+  /** A field of a union, by its path from the union `source` (generatedFieldAddress). */
+  readonly path?: readonly string[];
 }
 
 interface ExecutionResult {
@@ -828,6 +841,8 @@ function preparedHandlerRuntime(
       }
       return next;
     },
+    fieldAddress: generatedMemberAddress,
+    objectAddress: generatedObjectAddress,
     addressOf: (value, index) => isGeneratedPointer(value)
       ? {
         generatedPointer: true,
@@ -3344,7 +3359,9 @@ function assign(
     return;
   }
   if (target.kind === 'call') {
-    assignCallResult(target, value, context);
+    // Through a returned reference the operator applies to what it names:
+    // the 6809's `ireg() += 2`.
+    assignCallResult(target, operator === '=' ? value : assignmentValue(operator, evaluate(target, context), value), context);
     return;
   }
   throw new Error(`unsupported generated assignment target "${target.kind}"`);
@@ -3856,33 +3873,72 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
     // `pbuf = &m_buffers.back()` in discrete's task setup.
     if (memory && typeof memory === 'object' && !isLValue(memory) && !isReference(memory)) return memory;
   }
-  // A field's address names the object it was taken on, once: discrete's
-  // tasks point each node input at `&dest_task.source_list.back().buffer`,
-  // and re-read later every input read whichever source was added last.
-  // A struct's fields lie one after another, and C walks them with the same
-  // pointer: DISCRETE's op-amp oscillator reads its eight resistors with
-  // `r_info_ptr = &info->r1; ... r_info_ptr++`.
+  // A reference parameter's address is its argument's (the 6809's
+  // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }`); an object's, the object
+  // (a PAIR16 register, a struct), as a call answering one is (`&regop16()`).
+  if (expression.kind === 'identifier' || (expression.kind === 'call' && expression.callee.kind === 'identifier')) {
+    const local = expression.kind === 'identifier' && Object.hasOwn(context.locals, expression.name)
+      ? context.locals[expression.name] : undefined;
+    if (isLValue(local) && local.address) return local.address();
+    const value = isLValue(local) ? local.get() : evaluate(expression, context);
+    if (isPairValue(value) || isGeneratedStruct(value)) return value;
+  }
   if (expression.kind === 'member') {
-    const object = memberObject(evaluate(expression.object, context), expression.property);
-    if (object && typeof object === 'object' && !isLValue(object) && !isReference(object) && !isGeneratedPointer(object)) {
-      const fields = object as Record<string, unknown>;
-      const property = expression.property;
-      if (isIndexableMemory(fields[property])) return fields[property];
-      const view = structFieldView(fields);
-      const offset = view.keys.indexOf(property);
-      if (offset >= 0) return { generatedPointer: true, source: view.fields, offset };
-      return {
-        generatedPointer: true,
-        target: { generatedLValue: true, get: () => fields[property] ?? 0, set: (value: unknown) => { fields[property] = value; } },
-        offset: 0,
-      };
-    }
+    const address = generatedMemberAddress(evaluate(expression.object, context), expression.property);
+    if (address !== undefined) return address;
   }
   return {
     generatedPointer: true,
     target: lValue(expression, context),
     offset: 0,
   };
+}
+
+/**
+ * A field's address, as `&object.field` takes it, for the interpreter and
+ * emitted code alike (runtime.fieldAddress). In a union, the union and the
+ * path to the field (generatedFieldAddress). Otherwise it names the object it
+ * was taken on, once: discrete's tasks point each node input at
+ * `&dest_task.source_list.back().buffer`, and re-read later every input read
+ * whichever source was added last. A struct's fields lie one after another,
+ * and C walks them with the same pointer: DISCRETE's op-amp oscillator reads
+ * its eight resistors with `r_info_ptr = &info->r1; ... r_info_ptr++`.
+ */
+export function generatedMemberAddress(raw: unknown, property: string): unknown {
+  const field = generatedFieldAddress(raw, property);
+  if (field) return field;
+  const object = memberObject(raw, property);
+  if (!object || typeof object !== 'object' || isLValue(object) || isReference(object) || isGeneratedPointer(object)) return undefined;
+  const fields = object as Record<string, unknown>;
+  if (isIndexableMemory(fields[property])) return fields[property];
+  // A field holding an object is that object (a struct's PAIR16, a nested struct).
+  if (isPairValue(fields[property]) || isGeneratedStruct(fields[property])) return fields[property];
+  const view = structFieldView(fields);
+  const offset = view.keys.indexOf(property);
+  if (offset >= 0) return { generatedPointer: true, source: view.fields, offset };
+  return {
+    generatedPointer: true,
+    target: { generatedLValue: true, get: () => fields[property] ?? 0, set: (value: unknown) => { fields[property] = value; } },
+    offset: 0,
+  };
+}
+
+/** `&value` where the value is an object -- a PAIR16 register a call hands back: the object. */
+export function generatedObjectAddress(value: unknown): unknown {
+  if (isPairValue(value) || isGeneratedStruct(value)) return value;
+  throw new Error('address of a call result that is not an object');
+}
+
+/**
+ * A union field's address: its union and the path to it, which a save state
+ * can name (the union's views are not themselves kept). Undefined for a
+ * field that is not in a union.
+ */
+export function generatedFieldAddress(object: unknown, property: string): GeneratedPointer | undefined {
+  const view = object && typeof object === 'object'
+    ? (object as { [UNION_VIEW]?: { root: object; path: readonly string[] } })[UNION_VIEW]
+    : undefined;
+  return view ? { generatedPointer: true, source: view.root, path: [...view.path, property], offset: 0 } : undefined;
 }
 
 const STRUCT_FIELD_VIEWS = new WeakMap<object, { keys: string[]; fields: ArrayLike<unknown> }>();
@@ -3915,12 +3971,19 @@ function offsetPointer(pointer: GeneratedPointer, offset: number): GeneratedPoin
 
 function pointerValue(pointer: GeneratedPointer, index: number): unknown {
   const offset = pointer.offset + index;
+  if (pointer.path) return offset === 0 ? pointer.path.reduce<unknown>((at, key) => (at as Record<string, unknown>)[key], pointer.source) ?? 0 : 0;
   if (pointer.target) return offset === 0 ? pointer.target.get() : 0;
   return indexValue(pointer.source, offset);
 }
 
 function setPointerValue(pointer: GeneratedPointer, index: number, value: unknown): void {
   const offset = pointer.offset + index;
+  if (pointer.path) {
+    if (offset !== 0) return;
+    const holder = pointer.path.slice(0, -1).reduce<unknown>((at, key) => (at as Record<string, unknown>)[key], pointer.source);
+    (holder as Record<string, unknown>)[pointer.path.at(-1)!] = value;
+    return;
+  }
   if (pointer.target) {
     if (offset === 0) pointer.target.set(value);
     return;
@@ -4813,6 +4876,7 @@ function lValue(expression: GeneratedExpression, context: ExecutionContext): Gen
     generatedLValue: true,
     get: () => evaluate(expression, context),
     set: value => assign(expression, '=', value, context),
+    address: () => addressOf(expression, context),
   };
 }
 

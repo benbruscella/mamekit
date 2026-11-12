@@ -1,16 +1,11 @@
 import {
   compileMameI8088,
-  compileMameHd6309E,
-  compileMameKonami,
   compileMameLr35902,
-  compileMameKonami1,
   compileMameM68000,
   compileMameM6502,
   compileMameM6507,
   compileMameM6510,
   compileMameM6502MemoryInterface,
-  compileMameMc6809,
-  compileMameMc6809E,
   compileMameRp2a03,
   compileMameZ80,
   compileMameZ8002,
@@ -43,11 +38,6 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   // Its own decode column and initializer, not a relabelled 68000: see
   // M68000_VARIANTS in cpu-compiler.ts.
   M68010: source => compileMameM68000(source, 'M68010'),
-  KONAMI1: compileMameKonami1,
-  KONAMI: compileMameKonami,
-  MC6809: compileMameMc6809,
-  MC6809E: compileMameMc6809E,
-  HD6309E: compileMameHd6309E,
   RP2A03: compileMameRp2a03,
   RP2A03G: compileMameRp2a03,
   LR35902: compileMameLr35902,

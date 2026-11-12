@@ -943,17 +943,16 @@ function compileMameDeviceSource(
     // `std::make_unique<T>(args)` builds a T as `new T(args)` does, and a
     // class template's instance is named as an allocation can be: ymfm's
     // engine builds `std::make_unique<fm_channel<RegisterType>>(*this, ...)`.
-    // T may be declared inside the device's own class: the slapstic makes
-    // each of its states as `std::make_unique<idle>(this, check, info)`. One
-    // a base declares (a processor's `mi_default` memory interface) is still
-    // the runtime's to make.
-    const nestedOwn = className === definition.className;
+    // T may be declared inside a class of the hierarchy: the slapstic makes
+    // each of its states as `std::make_unique<idle>(this, check, info)`, and
+    // m6809_base_device its memory interface as `std::make_unique<mi_default>()`
+    // -- left to a runtime that never made it, every 6809 read was of nothing.
     specialized = specialized.replace(
       /\b(?:std::make_unique\s*<\s*([\w:]+(?:\s*<[^<>;()]*>)?)\s*>|new\s+([\w:]+\s*<[^<>;()]*>))\s*\(/g,
       (text, made: string | undefined, allocated: string | undefined) => {
         const allocatedType = (made ?? allocated)!;
         const template = allocatedType.replace(/\s*<[\s\S]*>$/, '');
-        if (!classes.has(template) && !(nestedOwn && classes.has(`${className}::${template}`))) return text;
+        if (!classes.has(template) && !classes.has(`${className}::${template}`)) return text;
         const name = templateInstanceName(allocatedType);
         if (name !== allocatedType) instanceNames.set(name, allocatedType);
         return `new ${name}(`;
@@ -2106,6 +2105,56 @@ function compileMameDeviceSource(
       break;
     }
   }
+  // A method returning a reference is an lvalue: the 6809's
+  // `uint8_t &regop8() { return *m_reg8; }` is assigned through, as
+  // `regop8() = read_operand();`, and `uint16_t &ireg()` picks X, Y, U or S
+  // in a switch. Its `name=` method stores into whatever each return names,
+  // which a call-result assignment runs.
+  const isLvalue = (expression: GeneratedExpression) =>
+    ['identifier', 'member', 'index'].includes(expression.kind) ||
+    (expression.kind === 'unary' && expression.operator === '*');
+  const assigned = '__assigned';
+  const storing = (operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] | undefined => {
+    const mapped: GeneratedHandlerOperation[] = [];
+    for (const operation of operations) {
+      if (operation.op === 'return') {
+        if (!operation.value || !isLvalue(operation.value)) return undefined;
+        // And answers what it stored, as the assignment's value is.
+        mapped.push({ op: 'assign', target: operation.value, operator: '=', value: { kind: 'identifier', name: assigned } },
+          { op: 'return', value: operation.value });
+      } else if (operation.op === 'if') {
+        const then = storing(operation.then);
+        const otherwise = operation.else ? storing(operation.else) : [];
+        if (!then || !otherwise) return undefined;
+        mapped.push({ ...operation, then, ...(operation.else ? { else: otherwise } : {}) });
+      } else if (operation.op === 'switch') {
+        const cases = operation.cases.map(entry => ({ ...entry, body: storing(entry.body) }));
+        if (cases.some(entry => !entry.body)) return undefined;
+        mapped.push({ ...operation, cases: cases as typeof operation.cases });
+      } else if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
+        return undefined;
+      } else {
+        mapped.push(operation);
+      }
+    }
+    return mapped;
+  };
+  for (const method of [...methods]) {
+    const bare = method.name.split('::').at(-1)!;
+    if (!method.program.operations.length || method.program.diagnostics.length) continue;
+    const returnsReference = [...hierarchy].reverse().some(className =>
+      new RegExp(`(?:^|[;{}:])\\s*(?:(?:virtual|static|inline)\\s+)*(?!const\\b)[\\w:<>]+\\s*&\\s*${bare}\\s*\\(`, 'm')
+        .test(stripCppComments(classes.get(className)?.body ?? '')));
+    if (!returnsReference || methods.some(candidate => candidate.name === `${method.name}=`)) continue;
+    const operations = storing(method.program.operations);
+    if (!operations) continue;
+    methods.push({
+      ...method,
+      name: `${method.name}=`,
+      parameters: [method.parameters.trim(), `u32 ${assigned}`].filter(parameter => parameter && parameter !== 'void').join(', '),
+      program: { operations, diagnostics: [] },
+    });
+  }
   const romInterfaceBits = hierarchy.map(className => {
     const declaration = classes.get(className);
     if (!declaration?.bases.includes('device_rom_interface')) return undefined;
@@ -2298,6 +2347,11 @@ function compileMameDeviceSource(
   // With more than one argument it parses as a call of the type's name
   // (`checker check(m_start, m_end, ...)`, the slapstic's address predicates),
   // and the class may be declared inside the device.
+  // The class of the hierarchy a nested type is declared in, the leaf first:
+  // m6809_base_device's `mi_default` for a KONAMI-1, konami1_device's own
+  // `mi_konami1` before it.
+  const nestedClassOwner = (type: string): string | undefined =>
+    hierarchy.find(className => classes.has(`${className}::${type}`));
   for (const method of methods) walkOperations(method.program.operations, operation => {
     if (operation.op !== 'declare' || !operation.value) return;
     const value = operation.value;
@@ -2311,8 +2365,9 @@ function compileMameDeviceSource(
       operation.value = { kind: 'call', callee: { kind: 'identifier', name: type }, args };
       return;
     }
-    const nested = classes.has(`${definition.className}::${type}`);
-    const qualified = nested ? `${definition.className}::${type}` : type;
+    const owner = nestedClassOwner(type);
+    const nested = owner !== undefined;
+    const qualified = nested ? `${owner}::${type}` : type;
     if (!nested && (!classes.has(type) || hierarchy.includes(type) || /_device$/.test(type))) return;
     if (!constructorOf(qualified)) return;
     // A struct is plain data unless it defines methods of its own out of
@@ -2331,7 +2386,8 @@ function compileMameDeviceSource(
   for (const allocated of allocatedTypes) {
     if (allocations[allocated]) continue;
     const name = instanceNames.get(allocated) ?? allocated;
-    const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
+    const owner = nestedClassOwner(name);
+    const qualified = owner !== undefined ? `${owner}::${name}` : name;
     if (instanceNames.has(allocated)) {
       compileNestedClass(allocated, qualified);
       continue;
@@ -4150,11 +4206,25 @@ function classHierarchy(
       // the slapstic's `struct idle : public state` derives from the
       // `atari_slapstic_device::state` declared beside it.
       const scopes = name.split('::').slice(0, -1);
-      for (let depth = scopes.length; depth > 0; depth--) {
+      let found = false;
+      for (let depth = scopes.length; depth > 0 && !found; depth--) {
         const nested = `${scopes.slice(0, depth).join('::')}::${unqualified}`;
         if (classes.has(nested)) {
           visit(nested);
-          break;
+          found = true;
+        }
+      }
+      // Or a type an enclosing class inherits: konami1_device's
+      // `class mi_konami1 : public mi_default` is m6809_base_device's.
+      for (let depth = scopes.length; depth > 0 && !found; depth--) {
+        const enclosing = scopes.slice(0, depth).join('::');
+        for (const ancestor of classHierarchy(enclosing, classes).reverse()) {
+          const inherited = `${ancestor}::${unqualified}`;
+          if (ancestor !== enclosing && classes.has(inherited)) {
+            visit(inherited);
+            found = true;
+            break;
+          }
         }
       }
     }
@@ -4243,7 +4313,9 @@ function compileMethod(
   body = body.replace(
     // The space may be chosen in place: the 6800 fetches opcodes through
     // `space(has_space(AS_OPCODES) ? AS_OPCODES : AS_PROGRAM).cache(m_copcodes)`.
-    /\b(space\s*\((?:[^()]|\([^()]*\))*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+)\s*\)\s*;/g,
+    // Or a field of an object the device holds: the 6809 reads memory
+    // through its memory interface, `space(AS_PROGRAM).cache(m_mintf->cprogram)`.
+    /\b(space\s*\((?:[^()]|\([^()]*\))*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
     '$2 = $1;',
   );
   for (const callback of interruptCallbacks) {
@@ -6030,8 +6102,10 @@ export function structDeclarations(
     // lost every field after the first comment.
     for (const declaration of structBlocks(littleEndianLayout(stripCppComments(source)))) {
       if (!declaration.name || structs.has(declaration.name)) continue;
-      const fields = structFieldList(declaration.body, constants, declaration.name);
-      if (fields.length) structs.set(declaration.name, fields);
+      const fields = structFieldList(declaration.body, constants, declaration.name, declaration.union);
+      // A union type is its members over one storage: held as a single
+      // anonymous union, a member of the type is that union.
+      if (fields.length) structs.set(declaration.name, declaration.union ? [{ name: '', union: true, fields }] : fields);
     }
   }
   return structs;
@@ -6180,9 +6254,11 @@ function structMethodsOf(
  */
 function structBlocks(
   source: string,
-): { name: string; body: string; declarator?: string; declaratorBound?: string }[] {
-  const blocks: { name: string; body: string; declarator?: string; declaratorBound?: string }[] = [];
-  const opener = /\bstruct\s+(\w+)?\s*\{/g;
+): { name: string; body: string; declarator?: string; declaratorBound?: string; union?: true }[] {
+  const blocks: { name: string; body: string; declarator?: string; declaratorBound?: string; union?: true }[] = [];
+  // A named union is a type the same way: the 6809's `union M6809Q { ... }`,
+  // which its `m_q` holds (A, B, D, E, F, W and Q over one word).
+  const opener = /\b(struct|union)\s+(\w+)?\s*\{/g;
   let match: RegExpExecArray | null;
   while ((match = opener.exec(source)) !== null) {
     const open = source.indexOf('{', match.index);
@@ -6192,10 +6268,17 @@ function structBlocks(
     // `struct SOUND { ... };` declares none.
     const declared = /^\s*(\w+)\s*(?:\[([^\]]*)\])?\s*;/.exec(source.slice(close + 1));
     const declarator = declared?.[1];
-    const name = match[1] ?? declarator ?? '';
+    const union = match[1] === 'union';
+    // An anonymous union is only ever part of what holds it.
+    if (union && !match[2]) {
+      opener.lastIndex = close + 1;
+      continue;
+    }
+    const name = match[2] ?? declarator ?? '';
     const body = source.slice(open + 1, close);
     blocks.push({ name, body, ...(declarator ? { declarator } : {}),
-      ...(declared?.[2]?.trim() ? { declaratorBound: declared[2] } : {}) });
+      ...(declared?.[2]?.trim() ? { declaratorBound: declared[2] } : {}),
+      ...(union ? { union: true as const } : {}) });
     // A struct declared inside another is a type of its own, named as C++
     // names it: nes_defs.h declares `square_t` in both `apu_t` and
     // `mmc5_sound_t`, with different fields, and MMC5's `square_t squ[2]` is
@@ -6230,6 +6313,8 @@ function structFieldList(
   body: string,
   constants: Record<string, number>,
   owner?: string,
+  /** The body is a union's: each member starts at its first byte. */
+  inUnion = false,
 ): GeneratedStructField[] {
   const fields: GeneratedStructField[] = [];
   // Struct types this body declares itself: a field of one is of the
@@ -6321,17 +6406,23 @@ function structFieldList(
     // A named nested struct with no declarator is a type, recorded on its
     // own by structBlocks; it adds no field here.
     const union = start[1] === 'union';
+    const anonymousStruct = !union && !/^struct\s+\w/.test(start[0]);
     if (declarator) {
       const length = bound(declarator[2]);
       fields.push({
         name: declarator[1]!,
         ...(length !== undefined ? { length } : {}),
-        fields: structFieldList(body.slice(open + 1, close), constants),
+        fields: structFieldList(body.slice(open + 1, close), constants, undefined, union),
         // Its members share one storage, each from its first byte.
         ...(union ? { union: true } : {}),
       });
-    } else if (union) {
-      // An anonymous union's members are the enclosing struct's own.
+    } else if (inUnion && (union || anonymousStruct)) {
+      // Inside a union an anonymous member is one more overlapping member,
+      // its own fields named as the union's: m6809.h's `union { struct {
+      // uint8_t f, e, b, a; }; struct { uint16_t w, d; }; } r;`.
+      fields.push({ name: '', fields: structFieldList(body.slice(open + 1, close), constants, undefined, union), ...(union ? { union: true } : {}) });
+    } else if (union || anonymousStruct) {
+      // In a struct, an anonymous member's fields are the struct's own.
       fields.push(...structFieldList(body.slice(open + 1, close), constants));
     }
     cursor = close + 1 + (declarator?.[0].length ?? 0);

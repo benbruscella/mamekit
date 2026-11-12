@@ -38,6 +38,10 @@ export function preprocessedDeviceTransform(
 ): (file: string, source: string) => string {
   const included = new Set<string>();
   const preprocessor = new CPreprocessor({
+    // What MAME's build defines on a little-endian host (every host this runs
+    // on), as the plain reading takes it (littleEndianLayout): the 6809's
+    // `union M6809Q` has A in its high byte only under LSB_FIRST.
+    defines: { LSB_FIRST: '' },
     read: (path, from) => {
       const candidates = [
         join(dirname(from), path),

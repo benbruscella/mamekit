@@ -134,4 +134,36 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.deepEqual(run('M58715', { cpu: internal }, true), [0xff, 0x22], 'EA high: the view disabled, the bus beneath');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080 and MCS-48 classes compiled whole run as processors');
+// The 6809 from m6809.cpp, its execute_run the m6809.hxx state machine MAME
+// generates at build time; and the KONAMI-1 beside it, whose own memory
+// interface (mi_konami1::read_opcode) unscrambles every opcode byte by its
+// address: xor 0x22, 0x82, 0x28 or 0x88 on address bits 1 and 3.
+{
+  // LDA #$5A; STA $2000; BRA *
+  const program = [0x86, 0x5a, 0xb7, 0x20, 0x00, 0x20, 0xfe];
+  const run = (type: string, encrypt: boolean) => {
+    const memory = new Uint8Array(0x10000);
+    const key: Record<number, number> = { 0x0: 0x22, 0x2: 0x82, 0x8: 0x28, 0xa: 0x88 };
+    // Only opcode fetches are scrambled: the operands stay as written.
+    const opcodes = new Set([0, 2, 5]);
+    program.forEach((byte, offset) => {
+      const address = 0x8000 + offset;
+      memory[address] = encrypt && opcodes.has(offset) ? byte ^ key[address & 0xa]! : byte;
+    });
+    memory[0xfffe] = 0x80;
+    memory[0xffff] = 0x00;
+    const { cpu } = deviceCpu(type, {
+      read: address => memory[address]!,
+      write: (address, data) => { memory[address] = data; },
+      in: () => 0xff,
+      out: () => {},
+    });
+    cpu.reset();
+    cpu.run(40);
+    return memory[0x2000];
+  };
+  assert.equal(run('MC6809', false), 0x5a, 'MC6809: m6809.hxx runs');
+  assert.equal(run('KONAMI1', true), 0x5a, 'KONAMI-1: opcodes unscrambled by mi_konami1');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809 and KONAMI-1 classes compiled whole run as processors');
