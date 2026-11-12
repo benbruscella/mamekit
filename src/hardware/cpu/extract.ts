@@ -1,7 +1,6 @@
 import {
   compileMameI8088,
   compileMameM68000,
-  compileMameRp2a03,
   compileMameZ8002,
   compileMameTms320c10,
   compileMameV30,
@@ -24,8 +23,6 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   // Its own decode column and initializer, not a relabelled 68000: see
   // M68000_VARIANTS in cpu-compiler.ts.
   M68010: source => compileMameM68000(source, 'M68010'),
-  RP2A03: compileMameRp2a03,
-  RP2A03G: compileMameRp2a03,
   TMS320C10: compileMameTms320c10,
   TMS34010: compileMameTms34010,
 };

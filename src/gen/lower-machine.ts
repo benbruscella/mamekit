@@ -54,7 +54,7 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
 
   const { screen } = lowerScreen(devices, g, machine, graph, game, opts);
 
-  const { clocks, sound, nesApu } = lowerSound(byTag, devices, graph, opts, g, romset, cpus);
+  const { clocks, sound } = lowerSound(byTag, devices, graph, opts, g, romset, cpus);
 
   const { roms } = lowerRoms(opts, g, romset, devices, graph);
 
@@ -182,6 +182,6 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   };
 
   return { config, graph, game, title, family, kind, cpus, sound, screen, roms,
-    bindings, dipDefaults, cart, cartEntries, software, compiledVideo, nesApu, inputChangedHandlers };
+    bindings, dipDefaults, cart, cartEntries, software, compiledVideo, inputChangedHandlers };
 }
 

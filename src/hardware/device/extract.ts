@@ -15,6 +15,8 @@ import {
   deviceIrArtifact,
   deviceModuleArtifact,
 } from './definition.ts';
+import { STREAM_SOUND_TYPES } from '../speaker/definition.ts';
+import { streamWorkletArtifact } from '../speaker/extract.ts';
 
 type Compiled = ReturnType<typeof compileMameDevice>;
 
@@ -59,6 +61,13 @@ export function extractDevices(input: CapabilityInput): CapabilityExtraction | u
       body: '',
       program: method.program,
     }));
+  }
+  // A device that builds a stream chip and mixes it (the RP2A03's APU, routed
+  // `add_route(ALL_OUTPUTS, *this, ...)`) plays through the shared stream
+  // worklet, as any board with a stream chip of its own does.
+  if ([...compiled.values()].some(device => device.children?.some(child =>
+    child.routes?.some(route => route.target === '*this') && STREAM_SOUND_TYPES.includes(child.type)))) {
+    artifacts.push(streamWorkletArtifact());
   }
   return {
     executableTypes: [...compiled.keys()],

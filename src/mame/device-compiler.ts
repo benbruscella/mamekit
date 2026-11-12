@@ -421,6 +421,8 @@ export interface GeneratedDeviceDefinition {
      * `set_device_load(FUNC(spectrum_intf2_device::cart_load))`.
      */
     delegateTargets?: Record<string, string>;
+    /** Child devcb signal -> this device's method it is `.set()` to. */
+    callbackTargets?: Record<string, string>;
     /**
      * The option table a child slot's machine config names, compiled:
      * `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, ...)`.
@@ -2200,6 +2202,14 @@ function compileMameDeviceSource(
         const delegate = child.delegates?.[setter[1]!];
         if (delegate) delegateTargets[delegate] = setter[2]!;
       }
+      // Its devcbs this device binds to its own methods: the RP2A03's
+      // `m_apu->irq().set(FUNC(rp2a03_device::apu_irq))` and
+      // `m_apu->mem_read().set(FUNC(rp2a03_device::apu_read_mem))`.
+      const callbackTargets: Record<string, string> = {};
+      for (const setter of mconfig.matchAll(new RegExp(
+        String.raw`\b${member}\s*->\s*(\w+)\s*\(\s*\)\s*\.\s*set\s*\(\s*FUNC\s*\(\s*\w+::(\w+)\s*\)\s*\)`, 'g'))) {
+        if (child.callbacks.some(callback => callback.signal === setter[1])) callbackTargets[setter[1]!] = setter[2]!;
+      }
       // `TYPE(config, m_member, options_function, ...)`: a slot's card table.
       const call = mconfig.slice(match.index + match[0].length);
       const slotOptions = /^\s*,\s*([a-z_]\w*)\s*[,)]/.exec(call)?.[1];
@@ -2222,9 +2232,12 @@ function compileMameDeviceSource(
       const chained = call.slice(close, Math.max(close, call.indexOf(';', close)));
       const separate = [...mconfig.matchAll(new RegExp(String.raw`\b${member}\s*->\s*(add_route\s*\([^;]*)\s*;`, 'g'))]
         .map(route => `.${route[1]}`).join('');
+      // A route into this device itself (`add_route(ALL_OUTPUTS, *this, 1.0)`)
+      // makes it the child's mixer, as MAME's device_mixer_interface is: its
+      // target is "*this".
       const routes = [...`${chained}${separate}`.matchAll(
-        /\.add_route\s*\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*([\d.]+)/g,
-      )].map(route => ({ output: route[1] === 'ALL_OUTPUTS' ? -1 : Number(route[1]), target: route[2]!, gain: Number(route[3]) }))
+        /\.add_route\s*\(\s*(\w+)\s*,\s*(?:"([^"]+)"|(\*\s*this))\s*,\s*([\d.]+)/g,
+      )].map(route => ({ output: route[1] === 'ALL_OUTPUTS' ? -1 : Number(route[1]), target: route[2] ?? '*this', gain: Number(route[4]) }))
         .filter(route => Number.isFinite(route.output));
       const childSlot = slotOptions ? composeChildSlot(mameSrc, child, slotOptions, nested) : undefined;
       if (childSlot) child.slot = childSlot;
@@ -2241,6 +2254,7 @@ function compileMameDeviceSource(
         ...(childClock !== null && childClock >= 0 ? { clock: childClock } : {}),
         ...(routes.length ? { routes } : {}),
         ...(Object.keys(delegateTargets).length ? { delegateTargets } : {}),
+        ...(Object.keys(callbackTargets).length ? { callbackTargets } : {}),
         ...(slotOptions && /\bget_card_device\s*\(/.test(child.sourceFiles.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'))
           ? { slotOptions } : {}),
         ...(tags ? { tags } : {}),
@@ -6182,6 +6196,15 @@ function deviceAddressSpaces(
     for (const constructor of source.matchAll(new RegExp(`\\b${escaped}::${escaped}\\s*\\(`, 'g'))) {
       const end = source.indexOf('\n}', constructor.index);
       const body = source.slice(constructor.index, end < 0 ? undefined : end);
+      // And one that gives it an internal map: the RP2A03's
+      // `m_program_config.m_internal_map = address_map_constructor(FUNC(rp2a03_device::rp2a03_map), this)`,
+      // its APU's registers, ahead of the owner's map as MAME builds them.
+      for (const edit of body.matchAll(/\b(m_\w*config\w*)\s*\.\s*m_internal_map\s*=\s*address_map_constructor\s*\(\s*FUNC\s*\(\s*\w+::(\w+)\s*\)/g)) {
+        const config = configs.get(edit[1]!) ?? unmapped.get(edit[1]!);
+        if (!config) continue;
+        unmapped.delete(edit[1]!);
+        configs.set(edit[1]!, { ...config, map: edit[2]! });
+      }
       for (const edit of body.matchAll(/\b(m_\w*config\w*)\s*\.\s*m_addr_width\s*=\s*([^;]+);/g)) {
         const width = evalExpr(edit[2]!.trim(), constants);
         if (!Number.isInteger(width)) continue;

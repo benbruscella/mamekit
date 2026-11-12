@@ -12,8 +12,6 @@ export const NES_MAME_TYPES = [
   'NES_CART_SLOT',
 ] as const;
 
-/** RP2A03 variants whose source-declared child APU belongs to this package. */
-export const NES_CPU_TYPES = ['RP2A03', 'RP2A03G'] as const;
 
 
 

@@ -26,9 +26,9 @@ const projectRoot = resolve(import.meta.dirname, '../..');
 
 export async function generate(graph: KnowledgeGraph, opts: GenerateOptions): Promise<void> {
   const data = await lowerMachine(graph, opts);
-  const { config, family, sound, compiledVideo, nesApu, inputChangedHandlers } = data;
+  const { config, family, sound, compiledVideo, inputChangedHandlers } = data;
   emitGeneratedMachine(graph, opts.game, family, opts.outDir,
-    config.board as unknown as BoardConfig, compiledVideo, nesApu,
+    config.board as unknown as BoardConfig, compiledVideo,
     inputChangedHandlers);
   writeFileSync(join(opts.outDir, 'config.json'), JSON.stringify(config, null, 2));
   const report = buildRuntimeReport(graph, config as unknown as RuntimeConfigShape);

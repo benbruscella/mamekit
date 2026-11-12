@@ -7,7 +7,7 @@ import type { GeneratedAudioRoute } from '../ir/board.ts';
 
 import { compileMameSpeakerFilter } from '../mame/audio-compiler.ts';
 
-import { compileNesApu } from '../mame/nes-apu-compiler.ts';
+import { mixerChildren } from '../mame/mixer-children.ts';
 
 import { STREAM_AUDIO_RATE, STREAM_SOUND_TYPES, streamRoutedDevices } from '../hardware/speaker/definition.ts';
 
@@ -24,17 +24,18 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   };
   // Every sound chip is its MAME class compiled whole and played in the
   // stream mix, so a board has sound when any device renders a stream: a chip
-  // of its own, one routed into a stream device, or the RP2A03's APU, which
-  // the CPU's own device_add_mconfig builds. A cassette alone is only heard
-  // beside one.
+  // of its own, one routed into a stream device, or one a device builds in its
+  // own device_add_mconfig and mixes (the RP2A03's APU, `maincpu:nesapu`). A
+  // cassette alone is only heard beside one.
   const streamed = streamRoutedDevices(graph);
-  const rp2a03 = devices.find(d => String(d.props.type).startsWith('RP2A03'));
+  const mixed = devices.flatMap(device => mixerChildren(opts.mameSrc, String(device.props.type))
+    .filter(child => STREAM_SOUND_TYPES.includes(child.type))
+    .map(child => `${String(device.props.tag)}:${child.tag}`));
   const speakerDevice = devices.find(device => device.props.type !== 'CASSETTE' &&
     (STREAM_SOUND_TYPES.includes(String(device.props.type)) || streamed.has(device.id)));
-  const sound = rp2a03 || speakerDevice
-    ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: rp2a03 ? 'nesapu' : String(speakerDevice!.props.tag) }
+  const sound = mixed.length || speakerDevice
+    ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: mixed[0] ?? String(speakerDevice!.props.tag) }
     : { kind: 'none' };
-  const nesApu = rp2a03 ? compileNesApu(opts.mameSrc, String(rp2a03.props.type)) : undefined;
 
   // MAME keeps each speaker channel apart, and the browser plays one, their
   // mean: a route to one channel counts that share.
@@ -45,5 +46,5 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
       speakerFilter: compileMameSpeakerFilter(opts.mameSrc),
     });
   }
-  return { clocks, sound, nesApu };
+  return { clocks, sound };
 }

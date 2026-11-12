@@ -42,6 +42,9 @@ export const DEVICE_MAME_TYPES = [
   // the 6507's 13-bit space, the 6510's port, and Data East's encrypted parts
   // behind their own memory interfaces.
   'M6502', 'M6507', 'M6510', 'DECO_CPU7', 'DECO_C10707',
+  // The NES's RP2A03: the 6502 without decimal mode, its APU a child it builds
+  // and mixes, reached through the internal map its constructor installs.
+  'RP2A03', 'RP2A03G',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

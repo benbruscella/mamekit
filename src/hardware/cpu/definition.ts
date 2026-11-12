@@ -14,7 +14,6 @@ export const CPU_MAME_TYPES = [
   'Z8002',
   'I8088', 'V30',
   'M68000', 'M68010',
-  'RP2A03', 'RP2A03G',
   'TMS320C10',
   'TMS34010',
 ] as const;

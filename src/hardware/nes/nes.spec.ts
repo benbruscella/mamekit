@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { extractNes } from './extract.ts';
 import { inheritCardInterface } from '../../ir/card-interface.ts';
 import { indexMameHardware } from '../../mame/hardware.ts';
-import { compileNesApu } from '../../mame/nes-apu-compiler.ts';
+import { mixerChildren } from '../../mame/mixer-children.ts';
+import { compileMameDevice } from '../../mame/device-compiler.ts';
 import {
   clearGeneratedDevices,
   createDevice,
@@ -23,9 +24,9 @@ const extraction = await extractNes({
 });
 
 assert.ok(extraction);
-// With the RP2A03 present, its own APU is compiled beside the board devices.
-assert.deepEqual(extraction.executableTypes.sort(), [...types, 'NES_APU'].sort());
-for (const type of [...types, 'NES_APU']) {
+// The RP2A03's APU is not a board device: the CPU, compiled whole, builds it.
+assert.deepEqual(extraction.executableTypes.sort(), [...types].sort());
+for (const type of types) {
   assert.equal(extraction.executable[type]?.kind, 'device');
 }
 const ppu = extraction.artifacts.find(artifact =>
@@ -202,28 +203,15 @@ for (const [key, type, gain] of [
   assert.equal(chip.definition.summary.diagnostics, 0);
 }
 
-// The RP2A03 holds nes_apu.cpp's device as rp2a03.cpp composes it: built at
-// the CPU's clock, reached through the CPU's internal map with MAME's own
-// handler bodies, its irq() on the core's APU line and its DMC reading the
-// CPU's program space.
-const apuPlan = compileNesApu(mameSource);
-assert.equal(apuPlan.type, 'NES_APU');
-assert.equal(apuPlan.member, 'm_apu');
-assert.equal(apuPlan.irqLine, 'APU_IRQ_LINE');
-assert.equal(apuPlan.memReadSpace, 'program');
-assert.deepEqual(
-  apuPlan.internalMap.ranges.map(range => [range.start, range.end, range.read?.body, range.write?.body]),
-  [
-    [0x4000, 0x4013, undefined, 'm_apu->write(offset, data);'],
-    [0x4015, 0x4015, 'return m_apu->status_r();', 'm_apu->write(0x15, data);'],
-    [0x4017, 0x4017, undefined, 'm_apu->write(0x17, data);'],
-  ],
-);
+// The RP2A03 builds nes_apu.cpp's device in its own device_add_mconfig and
+// mixes it (`m_apu->add_route(ALL_OUTPUTS, *this, 1.0, 0)`), so the board's
+// sound plan names it below the CPU (`maincpu:nesapu`). device-cpu.spec runs
+// the CPU's internal map into it.
+assert.deepEqual(mixerChildren(mameSource, 'RP2A03G'), [{ member: 'm_apu', type: 'NES_APU', tag: 'nesapu', gain: 1 }]);
 // And the APU is nes_apu.cpp compiled whole, which answers $4015 itself.
-const apuArtifact = extraction.artifacts.find(artifact => artifact.path === 'devices/nes_apu.device.ir.json');
-assert.ok(apuArtifact, 'the NES capability compiles the RP2A03\'s APU');
+const apuDefinition = compileMameDevice(mameSource, indexMameHardware(mameSource).get('NES_APU')!, 'NES_APU');
 clearGeneratedDevices();
-registerGeneratedDevice(JSON.parse(apuArtifact.contents));
+registerGeneratedDevice(apuDefinition);
 const apu = createDevice('NES_APU', { clock: 1_789_773 }) as unknown as { invoke(name: string, ...args: number[]): unknown };
 apu.invoke('write', 0x15, 0x01);
 apu.invoke('write', 0x00, 0x1f);
@@ -233,8 +221,7 @@ assert.equal(Number(apu.invoke('status_r')) & 1, 1, '$4015 reports the pulse len
 // A struct field starts where its declaration says: nes_defs.h's noise
 // channel is `u16 lfsr = 1;`. From 0 the LFSR never left 0, so the noise
 // channel played a constant level and every NES game lost its percussion.
-const apuDefinition = JSON.parse(apuArtifact.contents) as { structs: Record<string, { name: string; initial?: number }[]> };
-assert.equal(apuDefinition.structs['apu_t::noise_t']?.find(field => field.name === 'lfsr')?.initial, 1,
+assert.equal((apuDefinition.structs as Record<string, { name: string; initial?: number }[]>)['apu_t::noise_t']?.find(field => field.name === 'lfsr')?.initial, 1,
   'the noise LFSR keeps its declared initial value');
 const apuState = (apu as unknown as { members: { m_APU: { noi: { lfsr: number } } } }).members;
 assert.equal(apuState.m_APU.noi.lfsr, 1, 'the running APU starts its noise LFSR at 1');

@@ -308,6 +308,8 @@ export interface GeneratedDeviceDefinition {
     definition: GeneratedDeviceDefinition;
     /** Child delegate member -> this device's method that fills it. */
     delegateTargets?: Record<string, string>;
+    /** Child devcb signal -> this device's method it is `.set()` to. */
+    callbackTargets?: Record<string, string>;
     slotOptions?: string;
     /** The child's own clock, where its constructor gives one (0 when it gives none). */
     clock?: number;
@@ -639,6 +641,8 @@ export interface GeneratedDeviceOptions {
   configuredSpaces?: readonly number[];
   /** A child of this device the board holds itself, by full tag: its handle there. */
   heldChild?: (tag: string) => object | undefined;
+  /** The board's Device behind a held child, for binding its devcbs. */
+  heldDevice?: (tag: string) => Device | undefined;
   /** device_sound_interface::get_sound_requested_inputs_mask: the inputs routed into it. */
   soundInputsMask?: number;
   constructorArgs?: GeneratedCallArgument[];
@@ -2381,6 +2385,8 @@ class IrDevice implements Device {
       const held = !child.tags ? options.heldChild?.(`${this.ownTag}:${tags[0]}`) : undefined;
       if (held) {
         this.members[child.member] = held;
+        const heldDevice = options.heldDevice?.(`${this.ownTag}:${tags[0]}`);
+        if (heldDevice) this.bindChildCallbacks(heldDevice, child);
         continue;
       }
       const handles = tags.map((tag, index) => {
@@ -2432,6 +2438,10 @@ class IrDevice implements Device {
             set: value => { self[member.name] = value; },
           });
         }
+        // What each method declares, for an address map that names one of
+        // them by device (`.w(m_apu, FUNC(nesapu_device::write))`).
+        Object.defineProperty(callable, DEVICE_PARAMETERS, { value: (name: string) => instance.parameters(name) });
+        this.bindChildCallbacks(instance, child);
         return { instance, callable };
       });
       this.members[child.member] = child.tags ? handles.map(handle => handle.callable) : handles[0]!.callable;
@@ -2445,6 +2455,13 @@ class IrDevice implements Device {
     // nothing bound becomes MAME's default, a call answering `dflt` (or
     // nothing, for a void one). The 8085 resolves its optional CLK output so
     // and calls it from device_start whether or not a driver set_clk_out it.
+    // device_execute_interface::set_input_line by the device itself,
+    // unqualified: the RP2A03's apu_irq is `set_input_line(APU_IRQ_LINE, ...)`.
+    // A board hosting it as a processor rebinds this to its own line delivery.
+    if (definition.methods.some(method => method.name === 'execute_set_input')) {
+      this.bindings.calls!.set_input_line ??= (line: unknown, state: unknown) =>
+        this.call('execute_set_input', Number(line), Number(state));
+    }
     // `required_shared_ptr::set_tag(tag)` from the machine configuration (the
     // 315-5177's set_decrypted_tag): the finder now names that share.
     for (const member of definition.members) {
@@ -2872,6 +2889,27 @@ class IrDevice implements Device {
 
   suspendsMidInstruction(): boolean {
     return this.definition.suspendsMidInstruction === true;
+  }
+
+  /**
+   * A child's devcbs this device `.set()` to its own methods in
+   * device_add_mconfig (`m_apu->irq().set(FUNC(rp2a03_device::apu_irq))`),
+   * called as MAME's devcb adapter calls a handler: a write with the data it
+   * takes (and the offset, when it takes two), a read with the offset when it
+   * takes one, a line with its state.
+   */
+  private bindChildCallbacks(child: Device, spec: NonNullable<GeneratedDeviceDefinition['children']>[number]): void {
+    for (const [signal, method] of Object.entries(spec.callbackTargets ?? {})) {
+      const member = spec.definition.callbacks.find(callback => callback.signal === signal)?.member;
+      const reading = /\bdevcb_read/.test(spec.definition.members.find(candidate => candidate.name === member)?.valueType ?? '');
+      const declared = this.parameters(method).filter(parameter => parameter && parameter !== 'void').length;
+      child.on(signal, (...args: number[]) => {
+        if (reading) return Number(this.invoke(method, ...args.slice(0, declared))) || 0;
+        const data = args.length >= 2 ? args[1]! : args[0] ?? 0;
+        this.invoke(method, ...(declared >= 2 ? [args.length >= 2 ? args[0]! : 0, data] : declared === 1 ? [data] : []));
+        return undefined;
+      });
+    }
   }
 
   /**
@@ -4391,6 +4429,9 @@ function deviceMemoryView(): DeviceMemoryView {
   });
 }
 
+/** A child device handle's parameter lookup, by method name (see the child handles). */
+const DEVICE_PARAMETERS = Symbol('device parameters');
+
 /** A space's config answers, as address_space reads them from its address_space_config. */
 function withSpaceConfig<T extends GeneratedDeviceSpace>(space: T, addressBits: number): T {
   space.addr_width = () => addressBits;
@@ -4457,15 +4498,40 @@ function mappedDeviceSpace(
       ? (offset, data = 0) => Number(declared >= 2 ? device.call(name, offset, data) : device.call(name, data)) || 0
       : offset => Number(declared >= 1 ? device.call(name, offset) : device.call(name)) || 0;
   };
+  const deviceCallable = (target: unknown, reference: unknown, writing: boolean): ((offset: number, data?: number) => number) => {
+    const name = typeof reference === 'object' && reference && 'reference' in reference
+      ? String((reference as { reference: unknown }).reference).split('::').at(-1)!
+      : undefined;
+    const handle = target as Record<string | symbol, unknown> | undefined;
+    const fn = name && handle ? handle[name] : undefined;
+    if (typeof fn !== 'function') throw new Error(`address map names ${String(name)} on a device that does not define it`);
+    const parameters = (handle![DEVICE_PARAMETERS] as ((method: string) => readonly string[]) | undefined)?.(name!);
+    const declared = parameters ? parameters.filter(parameter => parameter && parameter !== 'void').length : writing ? 2 : 1;
+    const call = fn as (...args: number[]) => unknown;
+    return writing
+      ? (offset, data = 0) => Number(declared >= 2 ? call(offset, data) : call(data)) || 0
+      : offset => Number(declared >= 1 ? call(offset) : call()) || 0;
+  };
   // A map builder over one list of entries: the space's own, or one entry
   // of a view (`m_rom_view[0](0, end).rom()`), which MAME builds the same way.
   const builder = (list: Entry[]) => Object.assign((start: number, end: number) => {
     const entry: Entry = { start: Number(start) & mask, end: Number(end) & mask };
     list.push(entry);
     const chain: Record<string, (...args: unknown[]) => unknown> = {
-      r: handler => { entry.read = callable(handler, false); return chain; },
-      w: handler => { entry.write = callable(handler, true); return chain; },
-      rw: (read, write) => { entry.read = callable(read, false); entry.write = callable(write, true); return chain; },
+      // Or another device's, named by the device and its method:
+      // `.w(m_apu, FUNC(nesapu_device::write))`.
+      r: (handler, method) => { entry.read = method === undefined ? callable(handler, false) : deviceCallable(handler, method, false); return chain; },
+      w: (handler, method) => { entry.write = method === undefined ? callable(handler, true) : deviceCallable(handler, method, true); return chain; },
+      rw: (read, write, method) => {
+        if (method !== undefined) {
+          entry.read = deviceCallable(read, write, false);
+          entry.write = deviceCallable(read, method, true);
+        } else {
+          entry.read = callable(read, false);
+          entry.write = callable(write, true);
+        }
+        return chain;
+      },
       lr8: handler => chain.r!(handler),
       lw8: handler => chain.w!(handler),
       lrw8: (read, write) => chain.rw!(read, write),

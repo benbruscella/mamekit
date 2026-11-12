@@ -461,17 +461,25 @@ behind it.
 ### CPU
 
 A CPU is its MAME class compiled whole by the device compiler, as a sound
-chip is (#249): the M6800, I8080, MCS-48, 6809 and Z80 families so far, the
-Sega Z80 decryptors among them. MAME's build generators produce the generated
+chip is (#249): the M6800, I8080, MCS-48, 6809, Z80, LR35902 and 6502
+families so far, the Sega Z80 decryptors and Data East's encrypted 6502s
+among them. MAME's build generators produce the generated
 part (`z80make.py`'s state machine, `m6809.hxx`), and `runtime/device-cpu.ts`
 is the board's side of `device_execute_interface`: the core's spaces bound to
 the CPU's bus, its input lines through the board's `device_input`,
 `standard_irq_callback` for the vector, and each core's own `execute_run`,
 `m_icount` and `execute_clocks_to_cycles`. It knows nothing about which CPU it
 hosts. A core runs as MAME runs it, stopping between machine cycles when its
-icount is spent and resuming there (the Z80's `m_ref`). Its lifecycle is its
-own: an encrypted Sega Z80 decrypts its ROM in its own `device_reset` or
-`device_start`.
+icount is spent and resuming there (the Z80's `m_ref`, the 6502's
+`m_inst_substate`), and its timeslice is cut at the next device timer's
+expiry, as MAME's scheduler cuts it, so the timer fires mid-slice and the
+core resumes where it stood. Its lifecycle is its own: an encrypted Sega Z80
+decrypts its ROM in its own `device_reset` or `device_start`. So is what it
+is built of: the RP2A03 builds its APU in its own `device_add_mconfig`,
+reaches it through the internal map its constructor installs, and mixes it
+(`add_route(ALL_OUTPUTS, *this, 1.0)`); the board's sound plan names the APU
+below the CPU (`maincpu:nesapu`) at the CPU's own route
+(`src/mame/mixer-children.ts`).
 
 The families not yet moved combine MAME class/state information with
 source-derived instruction programs in `src/mame/cpu-compiler.ts`, pinned by

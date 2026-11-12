@@ -62,6 +62,9 @@ export class DeviceCpu implements Cpu {
       }
     }
     device.bindCall?.('standard_irq_callback', line => this.acknowledge(Number(line)));
+    // The core raising one of its own lines (the RP2A03's APU IRQ) goes
+    // through the board's device_input, as a driver's set_input_line does.
+    device.bindCall?.('set_input_line', (line, state) => { this.host.setInputLine(Number(line), Number(state)); return 0; });
   }
 
   /** Its state is the device's, which the board saves with the devices. */

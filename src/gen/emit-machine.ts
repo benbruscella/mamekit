@@ -70,7 +70,6 @@ export function generatedCpuAddressSpace(type: string | undefined, ownerTag: str
 }
 import type {
   GeneratedSampleWindow,
-  GeneratedNesApuPlan,
 } from '../ir/audio-protocol.ts';
 import { BoardIrError } from '../ir/decode.ts';
 import { classConstantsForGame, resolveClassConstants } from './class-constants.ts';
@@ -89,6 +88,7 @@ import { walkExpressions } from '../ir/walk.ts';
 import { MameAstIndex, parseMameAst } from '../mame/ast.ts';
 import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
 import { STREAM_SOUND_TYPES, streamRouteGains, streamRoutedDevices } from '../hardware/speaker/definition.ts';
+import { mixerChildren } from '../mame/mixer-children.ts';
 
 export function lowerGeneratedMachine(
   graph: KnowledgeGraph,
@@ -96,7 +96,6 @@ export function lowerGeneratedMachine(
   family: string,
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[]; paletteCallbacks?: PaletteCallback[] },
-  nesApu?: GeneratedNesApuPlan,
   extraHandlers: GeneratedHandler[] = [],
 ): BoardIr {
   const byId = new Map(graph.nodes.map(node => [node.id, node]));
@@ -428,42 +427,6 @@ export function lowerGeneratedMachine(
         ...(finderAliases.has(node.id) ? { finderAliases: [...finderAliases.get(node.id)!].sort() } : {}),
       };
     });
-  // The RP2A03's internal APU, as rp2a03.cpp composes it: nes_apu.cpp's device
-  // under the CPU at its clock, reached through the CPU's internal map (each
-  // range a handler with MAME's own body, `m_apu->write(0x15, data);`), its
-  // irq() on the core's APU line and its mem_read() on the CPU's program space.
-  const nesApuCpuNode = nesApu ? graph.nodes.find(node => node.label === 'Device' && /^RP2A03/.test(String(node.props.type))) : undefined;
-  const nesApuCpu = nesApuCpuNode ? { tag: String(nesApuCpuNode.props.tag), clock: Number(nesApuCpuNode.props.clock) } : undefined;
-  if (nesApu && nesApuCpu) {
-    devices.push({
-      id: `device:${nesApuCpu.tag}/${nesApu.tag}`,
-      tag: nesApu.tag,
-      type: nesApu.type,
-      member: nesApu.member,
-      clock: nesApuCpu.clock,
-    });
-    for (const range of nesApu.internalMap.ranges) {
-      for (const handler of [range.read, range.write]) {
-        if (!handler) continue;
-        handlers.push({
-          id: `handler:${nesApu.cpuClass}.${handler.method}`,
-          ownerClass: nesApu.cpuClass,
-          method: handler.method,
-          parameters: handler.parameters,
-          body: handler.body,
-          program: compileMameHandler(handler.body, handler.method.endsWith('_r') ? { returnType: 'u8' } : {}),
-          source: range.source,
-        });
-      }
-    }
-    callbacks.push({
-      id: `callback:${nesApu.tag}.irq`, ownerTag: nesApu.tag, signal: 'irq', member: 'm_irq_handler',
-      operation: 'set', targetTag: nesApuCpu.tag, inputLine: nesApu.irqLine,
-    }, {
-      id: `callback:${nesApu.tag}.mem_read`, ownerTag: nesApu.tag, signal: 'mem_read', member: 'm_mem_read_cb',
-      operation: 'set', targetTag: nesApuCpu.tag, targetSpace: nesApu.memReadSpace,
-    });
-  }
   // A driver constant spelled in a device header's macro-made enum
   // (`QIX_DAC_DATA = NODE_01`) is known only after the preprocessor the
   // device's table was lowered through; a handler that names one writes
@@ -874,9 +837,6 @@ export function lowerGeneratedMachine(
     return {
       ...cpu,
       clock: generatedCpuClock(cpu.clock),
-      ...(nesApu && cpu.type?.toLowerCase() === 'rp2a03'
-        ? { ranges: mergeInternalRanges(cpu.ranges ?? [], nesApu) }
-        : {}),
       ...(cpu.mask === undefined && ['m68000', 'm68010'].includes(cpu.type?.toLowerCase() ?? '')
         ? { mask: 0xffffff }
         : {}),
@@ -1029,22 +989,31 @@ export function lowerGeneratedMachine(
     // a palette_device built-in init, or a palette the driver banks at run time.
     ...(paletteInits.length ? { paletteInits } : {}),
   };
-  // The RP2A03's APU reaches the speaker through its CPU's own route
-  // (`m_apu->add_route(ALL_OUTPUTS, *this, 1.0)`, then the driver's
-  // `maincpu.add_route(ALL_OUTPUTS, "mono", 0.90)`).
-  const routeSource = (device: GeneratedDevice) => nesApu && nesApuCpuNode && device.tag === nesApu.tag
-    ? { ...device, id: nesApuCpuNode.id }
-    : device;
+  // A chip a device builds in its own device_add_mconfig and mixes, as a
+  // device_mixer_interface does (`m_apu->add_route(ALL_OUTPUTS, *this, 1.0)`),
+  // reaches the speaker through its device's own route (the driver's
+  // `maincpu.add_route(ALL_OUTPUTS, "mono", 0.90)`), at its gain into the
+  // device. The device builds it below its own tag (`maincpu:nesapu`), so it
+  // is a sound source and never a device of the board's.
+  const mixerSources = devices.flatMap(device => graph.meta.mameSrc
+    ? mixerChildren(String(graph.meta.mameSrc), device.type)
+      .filter(child => STREAM_SOUND_TYPES.includes(child.type))
+      .map(child => ({ device: { id: device.id, tag: `${device.tag}:${child.tag}`, type: child.type, stream: true as const }, gain: child.gain }))
+    : []);
+  const mixerGain = new Map(mixerSources.map(source => [source.device.tag, source.gain]));
+  const soundSources: GeneratedDevice[] = [...devices, ...mixerSources.map(source => source.device)];
+  const routesOf = (sources: readonly GeneratedDevice[]) => lowerAudioRoutes(graph, [...sources])
+    .map(route => ({ ...route, gain: route.gain * (mixerGain.get(sources[route.chip]?.tag ?? '') ?? 1) }));
   // A speaker the board drives or a POKEY, with whatever else renders a
   // routed stream beside it. A cassette alone is only heard beside one.
   // The NETLIST_SOUND is the mixer's own netlist node (boardNetlist), never a
   // stream beside the chips that feed it.
   const rendersStream = (device: GeneratedDevice) => device.type !== 'NETLIST_SOUND' &&
     (device.stream || STREAM_SOUND_TYPES.includes(device.type));
-  const streamDevices = devices.some(device =>
+  const streamDevices = soundSources.some(device =>
     rendersStream(device) && device.type !== 'CASSETTE')
-    ? devices.filter(device => rendersStream(device) &&
-      lowerAudioRoutes(graph, [routeSource(device)]).length > 0)
+    ? soundSources.filter(device => rendersStream(device) &&
+      lowerAudioRoutes(graph, [device]).length > 0)
     : [];
   // A route names a tag in its own machine config: a child of a sound board
   // (Irem's `filtermix`) is the board's `irem_audio:filtermix`.
@@ -1100,7 +1069,7 @@ export function lowerGeneratedMachine(
               writeMethods: [],
               enableMethods: [],
               controlOffset: -1,
-              routes: monoRoutes(graph, scopedRoutes(streamDevices, lowerAudioRoutes(graph, streamDevices.map(routeSource)))),
+              routes: monoRoutes(graph, scopedRoutes(streamDevices, routesOf(streamDevices))),
               ...boardNetlist(),
             }
         : undefined;
@@ -2113,7 +2082,6 @@ export function emitGeneratedMachine(
   outDir: string,
   board: BoardConfig,
   compiledVideo?: { plan: GeneratedVideoPlan; handlers: GeneratedHandler[] },
-  nesApu?: GeneratedNesApuPlan,
   extraHandlers: GeneratedHandler[] = [],
 ): BoardIr {
   const machine = lowerGeneratedMachine(
@@ -2122,7 +2090,6 @@ export function emitGeneratedMachine(
     family,
     board,
     compiledVideo,
-    nesApu,
     extraHandlers,
   );
   const generatedDir = join(outDir, 'generated');
@@ -2139,33 +2106,6 @@ export function emitGeneratedMachine(
     JSON.stringify(collectProvenance(machine), null, 2),
   );
   return machine;
-}
-
-function mergeInternalRanges(
-  ranges: NonNullable<BoardConfig['cpus'][number]['ranges']>,
-  plan: GeneratedNesApuPlan,
-): NonNullable<BoardConfig['cpus'][number]['ranges']> {
-  const merged = ranges.map(range => ({ ...range }));
-  for (const internal of plan.internalMap.ranges) {
-    const read = internal.read ? `${plan.cpuClass}.${internal.read.method}` : undefined;
-    const write = internal.write ? `${plan.cpuClass}.${internal.write.method}` : undefined;
-    const existing = merged.find(range =>
-      range.start === internal.start && range.end === internal.end);
-    if (existing) {
-      if (read) existing.read = read;
-      if (write) existing.write = write;
-      existing.kind = 'handler';
-      continue;
-    }
-    merged.push({
-      start: internal.start,
-      end: internal.end,
-      kind: 'handler',
-      ...(read ? { read } : {}),
-      ...(write ? { write } : {}),
-    });
-  }
-  return merged.sort((left, right) => left.start - right.start || left.end - right.end);
 }
 
 function collectProvenance(machine: BoardIr): {

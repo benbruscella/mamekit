@@ -347,6 +347,17 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   m6502.cpu.run(100);
   assert.ok(m6502.memory[0x2002]! >= 1, 'M6502: IRQ after CLI');
   assert.equal(run6502('RP2A03G', program).memory[0x2001], 0x0a, 'RP2A03: decimal mode ignored');
+  // LDX #$FF; TXS; PLA; STA $2003: `set_l(uint16_t base, uint8_t val)` keeps
+  // the low byte of `m_SP + 1`, so the stack wraps to $0100, not $0300 (#184).
+  const stack = run6502('M6502', [0xa2, 0xff, 0x9a, 0x68, 0x8d, 0x03, 0x20, 0x4c, 0x07, 0x05], 0x0500);
+  assert.ok(!stack.reads.includes(0x0200) && !stack.reads.includes(0x0300), 'M6502: the stack wraps within page 1');
+  // The RP2A03's internal map reaches the APU it builds: $4015 written
+  // through rp2a03_map's lambda (`m_apu->write(0x15, data)`), a length loaded,
+  // and the status read back through `.r(m_apu, FUNC(nesapu_device::status_r))`.
+  // LDA #$01; STA $4015; LDA #$08; STA $4003; LDA $4015; STA $2000; JMP *
+  const apu = run6502('RP2A03G', [0xa9, 0x01, 0x8d, 0x15, 0x40, 0xa9, 0x08, 0x8d, 0x03, 0x40,
+    0xad, 0x15, 0x40, 0x8d, 0x00, 0x20, 0x4c, 0x10, 0x03]);
+  assert.equal(apu.memory[0x2000]! & 1, 1, 'RP2A03: $4015 reports the APU\'s pulse length counter running');
   const m6507 = run6502('M6507', program);
   assert.ok(m6507.reads.includes(0x1ffc) && !m6507.reads.includes(0xfffc), 'M6507: 13-bit space, vector at $1FFC');
   // LDA #$5A; STA $2000; JMP *, every opcode with bits 5 and 6 swapped.

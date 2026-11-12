@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import {
   compileMameI8088,
   compileMameM68000,
-  compileMameRp2a03,
   compileMameV30,
   compileMameZ8002,
   stripInactivePreprocessorBranches,
@@ -302,43 +301,6 @@ assert.deepEqual([...v30BcdMemory.slice(0x10020, 0x10022)], [0x99, 0x99]);
 assert.equal(v30Bcd.get('m_CarryVal'), 0);
 assert.equal(v30Bcd.get('m_ZeroVal'), 1);
 
-const rp2a03Definition = compileMameRp2a03(process.env.MAME_SRC ?? '../mame');
-assert.equal(rp2a03Definition.summary.opcodes, 256);
-assert.equal(rp2a03Definition.summary.compiledOpcodes, 256);
-assert.equal(rp2a03Definition.summary.diagnostics, 0);
-assert.ok(rp2a03Definition.sourceFiles.includes('src/devices/cpu/m6502/drp2a03.lst'));
-
-clearGeneratedCpus();
-registerGeneratedCpu(rp2a03Definition);
-const rp2a03Memory = new Uint8Array(0x10000);
-rp2a03Memory.set([0xa9, 0x7f, 0x69, 0x01, 0x85, 0x10], 0x8000);
-rp2a03Memory[0xfffc] = 0x00;
-rp2a03Memory[0xfffd] = 0x80;
-const rp2a03 = createCpu('RP2A03', {
-  read: address => rp2a03Memory[address]!,
-  write: (address, data) => { rp2a03Memory[address] = data; },
-  in: () => 0xff,
-  out: () => {},
-});
-// MAME's STATE_RESET: the reset sequence is the first instruction, 7 cycles.
-assert.equal(rp2a03.step(), 7);
-assert.equal(rp2a03.get('m_PC'), 0x8000);
-assert.equal(rp2a03.step(), 2);
-assert.equal(rp2a03.get('m_A'), 0x7f);
-assert.equal(rp2a03.step(), 2);
-assert.equal(rp2a03.get('m_A'), 0x80);
-assert.equal(rp2a03.step(), 3);
-assert.equal(rp2a03Memory[0x10], 0x80);
-// LDX #$FF ; TXS ; PLA: MAME's `set_l(uint16_t base, uint8_t val)` keeps the
-// low byte of `m_SP + 1`, so the stack wraps to $0100, not $0300 (#184).
-rp2a03Memory.set([0xa2, 0xff, 0x9a, 0x68], 0x8006);
-rp2a03Memory[0x0100] = 0x42;
-rp2a03Memory[0x0300] = 0x99;
-rp2a03.step();
-rp2a03.step();
-rp2a03.step();
-assert.equal(rp2a03.get('m_A'), 0x42, 'a call converts its arguments to the parameter types');
-assert.ok(generatedCpuExecutableSource(rp2a03Definition).length > 100_000);
 
 
 const emptyProgram = { operations: [], diagnostics: [] };

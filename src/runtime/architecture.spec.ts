@@ -310,10 +310,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
     'body write_byte', 'body write_port_byte', 'body write_port_byte_al', 'body write_port_word',
     'body write_word',
   ],
-  'mame/cpu-compiler.ts: compileMameM6502Variant': [
-    '20 source edits', 'body body', 'body dec_SP', 'body fetch', 'body inc_SP',
-    'body page_changing', 'body service', 'body set_h', 'body set_l', 'body start',
-  ],
   'mame/cpu-compiler.ts: compileMameM68000': [
     'body fetch', 'body input', 'body program', 'body reset', 'body service', 'body start',
   ],
@@ -394,7 +390,6 @@ const HAND_WRITTEN_CPU_FACTS: string[] = [
   'gen/emit-machine.ts: lowerGeneratedMachine: i8088',
   'gen/emit-machine.ts: lowerGeneratedMachine: m68000',
   'gen/emit-machine.ts: lowerGeneratedMachine: m68010',
-  'gen/emit-machine.ts: lowerGeneratedMachine: rp2a03',
   'gen/emit-machine.ts: lowerGeneratedMachine: tms34010',
   'gen/emit-machine.ts: lowerGeneratedMachine: v30',
   'mame/cpu-codegen.ts: class Pair16',
