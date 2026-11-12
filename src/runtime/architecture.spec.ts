@@ -316,10 +316,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
   'mame/cpu-compiler.ts: compileMameTms320c10': [
     '5 source edits', 'body fetch', 'body program', 'body service',
   ],
-  'mame/cpu-compiler.ts: compileMameZ8002': [
-    '24 source edits', 'body RDOP', 'body fetch', 'body get_operand', 'body input', 'body program',
-    'body reset', 'body service', 'body start',
-  ],
   'mame/cpu-compiler.ts: m68000SupportMethods': [
     'body (anonymous)', 'body BIT_B', 'body BIT_F', 'body CFLAG_1', 'body CFLAG_16', 'body CFLAG_8',
     'body CFLAG_ADD_32', 'body CFLAG_SUB_32', 'body COND_LE', 'body COND_LS', 'body COND_LT',
@@ -401,7 +397,6 @@ const HAND_WRITTEN_CPU_FACTS: string[] = [
   'mame/cpu-codegen.ts: class XyHalves',
   'mame/cpu-codegen.ts: class XyRegister',
   'mame/cpu-codegen.ts: class XyValue',
-  'mame/cpu-codegen.ts: class Z8000RegisterFile',
   'mame/cpu-codegen.ts: execute_run step',
   'runtime/generated-board-shape.ts: generatedCpuDataWidth: m68000',
   'runtime/generated-board-shape.ts: generatedCpuDataWidth: m68010',

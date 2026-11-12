@@ -2423,6 +2423,8 @@ class IrBoard implements Board {
         // A 68000 long access is two word accesses on the real bus, so keep
         // it that way: address-space taps must see the same two.
         read32be: address => bus.read32be(busAddress(address)),
+        read16le: address => bus.read16le(busAddress(address)),
+        write16le: (address, data) => bus.write16le(busAddress(address), data),
         ...(bus.readOpcode ? {
           // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
           readOpcode: address => bus.readOpcode!(address),

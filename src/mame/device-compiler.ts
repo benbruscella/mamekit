@@ -147,7 +147,8 @@ export interface GeneratedStructField {
   name: string;
   valueType?: string;
   length?: number;
-  bits?: 1 | 8 | 16 | 32;
+  /** 64 only lays out a union (the Z8002's `uint64_t Q[4]`); arithmetic stays at 32. */
+  bits?: 1 | 8 | 16 | 32 | 64;
   signed?: boolean;
   fields?: GeneratedStructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
@@ -502,6 +503,7 @@ export function compileMameDevice(
 ): GeneratedDeviceDefinition {
   const device = compileMameDeviceReading(mameSrc, definition, type, compiling, options);
   if (!options.transformSource) {
+    attachLibraryFunctions(mameSrc, device);
     attachStateEntries(mameSrc, device);
     if (device.sourceFiles.some(file => /\.h$/.test(file) && existsSync(join(mameSrc, file)) &&
       /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {
@@ -509,6 +511,59 @@ export function compileMameDevice(
     }
   }
   return device;
+}
+
+/**
+ * MAME's own library inlines every device reaches through emu.h, read from
+ * their headers: endianness.h's `template <typename T> constexpr T
+ * BYTE4_XOR_BE(T a) { return a ^ NATIVE_ENDIAN_VALUE_LE_BE(3,0); }` and the
+ * rest of its family, the host taken as little-endian, as MAME's LSB_FIRST
+ * build is. The Z8002 indexes its register file with them (`RW(n)` is
+ * `m_regs.W[BYTE4_XOR_BE(n)]`); unresolved, every register write was lost.
+ */
+const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h'];
+const LIBRARY_INLINES = new Map<string, Map<string, { parameters: string; body: string; file: string; line: number }>>();
+
+function libraryInlines(mameSrc: string): Map<string, { parameters: string; body: string; file: string; line: number }> {
+  const cached = LIBRARY_INLINES.get(mameSrc);
+  if (cached) return cached;
+  const found = new Map<string, { parameters: string; body: string; file: string; line: number }>();
+  for (const file of LIBRARY_INLINE_HEADERS) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    const lines = readFileSync(path, 'utf8').split('\n');
+    lines.forEach((line, index) => {
+      const match = /^\s*template\s*<\s*typename\s+(\w+)\s*>\s*constexpr\s+\1\s+(\w+)\s*\(\s*\1\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
+      if (!match) return;
+      const body = match[4]!.replace(/\bNATIVE_ENDIAN_VALUE_LE_BE\s*\(\s*([^,()]+)\s*,\s*([^,()]+)\s*\)/g, '($1)');
+      found.set(match[2]!, { parameters: `int ${match[3]}`, body: `return ${body};`, file, line: index + 1 });
+    });
+  }
+  LIBRARY_INLINES.set(mameSrc, found);
+  return found;
+}
+
+/** A library inline the device calls and does not define, added as one of its methods. */
+function attachLibraryFunctions(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  const inlines = libraryInlines(mameSrc);
+  if (!inlines.size) return;
+  const defined = new Set(device.methods.map(method => method.name));
+  const wanted = new Set<string>();
+  for (const method of device.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+          inlines.has(expression.callee.name) && !defined.has(expression.callee.name)) wanted.add(expression.callee.name);
+    });
+  }
+  for (const name of wanted) {
+    const inline = inlines.get(name)!;
+    device.methods.push({
+      name,
+      parameters: inline.parameters,
+      program: compileMameHandler(inline.body),
+      source: { file: inline.file, line: inline.line },
+    });
+  }
 }
 
 /** MAME's generic state indices (emu/distate.h): STATE_GENPC is -1. */
@@ -532,8 +587,15 @@ function distateIndices(mameSrc: string): Record<string, number> {
  */
 function attachStateEntries(mameSrc: string, device: GeneratedDeviceDefinition): void {
   // device_start's own, or a helper it calls: the 6502 family registers its
-  // table in init().
-  const starts = device.methods.filter(method => method.name === 'device_start' || method.name === 'init');
+  // table in init(), the Z8002 in register_debug_state().
+  const registers = (method: GeneratedDeviceMethod) => {
+    let found = false;
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' && /^state_add\b/.test(expression.callee.name)) found = true;
+    });
+    return found;
+  };
+  const starts = device.methods.filter(registers);
   if (!starts.length) return;
   const indices = { ...distateIndices(mameSrc), ...device.constants };
   const indexOf = (expression: GeneratedExpression): number | undefined => {
@@ -725,13 +787,16 @@ function preprocessedSources(
   // (z80.inc's `#define PC m_pc.w`), as opposed to one that is data with
   // macros of its own (nes_unif.hxx's SPLIT_PRG): read as written, those uses
   // are bare names.
+  // Or a header beside it that defines function-like macros it calls:
+  // z8000cpu.h's `RW(n)`, which the Z8002 writes as `RW(dst) -= 2`.
   const nonHeaderMacros = entries.some(entry => includes(entry).some(path => {
-    if (path.endsWith('.h')) return false;
     const file = resolve(path, entry);
     if (!file) return false;
     const own = stripCppComments(read(entry));
-    return [...stripCppComments(read(file)).matchAll(/^\s*#\s*define\s+(\w+)/gm)]
-      .some(match => new RegExp(`\\b${match[1]}\\b`).test(own));
+    const header = path.endsWith('.h');
+    if (header && dirname(file) !== dirname(entry)) return false;
+    return [...stripCppComments(read(file)).matchAll(header ? /^\s*#\s*define\s+(\w+)\(/gm : /^\s*#\s*define\s+(\w+)/gm)]
+      .some(match => new RegExp(header ? `\\b${match[1]}\\s*\\(` : `\\b${match[1]}\\b`).test(own));
   }));
   let foreignMacros = false;
   const calledForeign = new Set<string>();
@@ -6378,7 +6443,7 @@ function staticStructConstants(
     const records = elements.map(element => {
       const items = initializerItems(element.slice(1, -1));
       return Object.fromEntries(fields.map((field, index) => [field.name,
-        items[index] === undefined ? 0 : evalExpr(items[index]!, constants) ?? 0]));
+        items[index] === undefined ? 0 : quotedItem(items[index]!) ?? memberFunctionName(items[index]!) ?? evalExpr(items[index]!, constants) ?? 0]));
     });
     lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
   }
@@ -6401,7 +6466,7 @@ function staticStructConstants(
     const element = (item: string | undefined): unknown => {
       if (item === undefined) return 0;
       const quoted = /^"((?:[^"\\]|\\.)*)"$/.exec(item.trim());
-      return quoted ? quoted[1]! : evalExpr(item, constants) ?? 0;
+      return quoted ? quoted[1]! : memberFunctionName(item) ?? evalExpr(item, constants) ?? 0;
     };
     const records = elements.map(item => {
       const items = initializerItems(item.slice(1, -1));
@@ -6411,6 +6476,24 @@ function staticStructConstants(
     lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
   }
   return lifted;
+}
+
+/**
+ * A member-function pointer in a table row (`&z8002_device::Z01_ssN0_dddd`),
+ * as CALL_METHOD dispatches one: the method's name. The Z8002 decodes every
+ * opcode through such a table; evaluated as a number, every row's handler was 0.
+ */
+function memberFunctionName(item: string): string | undefined {
+  return /^&\s*(?:\w+::)+(\w+)$/.exec(item.trim())?.[1];
+}
+
+/**
+ * A quoted element, as its string: a format's name, or a member-function
+ * pointer lowerMemberPointerValues has already made its method's name
+ * (`"zinvalid"`).
+ */
+function quotedItem(item: string): string | undefined {
+  return /^"((?:[^"\\]|\\.)*)"$/.exec(item.trim())?.[1];
 }
 
 export function structDeclarations(
@@ -6595,8 +6678,10 @@ function structBlocks(
     const declared = /^\s*(\w+)\s*(?:\[([^\]]*)\])?\s*;/.exec(source.slice(close + 1));
     const declarator = declared?.[1];
     const union = match[1] === 'union';
-    // An anonymous union is only ever part of what holds it.
-    if (union && !match[2]) {
+    // An anonymous union with no declarator is only ever part of what holds
+    // it; one with a declarator declares a member of its shape, as the
+    // Z8002's register file is `union { u8 B[16]; u16 W[16]; ... } m_regs`.
+    if (union && !match[2] && !declarator) {
       opener.lastIndex = close + 1;
       continue;
     }
@@ -6696,7 +6781,7 @@ function structFieldList(
         .test(valueType);
       // A bool is true or false, as a bool member is (bits 1): the Z80 stores
       // its carry as `m_f.c = res & 0x100`, and narrowed to a byte it was 0.
-      const bits: 1 | 8 | 16 | 32 = valueType === 'bool' ? 1 : /64/.test(valueType) ? 32
+      const bits: 1 | 8 | 16 | 32 | 64 = valueType === 'bool' ? 1 : /64/.test(valueType) ? 64
         : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
           : /16|\bshort\b/.test(valueType) ? 16
             : /8|bool|char/.test(valueType) ? 8

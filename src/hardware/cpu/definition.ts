@@ -11,7 +11,6 @@ export const CPU_ID = 'cpu';
 
 /** MAME device types with a generated core, in emit order. */
 export const CPU_MAME_TYPES = [
-  'Z8002',
   'I8088', 'V30',
   'M68000', 'M68010',
   'TMS320C10',

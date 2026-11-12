@@ -45,6 +45,9 @@ export const DEVICE_MAME_TYPES = [
   // The NES's RP2A03: the 6502 without decimal mode, its APU a child it builds
   // and mixes, reached through the internal map its constructor installs.
   'RP2A03', 'RP2A03G',
+  // z8000.cpp's Z8002, its register file a union over one buffer and its
+  // opcodes a table of member-function pointers; Pole Position's sub-CPUs.
+  'Z8002',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

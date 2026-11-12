@@ -1625,6 +1625,7 @@ function compileFastAssign(
       if (isGeneratedPointer(object)) setPointerValue(object, at, next);
       else if (ArrayBuffer.isView(object)) (object as Uint8Array)[at] = toNumber(next);
       else if (Array.isArray(object)) object[at] = next;
+      else if (isIndexableMemory(object)) (object as unknown as Record<number, unknown>)[at] = next;
     };
   }
   return (context, value) => assign(target, operator, value, context);
@@ -4643,8 +4644,16 @@ export function dereferenceGeneratedValue(value: unknown): unknown {
 }
 
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
-  return ArrayBuffer.isView(value) || Array.isArray(value);
+  return ArrayBuffer.isView(value) || Array.isArray(value) ||
+    (typeof value === 'object' && value !== null && (value as { [UNION_ELEMENTS]?: true })[UNION_ELEMENTS] === true);
 }
+
+/**
+ * Marks a union's array field the runtime keeps as accessors (a 64-bit one,
+ * exact as a bigint, which no typed array of numbers can hold): indexed like
+ * memory, read and written through its elements' getters and setters.
+ */
+export const UNION_ELEMENTS = Symbol.for('mamekit.unionElements');
 
 /**
  * A MAME memory container's own accessor, answered from the container.

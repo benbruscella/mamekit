@@ -1,7 +1,6 @@
 import {
   compileMameI8088,
   compileMameM68000,
-  compileMameZ8002,
   compileMameTms320c10,
   compileMameV30,
 } from '../../mame/cpu-compiler.ts';
@@ -16,7 +15,6 @@ import { CPU_MAME_TYPES, cpuIrArtifact, cpuModuleArtifact } from './definition.t
 
 /** Which MAME compiler produces each core. */
 const COMPILERS: Record<string, (mameSource: string) => unknown> = {
-  Z8002: compileMameZ8002,
   I8088: compileMameI8088,
   V30: compileMameV30,
   M68000: compileMameM68000,

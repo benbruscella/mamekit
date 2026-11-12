@@ -179,9 +179,12 @@ export function generatedDeviceMethodsSource(
     else if (Array.isArray(value)) value.forEach(collectNames);
     else if (value && typeof value === 'object') Object.values(value).forEach(collectNames);
   };
-  for (const member of (definition as { members?: { values?: unknown; initialValue?: unknown }[] }).members ?? []) {
+  // A static table of rows is one too: the Z8002's `Z8000_init table[]`,
+  // each row's handler a member-function pointer.
+  for (const member of (definition as { members?: { values?: unknown; initialValue?: unknown; initialValues?: unknown }[] }).members ?? []) {
     collectNames(member.values);
     collectNames(member.initialValue);
+    collectNames(member.initialValues);
   }
   const roots = definition.methods.filter(method =>
     !overloaded.has(method.name) &&
@@ -1574,6 +1577,14 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     if (expression.operator === '+' && !isKnownNumericType(leftType) &&
         !isKnownNumericType(rightType)) {
       return `runtime.add(${left}, ${right})`;
+    }
+    // Less an array, a pointer is a count of elements, as C decays the array:
+    // the Z8002 numbers its opcode rows `opc - table`, and offset by the
+    // negated table every row was 0.
+    const arrayOperand = (operand: GeneratedExpression) => operand.kind === 'identifier' && !context.locals.has(operand.name) &&
+      Boolean(context.definition.members.find(member => member.name === operand.name)?.arrayLength);
+    if (expression.operator === '-' && leftType?.includes('*') && arrayOperand(expression.right)) {
+      return `runtime.subtract(${left}, ${right})`;
     }
     if (expression.operator === '-' && leftType?.includes('*') && !rightType?.includes('*')) {
       return `runtime.addressOf(${left}, -(${right}))`;
@@ -3148,7 +3159,8 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     const field = structFieldOf(expression, context) ?? allocatedObjectField(expression, context);
     return {
       code: emitExpression(expression, context),
-      ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),
+      // A 64-bit field (a union's) is stored as the runtime holds it, unnarrowed.
+      ...(field?.bits && field.bits !== 64 ? { bits: field.bits, signed: field.signed } : {}),
       // A pointer field steps by pointer arithmetic, and so does one whose
       // type it cannot follow (a range-for element's): discrete's tasks read
       // each buffered source as `sn.buffer = *sn.ptr++`.
@@ -3186,7 +3198,18 @@ function tryParseParameters(
   // emitted method took an argument its callers never pass -- which is a
   // compile error the moment such a method is selected for codegen.
   if (parameters.trim() === 'void') return parsed;
-  for (const parameter of parameters.split(',').map(entry => entry.trim()).filter(Boolean)) {
+  // Split at commas outside a template's arguments
+  // (`memory_access<23, 1, 0, ENDIANNESS_BIG>::specific &space, uint32_t addr`).
+  const entries: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const character of parameters) {
+    if (character === '<' || character === '(' || character === '[') depth++;
+    else if (character === '>' || character === ')' || character === ']') depth = Math.max(0, depth - 1);
+    if (character === ',' && depth === 0) { entries.push(current); current = ''; } else current += character;
+  }
+  entries.push(current);
+  for (const parameter of entries.map(entry => entry.trim()).filter(Boolean)) {
     const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1];
     if (!name) return undefined;
     parsed.push({

@@ -33,7 +33,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { UNION_VIEW, buildCallLinks, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
+import { UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -88,7 +88,7 @@ interface StructField {
   name: string;
   valueType?: string;
   length?: number;
-  bits?: 1 | 8 | 16 | 32;
+  bits?: 1 | 8 | 16 | 32 | 64;
   signed?: boolean;
   fields?: StructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
@@ -415,11 +415,17 @@ export interface Device {
   imageError?(): string | undefined;
   /** Eject a mounted image (a floppy drive's call_unload). */
   unmountImage?(): void;
-  /** Install a machine-config map over a declared byte-wide device space. */
+  /**
+   * Install a machine-config map over a declared device space: byte access,
+   * and for a 16-bit space the bus's own word access (`wide`), so a word
+   * handler sees one access, not two halves.
+   */
   bindAddressSpace?(index: number, read: (address: number) => number,
-    write: (address: number, data: number) => void): void;
+    write: (address: number, data: number) => void, wide?: WideSpaceAccess): void;
   /** The MAME address-space indices the device declares (memory_space_config). */
   spaceIndices?(): readonly number[];
+  /** One declared space's config: its width, byte order and address shift. */
+  spaceConfig?(index: number): { dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number } | undefined;
   reset(): void;
   tick(seconds: number): void;
   /** MAME's `device_pre_save` on the device and the devices inside it, before a state save. */
@@ -3058,9 +3064,19 @@ class IrDevice implements Device {
     return (this.definition.spaces ?? []).map(space => space.index);
   }
 
+  spaceConfig(index: number): { dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number } | undefined {
+    return this.definition.spaces?.find(space => space.index === index);
+  }
+
   bindAddressSpace(index: number, read: (address: number) => number,
-    write: (address: number, data: number) => void): void {
+    write: (address: number, data: number) => void, wide?: WideSpaceAccess): void {
     const config = this.definition.spaces?.find(space => space.index === index);
+    if (config && config.dataBits > 8 && !config.map) {
+      const space = this.spaces.get(index);
+      if (!space || !wide) throw new Error(`${this.definition.type}: space ${index} is ${config.dataBits} bits wide and its owner gives no word access`);
+      bindWideSpace(space, config, read, write, wide);
+      return;
+    }
     // A space with an internal map of its own (a 6801's ports, timer and
     // RAM): the owner's map is the rest of it. MAME builds the internal map
     // first, so it takes priority (address_map's constructor).
@@ -4151,7 +4167,23 @@ function generatedMemoryArray(
 function splitParameters(parameters: string): string[] {
   // `(void)` is C's empty parameter list, not a parameter named `void`.
   if (parameters.trim() === 'void') return [];
-  return parameters.split(',').map(parameter => parameter.trim()).filter(Boolean);
+  // A comma inside a template's arguments is not a parameter break: the
+  // Z8002's RDMEM_W takes `memory_access<23, 1, 0, ENDIANNESS_BIG>::specific
+  // &space, uint32_t addr`, and split on every comma its address was the
+  // fifth parameter, so the reset vector was read from 0.
+  const split: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const character of parameters) {
+    if (character === '<' || character === '(' || character === '[') depth++;
+    else if (character === '>' || character === ')' || character === ']') depth = Math.max(0, depth - 1);
+    if (character === ',' && depth === 0) {
+      split.push(current);
+      current = '';
+    } else current += character;
+  }
+  split.push(current);
+  return split.map(parameter => parameter.trim()).filter(Boolean);
 }
 
 /**
@@ -4432,9 +4464,85 @@ function deviceMemoryView(): DeviceMemoryView {
 /** A child device handle's parameter lookup, by method name (see the child handles). */
 const DEVICE_PARAMETERS = Symbol('device parameters');
 
+/** The bus's own word access for a device space wider than a byte, at bus byte addresses. */
+export interface WideSpaceAccess {
+  read16(address: number): number;
+  write16(address: number, data: number): void;
+}
+
+/**
+ * MAME's address_space surface over a 16-bit space (emumem.h): byte, word and
+ * dword access at the space's own addresses, each converted to bus bytes by
+ * its address shift (-1: a word-addressed TMS320C10, so address N is bytes 2N
+ * and 2N+1; +3: a bit-addressed TMS34010). A word with a partial `mem_mask`
+ * writes only its selected byte lane; a dword is two words in the space's
+ * byte order, as MAME performs one on a 16-bit bus.
+ */
+function bindWideSpace(
+  space: GeneratedDeviceSpace,
+  config: { dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number },
+  read: (address: number) => number,
+  write: (address: number, data: number) => void,
+  wide: WideSpaceAccess,
+): void {
+  const shift = config.addressShift ?? 0;
+  const little = config.endianness === 'little';
+  const bus = shift < 0 ? (address: number) => address * 2 ** -shift : shift > 0 ? (address: number) => Math.floor(address / 2 ** shift) : (address: number) => address;
+  const word = (address: number) => bus(address) & ~1;
+  // The byte lane a mask selects, as the bus address of that byte.
+  const lane = (address: number, high: boolean) => word(address) + (high === little ? 1 : 0);
+  const target = space as unknown as Record<string, unknown>;
+  space.read_byte = address => read(bus(address)) & 0xff;
+  space.write_byte = (address, data) => { write(bus(address), data & 0xff); return 0; };
+  target.read_word = (address: number, mask = 0xffff) => wide.read16(word(address)) & 0xffff & (Number(mask) || 0xffff);
+  target.write_word = (address: number, data: number, mask = 0xffff) => {
+    const selected = Number(mask) & 0xffff;
+    if (selected === 0xffff || selected === 0) wide.write16(word(address), Number(data) & 0xffff);
+    else {
+      if (selected & 0xff00) write(lane(address, true), (Number(data) >>> 8) & 0xff);
+      if (selected & 0x00ff) write(lane(address, false), Number(data) & 0xff);
+    }
+    return 0;
+  };
+  // One word of a dword at a time, high word first on a big-endian space; the
+  // next word is one address on a word-addressed space, 16 on a bit-addressed one.
+  const next = (address: number) => address + (shift < 0 ? 1 : shift > 0 ? 16 : 2);
+  target.read_dword = (address: number) => {
+    const first = (target.read_word as (a: number) => number)(address);
+    const second = (target.read_word as (a: number) => number)(next(address));
+    return (little ? (second << 16) | first : (first << 16) | second) >>> 0;
+  };
+  target.write_dword = (address: number, data: number) => {
+    const value = Number(data) >>> 0;
+    const high = value >>> 16, low = value & 0xffff;
+    (target.write_word as (a: number, d: number) => number)(address, little ? low : high);
+    (target.write_word as (a: number, d: number) => number)(next(address), little ? high : low);
+    return 0;
+  };
+  // An unaligned word is two byte accesses, in the space's order.
+  target.read_word_unaligned = (address: number) => little
+    ? (space.read_byte(address) | (space.read_byte(address + 1) << 8)) & 0xffff
+    : ((space.read_byte(address) << 8) | space.read_byte(address + 1)) & 0xffff;
+  target.write_word_unaligned = (address: number, data: number) => {
+    const value = Number(data) & 0xffff;
+    space.write_byte(little ? address : address + 1, value & 0xff);
+    space.write_byte(little ? address + 1 : address, value >>> 8);
+    return 0;
+  };
+  target.data_width = () => config.dataBits;
+  space.read_interruptible = space.read_byte;
+  space.write_interruptible = space.write_byte;
+}
+
 /** A space's config answers, as address_space reads them from its address_space_config. */
 function withSpaceConfig<T extends GeneratedDeviceSpace>(space: T, addressBits: number): T {
   space.addr_width = () => addressBits;
+  // memory_access::specific::space() is the space itself here, and
+  // address_space::addrmask() its width's mask: the Z8002 masks its PC's
+  // debugger state with `m_program.space().addrmask()`.
+  const surface = space as unknown as Record<string, unknown>;
+  surface.space ??= () => space;
+  surface.addrmask ??= () => 2 ** addressBits - 1;
   return space;
 }
 
@@ -5002,6 +5110,25 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
   const scalar = (field: StructField, at: number) => {
     const width = Math.ceil((field.bits ?? 32) / 8);
     const truth = field.bits === 1;
+    // A 64-bit field is exact: a number while one can hold it, else a bigint,
+    // as the executor's own 64-bit arithmetic answers (generatedWideBinary).
+    if (width === 8) {
+      return {
+        get: () => {
+          let word = 0n;
+          for (let index = 7; index >= 0; index--) word = (word << 8n) | BigInt(bytes[at + index]!);
+          if (field.signed) word = BigInt.asIntN(64, word);
+          return word <= BigInt(Number.MAX_SAFE_INTEGER) && word >= BigInt(Number.MIN_SAFE_INTEGER) ? Number(word) : word;
+        },
+        set: (next: unknown) => {
+          let word = BigInt.asUintN(64, typeof next === 'bigint' ? next : BigInt(Math.trunc(Number(next) || 0)));
+          for (let index = 0; index < 8; index++) {
+            bytes[at + index] = Number(word & 0xffn);
+            word >>= 8n;
+          }
+        },
+      };
+    }
     return {
       get: () => {
         let word = 0;
@@ -5035,8 +5162,21 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
       Object.defineProperty(target, field.name, { value: nested, enumerable, configurable: true });
     } else if (field.length) {
       const width = Math.ceil((field.bits ?? 32) / 8);
+      // An array field of 8, 16 or 32 bits is a typed array over the union's
+      // own bytes, as the host's little-endian layout is MAME's: the Z8002's
+      // `u8 B[16]; u16 W[16]; u32 L[8]` over one register file, indexed like
+      // any memory by either executor. A 64-bit or unaligned one keeps exact
+      // accessors (UNION_ELEMENTS).
+      const View = width === 1 ? (field.signed ? Int8Array : Uint8Array)
+        : width === 2 ? (field.signed ? Int16Array : Uint16Array)
+          : width === 4 ? (field.signed ? Int32Array : Uint32Array) : undefined;
+      if (View && field.bits !== 1 && at % width === 0) {
+        Object.defineProperty(target, field.name, { value: new View(bytes.buffer, at, field.length), enumerable, configurable: true });
+        return;
+      }
       const elements: Record<number, unknown> & { length: number } = { length: field.length };
       for (let index = 0; index < field.length; index++) Object.defineProperty(elements, index, { ...scalar(field, at + index * width), enumerable: true });
+      Object.defineProperty(elements, UNION_ELEMENTS, { value: true, enumerable: false });
       Object.defineProperty(target, field.name, { value: elements, enumerable, configurable: true });
     } else {
       Object.defineProperty(target, field.name, { ...scalar(field, at), enumerable, configurable: true });

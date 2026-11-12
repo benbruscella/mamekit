@@ -1341,6 +1341,11 @@ class HandlerParser {
     // `std::vector<uint32_t> &codelookup = ...` is a declaration, and reading
     // its angle brackets as `<` and `>` yields an assignment to a comparison.
     let cursor = this.skipTemplateArguments(this.skipQualifiedName(this.index));
+    // A name that goes on past its template's arguments:
+    // `memory_access<23, 1, 0, ENDIANNESS_BIG>::specific &space = ...` (the Z8002).
+    while (this.tokens[cursor]?.text === '::' && this.tokens[cursor + 1]?.kind === 'identifier') {
+      cursor = this.skipTemplateArguments(this.skipQualifiedName(cursor + 1));
+    }
     while (this.tokens[cursor]?.text === '*' || this.tokens[cursor]?.text === '&') cursor++;
     // `Type *const name(...)`: cv-qualifiers belong to the pointer, not to the
     // declared name. Stopping at `const` read the whole statement as an
@@ -1395,6 +1400,17 @@ class HandlerParser {
       while (this.atText('::') && this.tokens[this.index + 1]?.kind === 'identifier') {
         this.take();
         name += `::${this.take().text}`;
+      }
+      // Its template's arguments, and a name that goes on after them
+      // (`memory_access<23, 1, 0, ENDIANNESS_BIG>::specific`): the type is
+      // `memory_access::specific`, its arguments naming nothing the IR carries.
+      while (this.skipTemplateArguments(this.index) !== this.index &&
+          this.tokens[this.skipTemplateArguments(this.index)]?.text === '::') {
+        this.index = this.skipTemplateArguments(this.index);
+        while (this.atText('::') && this.tokens[this.index + 1]?.kind === 'identifier') {
+          this.take();
+          name += `::${this.take().text}`;
+        }
       }
       typeWords.push(name);
     }

@@ -12,6 +12,9 @@ export interface CpuBus {
   read16be?(address: number): number;
   /** A 68000 long access, which MAME performs as two word accesses. */
   read32be?(address: number): number;
+  /** Atomic little-endian word access (a 16-bit ENDIANNESS_LITTLE space). */
+  read16le?(address: number): number;
+  write16le?(address: number, data: number): void;
   /** AS_OPCODES fetch when the board maps encrypted opcodes separately. */
   readOpcode?(address: number): number;
   write(address: number, data: number): void;
@@ -91,7 +94,6 @@ interface CpuMember {
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
   wordByteRegisters?: number;
-  z8000Registers?: boolean;
   /** A pointer to another device the host sets: wiring, not state. */
   link?: boolean;
 }
@@ -261,9 +263,7 @@ class IrCpu implements Cpu {
     this.opcodes = new Map(definition.opcodes.map(opcode => [opcode.key, opcode]));
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
-      if (member.z8000Registers) {
-        this.members[member.name] = new Z8000RegisterFile();
-      } else if (member.wordByteRegisters) {
+      if (member.wordByteRegisters) {
         this.members[member.name] = new WordByteRegisterFile(member.wordByteRegisters);
       } else if (member.values) {
         this.members[member.name] = member.bits === 8
@@ -814,51 +814,6 @@ class WordByteRegisterFile {
     const buffer = new ArrayBuffer(words * 2);
     this.w = new Uint16Array(buffer);
     this.b = new Uint8Array(buffer);
-  }
-}
-
-class Z8000RegisterFile {
-  readonly W = new Uint16Array(16);
-  readonly B: Record<number, number>;
-  readonly L: Record<number, number>;
-  readonly Q: Record<number, number>;
-
-  constructor() {
-    this.B = new Proxy({}, {
-      get: (_target, key) => {
-        const index = Number(key); const word = this.W[index >>> 1] ?? 0;
-        return index & 1 ? word & 0xff : word >>> 8;
-      },
-      set: (_target, key, value) => {
-        const index = Number(key); const slot = index >>> 1; const old = this.W[slot] ?? 0;
-        this.W[slot] = index & 1 ? (old & 0xff00) | (Number(value) & 0xff)
-          : (old & 0xff) | ((Number(value) & 0xff) << 8); return true;
-      },
-    }) as Record<number, number>;
-    this.L = new Proxy({}, {
-      get: (_target, key) => {
-        const index = Number(key) * 2;
-        return ((((this.W[index] ?? 0) << 16) | (this.W[index + 1] ?? 0)) >>> 0);
-      },
-      set: (_target, key, value) => {
-        const index = Number(key) * 2; const data = Number(value) >>> 0;
-        this.W[index] = data >>> 16; this.W[index + 1] = data; return true;
-      },
-    }) as Record<number, number>;
-    this.Q = new Proxy({}, {
-      get: (_target, key) => {
-        const index = Number(key) * 4;
-        return (this.W[index] ?? 0) * 0x1000000000000 + (this.W[index + 1] ?? 0) * 0x100000000 +
-          (this.W[index + 2] ?? 0) * 0x10000 + (this.W[index + 3] ?? 0);
-      },
-      set: (_target, key, value) => {
-        const index = Number(key) * 4; let data = Number(value);
-        this.W[index + 3] = data; data = Math.floor(data / 0x10000);
-        this.W[index + 2] = data; data = Math.floor(data / 0x10000);
-        this.W[index + 1] = data; data = Math.floor(data / 0x10000);
-        this.W[index] = data; return true;
-      },
-    }) as Record<number, number>;
   }
 }
 

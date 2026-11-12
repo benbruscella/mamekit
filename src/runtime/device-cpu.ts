@@ -21,7 +21,7 @@
 // Nothing here knows which CPU it hosts.
 
 import type { Cpu, CpuBus } from './generated-cpu.ts';
-import type { Device } from './generated-device.ts';
+import type { Device, WideSpaceAccess } from './generated-device.ts';
 import { HOST_INPUT_LINES } from '../ir/board.ts';
 
 /** MAME's address-space indices (emu/emumem.h). */
@@ -53,12 +53,57 @@ export class DeviceCpu implements Cpu {
     this.host = host;
     const read = (address: number) => bus.read(address);
     const write = (address: number, data: number) => bus.write(address, data);
+    // A 16-bit space reaches the bus's own word access, in its own byte order
+    // (the board's bus is built with the same), so a word handler is called
+    // once.
+    const wide = (index: number): WideSpaceAccess | undefined => {
+      const config = device.spaceConfig?.(index);
+      if (!config || config.dataBits <= 8) return undefined;
+      const little = config.endianness === 'little';
+      return {
+        read16: address => little
+          ? bus.read16le?.(address) ?? (read(address) | (read(address + 1) << 8))
+          : bus.read16be?.(address) ?? ((read(address) << 8) | read(address + 1)),
+        write16: (address, data) => {
+          if (little) {
+            if (bus.write16le) bus.write16le(address, data);
+            else { write(address, data & 0xff); write(address + 1, data >>> 8); }
+          } else if (bus.write16be) bus.write16be(address, data);
+          else { write(address, data >>> 8); write(address + 1, data & 0xff); }
+        },
+      };
+    };
     for (const space of device.spaceIndices?.() ?? []) {
-      if (space === AS_PROGRAM) device.bindAddressSpace?.(space, read, write);
+      if (space === AS_PROGRAM) device.bindAddressSpace?.(space, read, write, wide(space));
       else if (space === AS_IO) {
-        device.bindAddressSpace?.(space, port => bus.in?.(port) ?? 0xff, (port, data) => bus.out?.(port, data));
+        const inByte = (port: number) => bus.in?.(port) ?? 0xff;
+        const outByte = (port: number, data: number) => bus.out?.(port, data);
+        // A 16-bit port space reaches the bus's own word ports (the TMS320C1x's,
+        // the Z8002's), so a word handler sees one access.
+        const config = device.spaceConfig?.(space);
+        const ports: WideSpaceAccess | undefined = config && config.dataBits > 8 ? {
+          read16: port => bus.in16be?.(port) ?? ((inByte(port) << 8) | inByte(port + 1)),
+          write16: (port, data) => {
+            if (bus.out16be) bus.out16be(port, data);
+            else { outByte(port, data >>> 8); outByte(port + 1, data & 0xff); }
+          },
+        } : undefined;
+        device.bindAddressSpace?.(space, inByte, outByte, ports);
       } else if (space === AS_OPCODES) {
-        device.bindAddressSpace?.(space, address => (bus.readOpcode ?? bus.read).call(bus, address), write);
+        const fetch = (address: number) => (bus.readOpcode ?? bus.read).call(bus, address);
+        device.bindAddressSpace?.(space, fetch, write, wide(space) && {
+          read16: address => bus.readOpcode
+            ? ((bus.readOpcode(address) << 8) | bus.readOpcode(address + 1)) & 0xffff
+            : wide(space)!.read16(address),
+          write16: wide(space)!.write16,
+        });
+      } else if (wide(space)) {
+        // Any other space a core declares (the Z8002's data, stack and special
+        // I/O spaces) that its owner did not map apart is its program space,
+        // as MAME's init_spaces falls back to it (`has_space(AS_DATA) ?
+        // space(AS_DATA) : space(AS_PROGRAM)`); bound here so it is never
+        // left reading zero.
+        device.bindAddressSpace?.(space, read, write, wide(space));
       }
     }
     device.bindCall?.('standard_irq_callback', line => this.acknowledge(Number(line)));

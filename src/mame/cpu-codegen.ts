@@ -281,55 +281,6 @@ class XyValue {
   set y(value: number) { this.py = (value << 16) >> 16; }
 }
 
-class Z8000RegisterFile {
-  readonly W = new Uint16Array(16);
-  readonly B: Record<number, number>;
-  readonly L: Record<number, number>;
-  readonly Q: Record<number, number>;
-
-  constructor() {
-    this.B = new Proxy({}, {
-      get: (_target, key) => {
-        const index = Number(key); const word = this.W[index >>> 1] ?? 0;
-        return index & 1 ? word & 0xff : (word >>> 8) & 0xff;
-      },
-      set: (_target, key, value) => {
-        const index = Number(key); const wordIndex = index >>> 1;
-        const old = this.W[wordIndex] ?? 0;
-        this.W[wordIndex] = index & 1
-          ? (old & 0xff00) | (Number(value) & 0xff)
-          : (old & 0x00ff) | ((Number(value) & 0xff) << 8);
-        return true;
-      },
-    }) as Record<number, number>;
-    this.L = new Proxy({}, {
-      get: (_target, key) => {
-        const index = Number(key) * 2;
-        return ((((this.W[index] ?? 0) << 16) | (this.W[index + 1] ?? 0)) >>> 0);
-      },
-      set: (_target, key, value) => {
-        const index = Number(key) * 2; const data = Number(value) >>> 0;
-        this.W[index] = data >>> 16; this.W[index + 1] = data; return true;
-      },
-    }) as Record<number, number>;
-    this.Q = new Proxy({}, {
-      get: (_target, key) => {
-        const index = Number(key) * 4;
-        return (this.W[index] ?? 0) * 0x1000000000000 +
-          (this.W[index + 1] ?? 0) * 0x100000000 +
-          (this.W[index + 2] ?? 0) * 0x10000 + (this.W[index + 3] ?? 0);
-      },
-      set: (_target, key, value) => {
-        const index = Number(key) * 4; let data = Number(value);
-        this.W[index + 3] = data; data = Math.floor(data / 0x10000);
-        this.W[index + 2] = data; data = Math.floor(data / 0x10000);
-        this.W[index + 1] = data; data = Math.floor(data / 0x10000);
-        this.W[index] = data; return true;
-      },
-    }) as Record<number, number>;
-  }
-}
-
 /** Every method this core lowered from its MAME source. */
 const GENERATED_METHOD_NAMES = new Set<string>(${JSON.stringify(
   [...new Set(definition.methods.map(method => method.name))],
@@ -639,7 +590,6 @@ function emitMember(member: GeneratedCpuMember): string {
       `  private set ${member.name}(value: any) { this.#${member.name} = value; }`,
     ].join('\n');
   }
-  if (member.z8000Registers) return `  private ${member.name} = new Z8000RegisterFile();`;
   if (member.xyRegisters) {
     return [
       `  private readonly ${member.name}_cells = new Int32Array(${member.xyRegisters});`,
@@ -817,7 +767,7 @@ function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
     lines.push(`      case ${JSON.stringify(name)}: return this.${name};`);
   }
   for (const member of definition.members) {
-    if (member.values || member.wordByteRegisters || member.z8000Registers ||
+    if (member.values || member.wordByteRegisters ||
         member.xyRegisters || member.text) continue;
     // A PAIR is one 32-bit cell, so only `.d` is enumerated for capture: the
     // word and byte views alias the same storage, and capturing them too
@@ -851,7 +801,7 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
     );
   }
   for (const member of definition.members) {
-    if (member.values || member.wordByteRegisters || member.z8000Registers ||
+    if (member.values || member.wordByteRegisters ||
         member.xyRegisters || member.text) continue;
     if (member.pair32) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);

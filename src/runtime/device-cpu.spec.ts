@@ -397,4 +397,29 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   }
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902 and 6502-family classes compiled whole run as processors');
+// The Z8002 from z8000.cpp: a 16-bit big-endian bus, its register file a
+// union of byte, word and long arrays over one buffer (indexed through
+// endianness.h's BYTE4_XOR_BE), its opcodes dispatched through a table of
+// member-function pointers. Reset reads the FCW at $0002 and the PC at $0004;
+// a word access through an odd register reads the aligned word, as Pole
+// Position's RAM test expects.
+{
+  const memory = new Uint8Array(0x10000);
+  const words = (at: number, ...values: number[]) =>
+    values.forEach((value, index) => { memory[at + index * 2] = value >> 8; memory[at + index * 2 + 1] = value & 0xff; });
+  words(0x0002, 0x4000, 0x0200);
+  // LD R1,#$1234; LD R2,#$2000; LD @R2,R1; LD R3,#$0003; ADD R1,@R3; LD R4,#$2002; LD @R4,R1; JR $
+  words(0x0200, 0x2101, 0x1234, 0x2102, 0x2000, 0x2f21, 0x2103, 0x0003, 0x0131, 0x2104, 0x2002, 0x2f41, 0xe8ff);
+  const { cpu } = deviceCpu('Z8002', {
+    read: address => memory[address & 0xffff]!,
+    write: (address, data) => { memory[address & 0xffff] = data; },
+    in: () => 0xff,
+    out: () => {},
+  });
+  cpu.reset();
+  cpu.run(400);
+  assert.deepEqual([memory[0x2000], memory[0x2001]], [0x12, 0x34], 'Z8002: LD @R2,R1 stores the register\'s word');
+  assert.deepEqual([memory[0x2002], memory[0x2003]], [0x52, 0x34], 'Z8002: ADD R1,@R3 with R3 odd reads the aligned word at $0002');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family and Z8002 classes compiled whole run as processors');
