@@ -287,7 +287,6 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   stripTracingCalls: 'logging and debugger hooks, which change no state',
   stripMameFrameworkSetup: 'device_start\'s save_item/state_add registration, which the host does',
   lowerLocalStructs: 'a struct declared with its variable, as a value of its fields',
-  singleIterationSource: 'one iteration of an execute_run do-while loop',
   parseMameOperationMacros: 'reads a core\'s operation macros',
   expandMameOperationMacros: 'expands a core\'s operation macros',
   extractEnumConstants: 'reads enumerators',
@@ -296,14 +295,9 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   resolveConstants: 'evaluates constant expressions read from source',
   hostConstantExpression: 'a constant expression as the little-endian host evaluates it (NATIVE_ENDIAN_VALUE_LE_BE)',
   exceptionCycles: 'reads m68ki_exception_cycle_table; its edits strip comments',
-  extractInlineMethods: 'reads a header\'s inline methods',
-  extractMembers: 'reads a class\'s members',
-  extractStateAliases: 'reads state_add aliases',
-  typeBits: 'a C type\'s width',
   rewriteMameCall: 'rewrites a call by its parsed arguments',
   rewriteCall: 'rewrites a call by its parsed arguments',
   allocIntrinsic: 'the ALLOC primitive for an element type',
-  matchBrace: 'finds a closing brace',
   matchPair: 'finds a closing bracket',
   lineAt: 'a source line number',
   sourceRef: 'a source reference',
@@ -315,9 +309,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
     'body step', 'body update_pc', 'body v30_add4s', 'body v30_popa', 'body v30_pusha',
     'body write_byte', 'body write_port_byte', 'body write_port_byte_al', 'body write_port_word',
     'body write_word',
-  ],
-  'mame/cpu-compiler.ts: compileMameLr35902': [
-    '1 source edits',
   ],
   'mame/cpu-compiler.ts: compileMameM6502MemoryInterface': [
     '3 source edits',
@@ -335,9 +326,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
   'mame/cpu-compiler.ts: compileMameZ8002': [
     '24 source edits', 'body RDOP', 'body fetch', 'body get_operand', 'body input', 'body program',
     'body reset', 'body service', 'body start',
-  ],
-  'mame/cpu-compiler.ts: lr35902ExecuteSource': [
-    '4 source edits',
   ],
   'mame/cpu-compiler.ts: m68000SupportMethods': [
     'body (anonymous)', 'body BIT_B', 'body BIT_F', 'body CFLAG_1', 'body CFLAG_16', 'body CFLAG_8',

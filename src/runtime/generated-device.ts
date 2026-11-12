@@ -2743,7 +2743,20 @@ class IrDevice implements Device {
       );
     }
     const method = this.selectMethod(name, args);
-    if (!method) throw new Error(`${this.definition.type} has no generated method "${name}"`);
+    if (!method) {
+      // `&holder->space(AS_PROGRAM)`: the address of what a call answers by
+      // reference. An object's address is the object here, so the Game Boy
+      // PPU's `m_program_space = &m_lr35902->space(AS_PROGRAM)` holds the
+      // compiled core's own bound space.
+      if (name.endsWith('&') && name.length > 1) {
+        const base = name.slice(0, -1);
+        if (this.bindings.calls?.[base] || this.selectMethod(base, args)) {
+          const value = this.invoke(base, ...args);
+          if (value !== null && typeof value === 'object') return value;
+        }
+      }
+      throw new Error(`${this.definition.type} has no generated method "${name}"`);
+    }
     return this.executeMethod(method, this.methodParams.get(method)!, args);
   }
 

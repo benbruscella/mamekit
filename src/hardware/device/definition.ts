@@ -36,6 +36,8 @@ export const DEVICE_MAME_TYPES = [
   // z80.cpp's z80_device, its execute_run the state machine z80make.py
   // generates; Sega's encrypted Z80s are its subclasses.
   'Z80', 'SEGA_315_5098', 'SEGA_315_5177',
+  // lr35902.cpp's Sharp core, opc_main.hxx and opc_cb.hxx in its execute_run.
+  'LR35902',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

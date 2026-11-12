@@ -257,4 +257,54 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.deepEqual([...system2.opcodes.slice(0, 8)], [4, 80, 6, 82, 0, 84, 2, 86], '315-5177: opcodes');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80 and Sega Z80 classes compiled whole run as processors');
+// The LR35902 from lr35902.cpp: its 256 + 256 cases live in opc_main.hxx and
+// opc_cb.hxx, included into execute_run's switch and written against
+// statement macros. The interrupt vectors and the IE/IF state indices are
+// enumerators carrying comments; a reader that drops them renumbers the rest.
+// Its timer devcb is raised from cycles_passed with the cycles each access
+// took, which is how the Game Boy's timer counts.
+{
+  const memory = new Uint8Array(0x10000);
+  memory.set([
+    0x31, 0xfe, 0xff,       // LD SP,$FFFE
+    0x3e, 0x42,             // LD A,$42
+    0xea, 0x00, 0xc0,       // LD ($C000),A
+    0x06, 0x0f,             // LD B,$0f
+    0x04,                   // INC B          -> B=0x10, half-carry set
+    0xcb, 0x30,             // SWAP B         -> B=0x01
+    0x78,                   // LD A,B
+    0xea, 0x01, 0xc0,       // LD ($C001),A
+    0xaf,                   // XOR A          -> A=0, Z set
+    0xf5,                   // PUSH AF
+    0xc1,                   // POP BC
+    0x79,                   // LD A,C
+    0xea, 0x02, 0xc0,       // LD ($C002),A
+    0xfb,                   // EI
+    0x18, 0xfe,             // JR $
+  ]);
+  memory.set([0x3e, 0x77, 0xea, 0x03, 0xc0, 0x76], 0x40); // VBL: LD A,$77; LD ($C003),A; HALT
+  const { cpu, device } = deviceCpu('LR35902', {
+    read: address => memory[address]!,
+    write: (address, data) => { memory[address] = data; },
+    in: () => 0xff,
+    out: () => {},
+  });
+  assert.equal(device.constant('VBL_INT'), 0);
+  assert.equal(device.constant('EXT_INT'), 4);
+  assert.equal(device.constant('LR35902_IE'), 12);
+  assert.equal(device.constant('LR35902_IF'), 13);
+  let timerCycles = 0;
+  device.on('timer_cb', (...args: unknown[]) => { timerCycles += Number(args.length >= 3 ? args.at(-2) : args.at(-1)); return 0; });
+  cpu.reset();
+  cpu.run(400);
+  assert.equal(memory[0xc000], 0x42, 'LR35902: LD (a16),A reaches the bus');
+  assert.equal(memory[0xc001], 0x01, 'LR35902: INC B carries into the high nybble, CB SWAP exchanges nybbles');
+  assert.equal(memory[0xc002], 0x80, 'LR35902: XOR A leaves only Z set (F through PUSH AF/POP BC)');
+  assert.ok(timerCycles > 0, 'LR35902: cycles_passed raises timer_cb');
+  device.call('set_ie', 1);
+  cpu.setInputLine(device.constant('VBL_INT')!, 1);
+  cpu.run(400);
+  assert.equal(memory[0xc003], 0x77, 'LR35902: an enabled VBL interrupt vectors to 0040');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80 and LR35902 classes compiled whole run as processors');

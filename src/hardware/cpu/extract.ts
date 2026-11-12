@@ -1,6 +1,5 @@
 import {
   compileMameI8088,
-  compileMameLr35902,
   compileMameM68000,
   compileMameM6502,
   compileMameM6507,
@@ -36,7 +35,6 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   M68010: source => compileMameM68000(source, 'M68010'),
   RP2A03: compileMameRp2a03,
   RP2A03G: compileMameRp2a03,
-  LR35902: compileMameLr35902,
   TMS320C10: compileMameTms320c10,
   TMS34010: compileMameTms34010,
 };
