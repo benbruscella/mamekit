@@ -750,6 +750,10 @@ export function supportsMethod(
           // its own routine this way; declined, the APU's whole sample loop
           // ran interpreted, 1.79 million samples a second).
           (expression.operand.kind === 'member' && structFieldIsStruct(expression.operand, definition)) ||
+          // Any other field: runtime.fieldAddress, as the interpreter takes it
+          // (in a union, the union and its path). The 6309's TFR reads and
+          // writes registers through `&m_q.r.a`-style addresses.
+          expression.operand.kind === 'member' ||
           (
             expression.operand.kind === 'call' &&
             expression.operand.callee.kind === 'member'

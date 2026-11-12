@@ -394,7 +394,22 @@ class Restore {
       case 'scalar': {
         // The slot held a container when saved (an array sized on first
         // write, a value object) and a scalar here: it takes the container.
-        if (kindOf(saved, this.options) !== 'scalar') return this.assign(holder, key, clone(saved), path);
+        // A plain object or array is built and restored as any other, so the
+        // aliases inside it resolve and an alias to it finds it: the 6809's
+        // `m_reg8`, null now, saved pointing into its union.
+        if (kindOf(saved, this.options) !== 'scalar') {
+          if (Array.isArray(saved)) {
+            const built: unknown[] = [];
+            this.assign(holder, key, built, path);
+            return this.array(built, saved, path);
+          }
+          if (kindOf(saved, this.options) === 'object' && !isFactoryNode(saved) && !isBufferReference(saved)) {
+            const built: Record<string, unknown> = {};
+            this.assign(holder, key, built, path);
+            return this.object(built, saved, path);
+          }
+          return this.assign(holder, key, clone(saved), path);
+        }
         this.assign(holder, key, saved, path);
         return;
       }

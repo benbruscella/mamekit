@@ -3618,10 +3618,39 @@ export function bigEndianWordBytes(view: unknown): Uint8Array | undefined {
  * elements are its words, read and written high byte first.
  */
 function wordView(bytes: Uint8Array | Int8Array, signed: boolean): unknown {
-  if (!isBigEndianWords(bytes)) {
+  if (!isBigEndianWords(bytes) && (bytes.byteOffset & 1) === 0) {
     return signed
       ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
       : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+  }
+  // From an odd byte: a little-endian host reads the word unaligned, as the
+  // T-Unit's LSB_FIRST pixel extractor does (`*(uint16_t *)&base[o >> 3]`).
+  // The same bytes, read and written in place.
+  if (!isBigEndianWords(bytes)) {
+    const source = bytes as Uint8Array;
+    return new Proxy(new Array<number>(source.length >>> 1), {
+      get(target, property, receiver) {
+        if (typeof property === 'string' && /^\d+$/.test(property)) {
+          const at = Number(property) * 2;
+          if (at + 1 >= source.length) return 0;
+          const word = source[at]! | (source[at + 1]! << 8);
+          return signed ? (word << 16) >> 16 : word;
+        }
+        return Reflect.get(target, property, receiver);
+      },
+      set(target, property, value, receiver) {
+        if (typeof property === 'string' && /^\d+$/.test(property)) {
+          const at = Number(property) * 2;
+          const word = toNumber(value) & 0xffff;
+          if (at + 1 < source.length) {
+            source[at] = word & 0xff;
+            source[at + 1] = word >>> 8;
+          }
+          return true;
+        }
+        return Reflect.set(target, property, value, receiver);
+      },
+    });
   }
   const source = bytes as Uint8Array;
   const view = new Proxy(new Array<number>(source.length >>> 1), {
