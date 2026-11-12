@@ -166,4 +166,45 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.equal(run('KONAMI1', true), 0x5a, 'KONAMI-1: opcodes unscrambled by mi_konami1');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809 and KONAMI-1 classes compiled whole run as processors');
+// The Z80 from z80.cpp, its execute_run the state machine z80make.py writes:
+// stores through m_data's interruptible accesses, IM 1 to 0038, IM 2 through
+// the I register and the vector the board gives with the line, and NMI to 0066.
+{
+  const z80 = (program: number[], setup: (memory: Uint8Array) => void = () => {}) => {
+    const memory = new Uint8Array(0x10000);
+    memory.set(program, 0);
+    setup(memory);
+    const { cpu } = deviceCpu('Z80', {
+      read: address => memory[address]!,
+      write: (address, data) => { memory[address] = data; },
+      in: () => 0xff,
+      out: () => {},
+    });
+    cpu.reset();
+    return { cpu, memory };
+  };
+  // LD SP,$8000; IM 1; EI; LD A,$42; LD ($2000),A; JR $
+  const im1 = z80([0x31, 0x00, 0x80, 0xed, 0x56, 0xfb, 0x3e, 0x42, 0x32, 0x00, 0x20, 0x18, 0xfe],
+    memory => memory.set([0x3e, 0x99, 0x32, 0x01, 0x20, 0x18, 0xfe], 0x38)); // LD A,$99; LD ($2001),A; JR $
+  im1.cpu.run(200);
+  assert.equal(im1.memory[0x2000], 0x42, 'Z80: LD (nn),A reaches the bus');
+  im1.cpu.setIrqLine(true, 0xff, true);
+  im1.cpu.run(200);
+  assert.equal(im1.memory[0x2001], 0x99, 'Z80: IM 1 takes its IRQ at 0038');
+  assert.deepEqual([im1.memory[0x7ffe], im1.memory[0x7fff]], [0x0b, 0x00], 'Z80: the interrupted PC is pushed');
+  // LD SP,$8000; LD A,$10; LD I,A; IM 2; EI; JR $ -- vector $20 reads $1020/$1021.
+  const im2 = z80([0x31, 0x00, 0x80, 0x3e, 0x10, 0xed, 0x47, 0xed, 0x5e, 0xfb, 0x18, 0xfe], memory => {
+    memory.set([0x00, 0x03], 0x1020);
+    memory.set([0x3e, 0x77, 0x32, 0x02, 0x20, 0x18, 0xfe], 0x0300); // LD A,$77; LD ($2002),A; JR $
+    memory.set([0x3e, 0x55, 0x32, 0x03, 0x20, 0x18, 0xfe], 0x0066); // NMI: LD A,$55; LD ($2003),A; JR $
+  });
+  im2.cpu.run(200);
+  im2.cpu.setIrqLine(true, 0x20, true);
+  im2.cpu.run(200);
+  assert.equal(im2.memory[0x2002], 0x77, 'Z80: IM 2 vectors through I and the board\'s data bus');
+  im2.cpu.nmi();
+  im2.cpu.run(200);
+  assert.equal(im2.memory[0x2003], 0x55, 'Z80: NMI at 0066');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1 and Z80 classes compiled whole run as processors');

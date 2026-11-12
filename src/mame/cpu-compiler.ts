@@ -2472,14 +2472,6 @@ export function normalizeMameExecutionSource(source: string): string {
       (_entry, body: string, counter: string) =>
         `while (${counter}) { ${body}; ${counter}--; }`,
     )
-    .replace(
-      /\bset_service_attention\s*<\s*([^,>]+)\s*,\s*([^>]+)\s*>\s*\(\s*\)/g,
-      'set_service_attention($1, $2)',
-    )
-    .replace(
-      /\bget_service_attention\s*<\s*([^>]+)\s*>\s*\(\s*\)/g,
-      'get_service_attention($1)',
-    )
     // Match within a single line only: with \s+ the type-word chain could
     // reach back across a newline into a preceding // comment ("// character
     // palette\n const uint8_t *char_pal = ..."), splicing the declaration into

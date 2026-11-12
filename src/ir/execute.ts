@@ -272,6 +272,7 @@ export function attotimeSecondsMethod(seconds: number, method: string, args: rea
  */
 export function generatedFieldWidth(value: number, width: number): number {
   const bits = Math.abs(width);
+  if (bits === 1) return value ? 1 : 0;
   if (width < 0) {
     if (bits === 8) return value << 24 >> 24;
     if (bits === 16) return value << 16 >> 16;

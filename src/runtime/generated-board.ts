@@ -2704,6 +2704,18 @@ class IrBoard implements Board {
         name,
         (...args: number[]) => calls[`m_${specification.tag}.${name}`]!(...args),
       ])));
+      // A CPU compiled whole is a device, and another device's finder reaches
+      // that device itself: it answers device_execute_interface's surface
+      // here too, as MAME's CPU does to anyone holding it. The Namco 06xx
+      // asks its CPU `suspended(SUSPEND_REASON_HALT | ...)` before an NMI.
+      if (coreDevice && cpu instanceof DeviceCpu) {
+        const self = (coreDevice as unknown as { members?: { this?: Record<string, unknown> } }).members?.this;
+        if (self) {
+          for (const name of cpuMethodNames) {
+            self[name] = (...args: number[]) => calls[`m_${specification.tag}.${name}`]!(...args);
+          }
+        }
+      }
       // A hosted processor named like the machine's own does not displace it:
       // the 1541's `m_maincpu` reaches the drive's 6502 in the drive's scope
       // only, or the C64 driver's halt and reset would land on the drive.
@@ -4698,6 +4710,13 @@ class IrBoard implements Board {
     links.forEach((handle, index) => {
       Object.defineProperty(handle, 'm_daisy_next', {
         value: links[index + 1] ?? 0, writable: true, enumerable: false, configurable: true,
+      });
+      // device_interface::device(): the device the interface is part of.
+      // z80_daisy_chain_interface::interface_post_reset resets every chained
+      // device after the Z80's own reset, as `intf->device().reset()`.
+      const device = this.devices.get(specification.daisyChain![index]!)!;
+      Object.defineProperty(handle, 'device', {
+        value: () => ({ reset: () => { device.reset(); return 0; } }), writable: true, enumerable: false, configurable: true,
       });
     });
     cpu.set('m_chain', links[0] as unknown as number);

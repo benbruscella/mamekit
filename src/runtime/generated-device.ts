@@ -88,7 +88,7 @@ interface StructField {
   name: string;
   valueType?: string;
   length?: number;
-  bits?: 8 | 16 | 32;
+  bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
   fields?: StructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
@@ -1820,6 +1820,17 @@ class IrDevice implements Device {
         // And unqualified, as emucore.h's `using util::string_format;` lets a
         // device write it: the MCS-48 names its register states `R%d`.
         string_format: (format, ...args) => mameStringFormat(format, ...args) as unknown as number,
+        // device_t::memshare(tag): a share by tag, its bytes behind ptr(). The
+        // 315-5098 decrypts into the one its configuration names.
+        memshare: (tag: unknown) => {
+          const named = String(tag ?? '').replace(/^\^+/, '').replace(/^:/, '');
+          const bytes = options.shares?.[`${options.tag}:${named}`] ?? options.shares?.[named];
+          return (bytes ? { ptr: () => bytes, bytes: () => bytes.length, length: () => bytes.length } : 0) as unknown as number;
+        },
+        // cpu_device's deferred-access protocol (devcpu.h): an access is
+        // redone only after a device defers it, and nothing here does.
+        access_to_be_redone: () => 0,
+        access_to_be_redone_noclear: () => 0,
         // `device().subtag(tag)`, resolved as MAME's device_t::subtag does:
         // `^` climbs to the owner, a leading `:` is absolute, anything else
         // is below this device. An NES card allocates its PRG as
@@ -2386,6 +2397,18 @@ class IrDevice implements Device {
     // nothing bound becomes MAME's default, a call answering `dflt` (or
     // nothing, for a void one). The 8085 resolves its optional CLK output so
     // and calls it from device_start whether or not a driver set_clk_out it.
+    // `required_shared_ptr::set_tag(tag)` from the machine configuration (the
+    // 315-5177's set_decrypted_tag): the finder now names that share.
+    for (const member of definition.members) {
+      if (member.memory?.kind !== 'shared') continue;
+      this.bindings.calls![`${member.name}.set_tag`] ??= (tag: unknown) => {
+        const named = String(tag ?? '').replace(/^\^+/, '').replace(/^:/, '');
+        const bytes = options.shares?.[`${options.tag}:${named}`] ?? options.shares?.[named];
+        if (!bytes) throw new Error(`${this.definition.type}: ${member.name}.set_tag names no share "${named}"`);
+        this.members[member.name] = generatedMemoryArray(member.memory!.elementBytes, bytes);
+        return 0;
+      };
+    }
     // A reference-returning method's setter (the compiler's `regop8=`), which
     // an assignment to the call's result runs (execute.ts assignCallResult).
     for (const method of definition.methods) {
@@ -2915,9 +2938,10 @@ class IrDevice implements Device {
     // RAM): the owner's map is the rest of it. MAME builds the internal map
     // first, so it takes priority (address_map's constructor).
     if (config?.map && config.dataBits === 8) {
-      const mapped = this.deviceSpace(index) as { fallback?: { read(address: number): number; write(address: number, data: number): void } } | undefined;
+      const mapped = this.deviceSpace(index) as (GeneratedDeviceSpace & { fallback?: { read(address: number): number; write(address: number, data: number): void } }) | undefined;
       if (mapped) {
         mapped.fallback = { read, write };
+        interruptible(mapped);
         return;
       }
     }
@@ -2928,6 +2952,7 @@ class IrDevice implements Device {
     const mask = 2 ** config.addressBits - 1;
     space.read_byte = address => read(address & mask);
     space.write_byte = (address, data) => { write(address & mask, data & 0xff); return 0; };
+    interruptible(space);
   }
 
   dataAddressBits(): number | undefined {
@@ -3939,6 +3964,9 @@ function memoryMember(
   const length = typeof member.initial === 'number' && member.initial > 0 ? member.initial : 0;
   if (memory.kind === 'owned') return length ? resizeGeneratedContainer(generatedMemoryArray(memory.elementBytes), length) as ArrayLike<unknown> : generatedMemoryArray(memory.elementBytes);
   if (memory.kind === 'growable') return resizeGeneratedVector(generatedVector(vectorElement(memory.element, structs)), length);
+  // A finder on DUMMY_TAG holds nothing until the configuration re-tags it
+  // (sharedMemberRetag below).
+  if (memory.share === 'unset') return new Uint8Array(0);
   const tag = (memory.share === 'self' ? options.tag : memory.share)
     ?.replace(/^\^+/, '')
     .replace(/^:/, '');
@@ -4073,6 +4101,12 @@ function wrap(value: number, bits?: 1 | 8 | 16 | 32, signed = false): number {
 export interface GeneratedDeviceSpace {
   read_byte(address: number): number;
   write_byte(address: number, data: number): number;
+  /**
+   * memory_access::specific's interruptible accesses: the plain access, since
+   * nothing here defers one (cpu_device::access_to_be_redone stays false).
+   */
+  read_interruptible?(address: number): number;
+  write_interruptible?(address: number, data: number): number;
   /** The backing bytes, for board wiring and for reading state back in tests. */
   readonly memory: Uint8Array;
 }
@@ -4257,6 +4291,12 @@ function deviceMemoryView(): DeviceMemoryView {
       return Reflect.get(target, property, receiver);
     },
   });
+}
+
+/** The Z80's `m_data.read_interruptible(a)`: the space's own access (GeneratedDeviceSpace). */
+function interruptible(space: GeneratedDeviceSpace): void {
+  space.read_interruptible = address => space.read_byte(address);
+  space.write_interruptible = (address, data) => space.write_byte(address, data);
 }
 
 /**
@@ -4740,7 +4780,7 @@ function unionFieldBytes(field: StructField): number {
     ? (field.union || (!field.fields && inner)
         ? Math.max(0, ...inner.map(unionFieldBytes))
         : inner.reduce((total, member) => total + unionFieldBytes(member), 0))
-    : (field.bits ?? 32) / 8;
+    : Math.ceil((field.bits ?? 32) / 8);
   return each * (field.length ?? 1);
 }
 
@@ -4790,7 +4830,8 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
   const view = (inner: readonly StructField[], base: number, overlapping: boolean, path: readonly string[]): Record<string, unknown> =>
     layout(mark({}, path), inner, base, overlapping, path);
   const scalar = (field: StructField, at: number) => {
-    const width = (field.bits ?? 32) / 8;
+    const width = Math.ceil((field.bits ?? 32) / 8);
+    const truth = field.bits === 1;
     return {
       get: () => {
         let word = 0;
@@ -4799,7 +4840,7 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
         return word;
       },
       set: (next: unknown) => {
-        let word = Number(next) || 0;
+        let word = truth ? (next ? 1 : 0) : Number(next) || 0;
         for (let index = 0; index < width; index++) {
           bytes[at + index] = word & 0xff;
           word = Math.floor(word / 256);
@@ -4823,7 +4864,7 @@ function unionMember(fields: readonly StructField[]): Record<string, unknown> {
         : view(inner, at, overlapping, [...path, field.name]);
       Object.defineProperty(target, field.name, { value: nested, enumerable, configurable: true });
     } else if (field.length) {
-      const width = (field.bits ?? 32) / 8;
+      const width = Math.ceil((field.bits ?? 32) / 8);
       const elements: Record<number, unknown> & { length: number } = { length: field.length };
       for (let index = 0; index < field.length; index++) Object.defineProperty(elements, index, { ...scalar(field, at + index * width), enumerable: true });
       Object.defineProperty(target, field.name, { value: elements, enumerable, configurable: true });

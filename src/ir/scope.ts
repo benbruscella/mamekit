@@ -51,6 +51,12 @@ export function renameShadowedLocals(
       if (current && current !== expression.name) expression.name = current;
       return;
     }
+    // A call's receiver is a read of the local too (childExpressions gives
+    // only the arguments): the Z80's interrupt block calls
+    // `intf->z80daisy_irq_ack()` on its renamed inner `intf`, and left on the
+    // outer one the daisy chain's vector was 0. A plain function name is not
+    // a local.
+    if (expression.kind === 'call' && expression.callee.kind !== 'identifier') rewrite(expression.callee, visible);
     for (const child of childExpressions(expression)) rewrite(child, visible);
   };
 

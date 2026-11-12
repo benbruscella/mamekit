@@ -7,7 +7,6 @@ import {
   compileMameM6510,
   compileMameM6502MemoryInterface,
   compileMameRp2a03,
-  compileMameZ80,
   compileMameZ8002,
   compileMameTms320c10,
   compileMameV30,
@@ -23,10 +22,7 @@ import { CPU_MAME_TYPES, cpuIrArtifact, cpuModuleArtifact } from './definition.t
 
 /** Which MAME compiler produces each core. */
 const COMPILERS: Record<string, (mameSource: string) => unknown> = {
-  Z80: compileMameZ80,
   Z8002: compileMameZ8002,
-  SEGA_315_5098: source => ({ ...compileMameZ80(source), type: 'SEGA_315_5098' }),
-  SEGA_315_5177: source => ({ ...compileMameZ80(source), type: 'SEGA_315_5177' }),
   I8088: compileMameI8088,
   V30: compileMameV30,
   M6502: compileMameM6502,

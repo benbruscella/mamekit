@@ -147,7 +147,7 @@ export interface GeneratedStructField {
   name: string;
   valueType?: string;
   length?: number;
-  bits?: 8 | 16 | 32;
+  bits?: 1 | 8 | 16 | 32;
   signed?: boolean;
   fields?: GeneratedStructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
@@ -508,7 +508,12 @@ export function compileMameDevice(
   // Read after the preprocessor because of an include, it is taken when it
   // finds code the plain reading does not: a 6805's handlers are macro heads
   // until expanded (611 methods against 148).
-  const findsMore = (readAfterPreprocessor || definesMethods) && preprocessed.methods.length > device.methods.length;
+  // Read after the preprocessor because of an include, it is taken whenever it
+  // finds no less: the plain reading of z80.cpp never sees z80.inc's register
+  // macros (`PC`, `A`), compiles them as bare names with no diagnostic, and
+  // ties on the method count.
+  const findsMore = (readAfterPreprocessor && preprocessed.methods.length >= device.methods.length) ||
+    (definesMethods && preprocessed.methods.length > device.methods.length);
   return preprocessed.summary.diagnostics < device.summary.diagnostics ||
     ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
 }
@@ -986,7 +991,10 @@ function compileMameDeviceSource(
     coreOsdDefines(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
-    ...((helpers) => sources.map(({ source }) => numericConstants(stripCppComments(source), {}, helpers)))(constexprHelpers(mameSrc, sources)),
+    // Seeded with diexec.h's lines: z80.h numbers its own after them
+    // (`Z80_INPUT_LINE_WAIT = INPUT_LINE_IRQ0 + 1`), and without the seed the
+    // enum stopped there and BUSREQ answered to IRQ line 0.
+    ...((helpers, lines) => sources.map(({ source }) => numericConstants(stripCppComments(source), lines, helpers)))(constexprHelpers(mameSrc, sources), coreLineStates(mameSrc)),
     deviceTypeTokens(sources),
   );
   // A class template's members name their argument's constants
@@ -1345,12 +1353,23 @@ function compileMameDeviceSource(
   // The device's own type templates (set_flags<T>), filled once the source
   // methods are known; each call names its instance (template-deduction.ts).
   const typeTemplates = new Map<string, TypeTemplate>();
+  // Templates over values, whose calls name them with constants the parser
+  // cannot fold: the Z80's `set_service_attention<SA_IRQ_ON, 1>()` is the
+  // instance `set_service_attention_<value>_1` once SA_IRQ_ON is a number.
+  const valueTemplates = new Set<string>();
   const typeTemplateSources = new Map<string, MameFunction[]>();
   const pendingTypeInstances: [string, string][] = [];
   let deductionScope: ((method: MameFunction) => DeductionScope) | undefined;
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
     specialized.body = expandDynamicMacros(expandLocalMacros(specialized.body), dynamicMacros);
+    if (valueTemplates.size && !specialized.templateParameters?.length) {
+      // The constants as the method's own class sees them: the Z80's SA_*
+      // service bits are an enum inside z80_device.
+      const scoped = hierarchy.reduce<Record<string, number>>((all, className) =>
+        ({ ...all, ...(classScope(className)?.constants ?? {}) }), { ...constants });
+      specialized.body = foldTemplateConstants(specialized.body, valueTemplates, scoped);
+    }
     if (typeTemplates.size && deductionScope && !specialized.templateParameters?.length) {
       specialized.body = rewriteTypeTemplateCalls(specialized.body, typeTemplates, deductionScope(specialized),
         (name, type) => pendingTypeInstances.push([name, type]));
@@ -1415,7 +1434,10 @@ function compileMameDeviceSource(
     for (const candidate of candidates) {
       const [parameter, ...more] = candidate.templateParameters ?? [];
       const positions = parameter && !more.length ? typePositions(candidate.parameters, parameter) : undefined;
-      if (!positions) continue;
+      if (!positions) {
+        if (parameter) valueTemplates.add(candidate.name);
+        continue;
+      }
       const entry = typeTemplates.get(candidate.name) ?? { name: candidate.name, parameter, positions: new Map() };
       const arity = candidate.parameters.split(',').filter(part => part.trim() && part.trim() !== 'void').length;
       entry.positions.set(arity, positions);
@@ -4035,6 +4057,23 @@ function bindDependentPixelSize(method: MameFunction, typeParameters: readonly s
   return body === method.body ? method : { ...method, body };
 }
 
+/**
+ * Calls to value templates with every argument a constant the device knows,
+ * spelled with the numbers (`f<SA_IRQ_ON, 1>(` as `f<4, 1>(`), so the handler
+ * parser names the instance as the compiler generated it.
+ */
+function foldTemplateConstants(body: string, names: ReadonlySet<string>, constants: Record<string, number>): string {
+  const pattern = new RegExp(`(?<![\\w.>:])(${[...names].map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*<([^<>()]+)>\\s*\\(`, 'g');
+  return body.replace(pattern, (whole, name: string, args: string) => {
+    const values = splitMameArgs(args).map(argument => {
+      const text = argument.trim().replace(/\btrue\b/g, '1').replace(/\bfalse\b/g, '0');
+      return evalExpr(text, constants);
+    });
+    return values.every(value => typeof value === 'number' && Number.isInteger(value))
+      ? `${name}<${values.join(', ')}>(` : whole;
+  });
+}
+
 function specializeFunctionTemplate(
   template: MameFunction,
   sources: readonly { file: string; source: string }[],
@@ -4386,6 +4425,13 @@ function compileMethod(
     body = body.replace(alias[0], '').replace(new RegExp(`(?<![\\w.>])${alias[1]}\\s*\\.`, 'g'), `${chain}.`);
   }
   body = expandStringMacros(body, stringMacros);
+  // MAME's debugger is never running here (debug_flags has no
+  // DEBUG_FLAG_ENABLED), so `debugger_enabled()` is false wherever it is
+  // asked: the Z80's execute_run guards its interrupt hook with it, and left
+  // as a call it kept the whole instruction loop out of the emitter.
+  body = body
+    .replace(/(?:\b\w+::)?\bdebugger_enabled\s*\(\s*\)/g, 'false')
+    .replace(/\bmachine\s*\(\s*\)\s*\.\s*debug_flags\b/g, '0');
   // `space(AS_PROGRAM).cache(m_cprogram13)` binds the accessor to that space:
   // every later `m_cprogram13.read_byte(a)` reads through it. The accessor is
   // the space as far as the generated device is concerned.
@@ -4865,10 +4911,15 @@ function memoryContainer(
   // required_shared_ptr(*this, DEVICE_SELF) binds the device's own tag.
   const args = constructorBindings[name] ?? [];
   const target = args.at(-1) ?? '';
+  // finder_base::DUMMY_TAG names nothing until the machine configuration
+  // re-tags the finder (Sega's 315-5177 `set_decrypted_tag(...)`), so it is
+  // not the device's own tag.
   return {
     kind: 'shared',
     elementBytes,
-    share: target === 'DEVICE_SELF' ? 'self' : unquoteToken(target) ?? 'self',
+    share: target === 'DEVICE_SELF' ? 'self'
+      : /\bDUMMY_TAG\b/.test(target) ? 'unset'
+        : unquoteToken(target) ?? 'self',
   };
 }
 
@@ -6447,7 +6498,9 @@ function structFieldList(
       // truncate every timestamp it held.
       const integral = /^(?:(?:unsigned|signed|long|short)\s*)*(?:u?int(?:8|16|32|64)?(?:_t)?|[us](?:8|16|32|64)|bool|char|short|long|unsigned|signed|offs_t|pen_t)$/
         .test(valueType);
-      const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
+      // A bool is true or false, as a bool member is (bits 1): the Z80 stores
+      // its carry as `m_f.c = res & 0x100`, and narrowed to a byte it was 0.
+      const bits: 1 | 8 | 16 | 32 = valueType === 'bool' ? 1 : /64/.test(valueType) ? 32
         : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
           : /16|\bshort\b/.test(valueType) ? 16
             : /8|bool|char/.test(valueType) ? 8
