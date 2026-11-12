@@ -278,7 +278,7 @@ const SOUND_KINDS: string[] = [];
 // CPU_COMPILER_IDIOMS are the shared lowering functions every core and device
 // goes through: C++ idioms, not hardware, so the scan skips them.
 const CPU_LAYER_FILES = [
-  'mame/cpu-compiler.ts', 'mame/tms34010-compiler.ts',
+  'mame/cpu-compiler.ts',
   'mame/namco51-compiler.ts', 'mame/namco53-compiler.ts',
 ];
 const CPU_COMPILER_IDIOMS: Record<string, string> = {
@@ -294,7 +294,6 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   resolveConstants: 'evaluates constant expressions read from source',
   hostConstantExpression: 'a constant expression as the little-endian host evaluates it (NATIVE_ENDIAN_VALUE_LE_BE)',
   exceptionCycles: 'reads m68ki_exception_cycle_table; its edits strip comments',
-  rewriteCall: 'rewrites a call by its parsed arguments',
   allocIntrinsic: 'the ALLOC primitive for an element type',
   matchPair: 'finds a closing bracket',
   sourceRef: 'a source reference',
@@ -345,21 +344,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
   ],
   'mame/namco53-compiler.ts: compileNamco53Protocol': [
     'body device_reset', 'body read', 'body reset',
-  ],
-  'mame/tms34010-compiler.ts: compileMameTms34010': [
-    '5 source edits', 'body input', 'body reset', 'body step', 'constant INPUT_LINE_HALT',
-  ],
-  'mame/tms34010-compiler.ts: dropCalls': [
-    'body (anonymous)',
-  ],
-  'mame/tms34010-compiler.ts: lowerSpaceAccess': [
-    'body (anonymous)',
-  ],
-  'mame/tms34010-compiler.ts: lowerXyValues': [
-    '2 source edits', 'body (anonymous)',
-  ],
-  'mame/tms34010-compiler.ts: normalize': [
-    '6 source edits',
   ],
 };
 const HAND_WRITTEN_CPU_FACTS: string[] = [

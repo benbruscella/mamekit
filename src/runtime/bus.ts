@@ -648,9 +648,12 @@ export class Bus {
       const base = this.lookupBase;
       this.lookup((addr + 1) & this.addressMask, false);
       const direct = id === this.lookupId && base === this.lookupBase ? this.wordReadFns[id] : undefined;
-      return direct
-        ? direct(addr, addr - base) & 0xffff
-        : (this.read(addr) | (this.read(addr + 1) << 8)) & 0xffff;
+      if (!direct) return (this.read(addr) | (this.read(addr + 1) << 8)) & 0xffff;
+      // Word functions answer in the big-endian view on every bus (a
+      // little-endian one swaps inside them, as read16be relies on), so the
+      // little-endian word is that one swapped.
+      const word = direct(addr, addr - base) & 0xffff;
+      return ((word & 0xff) << 8) | (word >>> 8);
     } finally {
       this.tapDepth--;
     }
@@ -668,7 +671,7 @@ export class Bus {
       this.lookup((addr + 1) & this.addressMask, true);
       const direct = id === this.lookupId && base === this.lookupBase ? this.wordWriteFns[id] : undefined;
       if (direct) {
-        direct(addr, addr - base, data & 0xffff);
+        direct(addr, addr - base, ((data & 0xff) << 8) | ((data >>> 8) & 0xff));
         return;
       }
       this.write(addr, data);

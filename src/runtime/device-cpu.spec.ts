@@ -171,6 +171,26 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.equal(run('KONAMI1', true), 0x5a, 'KONAMI-1: opcodes unscrambled by mi_konami1');
 }
 
+// The 6809's D is the PAIR16 `m_q.p.d` over A and B (union M6809Q): LDD #$3014
+// leaves A = 30 and B = 14. Laid out as a plain struct, D missed B, and the
+// Williams ADPCM board wrote its YM2151 register numbers from a stale B.
+{
+  // LDD #$3014; STB $2001; STA $2002; BRA *
+  const memory = new Uint8Array(0x10000);
+  memory.set([0xcc, 0x30, 0x14, 0xf7, 0x20, 0x01, 0xb7, 0x20, 0x02, 0x20, 0xfe], 0x8000);
+  memory[0xfffe] = 0x80;
+  memory[0xffff] = 0x00;
+  const { cpu } = deviceCpu('MC6809', {
+    read: address => memory[address]!,
+    write: (address, data) => { memory[address] = data; },
+    in: () => 0xff,
+    out: () => {},
+  });
+  cpu.reset();
+  cpu.run(60);
+  assert.deepEqual([memory[0x2001], memory[0x2002]], [0x14, 0x30], 'MC6809: LDD sets B and A through the PAIR16 D');
+}
+
 // The Z80 from z80.cpp, its execute_run the state machine z80make.py writes:
 // stores through m_data's interruptible accesses, IM 1 to 0038, IM 2 through
 // the I register and the vector the board gives with the line, and NMI to 0066.
@@ -493,4 +513,40 @@ for (const type of ['I8088', 'V30']) {
   if (type === 'V30') assert.equal(memory[0x2003], 0x12, 'V30: PUSHA/POPA keep AX');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002, TMS320C10, 8088 and V30 classes compiled whole run as processors');
+// The TMS34010 from tms34010.cpp: a bit-addressed 16-bit space (addrshift +3,
+// the reset vector at bit 0xffffffe0), its registers a union of `int32_t reg`
+// and an XY pair reached through `int32_t *rd = &AREG(n)`, 64-bit MPYU/DIVS
+// (eminline.h's mulu_32x32), and its I/O registers an internal map whose word
+// handler io_register_w a write at bit 0xc0000000 + 16n reaches.
+{
+  const memory = new Map<number, number>();
+  const word = (byte: number, value: number) => { memory.set(byte, value & 0xff); memory.set(byte + 1, (value >>> 8) & 0xff); };
+  word(0x1ffffffc, 0x0000); word(0x1ffffffe, 0xff80); // PC = 0xff800000
+  const program = [
+    0x1822, 0x03a2, 0x0522, 0x2602, // MOVK 1,A2; NEG A2; ZEXT A2,0 (FS0 16); SLL 16,A2
+    0x09e0, 0xffff, 0xffff, 0x09e4, 0xffff, 0xffff, 0x5e04, // MOVI -1,A0; MOVI -1,A4; MPYU A0,A4
+    0x09e6, 0x0001, 0x0000, 0x09e7, 0x0000, 0x0000, 0x09e1, 0x0002, 0x0000, 0x5a26, // A6:A7 = 1:0; MOVI 2,A1; DIVU A1,A6
+    0x09e8, 0x0008, 0x0000, 0x0588, 0x0150, 0xc000, // MOVI 8,A8; MOVE A8,@0xc0000150,0 (PSIZE)
+    0xc0ff, // JRUC $
+  ];
+  program.forEach((op, index) => word(0xff800000 / 8 + index * 2, op));
+  const read = (address: number) => memory.get(address) ?? 0;
+  const { cpu, device } = deviceCpu('TMS34010', {
+    read,
+    write: (address, data) => { memory.set(address, data & 0xff); },
+    read16le: (address: number) => read(address) | (read(address + 1) << 8),
+    write16le: (address: number, data: number) => word(address, data),
+    in: () => 0xff,
+    out: () => {},
+  } as CpuBus);
+  cpu.reset();
+  cpu.run(400);
+  const members = (device as unknown as { members: { m_regs: { reg: number }[]; m_IOregs: Uint16Array } }).members;
+  const a = (n: number) => members.m_regs[n]!.reg >>> 0;
+  assert.equal(a(2), 0xffff0000, 'TMS34010: ZEXT writes through `int32_t *rd = &AREG(n)`');
+  assert.deepEqual([a(4), a(5)], [0xfffffffe, 0x00000001], 'TMS34010: MPYU keeps every bit of its 64-bit product');
+  assert.deepEqual([a(6), a(7)], [0x80000000, 0], 'TMS34010: DIVU divides a 64-bit dividend');
+  assert.equal(members.m_IOregs[0x15], 8, 'TMS34010: a store at bit 0xc0000150 reaches io_register_w (PSIZE)');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002, TMS320C10, 8088, V30 and TMS34010 classes compiled whole run as processors');

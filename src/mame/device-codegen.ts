@@ -375,6 +375,11 @@ function constantCondition(expression: GeneratedExpression): number | undefined 
   }
   if (expression.kind === 'binary') {
     const left = constantCondition(expression.left);
+    // C short-circuits: `0 && x` is false and `1 || x` true without
+    // evaluating x. The TMS34010's LOGGFX is `if (LOG_GFX_OPS &&
+    // machine().input().code_pressed(KEYCODE_L))`, inside every PIXBLT.
+    if (expression.operator === '&&' && left === 0) return 0;
+    if (expression.operator === '||' && left !== undefined && left !== 0) return 1;
     const right = constantCondition(expression.right);
     if (left === undefined || right === undefined) return undefined;
     switch (expression.operator) {
@@ -721,6 +726,7 @@ export function supportsMethod(
   ]);
   const callees = calledIdentifiers(method.program.operations);
   const addressOnly = addressOnlyLocals(method.program.operations, locals);
+  const structLocals = structLocalNames(method.program.operations, definition);
   const scalarLocals = integerScalarLocals(method.program.operations);
   // The receiver of a bound framework chain is never emitted on its own.
   const chainReceivers = new Set<GeneratedExpression>();
@@ -803,6 +809,11 @@ export function supportsMethod(
               // declining it left them interpreted every frame. A pointer
               // local (`&dst` above) is still declined.
               scalarLocals.has(expression.operand.name) ||
+              // A local of a struct the device declares: an object at run
+              // time, so its address is that object, as the interpreter
+              // takes it. The TMS34010 hands its line `&params` to the
+              // scanline delegate and every PIXBLT its window `&dstxy`.
+              structLocals.has(expression.operand.name) ||
               // A local whose address is all the method ever uses: what the
               // callee does through it no emitted code here can observe, and
               // the callee is handed the same lvalue-backed pointer the
@@ -2845,6 +2856,11 @@ function emitAddressOf(
   if (expression.kind === 'identifier' && pairKind(expression, context)) {
     return emitExpression(expression, context);
   }
+  // A local of a struct the device declares is an object; its address is it.
+  if (expression.kind === 'identifier' && context.locals.has(expression.name) &&
+      isDeclaredStructType(context.locals.get(expression.name), context.definition)) {
+    return emitExpression(expression, context);
+  }
   // A reference parameter's address is its argument's (execute.ts lValue):
   // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }`.
   if (expression.kind === 'identifier' && context.wrappedReferences.has(expression.name)) {
@@ -3551,6 +3567,23 @@ const ATTOTIME_METHODS = new Set(['as_ticks', 'as_double', 'as_attoseconds', 'is
  * A scalar member is not: its address needs a get/set wrapper, and taking one
  * stays interpreted.
  */
+/** A declared type naming a struct the device declares (not a pointer or reference to one). */
+function isDeclaredStructType(valueType: string | undefined, definition: CodegenScope): boolean {
+  const type = valueType?.replace(/\b(?:const|volatile|struct)\b/g, '').trim();
+  if (!type || /[*&]/.test(type)) return false;
+  const structs = (definition as { structs?: Record<string, unknown> }).structs ?? {};
+  return Boolean(structs[type] ?? structs[type.split('::').at(-1)!]);
+}
+
+/** The locals a method declares with a struct type the device declares. */
+function structLocalNames(operations: GeneratedHandlerOperation[], definition: CodegenScope): Set<string> {
+  const names = new Set<string>();
+  visitOperations(operations, operation => {
+    if (operation.op === 'declare' && isDeclaredStructType(operation.valueType, definition)) names.add(operation.name);
+  });
+  return names;
+}
+
 function structMemberNames(definition: CodegenScope): Set<string> {
   return new Set(
     definition.members

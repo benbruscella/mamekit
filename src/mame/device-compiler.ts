@@ -13,6 +13,7 @@ import {
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
+import { isWideType, markWidePrecision } from './wide-precision.ts';
 import { monomorphizeClassTemplate } from './function-template.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
@@ -508,6 +509,7 @@ export function compileMameDevice(
   if (!options.transformSource) {
     attachLibraryFunctions(mameSrc, device);
     attachStateEntries(mameSrc, device);
+    markDeviceWidePrecision(mameSrc, device);
     if (device.sourceFiles.some(file => /\.h$/.test(file) && existsSync(join(mameSrc, file)) &&
       /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {
       device.suspendsMidInstruction = true;
@@ -524,13 +526,17 @@ export function compileMameDevice(
  * build is. The Z8002 indexes its register file with them (`RW(n)` is
  * `m_regs.W[BYTE4_XOR_BE(n)]`); unresolved, every register write was lost.
  */
-const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h', 'src/osd/osdcomm.h'];
-const LIBRARY_INLINES = new Map<string, Map<string, { parameters: string; body: string; file: string; line: number }>>();
+// eminline.h's portable multiply and divide helpers too (`mulu_32x32`, which
+// the TMS34010's MPYU uses): each sits under `#ifndef name`, the C version an
+// asm one only replaces with the same result.
+const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h', 'src/osd/osdcomm.h', 'src/osd/eminline.h'];
+type LibraryInline = { parameters: string; body: string; file: string; line: number; returnType?: string };
+const LIBRARY_INLINES = new Map<string, Map<string, LibraryInline>>();
 
-function libraryInlines(mameSrc: string): Map<string, { parameters: string; body: string; file: string; line: number }> {
+function libraryInlines(mameSrc: string): Map<string, LibraryInline> {
   const cached = LIBRARY_INLINES.get(mameSrc);
   if (cached) return cached;
-  const found = new Map<string, { parameters: string; body: string; file: string; line: number }>();
+  const found = new Map<string, LibraryInline>();
   for (const file of LIBRARY_INLINE_HEADERS) {
     const path = join(mameSrc, file);
     if (!existsSync(path)) continue;
@@ -541,6 +547,7 @@ function libraryInlines(mameSrc: string): Map<string, { parameters: string; body
     // its `#else` the byte swap. Lines in a branch the build leaves out are not read.
     const active: boolean[] = [];
     const skipping = () => active.some(on => !on);
+    const kept: string[] = [];
     lines.forEach((line, index) => {
       const directive = /^\s*#\s*(ifdef|ifndef|if|else|elif|endif)\b\s*(\w*)/.exec(line);
       if (directive) {
@@ -552,6 +559,7 @@ function libraryInlines(mameSrc: string): Map<string, { parameters: string; body
         return;
       }
       if (skipping()) return;
+      kept.push(line);
       const template = /^\s*template\s*<\s*typename\s+(\w+)\s*>\s*constexpr\s+\1\s+(\w+)\s*\(\s*\1\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
       if (template) {
         found.set(template[2]!, { parameters: `int ${template[3]}`, body: `return ${endian(template[4]!)};`, file, line: index + 1 });
@@ -562,12 +570,43 @@ function libraryInlines(mameSrc: string): Map<string, { parameters: string; body
       // type's, as C++ converts it.
       const plain = /^\s*constexpr\s+(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(\s*(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
       if (plain) {
-        found.set(plain[2]!, { parameters: `${plain[3]} ${plain[4]}`, body: `return (${plain[1]})(${endian(plain[5]!)});`, file, line: index + 1 });
+        found.set(plain[2]!, { parameters: `${plain[3]} ${plain[4]}`, body: `return (${plain[1]})(${endian(plain[5]!)});`, file, line: index + 1, returnType: plain[1] });
       }
     });
+    // A function over several lines, eminline.h's
+    // `constexpr uint64_t mulu_32x32(uint32_t a, uint32_t b)\n{\n\treturn ...;\n}`.
+    const text = kept.join('\n');
+    for (const match of text.matchAll(/^[ \t]*(?:inline\s+)?constexpr\s+(?:inline\s+)?(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(([^()]*)\)\s*\n\{([\s\S]*?)\n\}/gm)) {
+      const [, returnType, name, parameters, body] = match;
+      if (found.has(name!)) continue;
+      const line = lines.findIndex(candidate => new RegExp(`\\b${name}\\s*\\(`).test(candidate)) + 1;
+      // Its result is its return type's, as C++ converts it: mul_32x32's
+      // product is a signed 64-bit value.
+      const converted = endian(body!).replace(/\breturn\s+([^;]+);/g, `return (${returnType})($1);`);
+      found.set(name!, { parameters: parameters!.trim(), body: converted, file, line, returnType });
+    }
   }
   LIBRARY_INLINES.set(mameSrc, found);
   return found;
+}
+
+/**
+ * C's 64-bit promotion over the device's programs (wide-precision.ts): its
+ * 64-bit members, the library inlines and its own methods that return 64 bits.
+ */
+function markDeviceWidePrecision(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  const members = new Set(device.members.filter(member => isWideType(member.valueType)).map(member => member.name));
+  const calls = new Set([...libraryInlines(mameSrc)].filter(([, inline]) => isWideType(inline.returnType)).map(([name]) => name));
+  for (const file of device.sourceFiles) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    for (const match of stripCppComments(readFileSync(path, 'utf8')).matchAll(
+      /(?:^|[\s;{}])(?:(?:static|inline|constexpr|virtual)\s+)*(?:std::)?(?:u?int64_t|u64|s64)\s+(?:\w+::)*(\w+)\s*\(/g)) {
+      calls.add(match[1]!);
+    }
+  }
+  const memberTypes = new Map(device.members.map(member => [member.name, member.valueType]));
+  markWidePrecision(device.methods, { members, memberTypes, calls });
 }
 
 /** A library inline the device calls and does not define, added as one of its methods. */

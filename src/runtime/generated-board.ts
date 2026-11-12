@@ -422,6 +422,8 @@ class IrBoard implements Board {
   readonly fbWidth: number;
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
   private screenUpdateNow?: () => void;
+  /** screen_device::update_partial(line), once video is composed. */
+  private screenUpdatePartial?: (line: number) => void;
   private screenPixel?: (x: number, y: number) => number;
   readonly fbHeight: number;
 
@@ -794,6 +796,27 @@ class IrBoard implements Board {
           update_now: () => {
             this.screenUpdateNow?.();
             return 1;
+          },
+          // screen_device::update_partial(scanline): the picture up to that
+          // line. The TMS34010 brings it up to its DPYINT line before it
+          // raises the display interrupt.
+          update_partial: (line: number) => {
+            this.screenUpdatePartial?.(Number(line));
+            return 1;
+          },
+          // screen_device::configure(width, height, visarea, period): a video
+          // processor reprograms the screen from its own timing registers (the
+          // TMS34010 from HEBLNK/HSBLNK: Mortal Kombat moves its window ten
+          // pixels left of the set_raw one). The framebuffer keeps its size,
+          // so a window of the same size moves and any other shape is left.
+          configure: (_width: number, _height: number, visarea: unknown) => {
+            const area = visarea as { min_x?: number; max_x?: number; min_y?: number; max_y?: number } | undefined;
+            const screen = machine.execution.screen;
+            if (!area || area.min_x === undefined || area.max_x === undefined || area.min_y === undefined || area.max_y === undefined) return 0;
+            if (area.max_x - area.min_x + 1 !== screen.width || area.max_y - area.min_y + 1 !== screen.height) return 0;
+            screen.xOffset = area.min_x;
+            screen.yOffset = area.min_y;
+            return 0;
           },
           pixel: (x: number, y: number) => this.screenPixel?.(Number(x), Number(y)) ?? 0,
           // screen_device::clock(): the pixel clock set_raw gave it.
@@ -3059,6 +3082,16 @@ class IrBoard implements Board {
       // module to ask, so the IR carries the member on the callback.
       const member = device?.delegates?.()[callback.signal] ?? callback.member;
       if (!member || !callback.targetMethod) continue;
+      // Or a method of another device: the TMS34010 draws each line through
+      // `set_scanline_ind16_callback(m_video, FUNC(midtunit_video_device::
+      // scanline_update))`, and moves VRAM rows through the shift-register pair.
+      const targetDevice = callback.targetTag ? this.devices.get(callback.targetTag) : undefined;
+      if (device && callback.delegate && targetDevice?.methodNames().includes(callback.targetMethod)) {
+        const method = callback.targetMethod;
+        device.bindCall(member, (...args: unknown[]) => targetDevice.invoke(method, ...args as GeneratedCallArgument[]),
+          targetDevice.parameters(method).join(', '));
+        continue;
+      }
       const handler = machine.handlers?.find(candidate =>
         candidate.ownerClass === callback.targetClass &&
         candidate.method === callback.targetMethod);
@@ -3231,6 +3264,9 @@ class IrBoard implements Board {
       // effects a mid-frame call would repeat.
       this.screenUpdateNow = () => {
         if (activeFramebuffer) video?.updateNow(activeFramebuffer, this.beamLine(), this.beamHpos());
+      };
+      this.screenUpdatePartial = line => {
+        if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
       };
       const screen = machine.execution.screen;
       this.screenPixel = (x, y) => {

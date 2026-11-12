@@ -54,6 +54,10 @@ export const DEVICE_MAME_TYPES = [
   // i86.cpp's 8088 (its inline bodies in i86inline.h) and nec.cpp's V30,
   // whose opcode handlers are OP() heads read after the preprocessor.
   'I8088', 'V30',
+  // tms34010.cpp's TMS34010: a bit-addressed 16-bit space (addrshift +3),
+  // its PIXBLT/FILL variants read after the preprocessor, the scanline timer
+  // and the screen it drives its own (Midway T-Unit).
+  'TMS34010',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

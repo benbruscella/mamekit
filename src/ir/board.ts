@@ -413,6 +413,11 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // The screen's visible rectangle, which a device asks for when it clears a
   // band of its own bitmap (`m_bitmap.fill(colour, screen().visible_area())`).
   'screen().visible_area',
+  // A video processor brings the picture up to a line before it interrupts
+  // and reprograms the screen from its own timing registers: the TMS34010's
+  // scanline callback does both on every line it fires.
+  'screen().update_partial',
+  'screen().configure',
   // A custom renderer selects the palette's shadow preset while walking its
   // sprite list, and draws its shadow pens through that preset's table.
   'palette().shadow_mode',

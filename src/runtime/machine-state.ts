@@ -423,7 +423,23 @@ class Restore {
         for (const item of saved) set.add(item);
         return;
       }
-      case 'object': return this.object(live as Record<string, unknown>, saved, path);
+      case 'object': {
+        // A generated pointer is a value, not an identity: a pointer member
+        // aims at an object at one time and holds a pointer record at
+        // another. The 6809's `m_reg16` is `&m_y` (the register object itself)
+        // or `&m_q.p.d` (a path into its union); saved as the second and
+        // loaded while it was the first, restoring in place wrote the
+        // pointer's fields into Y. Either way round, the slot takes a new one.
+        const savedPointer = typeof saved === 'object' && saved !== null &&
+          (saved as { generatedPointer?: unknown }).generatedPointer === true;
+        const livePointer = (live as { generatedPointer?: unknown }).generatedPointer === true;
+        if (savedPointer !== livePointer && kindOf(saved, this.options) === 'object' && !isBufferReference(saved)) {
+          const built: Record<string, unknown> = {};
+          this.assign(holder, key, built, path);
+          return this.object(built, saved, path);
+        }
+        return this.object(live as Record<string, unknown>, saved, path);
+      }
     }
   }
 

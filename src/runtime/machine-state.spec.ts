@@ -293,3 +293,26 @@ console.log('machine-state.spec: capture and in-place restore round-trip every r
     'a setter that overflows the stack must end the load, not become a diagnostic',
   );
 }
+
+// A pointer member is a value, not an identity: the 6809's `m_reg16` is
+// `&m_y` (the register object) at one time and a path into its union at
+// another. Saved as the path and loaded while it aimed at Y, the pointer's
+// fields went into Y and the next indexed instruction read Y's word as
+// undefined.
+{
+  class Register16 {
+    readonly word = new Uint16Array(1);
+    get w(): number { return this.word[0]!; }
+    set w(value: number) { this.word[0] = value; }
+  }
+  const union = { p: { d: 0x1234 } };
+  const live: Record<string, unknown> = { m_y: new Register16(), m_q: union };
+  (live.m_y as Register16).w = 0xbeef;
+  live.m_reg16 = { generatedPointer: true, source: union, path: ['p', 'd'], offset: 0 };
+  const saved = captureState(live);
+  live.m_reg16 = live.m_y;
+  restoreState(live, saved);
+  assert.equal((live.m_y as Register16).w, 0xbeef, 'Y keeps its word');
+  assert.deepEqual(Object.keys(live.m_y as object), ['word'], 'Y took none of the pointer\'s fields');
+  assert.equal((live.m_reg16 as { generatedPointer?: boolean }).generatedPointer, true, 'the slot holds a pointer again');
+}

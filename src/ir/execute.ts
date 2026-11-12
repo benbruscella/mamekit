@@ -2002,6 +2002,20 @@ function compilePackedPointerView(
   return undefined;
 }
 
+/**
+ * A value converted to a 64-bit integer, exactly: a bigint keeps every bit
+ * (wrapped to the type), and comes back a number once one can hold it, as
+ * the exact evaluator answers. Math.trunc(Number(...)) rounded the TMS34010's
+ * MPYU product to a double.
+ */
+function narrow64(value: unknown, signed: boolean): unknown {
+  if (typeof value === 'bigint') {
+    const wrapped = signed ? BigInt.asIntN(64, value) : BigInt.asUintN(64, value);
+    return wrapped >= WIDE_MINIMUM && wrapped <= WIDE_MAXIMUM ? Number(wrapped) : wrapped;
+  }
+  return Math.trunc(toNumber(value));
+}
+
 /** Narrowing for an already const-stripped declared type. */
 function compileValueNarrowing(declared: string | undefined): (value: unknown) => unknown {
   if (declared === 'uint8_t' || declared === 'u8') return value => toNumber(value) & 0xff;
@@ -2020,7 +2034,8 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   if (declared === 'int' || declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
   if (declared === 'uint64_t' || declared === 'u64' ||
       declared === 'int64_t' || declared === 's64') {
-    return value => Math.trunc(toNumber(value));
+    const signed = declared === 'int64_t' || declared === 's64';
+    return value => narrow64(value, signed);
   }
   // A `float` local rounds to single precision on every store, as it does in
   // C++; `double` and every unnamed scalar type keep their value unchanged.
@@ -2035,8 +2050,11 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
     };
   }
   // wrapValue's terminal case: an unnamed scalar type (`int`, `double`, a
-  // driver typedef) keeps its numeric value unchanged.
-  return toNumber;
+  // driver typedef) keeps its numeric value unchanged. A member-function
+  // pointer typedef holds its method's name (`word_read_func word_read =
+  // &tms340x0_device::memory_r`, lowered to "memory_r"), which no number
+  // stands for: narrowed, every TMS34010 PIXBLT called method "0".
+  return value => typeof value === 'string' && !/^[-+.\d]/.test(value) ? value : toNumber(value);
 }
 
 // A MAME signature is a constant, so parsing it is cached by that string.
@@ -3008,7 +3026,7 @@ function applyIdentifierCall(
   if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
   if (['int', 's32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
   if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
-    return Math.trunc(toNumber(args[0]));
+    return narrow64(args[0], name === 's64' || name === 'int64_t');
   }
   if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
   // The handler parser deliberately keeps C++ direct-initialization in its
@@ -4076,6 +4094,23 @@ function pointerValue(pointer: GeneratedPointer, index: number): unknown {
   if (pointer.path) return offset === 0 ? pathHolder(pointer)[pointer.path.at(-1)!] ?? 0 : 0;
   if (pointer.target) return offset === 0 ? pointer.target.get() : 0;
   return indexValue(pointer.source, offset);
+}
+
+/**
+ * Element `index` of a pointer, read or written as the executor does it: a
+ * union field's path and an lvalue target included. Emitted code reads `*rd`
+ * through readIndex(rd, 0), and indexing the pointer's source directly read
+ * the TMS34010's `int32_t *rd = &AREG(n)` from the union's root, as 0, so
+ * every ZEXT cleared its register.
+ */
+export function generatedPointerElement(pointer: unknown, index: number): unknown {
+  return isGeneratedPointer(pointer) ? pointerValue(pointer, index) : undefined;
+}
+
+export function setGeneratedPointerElement(pointer: unknown, index: number, value: unknown): boolean {
+  if (!isGeneratedPointer(pointer)) return false;
+  setPointerValue(pointer, index, value);
+  return true;
 }
 
 function setPointerValue(pointer: GeneratedPointer, index: number, value: unknown): void {

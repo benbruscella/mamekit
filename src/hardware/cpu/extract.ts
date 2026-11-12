@@ -2,7 +2,6 @@ import {
   compileMameM68000,
 } from '../../mame/cpu-compiler.ts';
 import { generatedCpuExecutableSource } from '../../mame/cpu-codegen.ts';
-import { compileMameTms34010 } from '../../mame/tms34010-compiler.ts';
 import type {
   CapabilityArtifact,
   CapabilityExtraction,
@@ -16,7 +15,6 @@ const COMPILERS: Record<string, (mameSource: string) => unknown> = {
   // Its own decode column and initializer, not a relabelled 68000: see
   // M68000_VARIANTS in cpu-compiler.ts.
   M68010: source => compileMameM68000(source, 'M68010'),
-  TMS34010: compileMameTms34010,
 };
 
 export function compileCpuType(type: string, mameSource: string): unknown {

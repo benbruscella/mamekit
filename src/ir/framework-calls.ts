@@ -32,12 +32,17 @@ const NO_EFFECT_ROOTS = new Set([
   // And the exception hook the x86 cores call on a trap or interrupt (i86.cpp
   // interrupt(), nec_interrupt): it only reports to a running debugger.
   'debugger_exception_hook',
+  // diexec.h's `trigger(m_inttrigger)`: it wakes a processor parked in
+  // spin_until_interrupt/spin_until_trigger. Nothing parks one here (either
+  // call would fail as unresolved), so there is never a waiter. The TMS34010
+  // signals it on every internal interrupt.
+  'signal_interrupt_trigger',
   // Logging, a device's own `printf` to the console included (the NES
   // cartridge's prg_alloc warns about an odd PRG size that way).
   'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning', 'printf',
   // ymfm's own logging, each switched off by a constexpr LOG_* flag of its
   // `debug` class.
-  'debug::log_fm_write', 'debug::log_keyon', 'debug::log_unconditional',
+  'debug::log_fm_write', 'debug::log_keyon', 'debug::log_unconditional', 'debug::log_unexpected_read_write',
 ]);
 
 /**
