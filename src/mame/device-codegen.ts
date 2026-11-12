@@ -3,6 +3,7 @@ import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDer
 import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { isNoEffectStatement } from '../ir/framework-calls.ts';
+import { walkExpressions } from '../ir/walk.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
@@ -185,6 +186,16 @@ export function generatedDeviceMethodsSource(
     collectNames(member.values);
     collectNames(member.initialValue);
     collectNames(member.initialValues);
+  }
+  // Or a table folded into the code that indexes it: the NEC core's
+  // `(this->*s_nec_instruction[fetchop()])()` is CALL_METHOD(TABLE(fetchop(),
+  // "i_add_br8", ...)), every opcode handler named there.
+  for (const method of definition.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' && expression.callee.name === 'TABLE') {
+        for (const argument of expression.args) if (argument.kind === 'string') collectNames(argument.value);
+      }
+    });
   }
   const roots = definition.methods.filter(method =>
     !overloaded.has(method.name) &&
@@ -1974,6 +1985,15 @@ function emitCall(
       return `(typeof ${localName(name)} === 'function' ? ${localName(name)}(${args.join(', ')}) : ` +
         `runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
     }
+    // A std::function member holds the callable its device stored there: the
+    // 8086's `m_or8 = [this](offs_t a) { return m_cache8.read_byte(a); }`,
+    // which every opcode fetch calls as `m_or8(pc)`. Through the call table it
+    // was no function at all, and every fetch read 0.
+    if (/^(?:const\s+)?std::function\s*</.test(context.definition.members.find(member => member.name === name)?.valueType ?? '')) {
+      const held = methodTemp(context);
+      return `(typeof (${held} = members.${name}) === 'function' ? ${held}(${args.join(', ')}) : ` +
+        `(${fallbackLink(context, name)} ? ${callLink(context, name)}(${args.join(', ')}) : runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})))`;
+    }
     if (name === 'COMBINE_DATA') {
       // The interpreter reads data/mem_mask from the handler's locals; emitted
       // code passes its own parameters, with MAME's full-mask default.
@@ -1991,6 +2011,11 @@ function emitCall(
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;
+    }
+    // The comma operator (handler-ir's COMMA): each operand in turn, the last
+    // one's value, as JavaScript's own comma does.
+    if (name === 'COMMA' && args.length) {
+      return `(${args.join(', ')})`;
     }
     if (name === 'BITSWAP') {
       // The source is evaluated once, as bitswap<N>()'s argument is: the

@@ -226,17 +226,6 @@ class Pair32 {
   set d(value: number) { this.value = value >>> 0; }
 }
 
-class WordByteRegisterFile {
-  readonly w: Uint16Array;
-  readonly b: Uint8Array;
-
-  constructor(words: number) {
-    const buffer = new ArrayBuffer(words * 2);
-    this.w = new Uint16Array(buffer);
-    this.b = new Uint8Array(buffer);
-  }
-}
-
 /**
  * The TMS34010 register file: each register is a union of \`int32_t reg\` and
  * \`XY { int16_t x, y; }\`, laid out little-endian, so \`xy.x\` is the low
@@ -601,9 +590,6 @@ function emitMember(member: GeneratedCpuMember): string {
   if (member.values && member.values.some(value => typeof value !== 'number')) {
     return `  private readonly ${member.name}: readonly any[] = ${JSON.stringify(member.values)};`;
   }
-  if (member.wordByteRegisters) {
-    return `  private ${member.name} = new WordByteRegisterFile(${member.wordByteRegisters});`;
-  }
   if (member.values && member.typed) {
     const array = member.bits === 8 ? (member.signed ? 'Int8Array' : 'Uint8Array')
       : member.bits === 16 ? (member.signed ? 'Int16Array' : 'Uint16Array')
@@ -767,7 +753,7 @@ function emitPublicGetCases(definition: GeneratedCpuDefinition): string {
     lines.push(`      case ${JSON.stringify(name)}: return this.${name};`);
   }
   for (const member of definition.members) {
-    if (member.values || member.wordByteRegisters ||
+    if (member.values ||
         member.xyRegisters || member.text) continue;
     // A PAIR is one 32-bit cell, so only `.d` is enumerated for capture: the
     // word and byte views alias the same storage, and capturing them too
@@ -801,7 +787,7 @@ function emitPublicSetCases(definition: GeneratedCpuDefinition): string {
     );
   }
   for (const member of definition.members) {
-    if (member.values || member.wordByteRegisters ||
+    if (member.values ||
         member.xyRegisters || member.text) continue;
     if (member.pair32) {
       lines.push(`      case ${JSON.stringify(member.name)}:`);

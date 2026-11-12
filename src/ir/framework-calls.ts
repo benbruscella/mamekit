@@ -29,6 +29,9 @@ const NO_EFFECT_ROOTS = new Set([
   // diexec.h's wait hook, which reaches the debugger only with
   // DEBUG_FLAG_CALL_HOOK (the 6809 calls it while it burns a wait).
   'debugger_wait_hook',
+  // And the exception hook the x86 cores call on a trap or interrupt (i86.cpp
+  // interrupt(), nec_interrupt): it only reports to a running debugger.
+  'debugger_exception_hook',
   // Logging, a device's own `printf` to the console included (the NES
   // cartridge's prg_alloc warns about an odd PRG size that way).
   'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning', 'printf',

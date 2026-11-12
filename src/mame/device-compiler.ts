@@ -394,6 +394,8 @@ export interface GeneratedDeviceDefinition {
      * start: `space(0).install_rom(...)` over a region (a YM2610's ADPCM).
      */
     installed?: true;
+    /** Declared only when the owner configures a map for it (has_configured_map). */
+    conditional?: true;
     /** The address_space_config's byte order (`ENDIANNESS_BIG`). */
     endianness?: 'big' | 'little';
     /**
@@ -522,7 +524,7 @@ export function compileMameDevice(
  * build is. The Z8002 indexes its register file with them (`RW(n)` is
  * `m_regs.W[BYTE4_XOR_BE(n)]`); unresolved, every register write was lost.
  */
-const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h'];
+const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h', 'src/osd/osdcomm.h'];
 const LIBRARY_INLINES = new Map<string, Map<string, { parameters: string; body: string; file: string; line: number }>>();
 
 function libraryInlines(mameSrc: string): Map<string, { parameters: string; body: string; file: string; line: number }> {
@@ -533,11 +535,35 @@ function libraryInlines(mameSrc: string): Map<string, { parameters: string; body
     const path = join(mameSrc, file);
     if (!existsSync(path)) continue;
     const lines = readFileSync(path, 'utf8').split('\n');
+    const endian = (body: string) => body.replace(/\bNATIVE_ENDIAN_VALUE_LE_BE\s*\(\s*([^,()]+)\s*,\s*([^,()]+)\s*\)/g, '($1)');
+    // The host is little-endian, as MAME's LSB_FIRST build: osdcomm.h's
+    // `#ifdef LSB_FIRST` branch holds `little_endianize_int32(x) { return x; }`,
+    // its `#else` the byte swap. Lines in a branch the build leaves out are not read.
+    const active: boolean[] = [];
+    const skipping = () => active.some(on => !on);
     lines.forEach((line, index) => {
-      const match = /^\s*template\s*<\s*typename\s+(\w+)\s*>\s*constexpr\s+\1\s+(\w+)\s*\(\s*\1\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
-      if (!match) return;
-      const body = match[4]!.replace(/\bNATIVE_ENDIAN_VALUE_LE_BE\s*\(\s*([^,()]+)\s*,\s*([^,()]+)\s*\)/g, '($1)');
-      found.set(match[2]!, { parameters: `int ${match[3]}`, body: `return ${body};`, file, line: index + 1 });
+      const directive = /^\s*#\s*(ifdef|ifndef|if|else|elif|endif)\b\s*(\w*)/.exec(line);
+      if (directive) {
+        const [, kind, name] = directive;
+        if (kind === 'ifdef' || kind === 'ifndef') active.push(name === 'LSB_FIRST' ? kind === 'ifdef' : true);
+        else if (kind === 'if') active.push(true);
+        else if (kind === 'else' && active.length) active[active.length - 1] = !active[active.length - 1];
+        else if (kind === 'endif') active.pop();
+        return;
+      }
+      if (skipping()) return;
+      const template = /^\s*template\s*<\s*typename\s+(\w+)\s*>\s*constexpr\s+\1\s+(\w+)\s*\(\s*\1\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
+      if (template) {
+        found.set(template[2]!, { parameters: `int ${template[3]}`, body: `return ${endian(template[4]!)};`, file, line: index + 1 });
+        return;
+      }
+      // A plain one, osdcomm.h's `constexpr uint16_t swapendian_int16(uint16_t
+      // val) { return (val << 8) | (val >> 8); }`: its result is its return
+      // type's, as C++ converts it.
+      const plain = /^\s*constexpr\s+(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(\s*(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
+      if (plain) {
+        found.set(plain[2]!, { parameters: `${plain[3]} ${plain[4]}`, body: `return (${plain[1]})(${endian(plain[5]!)});`, file, line: index + 1 });
+      }
     });
   }
   LIBRARY_INLINES.set(mameSrc, found);
@@ -556,13 +582,19 @@ function attachLibraryFunctions(mameSrc: string, device: GeneratedDeviceDefiniti
           inlines.has(expression.callee.name) && !defined.has(expression.callee.name)) wanted.add(expression.callee.name);
     });
   }
-  for (const name of wanted) {
+  // An inline that calls another brings it too (little_endianize_int32's
+  // big-endian branch is swapendian_int32).
+  const pending = [...wanted];
+  while (pending.length) {
+    const name = pending.shift()!;
+    if (defined.has(name)) continue;
+    defined.add(name);
     const inline = inlines.get(name)!;
-    device.methods.push({
-      name,
-      parameters: inline.parameters,
-      program: compileMameHandler(inline.body),
-      source: { file: inline.file, line: inline.line },
+    const program = compileMameHandler(inline.body);
+    device.methods.push({ name, parameters: inline.parameters, program, source: { file: inline.file, line: inline.line } });
+    walkExpressions(program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+          inlines.has(expression.callee.name) && !defined.has(expression.callee.name)) pending.push(expression.callee.name);
     });
   }
 }
@@ -707,6 +739,15 @@ function compileMameDeviceReading(
     (definesMethods && preprocessed.methods.length > device.methods.length);
   if (!(preprocessed.summary.diagnostics < device.summary.diagnostics ||
     ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics))) {
+    // Kept as written although the preprocessor found more code: say so, with
+    // what failed, rather than ship a device that silently lacks it (the V30's
+    // opcode handlers are OP() heads that only the preprocessed reading has).
+    if (preprocessed.methods.length > device.methods.length && preprocessed.summary.diagnostics) {
+      const failing = preprocessed.methods.filter(method => method.program.diagnostics.length);
+      console.warn(`  ! ${type}: the preprocessed reading finds ${preprocessed.methods.length} methods against ${device.methods.length} ` +
+        `but ${preprocessed.summary.diagnostics} diagnostics, so it is not used: ` +
+        failing.slice(0, 4).map(method => `${method.name} (${String(method.program.diagnostics[0]).slice(0, 120)})`).join('; '));
+    }
     return device;
   }
   // The preprocessor consumed the #define lines its reading expanded, but they
@@ -1146,6 +1187,9 @@ function compileMameDeviceSource(
   const enumCast = enumTypes.length
     ? new RegExp(`(?<![\\w.>])(?:\\w+::)*(?:${enumTypes.join('|')})\\s*\\(`, 'g')
     : undefined;
+  const enumCStyleCast = enumTypes.length
+    ? new RegExp(`(?<![\\w)\\]]\\s*)\\(\\s*(?:\\w+::)*(?:${enumTypes.join('|')})\\s*\\)(?=\\s*[\\w(])`, 'g')
+    : undefined;
   // A smart pointer's `get()` is the storage it owns, which is all a member
   // holding one is here: the AY-3-8910 builds its mixer into
   // `m_vol3d_table.get()`, and as a call on the array it answered nothing,
@@ -1179,6 +1223,10 @@ function compileMameDeviceSource(
   const specialize = (className: string, text: string): string => {
     const substitutions = templateArguments.get(className);
     let specialized = enumCast ? text.replace(enumCast, '(') : text;
+    // The C form names the enum in parentheses: the 8086's constructor fills
+    // its ModRM table with `(BREGS)reg_name[i & 7]`, and `(name)` alone reads
+    // as a value, so the whole statement failed to lower.
+    if (enumCStyleCast) specialized = specialized.replace(enumCStyleCast, '');
     if (smartGet) specialized = specialized.replace(smartGet, '$1$2');
     for (const [parameter, argument] of Object.entries(substitutions ?? {})) {
       specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
@@ -1976,7 +2024,20 @@ function compileMameDeviceSource(
       .filter(initializer => /^m_\w+$/.test(initializer.name))
       .map(initializer => [initializer.name, initializer.args.map(argument => argument.trim())])),
   };
-  const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
+  // The device's own mutable file-scope state is its state too: the NEC core
+  // keeps its ModRM decode table and parity table as `static struct {...}
+  // Mod_RM;` and `static uint8_t parity_table[256];` beside the class, fills
+  // them in device_start and reads them in every instruction. Not members,
+  // every register field decoded as AW.
+  // A header the sources include from their own directory counts as theirs:
+  // the NEC's Mod_RM is declared in necmodrm.h, which nec.cpp includes.
+  const ownIncludes = [...new Set(sources.flatMap(({ file, source }) =>
+    [...source.matchAll(/^[ \t]*#\s*include\s+"([^"]+)"/gm)].map(found => join(dirname(file), found[1]!))))]
+    .filter(file => !sources.some(source => source.file === file) && existsSync(join(mameSrc, file)));
+  const fileStatics = fileScopeStatics([...sources.map(source => source.source),
+    ...ownIncludes.map(file => readFileSync(join(mameSrc, file), 'utf8'))]);
+  if (fileStatics) classes.set(FILE_STATICS, { name: FILE_STATICS, body: fileStatics, bases: [] } as unknown as MameClass);
+  const members: GeneratedDeviceMember[] = [...hierarchy, ...(fileStatics ? [FILE_STATICS] : [])].flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
     // The class's constants size its arrays: the AY-3-8910's
@@ -2167,7 +2228,7 @@ function compileMameDeviceSource(
   }
   const constructorStrings: Record<string, string> = {};
   const constructorPointers: Record<string, string> = {};
-  const constructorBodies: { body: string; env: Record<string, number> }[] = [];
+  const constructorBodies: { body: string; env: Record<string, number>; className: string }[] = [];
   const constructorChain: ConstructorChainValues = { structs: {}, spaceConfigs: {} };
   const constructorValues = constructorInitialValues(
     definition.className,
@@ -2520,7 +2581,8 @@ function compileMameDeviceSource(
     const width = declaration.baseTemplateArguments?.device_rom_interface?.[0];
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
-  runConstructorBodies(constructorBodies, members, methods, constants);
+  runConstructorBodies(constructorBodies.map(({ body, env, className }) =>
+    ({ body: specialize(className, body), env })), members, methods, constants);
   // An XTAL reaches a device as its frequency, so `set_clk<0>(const XTAL &)`
   // and `set_clk<0>(double)` take the same number, and of overloads with the
   // same arity the runtime selects the last. MAME's XTAL overload forwards
@@ -3647,8 +3709,37 @@ function runConstructorBodies(
   constants: Record<string, number>,
 ): void {
   const state: Record<string, unknown> = {};
+  // A struct member is its fields' shape, arrays as arrays: the 8086's
+  // constructor fills `m_Mod_RM.reg.w[i]`, its ModRM decode table.
+  const shape = (fields: readonly GeneratedStructField[], seed: Record<string, unknown> = {}): Record<string, unknown> | undefined => {
+    const value: Record<string, unknown> = {};
+    for (const field of fields) {
+      if (field.union || /^std::/.test(field.valueType ?? '')) return undefined;
+      const seeded = seed[field.name];
+      if (field.fields) {
+        const one = (index?: number) => shape(field.fields!, ((index === undefined ? seeded : (seeded as unknown[] | undefined)?.[index]) ?? {}) as Record<string, unknown>);
+        const built = field.length ? Array.from({ length: field.length }, (_, index) => one(index)) : one();
+        if (Array.isArray(built) ? built.some(item => !item) : !built) return undefined;
+        value[field.name] = built;
+      } else if (field.length) {
+        value[field.name] = Array.isArray(seeded) ? [...seeded] : new Array(field.length).fill(field.initial ?? 0);
+      } else {
+        value[field.name] = typeof seeded === 'number' ? seeded : field.initial ?? 0;
+      }
+    }
+    return value;
+  };
+  const finiteLeaves = (value: unknown): boolean => typeof value === 'number' ? Number.isFinite(value)
+    : Array.isArray(value) ? value.every(finiteLeaves)
+    : typeof value === 'object' && value !== null && Object.values(value).every(finiteLeaves);
   for (const member of members) {
-    if (member.fields || member.memory || member.finder || member.valueType.startsWith('devcb_')) continue;
+    if (member.fields) {
+      if (member.arrayLength || member.memory || member.finder) continue;
+      const value = shape(member.fields, member.initialValue);
+      if (value) state[member.name] = value;
+      continue;
+    }
+    if (member.memory || member.finder || member.valueType.startsWith('devcb_')) continue;
     if (member.values) state[member.name] = [...member.values];
     else if (member.arrayLength) state[member.name] = new Array(member.arrayLength).fill(0);
     else if (typeof member.initial === 'number' || member.initial === undefined) state[member.name] = member.initial ?? 0;
@@ -3675,11 +3766,52 @@ function runConstructorBodies(
   for (const member of members) {
     if (!(member.name in state) || before.get(member.name) === JSON.stringify(state[member.name])) continue;
     const value = state[member.name];
-    if (typeof value === 'number' && Number.isFinite(value)) member.initial = value;
+    if (member.fields) {
+      if (finiteLeaves(value)) member.initialValue = value as Record<string, unknown>;
+    } else if (typeof value === 'number' && Number.isFinite(value)) member.initial = value;
     else if (Array.isArray(value) && value.every(item => typeof item === 'number' && Number.isFinite(item))) {
       member.values = value as number[];
     }
   }
+}
+
+/** The scope fileScopeStatics' declarations are read as members of. */
+const FILE_STATICS = '__file_statics';
+
+/**
+ * Each uninitialised mutable `static` a source declares at file scope, as a
+ * member declaration without the `static`. One that is initialised is a
+ * table (sourceTables reads those), and a function is not state.
+ */
+function fileScopeStatics(sources: readonly string[]): string {
+  const declarations: string[] = [];
+  for (const raw of sources) {
+    const text = stripCppComments(raw).replace(/^[ \t]*#.*$/gm, '');
+    let depth = 0;
+    let start = 0;
+    // A braced struct is part of its declaration; any other block ends one.
+    let braced = false;
+    for (let index = 0; index < text.length; index++) {
+      const character = text[index];
+      if (character === '{') {
+        if (depth === 0) braced = /^\s*static\s+(?:struct|union)\s*\w*\s*$/.test(text.slice(start, index));
+        depth++;
+      } else if (character === '}') {
+        depth--;
+        if (depth === 0 && !braced) start = index + 1;
+      } else if (character === ';' && depth === 0) {
+        const statement = text.slice(start, index + 1).trim();
+        start = index + 1;
+        const declared = /^static\s+(?!(?:const|constexpr|inline)\b)([\s\S]*;)$/.exec(statement);
+        if (!declared) continue;
+        // Parentheses or an initializer outside the struct's own braces.
+        const outside = declared[1]!.replace(/\{[\s\S]*\}/, '{}');
+        if (/[(=]/.test(outside)) continue;
+        declarations.push(declared[1]!);
+      }
+    }
+  }
+  return declarations.join('\n');
 }
 
 /** Lower a selected C++ constructor, including field initializers, to ordinary method IR. */
@@ -4092,6 +4224,16 @@ function spliceBodyIncludes(mameSrc: string, file: string, source: string): stri
   return lines.join('\n');
 }
 
+/** A same-directory header of out-of-line method definitions (`Class::name(...) {`), not declarations. */
+function inlineBodiesHeader(from: string, include: string): boolean {
+  if (extname(include) !== '.h' || include.includes('/')) return false;
+  const path = join(dirname(from), include);
+  if (!existsSync(path)) return false;
+  const definitions = stripCppComments(readFileSync(path, 'utf8'))
+    .match(/^[ \t]*(?:inline\s+)?[\w:<>*&\s]+?\b\w+::~?\w+\s*\([^;{}]*\)\s*(?:const\s*)?\{/gm);
+  return (definitions?.length ?? 0) >= 3;
+}
+
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
   const files: string[] = [];
   const seen = new Set<string>();
@@ -4118,7 +4260,12 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
       // `.hxx` is the same convention for data: the coefficient tables one
       // source includes into itself (vlm5030.cpp reads its LPC ladders from
       // tms5110r.hxx), never another device's declarations.
-      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!))) continue;
+      // So is a header beside the .cpp that holds out-of-line method bodies
+      // rather than declarations: i86.cpp's `#include "i86inline.h"`, 89
+      // `i8086_common_cpu_device::` bodies (CLK, PUSH, fetch_word, the flag
+      // ops) every instruction calls. A sibling that only declares a class
+      // is not followed.
+      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!)) && !inlineBodiesHeader(absolute, match[1]!)) continue;
       // Follow headers that are part of the same device family. Includes
       // resolved through MAME's global include paths (screen.h, emu.h, etc.)
       // describe host services, not another source-defined base class.
@@ -4700,6 +4847,11 @@ function compileMethod(
     // through its memory interface, `space(AS_PROGRAM).cache(m_mintf->cprogram)`.
     /\b(space\s*\((?:[^()]|\([^()]*\))*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
     '$2 = $1;',
+  ).replace(
+    // Or through a member holding the space: the 8086's
+    // `m_opcodes->cache(m_cache8)`, after `m_opcodes = m_program`.
+    /(?<![\w.>])(m_\w+)\s*->\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
+    '$2 = $1;',
   );
   for (const callback of interruptCallbacks) {
     body = body.replace(
@@ -4921,14 +5073,16 @@ export function memberDeclarations(
   for (const match of declaration.body.matchAll(
     // A template type too: the 6800 keeps both its program and opcode
     // accessors as `memory_access<16, 0, 0, ENDIANNESS_BIG>::cache m_cprogram, m_copcodes;`.
-    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s*<[^;<>\r\n]*(?:<[^;<>\r\n]*>[^;<>\r\n]*)*>(?:::\w+)*)?(?:\s+const)?)\s+([A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
+    // Pointer declarators too: the 8086's `address_space *m_program, *m_opcodes;`.
+    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s*<[^;<>\r\n]*(?:<[^;<>\r\n]*>[^;<>\r\n]*)*>(?:::\w+)*)?(?:\s+const)?)\s+(\*?\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*\*?\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
   )) {
-    const valueType = match[1]!.replace(/\b(?:struct|union)\s+/, '').replace(/\s+/g, ' ').trim();
-    if (/^(?:return|using|typedef|friend|case|goto|delete|throw)$/.test(valueType)) continue;
+    const baseType = match[1]!.replace(/\b(?:struct|union)\s+/, '').replace(/\s+/g, ' ').trim();
+    if (/^(?:return|using|typedef|friend|case|goto|delete|throw)$/.test(baseType)) continue;
     for (const declarator of match[2]!.split(',').map(value => value.trim())) {
-      const parsed = /^([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
-      const name = parsed[1]!;
-      const arrayLength = parsed[2] === undefined ? undefined : arrayBound(parsed[2]);
+      const parsed = /^(\*?)\s*([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
+      const valueType = parsed[1] ? `${baseType} *` : baseType;
+      const name = parsed[2]!;
+      const arrayLength = parsed[3] === undefined ? undefined : arrayBound(parsed[3]);
       if (!members.some(member => member.name === name)) {
         members.push({ valueType, name,
           ...(arrayLength !== undefined && Number.isInteger(arrayLength) ? { arrayLength } : {}) });
@@ -5288,7 +5442,7 @@ export function constructorInitialValues(
    */
   pointers?: Record<string, string>,
   /** Each constructor body that runs, base first, with its arguments' values. */
-  bodies?: { body: string; env: Record<string, number> }[],
+  bodies?: { body: string; env: Record<string, number>; className: string }[],
   /**
    * The member a name means in one class's own code, where a derived class
    * declares a member of a base's name: the Irem G-101's `const u8 m_prg_mask`
@@ -5485,7 +5639,7 @@ export function constructorInitialValues(
         };
       }
     }
-    bodies?.push({ body: constructor.body, env });
+    bodies?.push({ body: constructor.body, env, className });
     for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
       const value = constantValue(assignment[2]!, { ...constants, ...env });
       if (value !== undefined && Number.isFinite(value)) result[memberName(className, assignment[1]!)] = value;
@@ -6315,6 +6469,12 @@ function deviceAddressSpaces(
   if (!configs.size && !unmapped.size) return spaces;
   const vector = methodBodies.get('memory_space_config');
   if (vector === undefined) return spaces;
+  // A space declared only when its owner configures a map for it
+  // (`if (has_configured_map(AS_STACK))`, the 8086's stack, code and extra
+  // spaces; the 6800's and Z80's opcodes): has_space answers for it only then,
+  // so the core falls back to its program space as MAME's does.
+  const conditional = new Set([...vector.matchAll(/\bhas_configured_map\s*\(\s*(\w+)\s*\)/g)]
+    .map(match => Number(evalExpr(match[1]!, constants))).filter(Number.isInteger));
   const seen = new Set<number>();
   for (const pair of vector.matchAll(
     /std::make_pair\s*\(\s*(\w+)\s*,\s*&\s*(m_\w+)\s*\)/g,
@@ -6326,7 +6486,7 @@ function deviceAddressSpaces(
     seen.add(index);
     const installed = unmapped.get(pair[2]!);
     if (installed && Number.isInteger(index)) {
-      spaces.push({ index, ...installed, installed: true });
+      spaces.push({ index, ...installed, installed: true, ...(conditional.has(index) ? { conditional: true as const } : {}) });
       continue;
     }
     const config = configs.get(pair[2]!);

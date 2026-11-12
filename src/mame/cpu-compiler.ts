@@ -44,8 +44,6 @@ export interface GeneratedCpuMember {
   values?: unknown[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
-  /** Little-endian overlapping word/byte register file (x86/NEC style). */
-  wordByteRegisters?: number;
   /** A member-function pointer: holds a method name, empty for nullptr. */
   text?: boolean;
   /**
@@ -867,359 +865,6 @@ function m68000SupportMethods(
 }
 
 /** Compile MAME's Intel 8088/8086 source switch and inline helpers. */
-export function compileMameI8088(
-  mameSrc: string,
-  variant: 'I8088' | 'V30' = 'I8088',
-): GeneratedCpuDefinition {
-  const cppFile = 'src/devices/cpu/i86/i86.cpp';
-  const headerFile = 'src/devices/cpu/i86/i86.h';
-  const inlineFile = 'src/devices/cpu/i86/i86inline.h';
-  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
-  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
-  const inline = readFileSync(join(mameSrc, inlineFile), 'utf8');
-  const ast = parseMameAst([
-    { file: cppFile, source: cpp },
-    { file: inlineFile, source: inline },
-  ]).units.flatMap(unit => unit.functions);
-  const sourceFunction = (name: string, parameters?: string) => ast.find(fn =>
-    ['i8086_common_cpu_device', 'i8086_cpu_device'].includes(fn.className) &&
-    fn.name === name && (parameters === undefined || fn.parameters === parameters));
-  const normalize = (source: string): string => normalizeMameExecutionSource(source)
-    .replace(/\bif\s*\(\s*m_lock\s*\)\s*m_lock_handler\s*\([^;]*\)\s*;/g, '')
-    .replace(/\bm_TF\s*=\s*m_IF\s*=\s*0\s*;/g, 'm_TF = 0; m_IF = 0;')
-    .replace(/\b(m_\w+)\s*=\s*(m_\w+)\s*=\s*([^;]+);/g, '$2 = $3; $1 = $2;')
-    .replace(/\bm_Mod_RM\.RM\.b\b/g, 'm_modrm_rm_b')
-    .replace(/\bm_Mod_RM\.RM\.w\b/g, 'm_modrm_rm_w')
-    .replace(/\bm_Mod_RM\.reg\.b\b/g, 'm_modrm_reg_b')
-    .replace(/\bm_Mod_RM\.reg\.w\b/g, 'm_modrm_reg_w')
-    .replace(/\bm_icount\s*-=\s*([^;]+);/g, 'cycles += $1;')
-    .replace(/\bm_icount\s*=\s*0\s*;/g, 'm_icount = 0;')
-    .replace(/\bCF\b/g, '(m_CarryVal != 0)')
-    .replace(/\bSF\b/g, '(m_SignVal < 0)')
-    .replace(/\bZF\b/g, '(m_ZeroVal == 0)')
-    .replace(/\bPF\b/g, '(m_parity_table[uint8_t(m_ParityVal)] != 0)')
-    .replace(/\bAF\b/g, '(m_AuxVal != 0)')
-    .replace(/\bOF\b/g, '(m_OverVal != 0)')
-    .replace(/\baccess_to_be_redone\s*\(\s*\)/g, '0')
-    .replace(/\btotal_cycles\s*\(\s*\)/g, '1')
-    .replace(/\b(?:debugger_\w+|logerror|TRACE_NOOP)\s*\([^;]*\)\s*;/g, '')
-    .replace(/\bm_(?:lock_handler|out_if_func|esc_opcode_handler|esc_data_handler)\s*\([^;]*\)\s*;/g, '')
-    // The declaration supplies `override = true`, while the out-of-class
-    // definition parsed into the method table cannot carry that default.
-    // Preserve it at each four-argument call; explicit stack accesses pass
-    // false as their fifth argument and remain unchanged.
-    .replace(/\bcalc_addr\(([^()]*)\)/g, (call, args: string) =>
-      splitMameArgs(args).length === 4 ? `calc_addr(${args}, true)` : call)
-    .replace(/\bBIT\s*\(\s*([^,]+),\s*([^)]+)\)/g, '((($1) >> ($2)) & 1)');
-  const methods: GeneratedCpuMethod[] = [];
-  const add = (name: string, parameters: string, body: string, file: string, line: number) => {
-    methods.push({
-      name,
-      parameters,
-      program: compileMameHandler(normalize(body)),
-      source: sourceRef(file, line),
-    });
-  };
-  const skipped = new Set([
-    'state_import', 'state_string_export', 'device_start', 'device_reset',
-    'create_disassembler', 'get_mode', 'memory_space_config', 'execute_run',
-    'read_byte', 'read_word', 'write_byte', 'write_word', 'read_port_byte',
-    'read_port_word', 'write_port_byte', 'write_port_byte_al', 'write_port_word',
-    'fetch', 'execute_set_input',
-    // Address-space plumbing, not semantics: sreg_to_space picks between the
-    // AS_CODE/AS_STACK/AS_EXTRA spaces a driver may install, and MAME aliases
-    // all three onto m_program when it does not. Every caller of it is already
-    // skipped above, so lowering it only reaches m_program, which the
-    // generated core -- a single program bus -- has no member for.
-    'sreg_to_space',
-  ]);
-  const seenMethods = new Set<string>();
-  for (const fn of ast) {
-    if (!['i8086_common_cpu_device', 'i8086_cpu_device'].includes(fn.className) ||
-        skipped.has(fn.name) || seenMethods.has(`${fn.name}\0${fn.parameters}`)) continue;
-    seenMethods.add(`${fn.name}\0${fn.parameters}`);
-    add(fn.name, fn.parameters, fn.body, fn.span.file, fn.span.line);
-  }
-  const inlineLine = (name: string) => lineAt(inline, inline.indexOf(name));
-  add('read_byte', 'uint32_t addr', 'return READ(addr);', cppFile, 635);
-  add('read_word', 'uint32_t addr', 'return READ16LE(addr);', cppFile, 640);
-  add('write_byte', 'uint32_t addr, uint8_t data', 'WRITE(addr, data);', cppFile, 645);
-  add('write_word', 'uint32_t addr, uint16_t data', 'WRITE16LE(addr, data);', cppFile, 650);
-  add('read_port_byte', 'uint16_t port', 'return PORT_READ(port);', cppFile, 655);
-  add('read_port_word', 'uint16_t port', 'return PORT_READ16(port);', cppFile, 660);
-  add('write_port_byte', 'uint16_t port, uint8_t data', 'PORT_WRITE(port, data);', cppFile, 665);
-  add('write_port_byte_al', 'uint16_t port', 'PORT_WRITE(port, m_regs.b[AL]);', cppFile, 670);
-  add('write_port_word', 'uint16_t port, uint16_t data', 'PORT_WRITE16(port, data);', cppFile, 680);
-  add('update_pc', '', 'm_pc = (m_sregs[CS] << 4) + m_ip; return m_pc;', headerFile,
-    lineAt(header, header.indexOf('uint32_t update_pc')));
-  add('fetch', '', 'uint8_t data = READ(update_pc()); m_ip++; return data;', cppFile, 168);
-  add('fetch_op', '', 'return fetch();', headerFile, lineAt(header, header.indexOf('fetch_op()')));
-
-  const array = (source: string, name: string): number[] => {
-    const body = new RegExp(`${name}\\s*\\[[^\\]]*\\]\\s*=\\s*\\{([\\s\\S]*?)\\};`).exec(source)?.[1];
-    if (!body) throw new Error(`MAME I8088 source is missing ${name}`);
-    return body.replace(/\/\*[\s\S]*?\*\//g, '').split(',')
-      .map(value => Number(value.trim())).filter(Number.isFinite);
-  };
-  const timing = array(cpp, 'm_i8086_timing');
-  const eaTiming = array(cpp, 'm_i8086_ea_timing');
-  const byteNames = [0, 2, 4, 6, 1, 3, 5, 7];
-  const modrmRegB = Array.from({ length: 256 }, (_, value) => byteNames[(value & 0x38) >> 3]!);
-  const modrmRegW = Array.from({ length: 256 }, (_, value) => (value & 0x38) >> 3);
-  const modrmRmB = Array.from({ length: 256 }, (_, value) => value >= 0xc0 ? byteNames[value & 7]! : 0);
-  const modrmRmW = Array.from({ length: 256 }, (_, value) => value >= 0xc0 ? value & 7 : 0);
-  const parity = Array.from({ length: 256 }, (_, value) => {
-    let bits = value; let count = 0;
-    while (bits) { count += bits & 1; bits >>>= 1; }
-    return (count & 1) ? 0 : 1;
-  });
-  const constants = headerConstants(mameSrc, header, inline);
-  const resetFn = sourceFunction('device_reset');
-  const inputFn = sourceFunction('execute_set_input');
-  const runFn = sourceFunction('execute_run');
-  if (!resetFn || !inputFn || !runFn) {
-    throw new Error('MAME I8088 reset/input/run source is missing');
-  }
-  const reset = compileMameHandler(normalize(`${resetFn.body}\ncycles = 0;`));
-  const input = compileMameHandler(normalize(inputFn.body)
-    .replace(/\binptnum\b/g, 'inputnum'));
-  // `execute_run` keeps a small switch of its own ahead of `common_op`, and
-  // the shift-and-rotate-by-CL pair lives there rather than in the big table.
-  // Restating the step by hand is what let them go missing: with no case for
-  // 0xd2/0xd3 the opcode byte was consumed and its ModRM byte was not, so
-  // `SHL BX,CL` ran one byte short and every instruction after it decoded from
-  // the wrong offset. Take the two bodies from MAME instead of writing them
-  // out, so the step cannot drift from the source switch again.
-  const runBody = runFn.body;
-  const rotateByCl = (opcode: string): string => {
-    const at = runBody.indexOf(`case ${opcode}:`);
-    if (at < 0) throw new Error(`MAME I8088 execute_run has no ${opcode} case`);
-    const open = runBody.indexOf('{', at);
-    let depth = 0;
-    for (let index = open; index < runBody.length; index += 1) {
-      if (runBody[index] === '{') depth += 1;
-      else if (runBody[index] === '}' && (depth -= 1) === 0) {
-        return runBody.slice(open + 1, index);
-      }
-    }
-    throw new Error(`MAME I8088 ${opcode} case is unterminated`);
-  };
-  add('rotshft_bcl', '', rotateByCl('0xd2'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd2:')));
-  add('rotshft_wcl', '', rotateByCl('0xd3'), cppFile, lineAt(cpp, cpp.indexOf('case 0xd3:')));
-  if (variant === 'V30') {
-    // The 8086 treats 60/61 as aliases for JO/JNO, but NEC implements the
-    // 80186-compatible PUSHA/POPA pair there. R-Type executes PUSHA in its
-    // first IRQ handler; decoding it as JO changes SP and eventually returns
-    // into the power-on RAM test. These are the operations in necinstr.hxx,
-    // expressed against the already-lowered register and stack helpers.
-    add('v30_pusha', '', `
-      uint32_t tmp = m_regs.w[SP];
-      PUSH(m_regs.w[AX]);
-      PUSH(m_regs.w[CX]);
-      PUSH(m_regs.w[DX]);
-      PUSH(m_regs.w[BX]);
-      PUSH(tmp);
-      PUSH(m_regs.w[BP]);
-      PUSH(m_regs.w[SI]);
-      PUSH(m_regs.w[DI]);
-      CLK(NOP);
-    `, 'src/devices/cpu/nec/necinstr.hxx', 377);
-    add('v30_popa', '', `
-      uint32_t discarded_sp;
-      m_regs.w[DI] = POP();
-      m_regs.w[SI] = POP();
-      m_regs.w[BP] = POP();
-      discarded_sp = POP();
-      m_regs.w[BX] = POP();
-      m_regs.w[DX] = POP();
-      m_regs.w[CX] = POP();
-      m_regs.w[AX] = POP();
-      CLK(NOP);
-    `, 'src/devices/cpu/nec/necinstr.hxx', 390);
-    // NEC also assigns c0/c1 to the immediate-count rotate/shift operations;
-    // the 8086 source aliases those otherwise-unused bytes to RET/RETF. The
-    // operation bodies are identical to d2/d3 apart from fetching the count
-    // byte instead of reading CL, so retain the already source-extracted body
-    // and apply exactly that architectural difference from necinstr.hxx.
-    const immediateRotate = (body: string): string => body.replace(
-      /c\s*=\s*m_regs\.b\[CL\]\s*;/,
-      'c = fetch();',
-    );
-    add('v30_rotshft_bd8', '', immediateRotate(rotateByCl('0xd2')),
-      'src/devices/cpu/nec/necinstr.hxx', 581);
-    add('v30_rotshft_wd8', '', immediateRotate(rotateByCl('0xd3')),
-      'src/devices/cpu/nec/necinstr.hxx', 598);
-    // NEC reserves 0f as an extension prefix instead of retaining the
-    // original 8086's undocumented POP CS. R-Type reaches ADD4S when its
-    // first enemies award score; popping CS here sends execution through
-    // unmapped memory and eventually back into the power-on diagnostics.
-    // This is the V30 branch of necinstr.hxx's ADD4S macro, expressed with
-    // the compatible i8086 core's ES/DS and DI/SI register names.
-    add('v30_add4s', '', `
-      uint32_t count = (m_regs.b[CL] + 1) / 2;
-      uint32_t destination = m_regs.w[DI];
-      uint32_t source = m_regs.w[SI];
-      m_ZeroVal = 0;
-      m_CarryVal = 0;
-      while (count > 0) {
-        uint32_t source_bcd = read_byte((m_sregs[DS] << 4) + source);
-        uint32_t destination_bcd = read_byte((m_sregs[ES] << 4) + destination);
-        uint32_t source_value = ((source_bcd >> 4) * 10) + (source_bcd & 15);
-        uint32_t destination_value =
-          ((destination_bcd >> 4) * 10) + (destination_bcd & 15);
-        uint32_t result = source_value + destination_value + m_CarryVal;
-        m_CarryVal = result > 99;
-        result %= 100;
-        uint32_t packed = ((result / 10) << 4) | (result % 10);
-        write_byte((m_sregs[ES] << 4) + destination, packed);
-        if (packed) m_ZeroVal = 1;
-        source++;
-        destination++;
-        count--;
-        cycles += 19;
-      }
-      cycles += 7;
-    `, 'src/devices/cpu/nec/necmacro.h', 234);
-  }
-
-  const step = compileMameHandler(normalize(`
-    cycles = 0;
-    m_icount = 1;
-    if (m_seg_prefix_next) {
-      m_seg_prefix = true;
-      m_seg_prefix_next = false;
-    } else {
-      m_prev_ip = m_ip;
-      m_seg_prefix = false;
-      if (m_pending_irq && m_no_interrupt == 0) {
-        if (m_pending_irq & NMI_IRQ) {
-          interrupt(2);
-          m_pending_irq &= ~NMI_IRQ;
-          m_halt = false;
-        } else if (m_IF) {
-          interrupt(-1);
-          m_halt = false;
-        }
-      }
-      if (m_halt) { cycles += 1; return cycles; }
-      if (m_fire_trap) {
-        if (m_fire_trap >= 2 && m_no_interrupt == 0) {
-          m_fire_trap = 0;
-          interrupt(1);
-        } else {
-          m_fire_trap++;
-        }
-      }
-      if (m_no_interrupt) m_no_interrupt--;
-    }
-    uint8_t op = fetch_op();
-    if (${variant === 'V30' ? 'op == 0x0f' : 'false'}) {
-      uint8_t nec_op = fetch();
-      if (nec_op == 0x20) v30_add4s();
-    } else if (op == 0x0f) {
-      m_sregs[CS] = POP();
-      CLK(POP_SEG);
-    } else if (${variant === 'V30' ? 'op == 0x60' : 'false'}) {
-      v30_pusha();
-    } else if (${variant === 'V30' ? 'op == 0x61' : 'false'}) {
-      v30_popa();
-    } else if (${variant === 'V30' ? 'op == 0xc0' : 'false'}) {
-      v30_rotshft_bd8();
-    } else if (${variant === 'V30' ? 'op == 0xc1' : 'false'}) {
-      v30_rotshft_wd8();
-    } else if (op == 0xd2) {
-      rotshft_bcl();
-    } else if (op == 0xd3) {
-      rotshft_wcl();
-    } else if (op >= 0xd8 && op <= 0xdf) {
-      m_modrm = fetch();
-      if (m_modrm < 0xc0) get_ea(1, I8086_READ);
-      CLK(NOP);
-    } else {
-      common_op(op);
-    }
-    return cycles > 0 ? cycles : 1;
-  `));
-  const members: GeneratedCpuMember[] = [
-    { name: 'm_regs', wordByteRegisters: 8 },
-    { name: 'm_sregs', bits: 16, values: [0, 0, 0, 0] },
-    { name: 'm_parity_table', bits: 8, values: parity },
-    { name: 'm_modrm_reg_b', bits: 8, values: modrmRegB },
-    { name: 'm_modrm_reg_w', bits: 8, values: modrmRegW },
-    { name: 'm_modrm_rm_b', bits: 8, values: modrmRmB },
-    { name: 'm_modrm_rm_w', bits: 8, values: modrmRmW },
-    { name: 'm_timing', bits: 8, values: timing },
-    { name: 'm_ea_timing', bits: 8, values: eaTiming },
-    ...['m_ip', 'm_prev_ip', 'm_eo'].map(name => ({ name, bits: 16 as const })),
-    ...[
-      'm_TF', 'm_IF', 'm_DF', 'm_IOPL', 'm_NT', 'm_MF', 'm_no_interrupt',
-      'm_fire_trap', 'm_test_state', 'm_io_stall', 'm_seg_prefix',
-      'm_seg_prefix_next', 'm_modrm', 'm_halt', 'm_lock',
-    ].map(name => ({ name, bits: 8 as const })),
-    // i86.h declares `int32_t m_SignVal;` on its own line and the rest of the
-    // flag scratch as `uint32_t ... /* 0 or non-0 valued flags */`. The
-    // distinction is load bearing: `SF` is `m_SignVal < 0`, and
-    // `set_SZPF_Byte` assigns `(int8_t)x`, so wrapping the store unsigned
-    // turns every negative byte result positive and clears SF. Q*bert's coin
-    // routine is `CMP BYTE PTR [0083],0` then `JG`/`JL` -- a signed test --
-    // so with SF stuck at 0 it took the wrong arm and never credited a coin.
-    { name: 'm_SignVal', bits: 32 as const, signed: true },
-    // m_icount is `int` in device_execute_interface and goes negative when an
-    // instruction overruns its slice.
-    { name: 'm_icount', bits: 32 as const, signed: true },
-    ...[
-      'm_AuxVal', 'm_OverVal', 'm_ZeroVal', 'm_CarryVal',
-      'm_ParityVal', 'm_int_vector', 'm_pending_irq', 'm_nmi_state',
-      'm_prefix_seg', 'm_ea', 'm_easeg', 'm_dst', 'm_src', 'm_pc', 'cycles',
-    ].map(name => ({ name, bits: 32 as const })),
-  ];
-  const programs = [reset, input, step, ...methods.map(method => method.program)];
-  return {
-    schemaVersion: 1,
-    type: 'I8088',
-    addressMask: 0xfffff,
-    dialect: 'mame-i8086-cpp-switch',
-    sourceFiles: [cppFile, headerFile, inlineFile],
-    constants,
-    aliases: {},
-    members,
-    methods,
-    start: compileMameHandler(''),
-    reset,
-    input,
-    step,
-    service: compileMameHandler(''),
-    fetch: compileMameHandler(''),
-    opcodes: [],
-    summary: {
-      opcodes: 256,
-      compiledOpcodes: step.diagnostics.length ? 0 : 256,
-      methods: methods.length,
-      compiledMethods: methods.filter(method => !method.program.diagnostics.length).length,
-      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
-    },
-  };
-}
-
-/**
- * V30 executes the 8086 instruction set used by M72 program ROMs. Keep the
- * compatible execution core source-derived from MAME's i86 switch while also
- * recording the NEC implementation sources that define the selected device.
- */
-export function compileMameV30(mameSrc: string): GeneratedCpuDefinition {
-  const compatible = compileMameI8088(mameSrc, 'V30');
-  return {
-    ...compatible,
-    type: 'V30',
-    dialect: 'mame-v30-i8086-compatible-switch',
-    sourceFiles: [
-      ...compatible.sourceFiles,
-      'src/devices/cpu/nec/nec.cpp',
-      'src/devices/cpu/nec/nec.h',
-      'src/devices/cpu/nec/necinstr.hxx',
-    ],
-  };
-}
 
 /** Compile the Z8002's source opcode table and generated operation methods. */
 
@@ -1437,6 +1082,25 @@ export function normalizeMameExecutionSource(source: string): string {
     // from several constructor arguments it stays emplace_back, which makes
     // the element and answers it (generatedVector).
     .replace(/\.emplace_back\s*\(((?:[^(),]|\([^()]*\))*)\)/g, '.push($1)');
+  // A static local array declared again further on is another array: the NEC
+  // core's i_pre_nec expands ADD4S, SUB4S and CMP4S, each with its own
+  // `static const uint8_t table[3]` and its own cycle counts. Each declaration
+  // after the first is renamed, with its uses, up to the next one of the name.
+  const redeclared = new Map<string, number>();
+  for (const match of normalized.matchAll(/\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[/g)) {
+    redeclared.set(match[1]!, (redeclared.get(match[1]!) ?? 0) + 1);
+  }
+  for (const [name, count] of redeclared) {
+    if (count < 2) continue;
+    const declaration = new RegExp(String.raw`\bstatic\s+(?:const|constexpr)\s+\w+\s+${name}\s*\[`, 'g');
+    const starts = [...normalized.matchAll(declaration)].map(match => match.index!);
+    let rebuilt = normalized.slice(0, starts[1]);
+    starts.slice(1).forEach((start, index) => {
+      const end = starts[index + 2] ?? normalized.length;
+      rebuilt += normalized.slice(start, end).replace(new RegExp(String.raw`\b${name}\b`, 'g'), `${name}__${index + 2}`);
+    });
+    normalized = rebuilt;
+  }
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?)\}\s*;/g,
   )) {
@@ -1797,10 +1461,6 @@ function matchPair(
     else if (source[index] === right && --depth === 0) return index;
   }
   return -1;
-}
-
-function lineAt(source: string, offset: number): number {
-  return source.slice(0, offset).split('\n').length;
 }
 
 function sourceRef(file: string, line: number): BoardSourceRef {

@@ -51,6 +51,9 @@ export const DEVICE_MAME_TYPES = [
   // tms320c1x.cpp's TMS320C10, the class template tms320c1x_device_base<12>
   // flattened to that specialisation; Wardner's DSP.
   'TMS320C10',
+  // i86.cpp's 8088 (its inline bodies in i86inline.h) and nec.cpp's V30,
+  // whose opcode handlers are OP() heads read after the preprocessor.
+  'I8088', 'V30',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

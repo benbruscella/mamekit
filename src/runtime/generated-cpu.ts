@@ -93,7 +93,6 @@ interface CpuMember {
   values?: unknown[];
   fields?: Record<string, 1 | 8 | 16 | 32>;
   initial?: number;
-  wordByteRegisters?: number;
   /** A pointer to another device the host sets: wiring, not state. */
   link?: boolean;
 }
@@ -263,9 +262,7 @@ class IrCpu implements Cpu {
     this.opcodes = new Map(definition.opcodes.map(opcode => [opcode.key, opcode]));
     this.methods = new Map(definition.methods.map(method => [method.name, method]));
     for (const member of definition.members) {
-      if (member.wordByteRegisters) {
-        this.members[member.name] = new WordByteRegisterFile(member.wordByteRegisters);
-      } else if (member.values) {
+      if (member.values) {
         this.members[member.name] = member.bits === 8
           ? Uint8Array.from(member.values)
           : [...member.values];
@@ -804,17 +801,6 @@ function typedObject(fields: Record<string, 1 | 8 | 16 | 32>): Record<string, un
     });
   }
   return object;
-}
-
-class WordByteRegisterFile {
-  readonly w: Uint16Array;
-  readonly b: Uint8Array;
-
-  constructor(words: number) {
-    const buffer = new ArrayBuffer(words * 2);
-    this.w = new Uint16Array(buffer);
-    this.b = new Uint8Array(buffer);
-  }
 }
 
 class Pair16 {

@@ -647,14 +647,20 @@ class HandlerParser {
       };
     }
     if (expression.kind !== 'conditional') return undefined;
+    // An arm that only reads is evaluated for nothing, as long as the other
+    // arm has an effect: the NEC's discarded GetRMByte is `ModRM >= 0xc0 ?
+    // m_regs.b[...] : (CALL_METHOD(s_GetEA[ModRM]), read_byte(m_EA))`.
+    const inert = (arm: GeneratedExpression) => pureLvalue(arm) || arm.kind === 'number';
     const whenTrue = this.expressionStatement(expression.whenTrue);
     const whenFalse = this.expressionStatement(expression.whenFalse);
-    if (!whenTrue || !whenFalse) return undefined;
+    if ((!whenTrue && !inert(expression.whenTrue)) || (!whenFalse && !inert(expression.whenFalse)) || (!whenTrue && !whenFalse)) {
+      return undefined;
+    }
     return {
       op: 'if',
       condition: expression.condition,
-      then: [whenTrue],
-      else: [whenFalse],
+      then: whenTrue ? [whenTrue] : [],
+      else: whenFalse ? [whenFalse] : [],
     };
   }
 
@@ -1996,7 +2002,20 @@ class HandlerParser {
     }
     if (token.text === '(') {
       const expression = this.parseExpression();
-      return expression && this.consume(')') ? expression : undefined;
+      if (!expression) return undefined;
+      // The comma operator: each operand in turn, the value the last one's.
+      // The NEC core's GetRMWord is `(ModRM >= 0xc0 ? reg : (CALL_METHOD(
+      // s_GetEA[ModRM]), m_program->read_word_unaligned(m_EA)))`.
+      if (this.atText(',')) {
+        const operands: GeneratedExpression[] = [expression];
+        while (this.consume(',')) {
+          const next = this.parseExpression();
+          if (!next) return undefined;
+          operands.push(next);
+        }
+        return this.consume(')') ? { kind: 'call', callee: { kind: 'identifier', name: 'COMMA' }, args: operands } : undefined;
+      }
+      return this.consume(')') ? expression : undefined;
     }
     // A `[` where a value is expected introduces a lambda -- a subscript is
     // postfix and never reaches here. MAME installs address-space taps with

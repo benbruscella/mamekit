@@ -377,6 +377,8 @@ export interface GeneratedDeviceDefinition {
     map?: string;
     /** A space with no map, which the device fills at start with install_rom. */
     installed?: true;
+    /** Declared only when the owner configures a map for it (has_configured_map). */
+    conditional?: true;
   }[];
   compiledMethods?: GeneratedDeviceMethodMap;
   /**
@@ -1324,8 +1326,8 @@ class IrDevice implements Device {
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
       // its map tests state the constructor sets (the 68705's port masks).
-      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits), config.addressBits));
-      else if (!config.map) this.spaces.set(config.index, withSpaceConfig(generatedDeviceSpace(config.addressBits), config.addressBits));
+      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits), config.addressBits, config));
+      else if (!config.map) this.spaces.set(config.index, withSpaceConfig(generatedDeviceSpace(config.addressBits), config.addressBits, config));
     }
     const resourceCache = options.resourceCache ?? {};
     const resourceOptions = { ...options, resourceCache };
@@ -1482,8 +1484,9 @@ class IrDevice implements Device {
             ? (member.arrayLength
                 ? Array.from({ length: member.arrayLength }, (_, index) =>
                     Object.assign(structMember(member.fields!, definition.structs, structTypeName(member.valueType)), member.initialValues?.[index] ?? {}))
-                // A file-scope `static const struct` keeps its initializer.
-                : Object.assign(structMember(member.fields, definition.structs, structTypeName(member.valueType)), structuredClone(member.initialValue ?? {})))
+                // A file-scope `static const struct` keeps its initializer, and a
+                // struct the constructor fills keeps what it wrote.
+                : seedStruct(structMember(member.fields, definition.structs, structTypeName(member.valueType)), member.initialValue))
         : member.memory
         ? memoryMember(member, options, definition.structs, definition.spaces?.some(space => space.map) === true)
         : member.values ? [...member.values]
@@ -2070,8 +2073,9 @@ class IrDevice implements Device {
         // declared. AS_OPCODES is declared only when the owner maps it (the
         // 6800's `has_configured_map(AS_OPCODES) ? {program, opcodes} : {program}`).
         has_space: index => {
-          const declared = definition.spaces?.some(space => space.index === Number(index)) ?? false;
-          return declared && (Number(index) !== 3 || options.configuredSpaces?.includes(3) === true) ? 1 : 0;
+          const space = definition.spaces?.find(candidate => candidate.index === Number(index));
+          if (!space) return 0;
+          return (space.conditional || Number(index) === 3) && options.configuredSpaces?.includes(Number(index)) !== true ? 0 : 1;
         },
         // device_t::started(): the OKI asserts it before configuring PIN7.
         started: () => this.deviceStarted ? 1 : 0,
@@ -3008,7 +3012,7 @@ class IrDevice implements Device {
       this.spaces.set(index, space);
       return space;
     }
-    const space = withSpaceConfig(mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup), config.addressBits);
+    const space = withSpaceConfig(mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup), config.addressBits, config);
     this.spaces.set(index, space);
     return space;
   }
@@ -4564,14 +4568,40 @@ function bindWideSpace(
 }
 
 /** A space's config answers, as address_space reads them from its address_space_config. */
-function withSpaceConfig<T extends GeneratedDeviceSpace>(space: T, addressBits: number): T {
+function withSpaceConfig<T extends GeneratedDeviceSpace>(space: T, addressBits: number, config?: { dataBits: number; endianness?: 'big' | 'little' }): T {
   space.addr_width = () => addressBits;
+  // A byte-wide space answers word accesses too, as two bytes in its own order
+  // (emumem's address_space on an 8-bit bus): the 8088 reads its operands with
+  // `read_word_unaligned` and writes a port's high lane with
+  // `write_word(port - 1, swapendian_int16(AX), 0xff00)`.
+  if (config && config.dataBits === 8) {
+    const little = config.endianness !== 'big';
+    const words = space as unknown as Record<string, unknown>;
+    const readWord = (address: number) => little
+      ? (space.read_byte(address) | (space.read_byte(address + 1) << 8)) & 0xffff
+      : ((space.read_byte(address) << 8) | space.read_byte(address + 1)) & 0xffff;
+    const writeWord = (address: number, data: number, mask = 0xffff) => {
+      const value = Number(data) & 0xffff;
+      const lanes = Number(mask) & 0xffff || 0xffff;
+      if (lanes & 0x00ff) space.write_byte(little ? address : address + 1, value & 0xff);
+      if (lanes & 0xff00) space.write_byte(little ? address + 1 : address, value >>> 8);
+      return 0;
+    };
+    words.read_word ??= readWord;
+    words.write_word ??= writeWord;
+    words.read_word_unaligned ??= readWord;
+    words.write_word_unaligned ??= writeWord;
+    words.data_width ??= () => 8;
+  }
   // memory_access::specific::space() is the space itself here, and
   // address_space::addrmask() its width's mask: the Z8002 masks its PC's
   // debugger state with `m_program.space().addrmask()`.
   const surface = space as unknown as Record<string, unknown>;
   surface.space ??= () => space;
   surface.addrmask ??= () => 2 ** addressBits - 1;
+  // address_space::data_width(), from creation: the V30 asks it in
+  // device_start, before its owner binds the space.
+  if (config) surface.data_width ??= () => config.dataBits;
   return space;
 }
 
@@ -5006,6 +5036,29 @@ const STRUCT_BINDINGS = new WeakMap<object, GeneratedHandlerBindings>();
  */
 const STRUCT_RUNTIME = Symbol('struct runtime');
 const STRUCT_METHODS = new WeakMap<object, Record<string, Record<string, (this: Record<string, unknown>, ...args: unknown[]) => unknown>>>();
+
+/**
+ * A struct's initial value copied into the shape structMember built, so an
+ * array field stays the typed array that narrows what is stored into it: the
+ * 8086's ModRM table is `int w[256]` inside nested structs.
+ */
+function seedStruct(target: Record<string, unknown>, seed: Record<string, unknown> | undefined): Record<string, unknown> {
+  if (!seed) return target;
+  for (const [name, value] of Object.entries(seed)) {
+    const into = target[name];
+    if (Array.isArray(value) && (ArrayBuffer.isView(into) || Array.isArray(into))) {
+      const array = into as unknown[];
+      value.forEach((item, index) => {
+        if (item !== null && typeof item === 'object' && array[index] !== null && typeof array[index] === 'object') {
+          seedStruct(array[index] as Record<string, unknown>, item as Record<string, unknown>);
+        } else array[index] = structuredClone(item);
+      });
+    } else if (value !== null && typeof value === 'object' && into !== null && typeof into === 'object' && !Array.isArray(value)) {
+      seedStruct(into as Record<string, unknown>, value as Record<string, unknown>);
+    } else target[name] = structuredClone(value);
+  }
+  return target;
+}
 
 function structMember(
   fields: readonly StructField[],

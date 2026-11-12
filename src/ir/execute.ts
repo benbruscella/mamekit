@@ -2421,6 +2421,9 @@ const CONSTANT_MACROS: ReadonlyMap<string, number> = new Map([
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   const constant = CONSTANT_MACROS.get(name);
   if (constant !== undefined) return constant;
+  // The comma operator (handler-ir lowers `(a, b)` to COMMA): its operands
+  // were evaluated in order as arguments; the value is the last one's.
+  if (name === 'COMMA') return args.at(-1) ?? 0;
   // MAME's downcast<T>(x) is a checked static_cast: the object itself.
   if (name === 'downcast' && args.length === 1) return args[0];
   // As the C library and as `std::` spell it: the floppy drive's call_load

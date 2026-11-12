@@ -457,4 +457,40 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.deepEqual(run([0x7e09, 0x6707, 0x4807, 0xf900, 0x0003, 0, 0, 0, 0, 0x1234]), [[0, 0x1234]], 'TMS320C10: TBLR');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002 and TMS320C10 classes compiled whole run as processors');
+// The 8088 from i86.cpp (its inline bodies in i86inline.h) and the V30 from
+// nec.cpp (OP() handlers read after the preprocessor, a 16-bit little-endian
+// bus): reset at FFFF0 and a far jump, a store, OUT, and an IRQ through the
+// vector table. The V30's 60/61 are PUSHA/POPA, which R-Type's first IRQ uses.
+for (const type of ['I8088', 'V30']) {
+  const memory = new Uint8Array(0x100000);
+  memory.set([0xea, 0x00, 0x01, 0x00, 0x00], 0xffff0); // JMP FAR 0000:0100
+  // MOV AL,5A; MOV [2000],AL; OUT 3,AL; MOV DX,1000; ADD DX,0234; MOV [2004],DX;
+  // MOV SP,1000; STI; JMP $. ADD and MOV decode DX through the ModRM tables:
+  // the 8086's are members its constructor fills, the NEC's file-scope
+  // statics its device_start fills.
+  memory.set([0xb0, 0x5a, 0xa2, 0x00, 0x20, 0xe6, 0x03, 0xba, 0x00, 0x10, 0x81, 0xc2, 0x34, 0x02,
+    0x89, 0x16, 0x04, 0x20, 0xbc, 0x00, 0x10, 0xfb, 0xeb, 0xfe], 0x100);
+  memory.set([0x00, 0x03, 0x00, 0x00], 0x20 * 4); // vector 0x20 -> 0000:0300
+  // MOV AX,1234; PUSHA; MOV AX,0; POPA; MOV [2002],AX; JMP $ (V30), else MOV AL,77; MOV [2002],AL; JMP $
+  memory.set(type === 'V30'
+    ? [0xb8, 0x34, 0x12, 0x60, 0xb8, 0x00, 0x00, 0x61, 0xa3, 0x02, 0x20, 0xeb, 0xfe]
+    : [0xb0, 0x77, 0xa2, 0x02, 0x20, 0xeb, 0xfe], 0x300);
+  const ports: [number, number][] = [];
+  const { cpu } = deviceCpu(type, {
+    read: address => memory[address & 0xfffff]!,
+    write: (address, data) => { memory[address & 0xfffff] = data; },
+    in: () => 0xff,
+    out: (port, data) => { ports.push([port, data]); },
+  }, {}, { configuredSpaces: [0, 2] });
+  cpu.reset();
+  cpu.run(300);
+  assert.equal(memory[0x2000], 0x5a, `${type}: the far jump from FFFF0, then MOV [2000],AL`);
+  assert.deepEqual(ports, [[3, 0x5a]], `${type}: OUT 3,AL`);
+  assert.deepEqual([...memory.slice(0x2004, 0x2006)], [0x34, 0x12], `${type}: ADD DX,imm16 and MOV [2004],DX through ModRM`);
+  cpu.setIrqLine(true, 0x20);
+  cpu.run(300);
+  assert.equal(memory[0x2002], type === 'V30' ? 0x34 : 0x77, `${type}: the IRQ vectors through 0x20`);
+  if (type === 'V30') assert.equal(memory[0x2003], 0x12, 'V30: PUSHA/POPA keep AX');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002, TMS320C10, 8088 and V30 classes compiled whole run as processors');

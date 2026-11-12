@@ -1,7 +1,5 @@
 import {
-  compileMameI8088,
   compileMameM68000,
-  compileMameV30,
 } from '../../mame/cpu-compiler.ts';
 import { generatedCpuExecutableSource } from '../../mame/cpu-codegen.ts';
 import { compileMameTms34010 } from '../../mame/tms34010-compiler.ts';
@@ -14,8 +12,6 @@ import { CPU_MAME_TYPES, cpuIrArtifact, cpuModuleArtifact } from './definition.t
 
 /** Which MAME compiler produces each core. */
 const COMPILERS: Record<string, (mameSource: string) => unknown> = {
-  I8088: compileMameI8088,
-  V30: compileMameV30,
   M68000: compileMameM68000,
   // Its own decode column and initializer, not a relabelled 68000: see
   // M68000_VARIANTS in cpu-compiler.ts.

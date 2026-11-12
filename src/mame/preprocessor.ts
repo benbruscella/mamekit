@@ -23,7 +23,7 @@ export interface FunctionMacro {
 }
 
 /** Names the IR answers itself; expanding a redefinition would shadow them. */
-const INTRINSICS = new Set(['BIT', 'BITSWAP', 'TABLE', 'COMBINE_DATA',
+const INTRINSICS = new Set(['BIT', 'BITSWAP', 'TABLE', 'COMBINE_DATA', 'COMMA',
   // Discrete node identities are translated by the host audio protocol.
   'NODE', 'NODE_INDEX', 'NODE_RELATIVE']);
 

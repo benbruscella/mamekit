@@ -297,17 +297,9 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   rewriteCall: 'rewrites a call by its parsed arguments',
   allocIntrinsic: 'the ALLOC primitive for an element type',
   matchPair: 'finds a closing bracket',
-  lineAt: 'a source line number',
   sourceRef: 'a source reference',
 };
 const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
-  'mame/cpu-compiler.ts: compileMameI8088': [
-    '24 source edits', 'body fetch', 'body fetch_op', 'body read_byte', 'body read_port_byte',
-    'body read_port_word', 'body read_word', 'body reset', 'body service', 'body start',
-    'body step', 'body update_pc', 'body v30_add4s', 'body v30_popa', 'body v30_pusha',
-    'body write_byte', 'body write_port_byte', 'body write_port_byte_al', 'body write_port_word',
-    'body write_word',
-  ],
   'mame/cpu-compiler.ts: compileMameM68000': [
     'body fetch', 'body input', 'body program', 'body reset', 'body service', 'body start',
   ],
@@ -388,7 +380,6 @@ const HAND_WRITTEN_CPU_FACTS: string[] = [
   'mame/cpu-codegen.ts: class Pair32',
   'mame/cpu-codegen.ts: class Pair32Bytes',
   'mame/cpu-codegen.ts: class Pair32Words',
-  'mame/cpu-codegen.ts: class WordByteRegisterFile',
   'mame/cpu-codegen.ts: class XyHalves',
   'mame/cpu-codegen.ts: class XyRegister',
   'mame/cpu-codegen.ts: class XyValue',
