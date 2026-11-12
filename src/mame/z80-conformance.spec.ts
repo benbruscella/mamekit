@@ -1,62 +1,115 @@
-// Conformance test for the Z80 core generated from the sibling MAME checkout.
+// Conformance test for the Z80: MAME's z80.cpp compiled whole as a device,
+// its execute_run the state machine z80make.py writes, run through DeviceCpu
+// as a board runs it.
 // Run with: node src/mame/z80-conformance.spec.ts
 // No test framework; prints PASS/FAIL per section and sets process.exitCode.
 
-import { compileMameZ80 } from './cpu-compiler.ts';
-import { generatedCpuExecutableSource } from './cpu-codegen.ts';
-import * as ts from 'typescript';
-import {
-  clearGeneratedCpus,
-  createCpu,
-  registerGeneratedCpu,
-  type Cpu,
-  type CpuBus as Z80Bus,
-} from '../runtime/generated-cpu.ts';
+import { compileMameDevice } from './device-compiler.ts';
+import { indexMameHardware } from './hardware.ts';
+import { createDevice, registerGeneratedDevice, type Device } from '../runtime/generated-device.ts';
+import { DeviceCpu } from '../runtime/device-cpu.ts';
+import type { CpuBus as Z80Bus } from '../runtime/generated-cpu.ts';
 
-clearGeneratedCpus();
-const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
-const executableSource = generatedCpuExecutableSource(definition);
-const executableJavaScript = ts.transpileModule(executableSource, {
-  compilerOptions: {
-    target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.ESNext,
-  },
-}).outputText;
-const executableModule = await import(
-  `data:text/javascript;base64,${Buffer.from(executableJavaScript).toString('base64')}`
-) as { default: Parameters<typeof registerGeneratedCpu>[0] };
-registerGeneratedCpu(executableModule.default);
+const mameSrc = process.env.MAME_SRC ?? '../mame';
+registerGeneratedDevice(compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('Z80')!, 'Z80'));
 
-// Test-only compatibility surface for the historical conformance vectors.
-// It contains no CPU behavior; every operation executes emitted MAME-derived code.
+// Test-only surface for the historical conformance vectors. It contains no
+// CPU behavior: registers are the device's own members, and every operation
+// runs the compiled MAME core.
 class Z80 {
-  private readonly core: Cpu;
+  private readonly device: Device;
+  private readonly core: DeviceCpu;
 
   constructor(bus: Z80Bus) {
-    this.core = createCpu('Z80', bus);
+    const device = createDevice('Z80', { tag: 'cpu', clock: 4_000_000, configuredSpaces: [0, 2] });
+    this.device = device;
+    // A line held (HOLD_LINE) is released when the core acknowledges it, as
+    // the board's device_input does.
+    const held = new Set<number>();
+    this.core = new DeviceCpu(device, bus, {
+      setInputLine: (line, state) => {
+        if (state === 2) held.add(line); else held.delete(line);
+        device.call('execute_set_input', line, state === 2 ? 1 : state);
+      },
+      acknowledgeLine: line => {
+        if (held.delete(line)) device.call('execute_set_input', line, 0);
+        return 0xff;
+      },
+    });
+    this.core.reset();
   }
 
-  step(): number { return this.core.step(); }
+  /** Fetch cycles a step that ended inside the next instruction's M1 spent. */
+  private carried = 0;
+
+  /**
+   * One whole instruction. The 0.289 core stops between any two machine
+   * cycles once m_icount is spent, and checks it again at the next
+   * instruction's start (`m_ref` 0xffff00). The first cycle starts the
+   * instruction; after that each continuation is given no cycles at all, so it
+   * runs exactly the instruction's next machine cycle (or its zero-cost tail)
+   * and the core comes to rest on the boundary instead of fetching on.
+   *
+   * An interrupt is taken at that start, in machine cycles of its own
+   * (`m_ref` 0xffff01 to 0xffff23, the service-attention block), and runs
+   * straight on into its handler's first opcode fetch with no boundary
+   * between. Once a step has been through that block, the fetch's first rest
+   * (0xffff25, the opcode read and `m_m1_cycles - 2` spent, PC and R not yet
+   * moved) is where it ends; those cycles go to the handler's instruction,
+   * the next step.
+   */
+  step(): number {
+    const opening = this.member('m_m1_cycles') - 2;
+    let cycles = this.carried + this.core.run(1);
+    this.carried = 0;
+    let serviced = false;
+    for (;;) {
+      const ref = this.member('m_ref');
+      if (ref >= 0xffff01 && ref <= 0xffff23) serviced = true;
+      if (ref === 0xffff00 || cycles >= 64) return cycles;
+      if (serviced && ref === 0xffff25) {
+        this.carried = opening;
+        return cycles - opening;
+      }
+      this.device.set('m_icount', 0);
+      this.device.call('execute_run');
+      cycles -= this.device.get('m_icount');
+    }
+  }
   run(cycles: number): number { return this.core.run(cycles); }
   setIrqLine(active: boolean, dataBus = 0xff, hold = false): void {
     this.core.setIrqLine(active, dataBus, hold);
   }
   nmi(): void { this.core.nmi(); }
 
-  private get8(name: string): number { return this.core.get(name) & 0xff; }
-  private set8(name: string, value: number): void { this.core.set(name, value & 0xff); }
-  private get16(name: string): number { return this.core.get(name) & 0xffff; }
-  private set16(name: string, value: number): void { this.core.set(name, value & 0xffff); }
+  private member(path: string): number {
+    return Number(path.split('.').reduce<unknown>(
+      (object, key) => (object as Record<string, unknown>)[key],
+      (this.device as unknown as { members: unknown }).members,
+    ));
+  }
+  private setMember(path: string, value: number): void {
+    const keys = path.split('.');
+    const holder = keys.slice(0, -1).reduce<unknown>(
+      (object, key) => (object as Record<string, unknown>)[key],
+      (this.device as unknown as { members: unknown }).members,
+    ) as Record<string, unknown>;
+    holder[keys.at(-1)!] = value;
+  }
+  private get8(path: string): number { return this.member(path) & 0xff; }
+  private set8(path: string, value: number): void { this.setMember(path, value & 0xff); }
+  private get16(path: string): number { return this.member(path) & 0xffff; }
+  private set16(path: string, value: number): void { this.setMember(path, value & 0xffff); }
 
-  get a() { return this.get8('A'); } set a(v) { this.set8('A', v); }
-  get f() { return this.core.invoke('get_f') & 0xff; }
-  set f(v) { this.set8('F', v); this.core.invoke('set_f', v & 0xff); }
-  get b() { return this.get8('B'); } set b(v) { this.set8('B', v); }
-  get c() { return this.get8('C'); } set c(v) { this.set8('C', v); }
-  get d() { return this.get8('D'); } set d(v) { this.set8('D', v); }
-  get e() { return this.get8('E'); } set e(v) { this.set8('E', v); }
-  get h() { return this.get8('H'); } set h(v) { this.set8('H', v); }
-  get l() { return this.get8('L'); } set l(v) { this.set8('L', v); }
+  get a() { return this.get8('m_af.b.h'); } set a(v) { this.set8('m_af.b.h', v); }
+  get f() { return this.device.call('get_f') & 0xff; }
+  set f(v) { this.device.call('set_f', v & 0xff); }
+  get b() { return this.get8('m_bc.b.h'); } set b(v) { this.set8('m_bc.b.h', v); }
+  get c() { return this.get8('m_bc.b.l'); } set c(v) { this.set8('m_bc.b.l', v); }
+  get d() { return this.get8('m_de.b.h'); } set d(v) { this.set8('m_de.b.h', v); }
+  get e() { return this.get8('m_de.b.l'); } set e(v) { this.set8('m_de.b.l', v); }
+  get h() { return this.get8('m_hl.b.h'); } set h(v) { this.set8('m_hl.b.h', v); }
+  get l() { return this.get8('m_hl.b.l'); } set l(v) { this.set8('m_hl.b.l', v); }
   get a2() { return this.get8('m_af2.b.h'); } set a2(v) { this.set8('m_af2.b.h', v); }
   get f2() { return this.get8('m_af2.b.l'); } set f2(v) { this.set8('m_af2.b.l', v); }
   get b2() { return this.get8('m_bc2.b.h'); } set b2(v) { this.set8('m_bc2.b.h', v); }
@@ -65,18 +118,18 @@ class Z80 {
   get e2() { return this.get8('m_de2.b.l'); } set e2(v) { this.set8('m_de2.b.l', v); }
   get h2() { return this.get8('m_hl2.b.h'); } set h2(v) { this.set8('m_hl2.b.h', v); }
   get l2() { return this.get8('m_hl2.b.l'); } set l2(v) { this.set8('m_hl2.b.l', v); }
-  get ix() { return this.get16('IX'); } set ix(v) { this.set16('IX', v); }
-  get iy() { return this.get16('IY'); } set iy(v) { this.set16('IY', v); }
-  get sp() { return this.get16('SP'); } set sp(v) { this.set16('SP', v); }
-  get pc() { return this.get16('PC'); } set pc(v) { this.set16('PC', v); }
-  get wz() { return this.get16('WZ'); } set wz(v) { this.set16('WZ', v); }
+  get ix() { return this.get16('m_ix.w'); } set ix(v) { this.set16('m_ix.w', v); }
+  get iy() { return this.get16('m_iy.w'); } set iy(v) { this.set16('m_iy.w', v); }
+  get sp() { return this.get16('m_sp.w'); } set sp(v) { this.set16('m_sp.w', v); }
+  get pc() { return this.get16('m_pc.w'); } set pc(v) { this.set16('m_pc.w', v); }
+  get wz() { return this.get16('m_wz.w'); } set wz(v) { this.set16('m_wz.w', v); }
   get i() { return this.get8('m_i'); } set i(v) { this.set8('m_i', v); }
   get r() { return (this.get8('m_r') & 0x7f) | (this.get8('m_r2') & 0x80); }
   set r(v) { this.set8('m_r', v & 0x7f); this.set8('m_r2', v & 0x80); }
   get iff1() { return this.get8('m_iff1'); } set iff1(v) { this.set8('m_iff1', v); }
   get iff2() { return this.get8('m_iff2'); } set iff2(v) { this.set8('m_iff2', v); }
   get im() { return this.get8('m_im'); } set im(v) { this.set8('m_im', v); }
-  get halted() { return Boolean(this.core.get('m_halt')); }
+  get halted() { return Boolean(this.member('m_halt')); }
 }
 
 // Flag bits (duplicated here on purpose; do not import internals)
@@ -1158,9 +1211,12 @@ section('R register');
 section('run() accumulates T-states');
 {
   const { cpu } = makeCpu(new Array<number>(64).fill(0x00));
-  const total = cpu.run(10); // NOPs are 4T each: 4+4+4 = 12 >= 10
-  eq('run() total', total, 12);
-  eq('run() pc', cpu.pc, 3);
+  // NOPs are 4T each. Two take 8; the third's fetch reads its opcode, spends
+  // the remaining 2 and yields at its icount check, before PC moves: the
+  // 0.289 core stops between machine cycles, not after whole instructions.
+  const total = cpu.run(10);
+  eq('run() total', total, 10);
+  eq('run() pc', cpu.pc, 2);
 }
 
 // ================================================================ summary

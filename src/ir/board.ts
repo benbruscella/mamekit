@@ -1338,6 +1338,8 @@ export interface GeneratedHandlerRuntime {
   objectAddress(value: unknown): unknown;
   /** `*(uint16_t *)p` over bytes: the word there, little-endian, aligned or not. */
   packedWord(value: unknown, signed: boolean): number;
+  /** `std::swap` of two objects: their contents trade; false when not objects. */
+  swapObjects(left: unknown, right: unknown): boolean;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */

@@ -1706,10 +1706,21 @@ function deviceConfiguration(
     ])})`);
   }
   const member = deviceMember(props);
-  if (member && Array.isArray(props.config)) {
-    const escaped = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    for (const line of props.config.map(String)) {
-      const match = new RegExp(`^${escaped}->(\\w+)\\((.*)\\)$`).exec(line.trim());
+  if (Array.isArray(props.config)) {
+    const lines = props.config.map(String);
+    // Or a local reference the configuration bound to it, as a replacement is
+    // spelled: `segacrpt_z80_device &z80(SEGA_315_5098(config.replace(),
+    // m_maincpu, ...)); z80.set_decrypted_tag(":decrypted_opcodes");`.
+    const locals = lines.flatMap(line => {
+      const declared = /&\s*(\w+)\s*\(\s*[A-Z][A-Z0-9_]*\s*\(/.exec(line);
+      return declared ? [declared[1]!] : [];
+    });
+    const receivers = [
+      ...(member ? [`${member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}->`] : []),
+      ...locals.map(local => `${local}\\.`),
+    ];
+    for (const line of receivers.length ? lines : []) {
+      const match = new RegExp(`^(?:${receivers.join('|')})(\\w+)\\((.*)\\);?$`).exec(line.trim());
       if (match) encoded.push(`${match[1]}(${match[2]})`);
     }
   }

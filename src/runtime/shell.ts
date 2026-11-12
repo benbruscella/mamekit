@@ -551,16 +551,6 @@ export type RomTransform =
       parameters: string;
       program: GeneratedHandlerProgram;
       helpers: { method: string; parameters: string; program: GeneratedHandlerProgram }[];
-      /**
-       * A device's own ROM program (an encrypted Sega Z80's `decrypt()`), run
-       * as that device: `tag()` is its tag, its members hold their configured
-       * values, and a share it names is a region.
-       */
-      device?: {
-        tag: string;
-        members: Record<string, number | string | { region: string }>;
-        shares: Record<string, { region: string; size: number }>;
-      };
       source?: { file: string; line: number; column?: number };
     };
 
@@ -579,18 +569,7 @@ function executeDriverInitProgram(
   const where = transform.source
     ? `${transform.source.file}:${transform.source.line}`
     : transform.method;
-  const device = transform.device;
-  // A share the device names, as a region: MAME allocates it zeroed, the
-  // size of the range the address map shares.
-  const share = (name: string): Uint8Array => {
-    const tag = name.replace(/^:/, '');
-    const shared = device?.shares[tag];
-    if (!shared) throw new Error(`${where}: device ROM program has no share "${tag}"`);
-    regions[shared.region] ??= new Uint8Array(shared.size);
-    return regions[shared.region]!;
-  };
-  const members: Record<string, unknown> = Object.fromEntries(Object.entries(device?.members ?? {})
-    .map(([name, value]) => [name, typeof value === 'object' ? share(value.region) : value]));
+  const members: Record<string, unknown> = {};
   const referenceCalls: Record<string, (...args: unknown[]) => unknown> = {
     memregion: (...args: unknown[]) => {
       const tag = String(argumentValue(args[0]) ?? '').replace(/^:/, '');
@@ -603,16 +582,9 @@ function executeDriverInitProgram(
       configure_entry: () => 0,
       set_entry: () => 0,
     }),
-    ...(device ? {
-      tag: () => device.tag,
-      memshare: (...args: unknown[]) => {
-        const bytes = share(String(argumentValue(args[0]) ?? ''));
-        return { ptr: () => bytes };
-      },
-    } : {}),
   };
   for (const helper of transform.helpers) {
-    // `const uint8_t convtable[32][4]` is named before its dimensions.
+    // A parameter is named before any array dimensions it declares.
     const names = helper.parameters
       .split(',')
       .map(parameter => /(\w+)\s*(?:\[[^\]]*\]\s*)*$/.exec(parameter.trim())?.[1])

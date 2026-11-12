@@ -158,8 +158,13 @@ export class DeviceCpu implements Cpu {
     this.device.set(name, value);
   }
 
+  /** device_state_interface over the core's own state_add table. */
   stateInt(index: number): number {
-    return Number(this.device.invoke('state_int', index)) || 0;
+    return this.device.stateInt?.(index) ?? 0;
+  }
+
+  setStateInt(index: number, value: number): void {
+    this.device.setStateInt?.(index, value);
   }
 
   invoke(name: string, ...args: number[]): number {

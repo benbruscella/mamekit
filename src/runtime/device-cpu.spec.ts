@@ -10,11 +10,16 @@ import type { CpuBus } from './generated-cpu.ts';
 const mameSrc = process.env.MAME_SRC ?? '../mame';
 const index = indexMameHardware(mameSrc);
 
-function deviceCpu(type: string, bus: CpuBus, regions: Record<string, Uint8Array> = {}): { cpu: DeviceCpu; device: Device } {
+function deviceCpu(
+  type: string,
+  bus: CpuBus,
+  regions: Record<string, Uint8Array> = {},
+  options: Partial<Parameters<typeof createDevice>[1]> = {},
+): { cpu: DeviceCpu; device: Device } {
   const definition = compileMameDevice(mameSrc, index.get(type)!, type);
   assert.equal(definition.summary.diagnostics, 0, `${type} compiles whole`);
   registerGeneratedDevice(definition);
-  const device = createDevice(type, { tag: 'cpu', clock: 4_000_000, configuredSpaces: [0], regions });
+  const device = createDevice(type, { tag: 'cpu', clock: 4_000_000, configuredSpaces: [0], regions, ...options });
   const cpu = new DeviceCpu(device, bus, {
     setInputLine: (line, state) => { device.call('execute_set_input', line, state === 2 ? 1 : state); },
     acknowledgeLine: () => 0,
@@ -174,14 +179,14 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
     const memory = new Uint8Array(0x10000);
     memory.set(program, 0);
     setup(memory);
-    const { cpu } = deviceCpu('Z80', {
+    const { cpu, device } = deviceCpu('Z80', {
       read: address => memory[address]!,
       write: (address, data) => { memory[address] = data; },
       in: () => 0xff,
       out: () => {},
     });
     cpu.reset();
-    return { cpu, memory };
+    return { cpu, device, memory };
   };
   // LD SP,$8000; IM 1; EI; LD A,$42; LD ($2000),A; JR $
   const im1 = z80([0x31, 0x00, 0x80, 0xed, 0x56, 0xfb, 0x3e, 0x42, 0x32, 0x00, 0x20, 0x18, 0xfe],
@@ -205,6 +210,51 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   im2.cpu.nmi();
   im2.cpu.run(200);
   assert.equal(im2.memory[0x2003], 0x55, 'Z80: NMI at 0066');
+  // LD A,$11; EX AF,AF'; LD A,$22; EX AF,AF'; LD ($2004),A;
+  // LD BC,$3344; EXX; LD BC,$5566; EXX; LD A,B; LD ($2005),A; JR $
+  // -- std::swap of the register pairs, which z80.cpp's ex_af and exx are.
+  const ex = z80([0x3e, 0x11, 0x08, 0x3e, 0x22, 0x08, 0x32, 0x04, 0x20,
+    0x01, 0x44, 0x33, 0xd9, 0x01, 0x66, 0x55, 0xd9, 0x78, 0x32, 0x05, 0x20, 0x18, 0xfe]);
+  ex.cpu.run(300);
+  assert.equal(ex.memory[0x2004], 0x11, 'Z80: EX AF,AF\' swaps the accumulator back');
+  assert.equal(ex.memory[0x2005], 0x33, 'Z80: EXX swaps BC back');
+  // device_state_interface over z80.cpp's own state_add table: Mr. Do!'s
+  // protection reads `state_int(Z80_HL)`, and a snapshot loader writes PC
+  // through set_state_int, whose state_import puts the core on that M1.
+  const state = z80([0x21, 0x34, 0x12, 0x18, 0xfe]); // LD HL,$1234; JR $
+  state.cpu.run(40);
+  const constant = (name: string) => state.device.constant(name)!;
+  assert.equal(state.cpu.stateInt(constant('Z80_HL')), 0x1234, 'Z80: state_int(Z80_HL)');
+  state.cpu.setStateInt(-1, 0x0000); // STATE_GENPC
+  state.cpu.run(40);
+  assert.equal(state.cpu.stateInt(constant('Z80_HL')), 0x1234, 'Z80: set_state_int(STATE_GENPC) restarts at the new PC');
+  // STATE_GENPC is the live PC, which a slice can leave inside JR's machine
+  // cycles; STATE_GENPCBASE is the instruction's own address.
+  assert.equal(state.cpu.stateInt(-2), 0x0003, 'Z80: state_int(STATE_GENPCBASE)');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1 and Z80 classes compiled whole run as processors');
+// The encrypted Sega Z80s decrypt their own ROM as MAME runs them: segacrpt's
+// device_reset hands decode() its chip's key table over memregion(tag()),
+// into the share set_decrypted_tag names; segacrp2's device_start decrypts
+// into its m_decrypted finder. Over a ROM of `address & 0xff` the bytes are
+// those MAME's tables give.
+{
+  const decrypted = (type: string) => {
+    const rom = Uint8Array.from({ length: 0x8000 }, (_, address) => address & 0xff);
+    const opcodes = new Uint8Array(0x8000);
+    const { cpu } = deviceCpu(type, { read: () => 0, write: () => {}, in: () => 0xff, out: () => {} }, { cpu: rom }, {
+      shares: { decrypted_opcodes: opcodes },
+      configure: configured => { configured.invoke('set_decrypted_tag', ':decrypted_opcodes' as unknown as number); },
+    });
+    cpu.reset();
+    return { rom, opcodes };
+  };
+  const system1 = decrypted('SEGA_315_5098');
+  assert.deepEqual([...system1.opcodes.slice(0, 4)], [8, 169, 10, 171], '315-5098: opcodes by its table');
+  assert.notDeepEqual([...system1.rom.slice(0, 32)], [...system1.opcodes.slice(0, 32)], '315-5098: data decrypted apart');
+  const system2 = decrypted('SEGA_315_5177');
+  assert.deepEqual([...system2.rom.slice(0, 8)], [84, 20, 86, 22, 80, 16, 82, 18], '315-5177: data');
+  assert.deepEqual([...system2.opcodes.slice(0, 8)], [4, 80, 6, 82, 0, 84, 2, 86], '315-5177: opcodes');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80 and Sega Z80 classes compiled whole run as processors');

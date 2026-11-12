@@ -715,7 +715,9 @@ class IrBoard implements Board {
     // MAME devices may alias board memory shares (buffered spriteram binds its
     // own tag), so every declared share exists before any device is created.
     for (const cpu of machine.execution.cpus) {
-      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
+      // The opcodes map's too: Sega's encrypted Z80s decrypt into a share only
+      // their decrypted_opcodes map declares (`rom().share("decrypted_opcodes")`).
+      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? []), ...(cpu.opcode?.ranges ?? [])]) {
         if (!range.share) continue;
         this.shares[range.share] ??= new Uint8Array(range.end - range.start + 1);
       }
@@ -1120,6 +1122,14 @@ class IrBoard implements Board {
               const cpu = this.cpus.get(cpuSpec.tag);
               if (cpu?.hasMethod(method)) {
                 return (...args: number[]) => cpu.invoke(method, ...args);
+              }
+              // A CPU compiled whole is a device whose class does not declare
+              // device_execute_interface's surface; the board answers it, as
+              // MAME's CPU does to whoever holds it. The Namco 06xx asks its
+              // CPU `suspended(SUSPEND_REASON_HALT | ...)` before an NMI.
+              if (cpu instanceof DeviceCpu && !this.devices.get(tag)?.methodNames().includes(method)) {
+                const surface = this.deviceReferents.get(cpuSpec.tag) as Record<string, unknown> | undefined;
+                if (typeof surface?.[method] === 'function') return surface[method] as (...args: number[]) => unknown;
               }
               const call = (...args: number[]) => {
                 const device = this.devices.get(tag);
@@ -2123,7 +2133,10 @@ class IrBoard implements Board {
         this.bindings.calls![`${viewTag.replace(/^m_/, '')}.disable`] = disable;
       }
       if (specification.opcode) {
-        const opcodeRom = regions[specification.opcode.region];
+        // A region a driver init decrypted into, or the share a CPU decrypts
+        // into itself: an encrypted Sega Z80's device_reset fills the
+        // `decrypted_opcodes` share its opcode map reads.
+        const opcodeRom = regions[specification.opcode.region] ?? this.shares[specification.opcode.region];
         if (!opcodeRom) {
           throw new Error(
             `${machine.game}: missing opcode region ${specification.opcode.region}`,
@@ -3630,6 +3643,14 @@ class IrBoard implements Board {
             this.deviceInputLine(tag, target(), Number(line), Number(state));
         }
         if (name === 'tag') return () => tag;
+        // A CPU compiled whole answers device_execute_interface's surface
+        // through the board, as MAME's CPU does to whoever holds it: the Namco
+        // 06xx asks its CPU `suspended(SUSPEND_REASON_HALT | ...)`.
+        const processor = this.deviceReferents.get(tag) as Record<string, unknown> | undefined;
+        if (processor && typeof processor === 'object' && name in processor && this.cpus.get(tag) instanceof DeviceCpu &&
+            !target().methodNames().includes(name)) {
+          return processor[name];
+        }
         // A finder re-tagged in machine configuration (the 54xx's
         // `set_discrete("discrete")`) before the device it names exists: the
         // board bound this finder to that device already.

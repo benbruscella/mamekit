@@ -197,6 +197,16 @@ export interface GeneratedDeviceMethod {
   returnWidth?: 8 | 16 | -8 | -16;
 }
 
+export interface GeneratedDeviceStateEntry {
+  index: number;
+  name: string;
+  mask?: number;
+  import?: true;
+  export?: true;
+  read: string;
+  write: string;
+}
+
 export interface GeneratedDeviceDefinition {
   schemaVersion: 1;
   /** MAME's own name for the device: DEFINE_DEVICE_TYPE's full name ("Commodore 1530 Datassette"). */
@@ -223,6 +233,16 @@ export interface GeneratedDeviceDefinition {
    */
   imageInterface?: true;
   constants: Record<string, number>;
+  /**
+   * MAME `device_state_interface`: the registers the core publishes with
+   * `state_add(index, name, lvalue)` in device_start, read and written through
+   * generated `__state_read_N`/`__state_write_N` methods over that lvalue.
+   * `state_int`/`set_state_int` (a driver's protection read of `Z80_HL`, a
+   * snapshot loader) go through them, with the core's own state_export before
+   * a read and state_import after a write where `.callexport()` and
+   * `.callimport()` say so.
+   */
+  stateEntries?: GeneratedDeviceStateEntry[];
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
@@ -471,6 +491,94 @@ export function compileMameDevice(
   compiling: ReadonlySet<string> = new Set(),
   options: DeviceCompileOptions = {},
 ): GeneratedDeviceDefinition {
+  const device = compileMameDeviceReading(mameSrc, definition, type, compiling, options);
+  if (!options.transformSource) attachStateEntries(mameSrc, device);
+  return device;
+}
+
+/** MAME's generic state indices (emu/distate.h): STATE_GENPC is -1. */
+function distateIndices(mameSrc: string): Record<string, number> {
+  const path = join(mameSrc, 'src/emu/distate.h');
+  const indices: Record<string, number> = {};
+  if (!existsSync(path)) return indices;
+  for (const match of readFileSync(path, 'utf8').matchAll(/\b(STATE_\w+)\s*=\s*(-?\d+)/g)) {
+    indices[match[1]!] = Number(match[2]);
+  }
+  return indices;
+}
+
+/**
+ * The core's `state_add` table, read from its own lowered device_start: the
+ * index each register is published under, its name, `.mask(n)`, whether
+ * `.callimport()`/`.callexport()` follow, and the lvalue it names, which
+ * becomes a generated reader and writer. An entry over something that is no
+ * lvalue (a lambda) is left out; nothing reads it as a register.
+ */
+function attachStateEntries(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  const starts = device.methods.filter(method => method.name === 'device_start');
+  if (!starts.length) return;
+  const indices = { ...distateIndices(mameSrc), ...device.constants };
+  const indexOf = (expression: GeneratedExpression): number | undefined => {
+    if (expression.kind === 'number') return expression.value;
+    if (expression.kind === 'identifier') return indices[expression.name.split('::').at(-1)!];
+    if (expression.kind === 'unary' && expression.operator === '-') {
+      const value = indexOf(expression.operand);
+      return value === undefined ? undefined : -value;
+    }
+    if (expression.kind === 'binary' && expression.operator === '+') {
+      const left = indexOf(expression.left), right = indexOf(expression.right);
+      return left === undefined || right === undefined ? undefined : left + right;
+    }
+    return undefined;
+  };
+  const entries: GeneratedDeviceStateEntry[] = [];
+  const done = new Set<GeneratedExpression>();
+  for (const start of starts) {
+    walkExpressions(start.program.operations, expression => {
+      if (expression.kind !== 'call' || done.has(expression)) return;
+      const flags: { name: string; args: GeneratedExpression[] }[] = [];
+      let bottom: GeneratedExpression = expression;
+      while (bottom.kind === 'call' && bottom.callee.kind === 'member') {
+        flags.push({ name: bottom.callee.property, args: bottom.args });
+        bottom = bottom.callee.object;
+      }
+      if (bottom.kind !== 'call' || bottom.callee.kind !== 'identifier' ||
+          !/^state_add\b/.test(bottom.callee.name) || done.has(bottom)) return;
+      done.add(bottom);
+      const [indexExpression, nameExpression, target] = bottom.args;
+      if (!indexExpression || !target || !['identifier', 'member', 'index'].includes(target.kind)) return;
+      const index = indexOf(indexExpression);
+      if (index === undefined) return;
+      const position = entries.length;
+      const mask = flags.find(flag => flag.name === 'mask')?.args[0];
+      const entry: GeneratedDeviceStateEntry = {
+        index,
+        name: nameExpression?.kind === 'string' ? nameExpression.value : String(index),
+        ...(mask?.kind === 'number' ? { mask: mask.value } : {}),
+        ...(flags.some(flag => flag.name === 'callimport') ? { import: true as const } : {}),
+        ...(flags.some(flag => flag.name === 'callexport') ? { export: true as const } : {}),
+        read: `__state_read_${position}`,
+        write: `__state_write_${position}`,
+      };
+      entries.push(entry);
+      device.methods.push(
+        { name: entry.read, parameters: '', source: start.source,
+          program: { operations: [{ op: 'return', value: target }], diagnostics: [] } },
+        { name: entry.write, parameters: 'u64 value', source: start.source,
+          program: { operations: [{ op: 'assign', target, operator: '=', value: { kind: 'identifier', name: 'value' } }], diagnostics: [] } },
+      );
+    });
+  }
+  if (entries.length) device.stateEntries = entries;
+}
+
+function compileMameDeviceReading(
+  mameSrc: string,
+  definition: MameHardwareDefinition,
+  type = definition.type,
+  compiling: ReadonlySet<string> = new Set(),
+  options: DeviceCompileOptions = {},
+): GeneratedDeviceDefinition {
   const device = compileMameDeviceSource(mameSrc, definition, type, compiling, options);
   if (options.transformSource) return device;
   // A device whose classes a macro declares has none until the preprocessor
@@ -508,14 +616,23 @@ export function compileMameDevice(
   // Read after the preprocessor because of an include, it is taken when it
   // finds code the plain reading does not: a 6805's handlers are macro heads
   // until expanded (611 methods against 148).
-  // Read after the preprocessor because of an include, it is taken whenever it
-  // finds no less: the plain reading of z80.cpp never sees z80.inc's register
-  // macros (`PC`, `A`), compiles them as bare names with no diagnostic, and
-  // ties on the method count.
-  const findsMore = (readAfterPreprocessor && preprocessed.methods.length >= device.methods.length) ||
+  // And on a tie when that include defines macros: the plain reading of
+  // z80.cpp never sees z80.inc's register macros (`PC`, `A`), compiles them as
+  // bare names with no diagnostic, and ties on the method count. An include
+  // that is data (nes_pcb.hxx) is no reason to leave the plain reading, which
+  // keeps the NES slot's inline header methods.
+  const findsMore = (readAfterPreprocessor && (preprocessed.methods.length > device.methods.length ||
+      (transformSource?.nonHeaderMacros === true && preprocessed.methods.length === device.methods.length))) ||
     (definesMethods && preprocessed.methods.length > device.methods.length);
-  return preprocessed.summary.diagnostics < device.summary.diagnostics ||
-    ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
+  if (!(preprocessed.summary.diagnostics < device.summary.diagnostics ||
+    ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics))) {
+    return device;
+  }
+  // The preprocessor consumed the #define lines its reading expanded, but they
+  // are the source's constants still: the VLM5030's `IP_SIZE_NORMAL
+  // (160/FR_SIZE)`, which its speed table and the board read by name.
+  for (const [name, value] of Object.entries(device.constants)) preprocessed.constants[name] ??= value;
+  return preprocessed;
 }
 
 /**
@@ -570,7 +687,9 @@ function preprocessedSources(
   device: GeneratedDeviceDefinition,
   /** A macro heads its methods (macroDefinesMethods): read it preprocessed. */
   definesMethods = false,
-): (((file: string, source: string) => string) & { foreignMacros?: boolean; foreignNames?: ReadonlySet<string>; nonHeader?: boolean }) | undefined {
+): (((file: string, source: string) => string) & {
+  foreignMacros?: boolean; foreignNames?: ReadonlySet<string>; nonHeader?: boolean; nonHeaderMacros?: boolean;
+}) | undefined {
   const text = new Map<string, string>();
   const read = (file: string) => {
     if (!text.has(file)) text.set(file, existsSync(join(mameSrc, file)) ? readFileSync(join(mameSrc, file), 'utf8') : '');
@@ -584,6 +703,18 @@ function preprocessedSources(
   const entries = device.sourceFiles.filter(file =>
     file.endsWith('.cpp') && hierarchy.some(className => read(file).includes(`${className}::`)));
   const nonHeader = entries.some(entry => includes(entry).some(path => !path.endsWith('.h')));
+  // A non-header that defines macros the entry itself is written in
+  // (z80.inc's `#define PC m_pc.w`), as opposed to one that is data with
+  // macros of its own (nes_unif.hxx's SPLIT_PRG): read as written, those uses
+  // are bare names.
+  const nonHeaderMacros = entries.some(entry => includes(entry).some(path => {
+    if (path.endsWith('.h')) return false;
+    const file = resolve(path, entry);
+    if (!file) return false;
+    const own = stripCppComments(read(entry));
+    return [...stripCppComments(read(file)).matchAll(/^\s*#\s*define\s+(\w+)/gm)]
+      .some(match => new RegExp(`\\b${match[1]}\\b`).test(own));
+  }));
   let foreignMacros = false;
   const calledForeign = new Set<string>();
   const transforms = entries.map(entry => {
@@ -620,7 +751,7 @@ function preprocessedSources(
   });
   if (!nonHeader && !foreignMacros && !calledForeign.size && !definesMethods) return undefined;
   const transform = (file: string, source: string) => transforms.reduce((current, step) => step(file, current), source);
-  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign, nonHeader });
+  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign, nonHeader, nonHeaderMacros });
 }
 
 interface DeviceCompileOptions {
@@ -4467,6 +4598,13 @@ function compileMethod(
     // normalizer folds those together with their declaration. Substituting
     // here as well leaves `static const double TABLE(...) = {...}` behind.
     if (new RegExp(`\\bstatic\\s+[^;{]*\\b${name}\\s*\\[`).test(body)) {
+      continue;
+    }
+    // So is a parameter of that name: segacrpt's file-scope `decode(...,
+    // const uint8_t convtable[32][4], ...)` indexes the table each decrypt()
+    // passes it, and substituting another class's static `convtable` decoded
+    // every Sega Z80 with the wrong one.
+    if (new RegExp(`\\b${name}\\s*(?:\\[[^\\]]*\\]\\s*)*(?:,|$)`).test(method.parameters)) {
       continue;
     }
     body = table.columns === undefined

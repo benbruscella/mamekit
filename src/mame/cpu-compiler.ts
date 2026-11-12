@@ -7,11 +7,6 @@ import { compileMameHandler } from './handler-ir.ts';
 import { indexMameHardware } from './hardware.ts';
 import { stripCppComments } from './initializer.ts';
 import {
-  parseZ80OpcodeDsl,
-  type OpcodeDslOperation,
-  type Z80OpcodeDsl,
-} from './opcode-dsl.ts';
-import {
   collectDynamicMacros,
   collectFunctionMacros,
   expandDynamicMacros,
@@ -178,225 +173,6 @@ export interface GeneratedCpuDefinition {
     methods: number;
     compiledMethods: number;
     diagnostics: number;
-  };
-}
-
-/**
- * The daisy-chain side of a Z80 (machine/z80daisy.{h,cpp}): the chain's head,
- * `m_chain`, and the methods that walk it -- `daisy_chain_present`,
- * `daisy_update_irq_state`, `daisy_get_irq_device` and
- * `daisy_call_reti_device`. Each chained device is reached through its own
- * `m_daisy_next` and answers its own `z80daisy_irq_*` methods.
- */
-function z80DaisyChain(mameSrc: string): {
-  methods: GeneratedCpuMethod[];
-  members: GeneratedCpuMember[];
-  constants: Record<string, number>;
-  sourceFiles: string[];
-} {
-  const cppFile = 'src/devices/machine/z80daisy.cpp';
-  const headerFile = 'src/devices/machine/z80daisy.h';
-  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
-  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
-  const walkers = ['daisy_update_irq_state', 'daisy_get_irq_device', 'daisy_call_reti_device'];
-  const methods: GeneratedCpuMethod[] = parseMameSource(cppFile, cpp).functions
-    .filter(fn => fn.className === 'z80_daisy_chain_interface' && walkers.includes(fn.name))
-    .map(fn => ({
-      name: fn.name,
-      parameters: fn.parameters,
-      program: compileMameHandler(normalizeMameExecutionSource(fn.body)),
-      source: sourceRef(fn.span.file, fn.span.line),
-    }));
-  const chainClass = /class\s+z80_daisy_chain_interface\b[^{]*\{/.exec(header);
-  const classBody = chainClass ? header.slice(chainClass.index, matchBrace(header, header.indexOf('{', chainClass.index)) + 1) : '';
-  for (const method of extractInlineMethods(classBody)) {
-    if (method.name !== 'daisy_chain_present') continue;
-    methods.push({
-      name: method.name,
-      parameters: method.parameters,
-      program: compileMameHandler(normalizeMameExecutionSource(method.body)),
-      source: sourceRef(headerFile, lineAt(header, (chainClass?.index ?? 0) + method.start)),
-    });
-  }
-  if (methods.length !== walkers.length + 1 || methods.some(method => method.program.diagnostics.length)) {
-    throw new Error('MAME Z80 daisy chain (z80daisy.cpp) did not lower');
-  }
-  const constants: Record<string, number> = {};
-  for (const match of header.matchAll(/^const\s+uint8_t\s+(\w+)\s*=\s*(0x[0-9a-f]+|\d+)\s*;/gim)) {
-    constants[match[1]!] = Number(match[2]);
-  }
-  // z80daisy.cpp's own `#define VERBOSE 0` guards its log line.
-  return {
-    methods,
-    // The head of the chain: null until the host links the machine's daisy config.
-    members: [{ name: 'm_chain', initial: 0, link: true }],
-    constants: { ...constants, ...extractDefineConstants(cpp) },
-    sourceFiles: [cppFile, headerFile],
-  };
-}
-
-/**
- * Compile the generic Z80 variant using MAME's own operation DSL, helper
- * methods, register aliases and reset/input logic. The output contains no
- * handwritten opcode or flag implementation.
- */
-export function compileMameZ80(mameSrc: string): GeneratedCpuDefinition {
-  const cppFile = 'src/devices/cpu/z80/z80.cpp';
-  const headerFile = 'src/devices/cpu/z80/z80.h';
-  const aliasesFile = 'src/devices/cpu/z80/z80.inc';
-  const dslFile = 'src/devices/cpu/z80/z80.lst';
-  const generatorFile = 'src/devices/cpu/z80/z80make.py';
-  const cpp = readFileSync(join(mameSrc, cppFile), 'utf8');
-  const header = readFileSync(join(mameSrc, headerFile), 'utf8');
-  const aliasesSource = readFileSync(join(mameSrc, aliasesFile), 'utf8');
-  const dsl = parseZ80OpcodeDsl(dslFile, readFileSync(join(mameSrc, dslFile), 'utf8'));
-  const unit = parseMameSource(cppFile, cpp);
-  const methods = unit.functions
-    .filter(fn => fn.className === 'z80_device')
-    .filter(fn => ![
-      'device_validity_check',
-      'device_start',
-      'device_reset',
-      'execute_run',
-      'execute_set_input',
-      'state_export',
-      'state_string_export',
-      'create_disassembler',
-      'memory_space_config',
-    ].includes(fn.name))
-    .map(fn => fn.name === 'state_import'
-      // `state_import(const device_state_entry &entry)` switches on
-      // `entry.index()`: the entry is its index here.
-      ? {
-          name: fn.name,
-          parameters: 'int entry',
-          program: compileMameHandler(normalizeMameExecutionSource(
-            fn.body.replace(/\bentry\s*\.\s*index\s*\(\s*\)/g, 'entry'))),
-          source: sourceRef(fn.span.file, fn.span.line),
-        }
-      : {
-          name: fn.name,
-          parameters: fn.parameters,
-          program: compileMameHandler(normalizeMameExecutionSource(fn.body)),
-          source: sourceRef(fn.span.file, fn.span.line),
-        });
-
-  const object = extractObject(header, 'm_f');
-  const objectFields = object ? declaredFields(object.body) : {};
-  for (const method of object?.methods ?? []) {
-    methods.push({
-      name: `m_f.${method.name}`,
-      parameters: method.parameters,
-      program: compileMameHandler(qualifyObjectFields(
-        normalizeMameExecutionSource(method.body),
-        'm_f',
-        Object.keys(objectFields),
-      )),
-      source: sourceRef(headerFile, lineAt(header, method.start)),
-    });
-  }
-  for (const method of extractInlineMethods(header, object && [object.start, object.end])) {
-    const program = compileMameHandler(normalizeMameExecutionSource(method.body));
-    if (program.diagnostics.length) continue;
-    methods.push({
-      name: method.name,
-      parameters: method.parameters,
-      program,
-      source: sourceRef(headerFile, lineAt(header, method.start)),
-    });
-  }
-  // The Z80 is a z80_daisy_chain_interface: it asks the devices on its daisy
-  // chain whether one is interrupting, takes the IM2 vector from the one
-  // that is, and tells them about RETI (machine/z80daisy.cpp). Building the
-  // chain (`daisy_init`, a pointer-to-pointer splice) is the host's, from
-  // the machine's `set_daisy_config`; walking it is MAME's own code.
-  const daisy = z80DaisyChain(mameSrc);
-  methods.push(...daisy.methods);
-
-  const startMethod = unit.functions.find(fn =>
-    fn.className === 'z80_device' && fn.name === 'device_start');
-  const resetMethod = unit.functions.find(fn =>
-    fn.className === 'z80_device' && fn.name === 'device_reset');
-  const inputMethod = unit.functions.find(fn =>
-    fn.className === 'z80_device' && fn.name === 'execute_set_input');
-  const serviceOpcode = dsl.opcodes.find(opcode => opcode.key === 'ffff');
-  if (!startMethod || !resetMethod || !inputMethod || !serviceOpcode) {
-    throw new Error('MAME Z80 source is missing start/reset/input/service definitions');
-  }
-
-  const fetchAt = serviceOpcode.operations.findIndex(operation =>
-    operation.text.trim() === 'PRVPC = PC;');
-  if (fetchAt < 0) throw new Error('MAME Z80 service DSL has no instruction fetch boundary');
-  // z80make.py opens the generated execute_run with locals every opcode is
-  // in scope of (`const bool nomreq_en = !m_nomreq_cb.isunset();`); each
-  // program that names one declares it the same way.
-  const locals = generatorLocals(readFileSync(join(mameSrc, generatorFile), 'utf8'));
-  const service = compileOpcodeOperations(serviceOpcode.operations.slice(0, fetchAt), {
-    continueAsReturn: true,
-    locals,
-  });
-  const fetch = compileOpcodeOperations(serviceOpcode.operations.slice(fetchAt), { locals });
-  const opcodes = dsl.opcodes
-    .filter(opcode => opcode.key !== 'ffff')
-    .map(opcode => ({
-      key: opcode.key,
-      ...(opcode.description ? { description: opcode.description } : {}),
-      dispatch: opcode.operations.some(operation => operation.text.trim() === 'goto process;'),
-      program: compileOpcodeOperations(opcode.operations, { locals }),
-      source: sourceRef(opcode.source.file, opcode.source.line),
-    }));
-  const start = compileMameHandler(normalizeMameExecutionSource(
-    stripMameFrameworkSetup(startMethod.body),
-  ));
-  const reset = compileMameHandler(normalizeMameExecutionSource(resetMethod.body));
-  const input = compileMameHandler(normalizeMameExecutionSource(inputMethod.body));
-  const constants = {
-    ...headerConstants(mameSrc, aliasesSource, header),
-    ...stateIndexConstants(mameSrc),
-    ...daisy.constants,
-  };
-  const aliases = extractAliases(aliasesSource, header);
-  const stateEntries = extractStateEntries(startMethod.body, aliases, constants);
-  const initializers = extractConstructorInitializers(cpp, 'z80_device');
-  const members = [...extractMembers(header, objectFields), ...daisy.members].map(member => ({
-    ...member,
-    ...(initializers[member.name] !== undefined
-      ? { initial: initializers[member.name] }
-      : {}),
-  }));
-  const programs = [
-    start,
-    reset,
-    input,
-    service,
-    fetch,
-    ...methods.map(method => method.program),
-    ...opcodes.map(opcode => opcode.program),
-  ];
-  return {
-    schemaVersion: 1,
-    type: 'Z80',
-    dialect: dsl.dialect,
-    sourceFiles: [cppFile, headerFile, aliasesFile, dslFile, generatorFile, ...daisy.sourceFiles],
-    constants,
-    aliases,
-    ...(stateEntries.length ? { stateEntries } : {}),
-    members,
-    methods,
-    callbacks: devcbLines(header),
-    start,
-    reset,
-    input,
-    service,
-    fetch,
-    opcodes,
-    summary: {
-      opcodes: opcodes.length,
-      compiledOpcodes: opcodes.filter(opcode => opcode.program.diagnostics.length === 0).length,
-      methods: methods.length,
-      compiledMethods: methods.filter(method => method.program.diagnostics.length === 0).length,
-      diagnostics: programs.reduce((count, program) => count + program.diagnostics.length, 0),
-    },
   };
 }
 
@@ -2199,59 +1975,6 @@ export function expandMameOperationMacros(
   return expanded;
 }
 
-function extractMameByteArray(
-  source: string,
-  name: string,
-  symbols: Record<string, number> = {},
-): number[] {
-  const match = new RegExp(
-    `${name}\\s*\\[[^\\]]+\\]\\s*=\\s*(?:\\/\\*[\\s\\S]*?\\*\\/\\s*)?\\{([\\s\\S]*?)\\};`,
-  ).exec(source);
-  if (!match) throw new Error(`MAME M6803 source is missing ${name}`);
-  const values = match[1]!
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .split(',')
-    .map(value => value.trim())
-    .filter(Boolean)
-    .map(value => symbols[value] ?? Number(value));
-  if (values.length !== 256 || values.some(value => !Number.isFinite(value))) {
-    throw new Error(`${name} contains ${values.length} invalid entries`);
-  }
-  return values;
-}
-
-function normalizePairLocals(source: string, rewriteMemberPostfix = true): string {
-  let normalized = source
-    .replace(/\b(m_\w+)\.w\.l\b/g, '$1.w')
-    .replace(/\b(m_\w+)\.d\b/g, '$1.w');
-  if (rewriteMemberPostfix) {
-    normalized = normalized
-      .replace(/\b([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+)\+\+/g, 'POSTINC($1)')
-      .replace(/\b([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+)--/g, 'POSTDEC($1)');
-  }
-  const pairDeclaration = /\bPAIR\s+(\w+(?:\s*,\s*\w+)*)\s*;/g;
-  const pairLocals = [...normalized.matchAll(pairDeclaration)]
-    .flatMap(match => match[1]!.split(',').map(name => name.trim()))
-    .filter(name => /^\w+$/.test(name));
-  normalized = normalized.replace(
-    pairDeclaration,
-    (_match, names: string) =>
-      `u32 ${names.split(',').map(name => `${name.trim()} = 0`).join(', ')};`,
-  );
-  for (const name of pairLocals) {
-    normalized = normalized
-      .replace(new RegExp(`\\b${name}\\.b\\.l\\s*=\\s*([^;]+);`, 'g'),
-        `${name} = (${name} & 0xff00) | (u8($1));`)
-      .replace(new RegExp(`\\b${name}\\.b\\.h\\s*=\\s*([^;]+);`, 'g'),
-        `${name} = (${name} & 0x00ff) | (u16($1) << 8);`)
-      .replace(new RegExp(`\\b${name}\\.w\\.l\\b`, 'g'), name)
-      .replace(new RegExp(`\\b${name}\\.(?:w|d)\\b`, 'g'), name)
-      .replace(new RegExp(`\\b${name}\\.b\\.l\\b`, 'g'), `u8(${name})`)
-      .replace(new RegExp(`\\b${name}\\.b\\.h\\b`, 'g'), `u8(${name} >> 8)`);
-  }
-  return normalized;
-}
-
 function singleIterationSource(source: string): string {
   const doMatch = /(?:^|\n)\s*do\s*\n/.exec(source);
   const doAt = doMatch?.index ?? -1;
@@ -2271,48 +1994,6 @@ function singleIterationSource(source: string): string {
  * 16-bit `m_PC`, where a PAIR16 core exposes it as `m_PC.w.l` -- and without
  * that a register checkpoint would read back a truncated byte.
  */
-/** MAME's generic state indices (emu/distate.h): STATE_GENPC is -1. */
-function stateIndexConstants(mameSrc: string): Record<string, number> {
-  const source = readFileSync(join(mameSrc, 'src/emu/distate.h'), 'utf8');
-  return Object.fromEntries([...source.matchAll(/\b(STATE_GEN\w+)\s*=\s*(-?\d+)/g)]
-    .map(match => [match[1]!, Number(match[2])]));
-}
-
-/**
- * The core's `state_add(index, "NAME", target)` table. A target is a register
- * alias (`SP`, `AF`), or a member and its part (`m_pc.w`, `m_af2.w`, the
- * bare `m_rtemp`); `.callimport()` runs the core's `state_import` after a
- * write, and `.mask(n)` bounds the value.
- */
-function extractStateEntries(
-  startBody: string,
-  aliases: Record<string, GeneratedCpuAlias>,
-  constants: Record<string, number>,
-): NonNullable<GeneratedCpuDefinition['stateEntries']> {
-  const entries: NonNullable<GeneratedCpuDefinition['stateEntries']> = [];
-  for (const match of startBody.matchAll(
-    /state_add\(\s*([\w:]+)\s*,\s*"([^"]+)"\s*,\s*([\w.]+)\s*\)((?:\s*\.\s*\w+\s*\([^)]*\))*)\s*;/g,
-  )) {
-    const index = constants[match[1]!];
-    if (index === undefined) continue;
-    const expression = match[3]!;
-    const member = /^(m_\w+)(?:\.(w|d|b\.h|b\.l))?$/.exec(expression);
-    const target: GeneratedCpuAlias | undefined = aliases[expression] ?? (member ? {
-      member: member[1]!,
-      part: member[2] === 'b.h' ? 'high' : member[2] === 'b.l' ? 'low' : member[2] ? 'word' : 'scalar',
-      bits: member[2] === 'w' ? 16 : member[2] === 'd' ? 32 : 8,
-    } : undefined);
-    if (!target) continue;
-    const mask = /\.\s*mask\s*\(\s*(0x[\da-f]+|\d+)\s*\)/i.exec(match[4] ?? '')?.[1];
-    entries.push({
-      index, name: match[2]!, target,
-      ...(/\.\s*callimport\s*\(/.test(match[4] ?? '') ? { import: true as const } : {}),
-      ...(mask ? { mask: Number(mask) } : {}),
-    });
-  }
-  return entries;
-}
-
 function extractStateAliases(
   source: string,
   memberBits: Record<string, 1 | 8 | 16 | 32> = {},
@@ -2337,19 +2018,6 @@ function extractStateAliases(
   return aliases;
 }
 
-function inlineMethodForClass(
-  source: string,
-  name: string,
-  className: string,
-): { parameters: string; body: string; start: number } | undefined {
-  const classAt = source.indexOf(`class ${className}`);
-  const open = source.indexOf('{', classAt);
-  const close = matchBrace(source, open);
-  if (classAt < 0 || open < 0 || close < 0) return undefined;
-  return extractInlineMethods(source.slice(open + 1, close))
-    .find(method => method.name === name);
-}
-
 /** execute_set_input's parameter names, as the core's source declares them. */
 function inputParameters(parameters: string): [string, string] {
   const names = splitMameArgs(parameters).map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1]);
@@ -2371,37 +2039,6 @@ function devcbLines(header: string): Record<string, string> {
     lines[binding[2]!] = binding[1]!;
   }
   return lines;
-}
-
-/**
- * The C++ locals a MAME build script declares around the code it generates:
- * z80make.py prints `const bool nomreq_en = !m_nomreq_cb.isunset();` at the top
- * of execute_run, in scope of every opcode. Each is `[name, declaration]`.
- */
-function generatorLocals(script: string): [string, string][] {
-  return [...script.matchAll(/print\(\s*"((?:\[\[maybe_unused\]\]\s*)?const\s+\w+\s+(\w+)\s*=[^"]*;)"/g)]
-    .map(match => [match[2]!, match[1]!]);
-}
-
-function compileOpcodeOperations(
-  operations: OpcodeDslOperation[],
-  options: { continueAsReturn?: boolean; locals?: [string, string][] } = {},
-): GeneratedHandlerProgram {
-  const source = operations.flatMap(operation => {
-    const text = operation.text.trim();
-    if (!text || text.startsWith('//') || text === 'goto process;') return [];
-    if (text.startsWith('#')) return [];
-    if (options.continueAsReturn && text === 'continue;') return ['return;'];
-    if (operation.kind === 'cycle') return [`cycles += ${operation.cycles};`];
-    if (operation.kind === 'interruptible-access') {
-      return [text, `cycles += ${operation.cycles};`];
-    }
-    return [text];
-  }).join('\n');
-  const declarations = (options.locals ?? [])
-    .filter(([name]) => new RegExp(`\\b${name}\\b`).test(source))
-    .map(([, declaration]) => declaration);
-  return compileMameHandler(normalizeMameExecutionSource([...declarations, source].join('\n')));
 }
 
 /**
@@ -2557,7 +2194,12 @@ export function normalizeMameExecutionSource(source: string): string {
         .map(value => value.trim())
         .filter(Boolean));
     if (values.length !== Number(match[2]) * columns) continue;
-    normalized = normalized
+    // Folded only where every use indexes it twice. Handed on whole or by
+    // row it stays the array it is, as the one-dimensional folder below keeps
+    // one: each Sega Z80 decryptor passes its `convtable[32][4]` to
+    // segacrpt's decode(), and segacrp2's points `tbl = swaptable[n]` at a
+    // row. Folded, those named nothing and every opcode decoded against zero.
+    const folded = normalized
       .replace(match[0], '')
       .replace(
         new RegExp(
@@ -2568,6 +2210,8 @@ export function normalizeMameExecutionSource(source: string): string {
         (_entry, row: string, column: string) =>
           `TABLE((${row}) * ${columns} + (${column}), ${values.join(', ')})`,
       );
+    if (new RegExp(`\\b${name}\\b`).test(folded)) continue;
+    normalized = folded;
   }
   for (const match of normalized.matchAll(
     /\bstatic\s+(?:const|constexpr)\s+\w+\s+(\w+)\s*\[[^\]]+\]\s*=\s*\{([^}]+)\}\s*;/g,
@@ -2735,36 +2379,6 @@ function stripMameFrameworkSetup(body: string): string {
     .join('\n');
 }
 
-function extractAliases(source: string, header: string): Record<string, GeneratedCpuAlias> {
-  const memberBits = Object.fromEntries(extractMembers(header, {}).map(member => [
-    member.name,
-    member.bits ?? 32,
-  ]));
-  const aliases: Record<string, GeneratedCpuAlias> = {};
-  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^/\r\n]+)/gm)) {
-    const name = match[1]!;
-    const value = match[2]!.trim();
-    let target: RegExpExecArray | null;
-    if ((target = /^(m_\w+)\.w$/.exec(value))) {
-      aliases[name] = { member: target[1]!, part: 'word', bits: 16 };
-    } else if ((target = /^(m_\w+)\.b\.h$/.exec(value))) {
-      aliases[name] = { member: target[1]!, part: 'high', bits: 8 };
-    } else if ((target = /^(m_\w+)\.b\.l$/.exec(value))) {
-      aliases[name] = { member: target[1]!, part: 'low', bits: 8 };
-    } else if ((target = /^(m_\w+)$/.exec(value))) {
-      const bits = memberBits[target[1]!] ?? 32;
-      aliases[name] = {
-        member: target[1]!,
-        part: 'scalar',
-        bits: bits === 1 || bits === 8 || bits === 16 ? bits : 32,
-      };
-    } else if ((target = /^(m_f)\.(\w+)$/.exec(value))) {
-      aliases[name] = { member: `${target[1]}.${target[2]}`, part: 'scalar', bits: 8 };
-    }
-  }
-  return aliases;
-}
-
 function extractMembers(
   header: string,
   objectFields: Record<string, 1 | 8 | 16 | 32>,
@@ -2782,14 +2396,6 @@ function extractMembers(
   members.set('m_f', { name: 'm_f', fields: objectFields });
   members.set('cycles', { name: 'cycles', bits: 32 });
   return [...members.values()].sort((left, right) => left.name.localeCompare(right.name));
-}
-
-function declaredFields(source: string): Record<string, 1 | 8 | 16 | 32> {
-  const fields: Record<string, 1 | 8 | 16 | 32> = {};
-  for (const match of source.matchAll(/^\s*(bool|u8|u16|u32|int)\s+(\w+)\s*;/gm)) {
-    fields[match[2]!] = typeBits(match[1]!);
-  }
-  return fields;
 }
 
 function typeBits(type: string): 1 | 8 | 16 | 32 {
@@ -2908,24 +2514,6 @@ function extractEnumConstants(
   return resolved;
 }
 
-function extractConstructorInitializers(
-  source: string,
-  className: string,
-): Record<string, number> {
-  const initial: Record<string, number> = {};
-  const re = new RegExp(
-    `${className}::${className}\\s*\\([^)]*\\)\\s*:\\s*([\\s\\S]*?)\\n\\s*\\{`,
-    'g',
-  );
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(source)) !== null) {
-    for (const initializer of match[1]!.matchAll(/\b(m_\w+)\s*\(\s*(0x[\da-f]+|\d+)\s*\)/gi)) {
-      initial[initializer[1]!] = Number(initializer[2]);
-    }
-  }
-  return initial;
-}
-
 /** Commas at the top level of a list, outside any parentheses. */
 function splitTopLevelCommas(source: string): string[] {
   const parts: string[] = [];
@@ -2985,43 +2573,6 @@ function resolveConstants(
   return resolved;
 }
 
-function extractObject(
-  source: string,
-  objectName: string,
-): {
-  body: string;
-  methods: { name: string; parameters: string; body: string; start: number }[];
-  start: number;
-  end: number;
-} | undefined {
-  const endMatch = new RegExp(`\\}\\s*${objectName}\\s*;`).exec(source);
-  if (!endMatch) return undefined;
-  const end = endMatch.index;
-  let open = source.lastIndexOf('struct', end);
-  open = source.indexOf('{', open);
-  if (open < 0) return undefined;
-  const close = matchBrace(source, open);
-  if (close !== end) return undefined;
-  const body = source.slice(open + 1, close);
-  const methods: { name: string; parameters: string; body: string; start: number }[] = [];
-  const methodRe =
-    /(?:^|\n)\s*(?:[\w:<>,~*&]+\s+)+(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?\{/g;
-  let match: RegExpExecArray | null;
-  while ((match = methodRe.exec(body)) !== null) {
-    const brace = body.indexOf('{', match.index + match[0].length - 1);
-    const methodEnd = matchBrace(body, brace);
-    if (methodEnd < 0) continue;
-    methods.push({
-      name: match[1]!,
-      parameters: match[2]!,
-      body: body.slice(brace + 1, methodEnd),
-      start: open + 1 + match.index,
-    });
-    methodRe.lastIndex = methodEnd + 1;
-  }
-  return { body, methods, start: open, end: close };
-}
-
 function extractInlineMethods(
   source: string,
   exclude?: [number, number],
@@ -3052,21 +2603,6 @@ function extractInlineMethods(
     methodRe.lastIndex = end + 1;
   }
   return methods;
-}
-
-function qualifyObjectFields(
-  source: string,
-  objectName: string,
-  fields: string[],
-): string {
-  let qualified = source;
-  for (const field of fields) {
-    qualified = qualified.replace(
-      new RegExp(`(?<![\\w.])${field}\\b`, 'g'),
-      `${objectName}.${field}`,
-    );
-  }
-  return qualified;
 }
 
 function matchBrace(source: string, open: number): number {

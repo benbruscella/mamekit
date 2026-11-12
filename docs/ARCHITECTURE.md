@@ -117,9 +117,10 @@ drivers without pretending to be Clang.
 - graphics layouts and decode tables;
 - clocks and evaluable constant expressions.
 
-`src/mame/opcode-dsl.ts` parses MAME CPU operation-list DSLs separately from
-C++. The Z80 compiler expands macros while retaining definition and call-site
-provenance.
+MAME's own build generators (`z80make.py`, `m6809make.py` and the like) turn
+its CPU operation-list DSLs into C++, and MAMEKIT runs them as MAME's build
+does, into `.cache/mame-generated/`; the device compiler then reads that C++
+like any other.
 
 The parser should reject or report unsupported source shapes. Silent fallback
 is dangerous because it creates plausible but incorrect machines.
@@ -459,10 +460,22 @@ behind it.
 
 ### CPU
 
-CPU definitions combine MAME class/state information with source-derived
-instruction programs. Z80 lowers MAME's expanded `z80.lst` opcode DSL. I8080
-lowers the 256 cases in MAME's `execute_one` C++ switch, its helper methods,
-state aliases and cycle tables. A core's own devcb lines answer `isunset()`
+A CPU is its MAME class compiled whole by the device compiler, as a sound
+chip is (#249): the M6800, I8080, MCS-48, 6809 and Z80 families so far, the
+Sega Z80 decryptors among them. MAME's build generators produce the generated
+part (`z80make.py`'s state machine, `m6809.hxx`), and `runtime/device-cpu.ts`
+is the board's side of `device_execute_interface`: the core's spaces bound to
+the CPU's bus, its input lines through the board's `device_input`,
+`standard_irq_callback` for the vector, and each core's own `execute_run`,
+`m_icount` and `execute_clocks_to_cycles`. It knows nothing about which CPU it
+hosts. A core runs as MAME runs it, stopping between machine cycles when its
+icount is spent and resuming there (the Z80's `m_ref`). Its lifecycle is its
+own: an encrypted Sega Z80 decrypts its ROM in its own `device_reset` or
+`device_start`.
+
+The families not yet moved combine MAME class/state information with
+source-derived instruction programs in `src/mame/cpu-compiler.ts`, pinned by
+a shrink-only guard in `src/runtime/architecture.spec.ts`. A core's own devcb lines answer `isunset()`
 from the lines the machine connected (the bus's `boundSignals`), so a 6502
 skips its SYNC output twice an instruction when nothing listens, exactly as
 MAME's `if (!m_sync_w.isunset())` does. `src/mame/cpu-compiler.ts` and
@@ -491,17 +504,17 @@ C++ call does, in the emitted and the interpreted core alike. The 6502's
 moved the stack from `$1FF` to `$300` instead of `$100`, and put every
 page-crossing dummy read on the wrong page (#184).
 
-A Z80 is a `z80_daisy_chain_interface`, and its chain is compiled with it:
-`daisy_chain_present`, `daisy_update_irq_state`, `daisy_get_irq_device` and
-`daisy_call_reti_device` from `machine/z80daisy.cpp`, so the core takes an
-IM 2 vector from `intf->z80daisy_irq_ack()` of the device that is
-interrupting and tells the chain about RETI, as MAME's does (#181). The
-machine's `set_daisy_config(mcr_daisy_chain)` names the devices through a
+A Z80 is a `z80_daisy_chain_interface`, and the chain comes with its class:
+`daisy_update_irq_state`, `daisy_get_irq_device` and `daisy_call_reti_device`
+from `machine/z80daisy.cpp`, so the core takes an IM 2 vector from
+`intf->z80daisy_irq_ack()` of the device that is interrupting and tells the
+chain about RETI, as MAME's does (#181). The machine's
+`set_daisy_config(mcr_daisy_chain)` names the devices through a
 `z80_daisy_config` table, which may sit in another file of the driver
-(`mcr_m.cpp`); the graph resolves it to tags, the IR carries them as the
-CPU's `daisyChain`, and the board does what `daisy_init` does with them:
-links each device's `m_daisy_next` and puts the first in the CPU's `m_chain`.
-Those two are wiring (`link` on a CPU member), never part of a save state.
+(`mcr_m.cpp`); the graph resolves it to tags, the IR carries them as the CPU's
+`daisyChain`, and the board does what `daisy_init` does with them: links each
+device's `m_daisy_next` and puts the first in the CPU's `m_chain`. Those two
+are wiring, never part of a save state.
 
 A core's `state_add` table is part of its IR (`stateEntries`): each state
 index, the register or member it names, and whether `.callimport()` follows a

@@ -747,6 +747,16 @@ check('std::fill and min/max_element over array iterators', () => {
   assert.equal((members as Record<string, unknown>).m_max, 9);
 });
 
+// The Game Boy cartridge slot checksums its ROM at reset with std::accumulate
+// over a pointer range, from the header's own sum.
+check('std::accumulate sums a pointer range from its initial value', () => {
+  const members = { m_rom: [1, 2, 3, 250], m_sum: 0 };
+  executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(`
+    u8 const *const data = &m_rom[0];
+    m_sum = std::accumulate(&data[0], &data[4], 10);`)), { members } as never);
+  assert.equal(members.m_sum, 266);
+});
+
 // The floppy drive's call_load spells it `std::strcmp`, and an unknown macro
 // answered 0: equal, so a list's write_protected "false" protected the disk.
 check('std::strcmp compares like strcmp', () => {

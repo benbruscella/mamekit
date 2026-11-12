@@ -15,7 +15,6 @@ import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { aggregateFunctionReferences, deviceTables } from './static-aggregate.ts';
-import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
 
 export interface HardwareUse {
   game: string;
@@ -857,18 +856,12 @@ export async function emitHardwareClosure(
   }
 
   for (const file of new Set(closure.hardware.flatMap(entry => entry.dslFiles))) {
-    const absolute = join(closure.mameSource, file);
     const stem = basename(file, extname(file));
-    if (basename(file) === 'z80.lst') {
-      const ir = parseZ80OpcodeDsl(file, readFileSync(absolute, 'utf8'));
-      writeFileSync(join(dslDir, `${stem}.ir.json`), JSON.stringify(ir, null, 2));
-    } else {
-      writeFileSync(join(dslDir, `${stem}.source.json`), JSON.stringify({
-        schemaVersion: 1,
-        dialect: 'unlowered-mame-operation-dsl',
-        sourceFile: file,
-      }, null, 2));
-    }
+    writeFileSync(join(dslDir, `${stem}.source.json`), JSON.stringify({
+      schemaVersion: 1,
+      dialect: 'unlowered-mame-operation-dsl',
+      sourceFile: file,
+    }, null, 2));
   }
 
   const lines = [

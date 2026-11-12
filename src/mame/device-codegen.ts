@@ -1904,6 +1904,16 @@ function emitCall(
     return `runtime.synchronize(${JSON.stringify(synchronize.callback ?? '')}, ` +
       `${synchronize.parameter ? emitExpression(synchronize.parameter, context) : '0'})`;
   }
+  // std::swap(a, b): objects trade contents (runtime.swapObjects), anything
+  // else is the two stores, through the emitter's own assignment.
+  if (expression.callee.kind === 'identifier' && (expression.callee.name === 'swap' || expression.callee.name === 'std::swap') &&
+      expression.args.length === 2 && !context.compiled.has(expression.callee.name)) {
+    const [left, right] = expression.args as [GeneratedExpression, GeneratedExpression];
+    const a = methodTemp(context);
+    const b = methodTemp(context);
+    return `(${a} = ${emitExpression(left, context)}, ${b} = ${emitExpression(right, context)}, ` +
+      `(runtime.swapObjects(${a}, ${b}) ? 0 : (${emitAssignment(left, '=', right, context, b)}, ${emitAssignment(right, '=', left, context, a)}, 0)))`;
+  }
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
     // A board package can override a source method with a shape-recognised
@@ -2373,7 +2383,11 @@ function valueMemberCallCode(
   // board binding, not a method of the object -- answers through the links
   // table first, as the interpreter resolves the call: emitted directly, the
   // Namco 51xx's chip_select never reached its MB8843 and Dig Dug went silent.
-  if (finder) {
+  // So does a shared-memory finder re-pointed from the machine configuration:
+  // the 315-5177's `m_decrypted.set_tag(tag)` is the runtime's binding, and as
+  // a method of the share's bytes it was no call at all, so wboy decrypted
+  // into a share nothing read.
+  if (finder || (member?.memory && property === 'set_tag')) {
     const chain = memberCallName(expression, context.methodConstants);
     const direct = `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
     if (!chain) return direct;

@@ -2050,7 +2050,14 @@ export function parseMachineConfigs(
       }
     }
     for (const stmt of statements) {
-      const s = expandAddrMapForwarders(stmt.trim(), addrMapForwarders);
+      // A tag setter handed a finder takes that finder's tag, as MAME's
+      // `set_tag(finder)` does: System 1's `z80.set_decrypted_tag(
+      // m_decrypted_opcodes)` names the share the 315-5177 decrypts into.
+      const s = expandAddrMapForwarders(stmt.trim(), addrMapForwarders)
+        .replace(/(\.\s*set_\w*tag\s*\(\s*)(m_\w+)(\s*\))/, (whole, open: string, member: string, close: string) => {
+          const tag = finderTag(member);
+          return tag === undefined ? whole : `${open}":${tag}"${close}`;
+        });
       if (!s) continue;
 
       // Derived configurations remove inherited devices by tag.  This must be

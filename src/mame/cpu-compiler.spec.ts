@@ -7,7 +7,6 @@ import {
   compileMameRp2a03,
   compileMameV30,
   compileMameZ8002,
-  compileMameZ80,
   stripInactivePreprocessorBranches,
 } from './cpu-compiler.ts';
 
@@ -44,49 +43,6 @@ import {
   type GeneratedCpuDefinition,
 } from '../runtime/generated-cpu.ts';
 
-const definition = compileMameZ80(process.env.MAME_SRC ?? '../mame');
-assert.equal(definition.summary.opcodes, 1536);
-assert.equal(definition.summary.compiledOpcodes, 1536);
-assert.equal(definition.summary.diagnostics, 0);
-assert.ok(definition.methods.some(method => method.name === 'get_f'));
-assert.ok(definition.methods.some(method => method.name === 'm_f.pv'));
-assert.equal(definition.sourceFiles.includes('src/devices/cpu/z80/z80.lst'), true);
-assert.match(
-  generatedCpuExecutableSource(definition),
-  /this\.bus\.timing\?\.\(total, target\)/,
-  'direct generated CPUs must preserve instruction-level peripheral timing',
-);
-assert.match(
-  generatedCpuExecutableSource(definition),
-  /this\.generatedService\(\)/,
-  'generated CPUs must preserve each family\'s instruction-boundary IRQ service',
-);
-assert.match(
-  generatedCpuExecutableSource(definition),
-  /bus\.signal\?\.\("refresh_cb",/,
-  'Z80 refresh output must reach the machine-config callback',
-);
-
-clearGeneratedCpus();
-registerGeneratedCpu(definition);
-const memory = new Uint8Array(0x10000);
-memory.set([0x3e, 0x7f, 0xc6, 0x01, 0xcb, 0x07]);
-const z80Signals: Array<[string, number]> = [];
-const cpu = createCpu('Z80', {
-  read: address => memory[address]!,
-  write: (address, data) => { memory[address] = data; },
-  in: () => 0xff,
-  out: () => {},
-  signal: (name, value) => { z80Signals.push([name, value]); return 0; },
-});
-assert.equal(cpu.step(), 7);
-assert.equal(z80Signals.some(([name]) => name === 'refresh_cb'), true);
-assert.equal(cpu.get('A'), 0x7f);
-assert.equal(cpu.step(), 7);
-assert.equal(cpu.get('A'), 0x80);
-assert.equal(cpu.invoke('get_f'), 0x94);
-assert.equal(cpu.step(), 8);
-assert.equal(cpu.get('A'), 0x01);
 
 // Z8002 absolute operands are fetched through MAME's opcode cache. They must
 // still read the immediate word from the program bus after source lowering;
@@ -134,7 +90,6 @@ z8002.set('m_regs.W.1', 1);
 z8002.set('m_regs.W.2', 3);
 z8002.step();
 assert.equal(z8002.get('m_regs.W.1'), 0x1235);
-registerGeneratedCpu(definition);
 
 // Gottlieb's 8088 boards mirror a 16-bit map into the CPU's 20-bit physical
 // space. Reset must still put CS at FFFF so the first fetch reaches FFFF0
@@ -348,22 +303,6 @@ assert.equal(v30Bcd.get('m_sregs.1'), 0, 'V30 0f must not pop CS');
 assert.deepEqual([...v30BcdMemory.slice(0x10020, 0x10022)], [0x99, 0x99]);
 assert.equal(v30Bcd.get('m_CarryVal'), 0);
 assert.equal(v30Bcd.get('m_ZeroVal'), 1);
-registerGeneratedCpu(definition);
-
-// Boards with an AS_OPCODES map fetch instructions from the separate bus
-// while instruction arguments and ordinary data reads stay on program space.
-const encrypted = Uint8Array.from([0x76]); // HALT as data, NOP after decryption.
-const opcodeCpu = createCpu('Z80', {
-  read: address => encrypted[address] ?? 0,
-  readOpcode: () => 0x00,
-  write: () => {},
-  in: () => 0xff,
-  out: () => {},
-});
-opcodeCpu.step();
-assert.equal(opcodeCpu.get('PC'), 1);
-assert.equal(opcodeCpu.get('m_halt'), 0);
-assert.match(generatedCpuExecutableSource(definition), /bus\.readOpcode\?\./);
 
 const rp2a03Definition = compileMameRp2a03(process.env.MAME_SRC ?? '../mame');
 assert.equal(rp2a03Definition.summary.opcodes, 256);

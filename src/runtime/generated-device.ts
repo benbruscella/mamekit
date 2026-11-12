@@ -33,7 +33,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { UNION_VIEW, buildCallLinks, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer } from '../ir/execute.ts';
+import { UNION_VIEW, buildCallLinks, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -185,6 +185,8 @@ export interface GeneratedDeviceExecutionContext {
   objectAddress(value: unknown): unknown;
   /** `*(uint16_t *)p` over bytes (generatedPackedWord). */
   packedWord(value: unknown, signed: boolean): number;
+  /** `std::swap` of two objects (generatedSwapObjects). */
+  swapObjects(left: unknown, right: unknown): boolean;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
@@ -284,6 +286,8 @@ export interface GeneratedDeviceDefinition {
    */
   clockConstructor?: { method: string; clock: number };
   constants: Record<string, number>;
+  /** device_state_interface's state_add table (device-compiler.ts GeneratedDeviceStateEntry). */
+  stateEntries?: { index: number; name: string; mask?: number; import?: true; export?: true; read: string; write: string }[];
   members: DeviceMember[];
   callbacks: DeviceCallback[];
   timers?: DeviceTimer[];
@@ -455,6 +459,10 @@ export interface Device {
   /** All numeric constants declared by this generated device family. */
   constants(): Readonly<Record<string, number>>;
   methodNames(): readonly string[];
+  /** device_state_interface::state_int over the core's own state_add table. */
+  stateInt?(index: number): number | undefined;
+  /** device_state_interface::set_state_int over the same table. */
+  setStateInt?(index: number, value: number): boolean;
   /**
    * A machine-config setter of an interface the host answers rather than the
    * device: `.set_user_loadable(false)` on device_image_interface. False for
@@ -1711,6 +1719,23 @@ class IrDevice implements Device {
       };
     }
     const callParameters: NonNullable<GeneratedHandlerBindings['callParameters']> = {};
+    // std::swap(a, b): both by reference, as C++ takes them. Objects trade
+    // contents; anything else is two stores (the Z80's EX DE,HL swaps
+    // `m_de.w` and `m_hl.w` through its DE/HL macros).
+    for (const name of ['swap', 'std::swap']) {
+      callParameters[name] = ['T &a', 'T &b'];
+      referenceCalls[name] = (left, right) => {
+        const a = left as GeneratedLValue;
+        const b = right as GeneratedLValue;
+        const va = a.get();
+        const vb = b.get();
+        if (!generatedSwapObjects(va, vb)) {
+          a.set(vb);
+          b.set(va);
+        }
+        return 0;
+      };
+    }
     const palette: number[] = [];
     this.bindings = {
       members: this.members,
@@ -1820,6 +1845,21 @@ class IrDevice implements Device {
         // And unqualified, as emucore.h's `using util::string_format;` lets a
         // device write it: the MCS-48 names its register states `R%d`.
         string_format: (format, ...args) => mameStringFormat(format, ...args) as unknown as number,
+        // device_t::memregion(tag): a region by tag (its own with tag()), its
+        // bytes behind base(). The 315-5177 decrypts its own region at start.
+        // The whole memory_region: a Game Boy cartridge takes
+        // `&romregion->as_u8()` as its page base.
+        // The tag resolves as device_t::memregion resolves it (`^` climbs to
+        // the owner, a leading `:` is absolute), then as the device's own
+        // map names a region.
+        memregion: (tag: unknown) => {
+          const raw = String(tag ?? '');
+          const own = options.deviceTag ?? options.tag ?? '';
+          const full = mameSubtag(own, raw);
+          const named = raw.replace(/^\^+/, '').replace(/^:/, '');
+          return memoryRegionObject(options.regions?.[full] ??
+            this.regionLookup(full === own || named === options.tag ? 'tag()' : named)) as number;
+        },
         // device_t::memshare(tag): a share by tag, its bytes behind ptr(). The
         // 315-5098 decrypts into the one its configuration names.
         memshare: (tag: unknown) => {
@@ -2091,6 +2131,7 @@ class IrDevice implements Device {
       fieldAddress: generatedMemberAddress,
       objectAddress: generatedObjectAddress,
       packedWord: generatedPackedWord,
+      swapObjects: generatedSwapObjects,
       // An array first: probing it for a pointer's tag is the slow case.
       addressOf: (value, index) => Array.isArray(value) || ArrayBuffer.isView(value)
         ? { generatedPointer: true, source: value as ArrayLike<number> & { [index: number]: number }, offset: index }
@@ -2806,6 +2847,29 @@ class IrDevice implements Device {
 
   methodNames(): readonly string[] {
     return [...this.methods.keys()];
+  }
+
+  /**
+   * MAME's device_state_interface: a state_add entry by index, read through
+   * the generated reader after the core's state_export when `.callexport()`
+   * asked for one, and masked as `.mask(n)` says. Undefined when the core
+   * publishes no such index.
+   */
+  stateInt(index: number): number | undefined {
+    const entry = this.definition.stateEntries?.find(candidate => candidate.index === index);
+    if (!entry) return undefined;
+    if (entry.export && this.methods.has('state_export')) this.invoke('state_export', stateEntryHandle(entry.index));
+    const value = Number(this.call(entry.read)) || 0;
+    return entry.mask === undefined ? value : value & entry.mask;
+  }
+
+  /** set_state_int: written through the generated writer, then the core's state_import when `.callimport()` asked. */
+  setStateInt(index: number, value: number): boolean {
+    const entry = this.definition.stateEntries?.find(candidate => candidate.index === index);
+    if (!entry) return false;
+    this.call(entry.write, entry.mask === undefined ? value : value & entry.mask);
+    if (entry.import && this.methods.has('state_import')) this.invoke('state_import', stateEntryHandle(entry.index));
+    return true;
   }
 
   /** The image-interface setters the host keeps (see hostImageFile). */
@@ -4932,4 +4996,9 @@ export function memoryRegionObject(bytes: Uint8Array | undefined): unknown {
     'as_u8&': (offset = 0) => ({ generatedPointer: true, source: bytes, offset: Number(offset) }),
     'as_u16&': (offset = 0) => ({ generatedPointer: true, source: generatedPackedView(bytes, false), offset: Number(offset) }),
   };
+}
+
+/** The `const device_state_entry &` a core's state_import/state_export reads its index from. */
+function stateEntryHandle(index: number): GeneratedCallArgument {
+  return { index: () => index } as unknown as GeneratedCallArgument;
 }

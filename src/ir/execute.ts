@@ -850,6 +850,7 @@ function preparedHandlerRuntime(
     fieldAddress: generatedMemberAddress,
     objectAddress: generatedObjectAddress,
     packedWord: generatedPackedWord,
+    swapObjects: generatedSwapObjects,
     addressOf: (value, index) => isGeneratedPointer(value)
       ? {
         generatedPointer: true,
@@ -2726,6 +2727,23 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     }
     return { generatedPointer: true, source: args[0].source, offset: best } satisfies GeneratedPointer;
   }
+  // std::accumulate(first, last, init): the sum over the range from init. The
+  // Game Boy cartridge slot checksums its whole ROM so at reset. A sum taken
+  // in the accumulator's own type wraps to the same value its assignment
+  // keeps, so the plain sum is it.
+  if (name === 'std::accumulate') {
+    const asPointer = (value: unknown): GeneratedPointer | undefined => isGeneratedPointer(value)
+      ? value
+      : isIndexableMemory(value) ? { generatedPointer: true, source: value, offset: 0 } : undefined;
+    const first = asPointer(args[0]), last = asPointer(args[1]);
+    if (first && last && first.source === last.source) {
+      let sum = toNumber(args[2]);
+      for (let offset = first.offset; offset < last.offset; offset++) {
+        sum += toNumber(pointerValue(first, offset - first.offset));
+      }
+      return sum;
+    }
+  }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]), true);
     return args[0];
@@ -3961,6 +3979,27 @@ export function generatedMemberAddress(raw: unknown, property: string): unknown 
     target: { generatedLValue: true, get: () => fields[property] ?? 0, set: (value: unknown) => { fields[property] = value; } },
     offset: 0,
   };
+}
+
+/**
+ * `std::swap(a, b)` of two objects: their contents trade places and each
+ * keeps its identity, as C++ swaps values (the Z80's `swap(m_af, m_af2)` for
+ * EX AF,AF'). False when they are not objects, so the caller assigns.
+ */
+export function generatedSwapObjects(left: unknown, right: unknown): boolean {
+  if (isPairValue(left) && isPairValue(right)) {
+    const word = left.word[0]!;
+    left.word[0] = right.word[0]!;
+    right.word[0] = word;
+    return true;
+  }
+  if (isGeneratedStruct(left) && isGeneratedStruct(right) && left !== right) {
+    const saved = { ...left };
+    copyGeneratedStruct(left, right);
+    copyGeneratedStruct(right, saved);
+    return true;
+  }
+  return false;
 }
 
 /** `&value` where the value is an object -- a PAIR16 register a call hands back: the object. */
