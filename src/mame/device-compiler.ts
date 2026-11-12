@@ -13,6 +13,7 @@ import {
 } from './ast.ts';
 import { normalizeMameExecutionSource } from './cpu-compiler.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
+import { monomorphizeClassTemplate } from './function-template.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { cppDefaultArgument, DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
@@ -950,6 +951,37 @@ function compileMameDeviceSource(
     for (const match of text.matchAll(/^\s*#\s*define\s+(\w+)/gm)) definedAnywhere.add(match[1]!);
   }
   for (const name of definedAnywhere) undefined_.delete(name);
+  // A base that is a non-type class template, specialised by the class the
+  // device derives: the TMS320C10 is `tms320c1x_device_base<12>`, its spaces,
+  // its typed accessors and its opcode tables all spelled through HighBits.
+  // Each file that declares the template is flattened to that one
+  // specialisation (monomorphizeClassTemplate), so it reads as a class.
+  const specialisations = new Map<string, Record<string, number>>();
+  const allTexts = [...texts.values()].join('\n');
+  for (const derived of allTexts.matchAll(/\bclass\s+\w+\s*(?:final\s*)?:\s*public\s+(\w+)\s*<\s*([^<>]+?)\s*>/g)) {
+    const base = derived[1]!;
+    const declared = new RegExp(String.raw`template\s*<\s*((?:(?:int|bool|unsigned(?:\s+int)?|u(?:8|16|32)|s(?:8|16|32))\s+\w+\s*,?\s*)+)>\s*class\s+${base}\b`).exec(allTexts);
+    if (!declared || specialisations.has(base)) continue;
+    const parameters = [...declared[1]!.matchAll(/(\w+)\s*(?:,|$)/g)].map(match => match[1]!);
+    const values = derived[2]!.split(',').map(value => Number(evalExpr(value.trim(), {})));
+    if (values.length !== parameters.length || values.some(value => !Number.isInteger(value))) continue;
+    specialisations.set(base, Object.fromEntries(parameters.map((parameter, index) => [parameter, values[index]!])));
+  }
+  if (specialisations.size) {
+    for (const [file, text] of texts) {
+      let flattened = text;
+      for (const [base, values] of specialisations) {
+        const parameters = Object.keys(values).join('|');
+        if (new RegExp(String.raw`template\s*<[^<>]*\b(?:${parameters})\b[^<>]*>`).test(flattened)) {
+          // With the class no longer a template, a dependent name needs no
+          // `typename`: `typename memory_access<12, 1, -1, ...>::cache m_cache`.
+          flattened = monomorphizeClassTemplate(flattened, base, values)
+            .replace(/\btypename\s+(?=[\w:]+\s*<)/g, '');
+        }
+      }
+      texts.set(file, flattened);
+    }
+  }
   const sources = sourceFiles.map(file => {
     // `#if 1 ... #else ... #endif` keeps the branch the preprocessor keeps:
     // the speaker's device_start builds its sinc kernel under `#if 1` and a

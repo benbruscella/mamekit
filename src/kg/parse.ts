@@ -326,6 +326,16 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   s = s.replace(/([0-9]+(?:\.[0-9]+)?)_kHz_XTAL/g, (_, n) => String(Math.round(Number(n) * 1e3)));
   s = s.replace(/([0-9]+(?:\.[0-9]+)?)_Hz_XTAL/g, (_, n) => String(Math.round(Number(n))));
   s = s.replace(/XTAL\s*\(\s*([0-9]+)\s*\)/g, '$1');
+  // coretmpl.h's `util::make_bitmask<T>(n)`: the low n bits set, or all of T's
+  // once n reaches its width. The TMS320C10's address mask is
+  // `make_bitmask<uint32_t>(HighBits)`; unread it was 0, and every table read,
+  // computed call and stack push it masks went to address 0.
+  s = s.replace(/(?:\butil::)?\bmake_bitmask\s*<\s*([\w\s]+?)\s*>\s*\(([^()]*)\)/g, (whole, type: string, argument: string) => {
+    const n = evalExpr(argument, consts);
+    if (n === null || !Number.isInteger(n) || n < 0) return whole;
+    const width = /64/.test(type) ? 64 : /16/.test(type) ? 16 : /8\b|char/.test(type) ? 8 : 32;
+    return String(n >= width ? 2 ** width - 1 : 2 ** n - 1);
+  });
   // Qualified names first: substituting a leaf (`SSSD`) inside its own
   // qualified spelling (`floppy_image::SSSD`) left `floppy_image::1146311507`,
   // which evaluates to nothing.

@@ -13,7 +13,6 @@ export const CPU_ID = 'cpu';
 export const CPU_MAME_TYPES = [
   'I8088', 'V30',
   'M68000', 'M68010',
-  'TMS320C10',
   'TMS34010',
 ] as const;
 

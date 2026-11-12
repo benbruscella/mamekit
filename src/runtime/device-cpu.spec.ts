@@ -422,4 +422,39 @@ const registers = (device: Device) => (device as unknown as { members: Record<st
   assert.deepEqual([memory[0x2002], memory[0x2003]], [0x52, 0x34], 'Z8002: ADD R1,@R3 with R3 odd reads the aligned word at $0002');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family and Z8002 classes compiled whole run as processors');
+// The TMS320C10 from tms320c1x.cpp, the class template
+// tms320c1x_device_base<12> flattened to that specialisation: word-addressed
+// program and I/O spaces (word N is bus bytes 2N and 2N+1), its data RAM its
+// own internal map, opcodes through a table of member-function pointers.
+// TBLR reads program memory through `make_bitmask<uint32_t>(HighBits)`.
+{
+  const run = (program: number[]) => {
+    const memory = new Uint8Array(0x2000);
+    program.forEach((word, index) => { memory[index * 2] = word >> 8; memory[index * 2 + 1] = word & 0xff; });
+    const ports: [number, number][] = [];
+    const { cpu } = deviceCpu('TMS320C10', {
+      read: address => memory[address]!,
+      write: (address, data) => { memory[address] = data; },
+      in: () => 0,
+      out: () => {},
+      read16be: address => (memory[address]! << 8) | memory[address + 1]!,
+      write16be: (address, data) => { memory[address] = data >> 8; memory[address + 1] = data & 0xff; },
+      in16be: () => 0,
+      out16be: (port, data) => { ports.push([port, data]); },
+    });
+    cpu.reset();
+    cpu.run(400);
+    return ports;
+  };
+  // LACK 0x5A; SACL 0; OUT 0,PA2; B 3
+  assert.deepEqual(run([0x7e5a, 0x5000, 0x4a00, 0xf900, 0x0003]), [[4, 0x5a]], 'TMS320C10: SACL to its RAM, OUT to word port 2');
+  // ZAC; SACL 10; LACK 1; SACL 11; LARK AR0,3; LARP 0; loop: LAC 10; ADD 11; SACL 10; BANZ loop; OUT 10,PA2; B $
+  assert.deepEqual(run([0x7f89, 0x500a, 0x7e01, 0x500b, 0x7003, 0x6880, 0x200a, 0x000b, 0x500a, 0xf400, 0x0006, 0x4a0a, 0xf900, 0x000c]),
+    [[4, 4]], 'TMS320C10: BANZ on AR0');
+  // LACK 5; SACL 1; LT 1; MPYK 7; PAC; SACL 2; OUT 2,PA0; B $
+  assert.deepEqual(run([0x7e05, 0x5001, 0x6a01, 0x8007, 0x7f8e, 0x5002, 0x4802, 0xf900, 0x0007]), [[0, 35]], 'TMS320C10: MPYK');
+  // LACK 9; TBLR 7; OUT 7,PA0; B $; ...; word 9 = 0x1234
+  assert.deepEqual(run([0x7e09, 0x6707, 0x4807, 0xf900, 0x0003, 0, 0, 0, 0, 0x1234]), [[0, 0x1234]], 'TMS320C10: TBLR');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002 and TMS320C10 classes compiled whole run as processors');

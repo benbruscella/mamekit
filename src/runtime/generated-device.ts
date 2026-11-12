@@ -365,6 +365,9 @@ export interface GeneratedDeviceDefinition {
     name: string;
     addressBits: number;
     dataBits: number;
+    /** address_space_config's byte order and addrshift (-1 word-, +3 bit-addressed). */
+    endianness?: 'big' | 'little';
+    addressShift?: number;
     ram?: true;
     /**
      * The address-map method that fills the space, for a space MAME maps
@@ -2985,6 +2988,26 @@ class IrDevice implements Device {
     if (existing) return existing;
     const config = this.definition.spaces?.find(space => space.index === index);
     if (!config?.map) return undefined;
+    if (config.dataBits > 8) {
+      // A 16-bit internal map (the TMS320C10's data RAM, word-addressed):
+      // built over bus bytes, with the space's word access composed from them.
+      const unit = 2 ** Math.max(0, -(config.addressShift ?? 0));
+      const inner = mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup, unit);
+      const byteRead = inner.read_byte;
+      const byteWrite = inner.write_byte;
+      const little = config.endianness === 'little';
+      const space = withSpaceConfig(inner, config.addressBits);
+      bindWideSpace(space, config, byteRead, (address, data) => { byteWrite(address, data); }, {
+        read16: address => little ? (byteRead(address) | (byteRead(address + 1) << 8)) & 0xffff
+          : ((byteRead(address) << 8) | byteRead(address + 1)) & 0xffff,
+        write16: (address, data) => {
+          byteWrite(address, little ? data & 0xff : data >>> 8);
+          byteWrite(address + 1, little ? data >>> 8 : data & 0xff);
+        },
+      });
+      this.spaces.set(index, space);
+      return space;
+    }
     const space = withSpaceConfig(mappedDeviceSpace(this, config.addressBits, config.map, this.regionLookup), config.addressBits);
     this.spaces.set(index, space);
     return space;
@@ -3071,6 +3094,12 @@ class IrDevice implements Device {
   bindAddressSpace(index: number, read: (address: number) => number,
     write: (address: number, data: number) => void, wide?: WideSpaceAccess): void {
     const config = this.definition.spaces?.find(space => space.index === index);
+    if (config && config.dataBits > 8 && config.map) {
+      // The owner's map is the rest of a wide internal map's space.
+      const mapped = this.deviceSpace(index) as (GeneratedDeviceSpace & { fallback?: { read(address: number): number; write(address: number, data: number): void } }) | undefined;
+      if (mapped) mapped.fallback = { read, write };
+      return;
+    }
     if (config && config.dataBits > 8 && !config.map) {
       const space = this.spaces.get(index);
       if (!space || !wide) throw new Error(`${this.definition.type}: space ${index} is ${config.dataBits} bits wide and its owner gives no word access`);
@@ -4564,8 +4593,10 @@ function mappedDeviceSpace(
   addressBits: number,
   mapMethod: string,
   region: (tag: string) => Uint8Array | undefined,
+  /** Bus bytes per map address: 2 on a word-addressed space (the TMS320C10's data). */
+  unitBytes = 1,
 ): GeneratedDeviceSpace {
-  const size = 1 << addressBits;
+  const size = (1 << addressBits) * unitBytes;
   const mask = size - 1;
   const memory = new Uint8Array(size);
   type Entry = {
@@ -4623,13 +4654,21 @@ function mappedDeviceSpace(
   // A map builder over one list of entries: the space's own, or one entry
   // of a view (`m_rom_view[0](0, end).rom()`), which MAME builds the same way.
   const builder = (list: Entry[]) => Object.assign((start: number, end: number) => {
-    const entry: Entry = { start: Number(start) & mask, end: Number(end) & mask };
+    const entry: Entry = { start: (Number(start) * unitBytes) & mask, end: (Number(end) * unitBytes + unitBytes - 1) & mask };
     list.push(entry);
     const chain: Record<string, (...args: unknown[]) => unknown> = {
       // Or another device's, named by the device and its method:
       // `.w(m_apu, FUNC(nesapu_device::write))`.
-      r: (handler, method) => { entry.read = method === undefined ? callable(handler, false) : deviceCallable(handler, method, false); return chain; },
-      w: (handler, method) => { entry.write = method === undefined ? callable(handler, true) : deviceCallable(handler, method, true); return chain; },
+      r: (handler, method) => {
+        if (unitBytes > 1) throw new Error(`${mapMethod}: a handler on a word-addressed internal map is not supported yet`);
+        entry.read = method === undefined ? callable(handler, false) : deviceCallable(handler, method, false);
+        return chain;
+      },
+      w: (handler, method) => {
+        if (unitBytes > 1) throw new Error(`${mapMethod}: a handler on a word-addressed internal map is not supported yet`);
+        entry.write = method === undefined ? callable(handler, true) : deviceCallable(handler, method, true);
+        return chain;
+      },
       rw: (read, write, method) => {
         if (method !== undefined) {
           entry.read = deviceCallable(read, write, false);

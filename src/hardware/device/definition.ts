@@ -48,6 +48,9 @@ export const DEVICE_MAME_TYPES = [
   // z8000.cpp's Z8002, its register file a union over one buffer and its
   // opcodes a table of member-function pointers; Pole Position's sub-CPUs.
   'Z8002',
+  // tms320c1x.cpp's TMS320C10, the class template tms320c1x_device_base<12>
+  // flattened to that specialisation; Wardner's DSP.
+  'TMS320C10',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

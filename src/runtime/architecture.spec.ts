@@ -285,7 +285,6 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   normalizeMameExecutionSource: 'C++ the handler parser cannot read (attributes, make_unique, vectors, #define in a body)',
   stripInactivePreprocessorBranches: 'the C preprocessor\'s #if, evaluated',
   stripTracingCalls: 'logging and debugger hooks, which change no state',
-  stripMameFrameworkSetup: 'device_start\'s save_item/state_add registration, which the host does',
   lowerLocalStructs: 'a struct declared with its variable, as a value of its fields',
   parseMameOperationMacros: 'reads a core\'s operation macros',
   expandMameOperationMacros: 'expands a core\'s operation macros',
@@ -295,7 +294,6 @@ const CPU_COMPILER_IDIOMS: Record<string, string> = {
   resolveConstants: 'evaluates constant expressions read from source',
   hostConstantExpression: 'a constant expression as the little-endian host evaluates it (NATIVE_ENDIAN_VALUE_LE_BE)',
   exceptionCycles: 'reads m68ki_exception_cycle_table; its edits strip comments',
-  rewriteMameCall: 'rewrites a call by its parsed arguments',
   rewriteCall: 'rewrites a call by its parsed arguments',
   allocIntrinsic: 'the ALLOC primitive for an element type',
   matchPair: 'finds a closing bracket',
@@ -312,9 +310,6 @@ const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
   ],
   'mame/cpu-compiler.ts: compileMameM68000': [
     'body fetch', 'body input', 'body program', 'body reset', 'body service', 'body start',
-  ],
-  'mame/cpu-compiler.ts: compileMameTms320c10': [
-    '5 source edits', 'body fetch', 'body program', 'body service',
   ],
   'mame/cpu-compiler.ts: m68000SupportMethods': [
     'body (anonymous)', 'body BIT_B', 'body BIT_F', 'body CFLAG_1', 'body CFLAG_16', 'body CFLAG_8',
