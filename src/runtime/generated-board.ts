@@ -845,6 +845,14 @@ class IrBoard implements Board {
             return 0;
           },
           pixel: (x: number, y: number) => this.screenPixel?.(Number(x), Number(y)) ?? 0,
+          // screen_device::reset_origin(beamy, beamx): MAME re-bases its VBLANK
+          // timing so the beam stands at (beamy, beamx) now. The MC6845 calls it
+          // at the top of every frame it counts out; the frame runner owns the
+          // beam and starts each frame at line 0 already, so on a CRTC programmed
+          // to the screen's own frame (Qix's) there is nothing to move. A CRTC
+          // counting a different frame length would drift against this screen,
+          // which the frame runner does not model yet.
+          reset_origin: () => 0,
           // screen_device::clock(): the pixel clock set_raw gave it.
           clock: () => machine.execution.screen.pixelClock ??
             machine.execution.screen.refresh * (machine.execution.screen.htotal ?? machine.execution.screen.width) *
@@ -2487,6 +2495,17 @@ class IrBoard implements Board {
           if (specification.tag === timerClockCpu?.tag) {
             for (const device of this.devices.values()) {
               soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            }
+            // And the driver's own precise timers, which come due on the same
+            // clock (firePreciseTimers): the Spectrum's ULA interrupt is a
+            // pair of them 32 cycles apart. A slice that ran past both raised
+            // and dropped INT with no instruction in between, so the Z80 never
+            // took an interrupt, never scanned its keyboard and never beeped.
+            if (this.preciseTimerMembers.size && this.pendingTimers.size) {
+              const now = this.machineSeconds();
+              for (const [member, pending] of this.pendingTimers) {
+                if (this.preciseTimerMembers.has(member)) soonest = Math.min(soonest, Math.max(0, pending.at - now));
+              }
             }
           }
           return Number.isFinite(soonest)

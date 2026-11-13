@@ -418,6 +418,9 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // scanline callback does both on every line it fires.
   'screen().update_partial',
   'screen().configure',
+  // The MC6845 re-bases the screen at the top of each frame it counts, on
+  // every line it steps through (handle_line_timer, Qix's CRTC).
+  'screen().reset_origin',
   // A custom renderer selects the palette's shadow preset while walking its
   // sprite list, and draws its shadow pens through that preset's table.
   'palette().shadow_mode',
