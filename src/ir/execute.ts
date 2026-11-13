@@ -63,11 +63,11 @@ export function generatedVector(element?: (...args: unknown[]) => unknown): unkn
 }
 
 /** `vector.resize(length)` on a growable vector: in place, new elements of its kind. */
-export function resizeGeneratedVector(vector: unknown[], length: number): unknown[] {
+export function resizeGeneratedVector(vector: unknown[], length: number, fill?: unknown): unknown[] {
   const element = (vector as { [GENERATED_ELEMENT]?: () => unknown })[GENERATED_ELEMENT];
   const target = Math.max(0, Math.floor(length));
   if (vector.length > target) vector.length = target;
-  while (vector.length < target) vector.push(element ? element() : 0);
+  while (vector.length < target) vector.push(fill !== undefined ? fill : element ? element() : 0);
   return vector;
 }
 
@@ -84,8 +84,15 @@ export function resizableBuffer(maxByteLength: number): ArrayBuffer {
 }
 
 /** `container.resize(length)` for emitted code: the resized container. */
-export function resizeGeneratedContainer(container: unknown, length: number): unknown {
-  if (Array.isArray(container)) return resizeGeneratedVector(container, length);
+/**
+ * `container.resize(length[, value])`: std::vector::resize sets what it adds
+ * to `value`, or value-initialises it. The 68000's init_decode_table starts
+ * `m_decode_table.resize(0x10000, S_ILLEGAL)` and fills only the slots that
+ * still hold S_ILLEGAL; filled with 0 instead, every opcode decoded as reset.
+ */
+export function resizeGeneratedContainer(container: unknown, length: number, fill?: unknown): unknown {
+  if (Array.isArray(container)) return resizeGeneratedVector(container, length, fill);
+  const value = fill === undefined ? 0 : toNumber(fill);
   if (!ArrayBuffer.isView(container)) return container;
   const current = container as unknown as ArrayLike<number> & { constructor: new (size: number) => ArrayLike<number> & { set(values: ArrayLike<number>): void } };
   const target = Math.max(0, Math.floor(length));
@@ -100,10 +107,11 @@ export function resizeGeneratedContainer(container: unknown, length: number): un
     const previous = current.length;
     buffer.resize(target * width);
     // std::vector::resize value-initialises what it adds.
-    if (target > previous) (container as unknown as Uint8Array).fill(0, previous);
+    if (target > previous) (container as unknown as Uint8Array).fill(value, previous);
     return container;
   }
   const resized = new current.constructor(target);
+  if (value !== 0 && target > current.length) (resized as unknown as Uint8Array).fill(value, current.length);
   resized.set((container as unknown as { subarray(start: number, end: number): ArrayLike<number> }).subarray(0, Math.min(target, current.length)));
   return resized;
 }
@@ -3275,7 +3283,7 @@ function evaluateCall(
       // extent and, for vectors, in-place resizing.
       if (isIndexableMemory(object)) {
         if (method === 'resize') {
-          resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
+          resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context, args[1]);
           return 0;
         }
       }
@@ -3962,6 +3970,10 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
     const value = isLValue(local) ? local.get() : evaluate(expression, context);
     if (isPairValue(value) || isGeneratedStruct(value)) return value;
     if (value && typeof value === 'object' && (value as { [UNION_VIEW]?: unknown })[UNION_VIEW]) return generatedObjectAddress(value);
+    // Any other object a call answers is its own address: the 68000's
+    // `m_s_program = &space(AS_PROGRAM)` holds the space itself, which
+    // `m_s_program->specific(m_r_program)` then binds the accessor to.
+    if (expression.kind === 'call' && value && typeof value === 'object' && !isLValue(value) && !isReference(value)) return value;
   }
   if (expression.kind === 'member') {
     const address = generatedMemberAddress(evaluate(expression.object, context), expression.property);
@@ -4032,6 +4044,8 @@ export function generatedObjectAddress(value: unknown): unknown {
     ? (value as { [UNION_VIEW]?: { root: object; path: readonly string[] } })[UNION_VIEW]
     : undefined;
   if (view) return { generatedPointer: true, source: view.root, path: view.path, offset: 0 };
+  // Any other object (an address space): itself, as the interpreter takes it.
+  if (value && typeof value === 'object' && !isLValue(value) && !isReference(value)) return value;
   throw new Error('address of a call result that is not an object');
 }
 
@@ -4535,17 +4549,21 @@ function resizeGeneratedMemory(
   target: GeneratedExpression,
   length: number,
   context: ExecutionContext,
+  fill?: unknown,
 ): void {
   const current = evaluate(target, context);
   if (Array.isArray(current)) {
-    resizeGeneratedVector(current, length);
+    resizeGeneratedVector(current, length, fill);
     return;
   }
   if (!isIndexableMemory(current) || current.length === length) return;
-  if (ArrayBuffer.isView(current) && resizeGeneratedContainer(current, length) === current) return;
-  const resized = ArrayBuffer.isView(current)
-    ? new (current.constructor as new (size: number) => ArrayLike<unknown>)(length)
-    : new Array<number>(length).fill(0);
+  if (ArrayBuffer.isView(current)) {
+    // Grown in place over a resizable buffer, or a new array the holder takes.
+    const resized = resizeGeneratedContainer(current, length, fill);
+    if (resized !== current) assign(target, '=', resized, context);
+    return;
+  }
+  const resized = new Array<number>(length).fill(fill === undefined ? 0 : toNumber(fill));
   copyGeneratedMemory(resized, current, Math.min(length, current.length));
   assign(target, '=', resized, context);
 }

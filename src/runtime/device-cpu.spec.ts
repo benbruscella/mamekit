@@ -549,4 +549,38 @@ for (const type of ['I8088', 'V30']) {
   assert.equal(members.m_IOregs[0x15], 8, 'TMS34010: a store at bit 0xc0000150 reaches io_register_w (PSIZE)');
 }
 
-console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002, TMS320C10, 8088, V30 and TMS34010 classes compiled whole run as processors');
+// The microcoded 68000 from m68000.cpp, its instruction states m68000gen.py's
+// m68000-sdf.cpp and siblings (build units scripts/src/cpu.lua lists with it):
+// reset vectors read as two words (set_16h/set_16l, overloads told apart by
+// the reference's width), a word store, and a level 1 interrupt autovectored
+// through the CPU space map's lr8 lambda behind vpa_sync/vpa_after.
+{
+  const memory = new Uint8Array(0x1000000);
+  const word = (address: number, value: number) => { memory[address] = value >>> 8; memory[address + 1] = value & 0xff; };
+  word(0, 0x00ff); word(2, 0x1000); word(4, 0x0000); word(6, 0x0400); // SSP 0xff1000, PC 0x400
+  word(0x64, 0x0000); word(0x66, 0x0500); // level 1 autovector
+  // MOVE.W #$1234,$2000.L; MOVE #$2000,SR; BRA *
+  [0x33fc, 0x1234, 0x0000, 0x2000, 0x46fc, 0x2000, 0x60fe].forEach((value, index) => word(0x400 + index * 2, value));
+  // MOVE.W #$5678,$2002.L; RTE
+  [0x33fc, 0x5678, 0x0000, 0x2002, 0x4e73].forEach((value, index) => word(0x500 + index * 2, value));
+  const { cpu, device } = deviceCpu('M68000', {
+    read: address => memory[address & 0xffffff]!,
+    write: (address, data) => { memory[address & 0xffffff] = data; },
+    read16be: (address: number) => (memory[address & 0xffffff]! << 8) | memory[(address + 1) & 0xffffff]!,
+    write16be: (address: number, data: number) => word(address & 0xffffff, data),
+    in: () => 0xff,
+    out: () => {},
+  } as CpuBus);
+  cpu.reset();
+  cpu.run(200);
+  const members = (device as unknown as { members: { m_da: Uint32Array; m_sp: number } }).members;
+  assert.equal(members.m_da[members.m_sp]! >>> 0, 0xff1000, 'M68000: the reset SSP keeps both words (set_16h then set_16l)');
+  assert.deepEqual([memory[0x2000], memory[0x2001]], [0x12, 0x34], 'M68000: MOVE.W to memory');
+  device.call('execute_set_input', 1, 1);
+  cpu.run(400);
+  device.call('execute_set_input', 1, 0);
+  cpu.run(200);
+  assert.deepEqual([memory[0x2002], memory[0x2003]], [0x56, 0x78], 'M68000: level 1 autovectors through the CPU space map');
+}
+
+console.log('device-cpu.spec: MAME 6801, 6802, 8080, MCS-48, 6809, KONAMI-1, Z80, Sega Z80, LR35902, 6502-family, Z8002, TMS320C10, 8088, V30, TMS34010 and M68000 classes compiled whole run as processors');

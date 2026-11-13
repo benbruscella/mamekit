@@ -289,7 +289,34 @@ class HandlerParser {
       else if (operation) operations.push(operation);
     }
     if (stop) this.consume(stop);
-    return this.lowerForwardGotos(operations);
+    return this.backwardJumps ? operations : this.lowerForwardGotos(operations);
+  }
+
+  /**
+   * Whether the body jumps back to a label it has passed: the microcoded
+   * 68000's CHK handlers `goto trap1;` from below `trap1:`. Such a body is
+   * flattened whole into one switch (parse()); wrapping its forward jumps
+   * in loops first left the backward one nothing it could reach.
+   */
+  private backwardJumpsCache?: boolean;
+  private get backwardJumps(): boolean {
+    return this.backwardJumpsCache ??= this.findBackwardJumps();
+  }
+
+  private findBackwardJumps(): boolean {
+    const seen = new Set<string>();
+    for (let index = 0; index + 2 < this.tokens.length; index++) {
+      const token = this.tokens[index]!;
+      if (token.text === 'goto' && this.tokens[index + 1]?.kind === 'identifier' && this.tokens[index + 2]?.text === ';') {
+        if (seen.has(this.tokens[index + 1]!.text)) return true;
+      } else if (token.kind === 'identifier' && this.tokens[index + 1]?.text === ':' &&
+          this.tokens[index + 2]?.text !== ':' && this.tokens[index - 1]?.text !== ':' &&
+          !['case', 'default', 'public', 'private', 'protected'].includes(token.text) &&
+          (index === 0 || [';', '{', '}', ':'].includes(this.tokens[index - 1]!.text))) {
+        seen.add(token.text);
+      }
+    }
+    return false;
   }
 
   /**
@@ -307,11 +334,34 @@ class HandlerParser {
    * at their own level, which would change meaning once wrapped.
    */
   private lowerForwardGotos(operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
-    const at = operations.findIndex(operation => this.labels.has(operation));
-    if (at < 0) return operations;
+    // Labels in source order, each against every statement before it: the
+    // microcoded 68000's handlers branch `if (m_t) goto aixl5; else goto
+    // aixl2;` and both regions end `goto adsw2;`. Lowered last label first,
+    // over only the statements after the previous label, adsw2 never saw the
+    // jump from aixl2's region and aixl5 never saw the one before aixl2.
+    let list = operations;
+    let from = 0;
+    for (;;) {
+      const at = list.findIndex((operation, index) => index >= from && this.labels.has(operation));
+      if (at < 0) return list;
+      const lowered = this.lowerForwardGoto(list, at);
+      if (!lowered) {
+        from = at + 1;
+        continue;
+      }
+      list = lowered.list;
+      from = lowered.resume;
+    }
+  }
+
+  /** The jump to the label at `at` from the statements before it, structured; undefined when it has none or cannot be. */
+  private lowerForwardGoto(
+    operations: GeneratedHandlerOperation[],
+    at: number,
+  ): { list: GeneratedHandlerOperation[]; resume: number } | undefined {
     const label = this.labels.get(operations[at]!)!;
     const before = operations.slice(0, at);
-    const after = this.lowerForwardGotos(operations.slice(at + 1));
+    const after = operations.slice(at + 1);
     const flag = `__goto_${label}`;
     const jumps = (list: GeneratedHandlerOperation[]): boolean => {
       let found = false;
@@ -322,7 +372,7 @@ class HandlerParser {
     };
     // Nothing before it jumps here: the mark stays for an enclosing switch
     // whose cases jump into this list (lowerSwitchGotos).
-    if (!jumps(before)) return [...before, operations[at]!, ...after];
+    if (!jumps(before)) return undefined;
     const exitsOwnLevel = (list: GeneratedHandlerOperation[]): boolean => list.some(operation =>
       this.isExit(operation, 'break') || this.isExit(operation, 'continue') ||
       (operation.op === 'if' && nestedOperations(operation).some(exitsOwnLevel)));
@@ -352,7 +402,7 @@ class HandlerParser {
         : undefined;
     }).filter((operation): operation is GeneratedHandlerOperation => operation !== undefined);
     // Unlowered, the goto placeholder survives and parse() reports it.
-    if (exitsOwnLevel(before) || unhoistable) return [...before, operations[at]!, ...after];
+    if (exitsOwnLevel(before) || unhoistable) return undefined;
     const raise: GeneratedHandlerOperation[] = [
       { op: 'assign', target: { kind: 'identifier', name: flag }, operator: '=', value: { kind: 'number', value: 1 } },
       { op: 'break' },
@@ -385,12 +435,14 @@ class HandlerParser {
           then: [{ op: 'break' }],
         }];
       });
-    return [
+    const head: GeneratedHandlerOperation[] = [
       ...hoisted,
       { op: 'declare', name: flag, valueType: 'int', value: { kind: 'number', value: 0 } },
       { op: 'while', condition: { kind: 'number', value: 1 }, body: [...rewrite(body), { op: 'break' }] },
-      ...after,
     ];
+    // The mark is spent: the label is where the wrapper ends.
+    this.labels.delete(operations[at]!);
+    return { list: [...head, ...after], resume: head.length };
   }
 
   private parseStatement(): GeneratedHandlerOperation | GeneratedHandlerOperation[] | undefined {

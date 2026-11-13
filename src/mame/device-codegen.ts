@@ -426,12 +426,36 @@ function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
   return found;
 }
 
+/**
+ * The definition the browser loads beside the emitted module: a method that
+ * only ever runs emitted (in the compiled map, its name unique) carries no
+ * program, since nothing executes it. The microcoded 68000's 6,000 bus-cycle
+ * states made the full IR 300 MB; the auditable IR keeps every program.
+ */
+export function runtimeDeviceDefinition(
+  definition: GeneratedDeviceDefinition,
+  emitted: ReturnType<typeof generatedDeviceMethodsSource>,
+): GeneratedDeviceDefinition {
+  const counts = new Map<string, number>();
+  for (const method of definition.methods) counts.set(method.name, (counts.get(method.name) ?? 0) + 1);
+  const emittedNames = new Set(emitted.methods);
+  return {
+    ...definition,
+    methods: definition.methods.map(method =>
+      emittedNames.has(method.name) && counts.get(method.name) === 1 && codegenWrappedParameters(method).length === 0
+        ? { ...method, program: { operations: [], diagnostics: [] }, emittedOnly: true } as GeneratedDeviceMethod
+        : method),
+  };
+}
+
 export function generatedDeviceExecutableSource(
   definition: GeneratedDeviceDefinition,
   dataFile: string,
   coreModule = '../../core/generated-device.js',
+  /** The emitted methods, when the caller already generated them. */
+  emitted?: ReturnType<typeof generatedDeviceMethodsSource>,
 ): string {
-  const assignments = generatedDeviceAssignments(definition, 'definition').join('\n');
+  const assignments = generatedDeviceAssignments(definition, 'definition', emitted).join('\n');
   return `// GENERATED from MAME device source; do not edit.
 import type {
   GeneratedDeviceDefinition,
@@ -450,8 +474,9 @@ export default device;
 function generatedDeviceAssignments(
   definition: GeneratedDeviceDefinition,
   target: string,
+  precomputed?: ReturnType<typeof generatedDeviceMethodsSource>,
 ): string[] {
-  const emitted = generatedDeviceMethodsSource(definition, true);
+  const emitted = precomputed ?? generatedDeviceMethodsSource(definition, true);
   const compiled = emitted.methods.length
     ? `${emitted.source} as GeneratedDeviceMethodMap`
     : '{} as GeneratedDeviceMethodMap';
@@ -1290,7 +1315,22 @@ function hoistedName(name: string): string {
  * `runtime.writableMember` may materialise into a fresh array. Mutating the
  * object a member already points at is not a rebind and does not disqualify it.
  */
+const STABLE_MEMBERS = new WeakMap<object, Set<string>>();
+
+/**
+ * Members no method in this scope rebinds -- once per scope: emitMethod asks
+ * for every method it emits, and the microcoded 68000's 6,000 states made the
+ * per-method rescan of every method's IR 85% of an eighteen-minute build.
+ */
 function stableMemberNames(definition: CodegenScope): Set<string> {
+  const cached = STABLE_MEMBERS.get(definition.methods);
+  if (cached) return cached;
+  const found = computeStableMemberNames(definition);
+  STABLE_MEMBERS.set(definition.methods, found);
+  return found;
+}
+
+function computeStableMemberNames(definition: CodegenScope): Set<string> {
   const rebound = new Set<string>();
   // `cur_live = checkpoint_live` on a struct member copies fields into the
   // object the member already holds (runtime.copyStruct), so the binding
@@ -2242,15 +2282,16 @@ function emitCall(
     // std::vector::resize. A plain array (a vector of vectors or of structs)
     // grows in place by elements of its own kind; a typed array is replaced,
     // so a member or local holding one takes the new array back.
-    if (expression.callee.property === 'resize' && args.length === 1) {
+    if (expression.callee.property === 'resize' && (args.length === 1 || args.length === 2)) {
       const holder = expression.callee.object;
+      const resized = `runtime.resize(${object}, ${args.join(', ')})`;
       if (holder.kind === 'identifier' && context.locals.has(holder.name) && !context.wrappedReferences.has(holder.name)) {
-        return `(${localName(holder.name)} = runtime.resize(${object}, ${args[0]}))`;
+        return `(${localName(holder.name)} = ${resized})`;
       }
       if (holder.kind === 'identifier' && context.definition.members.some(member => member.name === holder.name)) {
-        return `(members.${holder.name} = runtime.resize(${object}, ${args[0]}))`;
+        return `(members.${holder.name} = ${resized})`;
       }
-      return `runtime.resize(${object}, ${args[0]})`;
+      return resized;
     }
     if (
       ['bytes', 'size', 'length'].includes(expression.callee.property) &&

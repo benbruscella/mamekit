@@ -58,6 +58,10 @@ export const DEVICE_MAME_TYPES = [
   // its PIXBLT/FILL variants read after the preprocessor, the scanline timer
   // and the screen it drives its own (Midway T-Unit).
   'TMS34010',
+  // m68000.cpp's microcoded 68000, its instruction states m68000gen.py's
+  // m68000-sdf.cpp and siblings (the build units scripts/src/cpu.lua lists
+  // with it), every bus cycle a state the core can stop in.
+  'M68000',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

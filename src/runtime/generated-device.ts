@@ -1887,10 +1887,19 @@ class IrDevice implements Device {
           const bytes = options.shares?.[`${options.tag}:${named}`] ?? options.shares?.[named];
           return (bytes ? { ptr: () => bytes, bytes: () => bytes.length, length: () => bytes.length } : 0) as unknown as number;
         },
-        // cpu_device's deferred-access protocol (devcpu.h): an access is
-        // redone only after a device defers it, and nothing here does.
-        access_to_be_redone: () => 0,
-        access_to_be_redone_noclear: () => 0,
+        // cpu_device's deferred-access protocol (devcpu.h): an access a
+        // before_time/before_delay handler deferred is redone, the flag read
+        // and cleared by the core that asked (the 68000 after every bus cycle).
+        access_to_be_redone: () => {
+          const redo = this.accessToBeRedone;
+          this.accessToBeRedone = false;
+          return redo ? 1 : 0;
+        },
+        access_to_be_redone_noclear: () => this.accessToBeRedone ? 1 : 0,
+        defer_access: () => { this.deferAccess(); return 0; },
+        retry_access: () => { this.abortTimeslice(); this.accessToBeRedone = true; return 0; },
+        access_before_time: (access: unknown, current: unknown) => this.accessBeforeTime(Number(access), Number(current)) ? 1 : 0,
+        access_after_delay: (cycles: unknown) => { this.accessAfterDelay(Number(cycles)); return 0; },
         // `device().subtag(tag)`, resolved as MAME's device_t::subtag does:
         // `^` climbs to the owner, a leading `:` is absolute, anything else
         // is below this device. An NES card allocates its PRG as
@@ -2620,7 +2629,9 @@ class IrDevice implements Device {
    * bindings, listeners and resolved call links are wiring.
    */
   stateKeys(): readonly string[] {
-    return ['members', 'timers', 'spaces', 'executedCycles', 'suspension', 'streamSamples', 'children', 'slotChild', 'executionContext'];
+    // accessToBeRedone is cpu_device state a core reads back on its next
+    // slice: an access the 68000's VPA sync deferred is redone after a load.
+    return ['members', 'timers', 'spaces', 'executedCycles', 'suspension', 'streamSamples', 'children', 'slotChild', 'executionContext', 'accessToBeRedone'];
   }
 
   tick(seconds: number): void {
@@ -2713,6 +2724,53 @@ class IrDevice implements Device {
 
   call(name: string, ...args: number[]): number {
     return Number(this.preparedCall(name)(...args)) || 0;
+  }
+
+  /** cpu_device::m_access_to_be_redone. */
+  private accessToBeRedone = false;
+  /** cpu_device::m_access_before_delay_tag: the access whose delay has been paid. */
+  private accessBeforeDelayTag: unknown;
+
+  /** device_execute_interface::total_cycles(), mid-slice included. */
+  totalCyclesNow(): number {
+    return this.executedCycles + (this.runningCycles === undefined ? 0 : this.runningCycles - Number(this.members.m_icount));
+  }
+
+  /** cpu_device::defer_access: the access waits for the next slice. */
+  deferAccess(): void {
+    if (Number(this.members.m_icount) > 0) this.members.m_icount = 0;
+    this.accessToBeRedone = true;
+  }
+
+  /** cpu_device::access_before_time: wait until `access`, or defer when the slice cannot. */
+  accessBeforeTime(access: number, current: number): boolean {
+    const delta = (access - current) | 0;
+    if (Number(this.members.m_icount) <= delta) {
+      this.deferAccess();
+      return true;
+    }
+    this.members.m_icount = Number(this.members.m_icount) - delta;
+    return false;
+  }
+
+  /** cpu_device::access_before_delay: pay `cycles` once per access, deferring when they run out. */
+  accessBeforeDelay(cycles: number, tag: unknown): boolean {
+    if (tag === this.accessBeforeDelayTag) {
+      this.accessBeforeDelayTag = undefined;
+      return false;
+    }
+    this.members.m_icount = Number(this.members.m_icount) - cycles;
+    if (Number(this.members.m_icount) <= 0) {
+      this.accessBeforeDelayTag = tag;
+      this.accessToBeRedone = true;
+      return true;
+    }
+    return false;
+  }
+
+  /** cpu_device::access_after_delay. */
+  accessAfterDelay(cycles: number): void {
+    this.members.m_icount = Number(this.members.m_icount) - cycles;
   }
 
   runCycles(cycles: number): number {
@@ -4535,7 +4593,15 @@ function bindWideSpace(
   const target = space as unknown as Record<string, unknown>;
   space.read_byte = address => read(bus(address)) & 0xff;
   space.write_byte = (address, data) => { write(bus(address), data & 0xff); return 0; };
-  target.read_word = (address: number, mask = 0xffff) => wide.read16(word(address)) & 0xffff & (Number(mask) || 0xffff);
+  // A byte lane reads that lane alone, as MAME calls no handler on a lane the
+  // mem_mask leaves out: the 68000 reads every byte as a masked word, and a
+  // whole-word read ran the other lane's handler too.
+  target.read_word = (address: number, mask = 0xffff) => {
+    const selected = Number(mask) & 0xffff;
+    if (selected === 0xff00) return (read(lane(address, true)) & 0xff) << 8;
+    if (selected === 0x00ff) return read(lane(address, false)) & 0xff;
+    return wide.read16(word(address)) & 0xffff & (selected || 0xffff);
+  };
   target.write_word = (address: number, data: number, mask = 0xffff) => {
     const selected = Number(mask) & 0xffff;
     if (selected === 0xffff || selected === 0) wide.write16(word(address), Number(data) & 0xffff);
@@ -4571,8 +4637,11 @@ function bindWideSpace(
     return 0;
   };
   target.data_width = () => config.dataBits;
-  space.read_interruptible = space.read_byte;
-  space.write_interruptible = space.write_byte;
+  // memory_access::specific's interruptible accesses are the bus's own width:
+  // a word with its mem_mask on a 16-bit space, as the microcoded 68000 reads
+  // every bus cycle (`m_opcodes.read_interruptible(m_aob & ~1)`).
+  space.read_interruptible = target.read_word as GeneratedDeviceSpace['read_interruptible'];
+  space.write_interruptible = target.write_word as GeneratedDeviceSpace['write_interruptible'];
 }
 
 /** A space's config answers, as address_space reads them from its address_space_config. */
@@ -4644,9 +4713,10 @@ function mappedDeviceSpace(
   const byteBits = shift > 0 ? addressBits - shift : addressBits;
   const size = 2 ** byteBits * unitBytes;
   const mask = size - 1;
-  // A space too large to decode address by address (the TMS34010's 512 MB)
-  // is decoded entry by entry; its few ranges are the whole internal map.
-  const sparse = size > 1 << 24;
+  // A space too large to decode address by address (the TMS34010's 512 MB,
+  // the 68000's 16 MB CPU space) is decoded entry by entry; its few ranges are
+  // the whole internal map.
+  const sparse = size > 1 << 20;
   const memory = new Uint8Array(sparse ? 0 : size);
   const toByte = (address: number) => shift > 0 ? Math.floor(address / 2 ** shift) : address * unitBytes;
   const wordBytes = wide ? wide.dataBits / 8 : 1;
@@ -4664,6 +4734,9 @@ function mappedDeviceSpace(
     view?: DeviceMemoryView;
     /** Its handlers are a wide space's: a word offset, the word, a mem_mask. */
     words?: boolean;
+    beforeTime?: (offset: number, current?: number) => number;
+    beforeDelay?: (offset: number) => number;
+    afterDelay?: (offset: number) => number;
   };
   const entries: Entry[] = [];
   let unmapped = 0;
@@ -4743,9 +4816,18 @@ function mappedDeviceSpace(
         if (wide) entry.words = true;
         return chain;
       },
-      lr8: handler => chain.r!(handler),
-      lw8: handler => chain.w!(handler),
-      lrw8: (read, write) => chain.rw!(read, write),
+      // emumem's delay handlers around an entry (handler_entry_read_before_time
+      // and friends): the owner's callback says when the access may happen
+      // or what it costs. The 68000's autovectors sync to the E clock this
+      // way (vpa_sync, vpa_after) on every interrupt acknowledge.
+      before_time: (_owner, method) => { entry.beforeTime = callable(method ?? _owner, false); return chain; },
+      before_delay: (_owner, method) => { entry.beforeDelay = callable(method ?? _owner, false); return chain; },
+      after_delay: (_owner, method) => { entry.afterDelay = callable(method ?? _owner, false); return chain; },
+      // An 8-bit lambda is a byte handler whatever the bus width: the 68000's
+      // autovectors answer on one byte lane of its CPU space.
+      lr8: handler => { chain.r!(handler); entry.words = false; return chain; },
+      lw8: handler => { chain.w!(handler); entry.words = false; return chain; },
+      lrw8: (read, write) => { chain.rw!(read, write); entry.words = false; return chain; },
       ram: () => {
         if (sparse) { entry.storage = new Uint8Array(entry.end - entry.start + 1); entry.storageOffset = 0; }
         else { entry.storage = memory; entry.storageOffset = undefined; }
@@ -4845,6 +4927,19 @@ function mappedDeviceSpace(
     return 8 * (little ? lane : wordBytes - 1 - lane);
   };
   const wordOffset = (at: number, entry: Entry) => Math.floor((at - entry.start) / wordBytes);
+  // An entry's delay handlers around its access: true when the access is
+  // deferred, and then it does not happen.
+  const deferred = (entry: Entry, offset: number): boolean => {
+    if (entry.beforeTime) {
+      const now = device.totalCyclesNow();
+      if (device.accessBeforeTime(entry.beforeTime(offset, now), now)) return true;
+    }
+    if (entry.beforeDelay && device.accessBeforeDelay(entry.beforeDelay(offset), entry)) return true;
+    return false;
+  };
+  const delayed = (entry: Entry, offset: number): void => {
+    if (entry.afterDelay) device.accessAfterDelay(entry.afterDelay(offset));
+  };
   type Fallback = { read(address: number): number; write(address: number, data: number): void; wide?: WideSpaceAccess };
   const space: GeneratedDeviceSpace & WideSpaceAccess & { fallback?: Fallback } = {
     memory,
@@ -4854,9 +4949,16 @@ function mappedDeviceSpace(
       const entry = index < 0 ? undefined : resolve(index, at, false);
       if (!entry) return space.fallback ? space.fallback.read(address) : unmapped;
       if (entry.read) {
-        if (!entry.words) return entry.read(at - entry.start) & 0xff;
-        const bits = laneShift(at, entry);
-        return (entry.read(wordOffset(at, entry), 0xff << bits) >>> bits) & 0xff;
+        const offset = entry.words ? wordOffset(at, entry) : at - entry.start;
+        if ((entry.beforeTime || entry.beforeDelay) && deferred(entry, offset)) return unmapped;
+        let value: number;
+        if (!entry.words) value = entry.read(offset) & 0xff;
+        else {
+          const bits = laneShift(at, entry);
+          value = (entry.read(offset, 0xff << bits) >>> bits) & 0xff;
+        }
+        if (entry.afterDelay) delayed(entry, offset);
+        return value;
       }
       const storage = entry.storage!;
       return storage[entry.storageOffset === undefined ? at : entry.storageOffset + at - entry.start] ?? unmapped;
@@ -4884,8 +4986,15 @@ function mappedDeviceSpace(
       const at = address & mask;
       const index = readIndex(at);
       const entry = index < 0 ? undefined : resolve(index, at, false);
-      if (entry?.words && entry.read) return entry.read(wordOffset(at, entry), 0xffff) & 0xffff;
-      if (!entry && space.fallback?.wide) return space.fallback.wide.read16(address) & 0xffff;
+      // Neither byte mapped here: the owner's word, in one access.
+      if (!entry && readIndex((at + 1) & mask) < 0 && space.fallback?.wide) return space.fallback.wide.read16(address) & 0xffff;
+      if (entry?.words && entry.read) {
+        const offset = wordOffset(at, entry);
+        if ((entry.beforeTime || entry.beforeDelay) && deferred(entry, offset)) return unmapped;
+        const value = entry.read(offset, 0xffff) & 0xffff;
+        if (entry.afterDelay) delayed(entry, offset);
+        return value;
+      }
       return little ? (space.read_byte(address) | (space.read_byte(address + 1) << 8)) & 0xffff
         : ((space.read_byte(address) << 8) | space.read_byte(address + 1)) & 0xffff;
     },
@@ -4894,7 +5003,7 @@ function mappedDeviceSpace(
       const index = writeIndex(at);
       const entry = index < 0 ? undefined : resolve(index, at, true);
       if (entry?.words && entry.write) { entry.write(wordOffset(at, entry), data & 0xffff, 0xffff); return; }
-      if (!entry && space.fallback?.wide) { space.fallback.wide.write16(address, data & 0xffff); return; }
+      if (!entry && writeIndex((at + 1) & mask) < 0 && space.fallback?.wide) { space.fallback.wide.write16(address, data & 0xffff); return; }
       space.write_byte(little ? address : address + 1, data & 0xff);
       space.write_byte(little ? address + 1 : address, (data >>> 8) & 0xff);
     },

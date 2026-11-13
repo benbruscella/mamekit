@@ -909,4 +909,34 @@ assert.equal(executeGeneratedProgram(localVector, {}).value, 11);
   assert.equal(executeGeneratedHandler(program, {}, { colour: 0xff302010 }), 16032048);
 }
 
-console.log('handler-ir.spec: 80 passed');
+// Forward gotos lowered label by label in source order, each against every
+// statement before it: m68000gen.py's handlers branch `if (m_t) goto aixl5;
+// else goto aixl2;` and both regions end `goto adsw2;`. Lowered last label
+// first, adsw2 never saw aixl2's jump and 968 handlers stayed unlowered.
+{
+  const program = compileMameHandler(`int r = 0; int ry = 7;
+    if (t) goto L5; else goto L2;
+    L2: r = r * 10 + 2; if (u) return 99; goto L3;
+    L5: r = r * 10 + 5; for (int i = 0; i < 3; i++) { if (i == v) goto L3; } r = r * 10 + 6;
+    L3: r = r * 10 + 3 + ry - 7;
+    return r;`);
+  assert.deepEqual(program.diagnostics, []);
+  const run = (t: number, u: number, v: number) => executeGeneratedHandler(program, {}, { t, u, v });
+  assert.deepEqual([run(1, 0, 1), run(1, 0, 9), run(0, 0, 0), run(0, 1, 0)], [53, 563, 23, 99]);
+}
+
+// A backward goto flattens the whole body into one switch: the 68000's CHK
+// handlers `goto trap1;` from below `trap1:` beside forward jumps.
+{
+  const program = compileMameHandler(`int r = 0; int n = 0;
+    L1: r = r * 10 + 1; n++;
+    if (n < 3) goto L1;
+    if (t) goto L3;
+    r = r * 10 + 2;
+    L3: r = r * 10 + 3;
+    return r;`);
+  assert.deepEqual(program.diagnostics, []);
+  assert.deepEqual([0, 1].map(t => executeGeneratedHandler(program, {}, { t })), [11123, 1113]);
+}
+
+console.log('handler-ir.spec: 82 passed');

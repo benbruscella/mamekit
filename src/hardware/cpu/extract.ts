@@ -11,7 +11,6 @@ import { CPU_MAME_TYPES, cpuIrArtifact, cpuModuleArtifact } from './definition.t
 
 /** Which MAME compiler produces each core. */
 const COMPILERS: Record<string, (mameSource: string) => unknown> = {
-  M68000: compileMameM68000,
   // Its own decode column and initializer, not a relabelled 68000: see
   // M68000_VARIANTS in cpu-compiler.ts.
   M68010: source => compileMameM68000(source, 'M68010'),
