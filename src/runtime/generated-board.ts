@@ -696,6 +696,10 @@ class IrBoard implements Board {
       },
     };
     this.machine = machine;
+    // Before any device starts: a device_start that binds a share
+    // (`owner()->memshare(tag())`, sprite.h) asks whether a 16-bit processor
+    // owns it, and asked too early Gauntlet bound its motion objects as bytes.
+    this.processorSpaces(machine);
     this.hostState['cpu-clocks'] = this.cpuClocks;
     this.hostState['vector-display'] = this.vectorPoints;
     this.inputs = inputs;
@@ -2134,7 +2138,6 @@ class IrBoard implements Board {
     // own constructor, and every connection must already be executable.
     this.effects = bindBoardEffects(machine, this.effectBindings(sinks, registry));
 
-    this.processorSpaces(machine);
     for (const specification of machine.execution.cpus) {
       const type = specification.type ?? '';
       // Every CPU is its MAME class compiled whole, a generated device that
@@ -4414,7 +4417,8 @@ class IrBoard implements Board {
    * finishes each instruction first, so there is nothing to catch up.
    */
   /**
-   * Each processor's address spaces as its compiled class configures them
+   * Each processor's address spaces as its compiled class configures them,
+   * read from its registered device definition
    * (address_space_config: data width, byte order, address width): the
    * 68000's 16-bit big-endian 24-bit program space, the TMS34010's 16-bit
    * little-endian bit-addressed one. Map ranges are already in bytes (a
@@ -4423,8 +4427,10 @@ class IrBoard implements Board {
    * stands where the driver gave one.
    */
   private processorSpaces(machine: BoardIr): void {
+    const definitions = new Map((machine.devices ?? []).map(device => [device.tag, device]));
     const semantics = (tag: string, index: number, name: string) => {
-      const config = this.devices.get(tag)?.spaceConfig?.(index);
+      const device = definitions.get(tag);
+      const config = device ? generatedDeviceDefinition(generatedDeviceKey(device))?.spaces?.find(space => space.index === index) : undefined;
       if (!config) return undefined;
       return {
         ownerTag: tag,

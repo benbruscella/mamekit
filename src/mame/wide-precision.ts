@@ -26,6 +26,9 @@ export function isWideType(valueType: string | undefined): boolean {
 /** The integer types narrower than 64 bits that convert on the way in. */
 const NARROWER = /^(?:u?int(?:8|16|32)_t|u8|u16|u32|s8|s16|s32|int|unsigned(?: int)?|short|unsigned short|offs_t)$/;
 
+/** Types whose arithmetic is not C's integer arithmetic. */
+const INEXACT = /^(?:float|double|long double|attotime|(?:\w+::)*sample_t)$/;
+
 const PROMOTED = new Set(['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^', '<', '<=', '>', '>=']);
 /** Of those, the ones whose result is itself 64-bit (a comparison is an int). */
 const WIDE_RESULT = new Set(['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^']);
@@ -73,6 +76,11 @@ export function markWidePrecision(methods: readonly WideMethod[], scope: WidePre
       if (operation.op === 'declare' && operation.valueType && !isWideType(operation.valueType) &&
           scope.members.has(operation.name)) names.delete(operation.name);
     });
+    const inexact = (expression: GeneratedExpression): boolean => {
+      const type = expression.kind === 'identifier' ? types.get(expression.name)
+        : expression.kind === 'cast' ? expression.valueType : undefined;
+      return INEXACT.test((type ?? '').replace(/\b(?:const|volatile)\b/g, '').replace(/&/g, '').trim());
+    };
     const wide = (expression: GeneratedExpression): boolean => {
       switch (expression.kind) {
         case 'number': return !Number.isSafeInteger(expression.value) && Number.isInteger(expression.value);
@@ -88,6 +96,11 @@ export function markWidePrecision(methods: readonly WideMethod[], scope: WidePre
           const left = wide(expression.left);
           const right = wide(expression.right);
           if (!(left || right) || !PROMOTED.has(expression.operator)) return false;
+          // A floating or attotime operand makes it no integer operation at
+          // all: the PIT's `m_clock_period * elapsed_cycles` is attotime's
+          // operator*, and taken as 64-bit integers the period truncated to 0
+          // and Venture's counter timer re-armed for now, forever.
+          if (inexact(expression.left) || inexact(expression.right)) return false;
           (expression as { precision?: 64 }).precision = 64;
           // Not a shift count: that is an ordinary int.
           if (!left) (expression as { left: GeneratedExpression }).left = converted(expression.left);

@@ -202,8 +202,11 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       if (!existsSync(cand)) continue;
       const source = readFileSync(cand, 'utf8');
       externalSources.push(source);
+      // A header's own sibling include is spelled from its directory:
+      // konami.h's `#include "m6809.h"`, whose M6809_FIRQ_LINE is what
+      // KONAMI_FIRQ_LINE is defined as (The Simpsons' main CPU FIRQ).
       for (const nested of parseIncludes(source)) {
-        if (nested.includes('/')) pendingExternalIncludes.push(nested);
+        pendingExternalIncludes.push(nested.includes('/') ? nested : join(dirname(inc), nested));
       }
       break;
     }
