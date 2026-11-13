@@ -1,7 +1,6 @@
 import {
   generatedBoardSource,
-  generatedCpuCycleClock,
-  generatedCpuAddressSpace,
+  generatedCpuClock,
   generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
@@ -30,19 +29,11 @@ import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 
 // device_t::m_clock is a u32: the PAL C64's XTAL(17'734'472)/18 runs at
-// 985248, and a dividing core rounds its integer cycle rate up.
-if (generatedCpuCycleClock('m6510', 17_734_472 / 18) !== 985_248) {
+// 985248. A dividing core's own execute_clocks_to_cycles (the TMS34010's
+// `(clocks + 8 - 1) / 8`) is read from its source (execute-facts.spec), and
+// its address spaces are its compiled class's (generated-board processorSpace).
+if (generatedCpuClock(17_734_472 / 18) !== 985_248) {
   throw new Error('a CPU clock must be truncated to MAME\'s u32');
-}
-if (generatedCpuCycleClock('tms34010', 3_579_545.25) !== 447_444) {
-  throw new Error('a dividing core must use MAME\'s (clocks + n - 1) / n');
-}
-// The generated TMS34010 converts its bit addresses to bytes at every access
-// (TMS_READ16/TMS_WRITE16) and its map ranges are scaled to match, so the bus
-// itself shifts nothing: a second conversion here would address 1/8 of RAM.
-const tmsSpace = generatedCpuAddressSpace('tms34010', 'maincpu');
-if (tmsSpace.addressShift !== 0 || tmsSpace.dataWidth !== 16 || tmsSpace.endianness !== 'little') {
-  throw new Error(`TMS34010 bit-addressed program space was not preserved: ${JSON.stringify(tmsSpace)}`);
 }
 
 const graph: KnowledgeGraph = {

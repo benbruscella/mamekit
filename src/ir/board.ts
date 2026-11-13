@@ -534,6 +534,19 @@ export type GeneratedHandlerOperation =
         values?: GeneratedExpression[];
         body: GeneratedHandlerOperation[];
       }[];
+    }
+  /**
+   * C++ `try`: Musashi reports an address error by `throw 10` from deep in a
+   * bus access, and execute_run catches it to take the exception. A catch
+   * names the type it takes (`int`; none for `...`) and the local it binds;
+   * `finally` is what a scope's local object destructs on the way out
+   * (the RAII `fpu_rounding_saver` execute_run declares).
+   */
+  | {
+      op: 'try';
+      body: GeneratedHandlerOperation[];
+      catches: { valueType?: string; name?: string; body: GeneratedHandlerOperation[] }[];
+      finally?: GeneratedHandlerOperation[];
     };
 
 export interface GeneratedHandlerProgram {
@@ -1321,6 +1334,13 @@ export interface BoardIr {
  * handlers the emitter did not compile.
  */
 export interface GeneratedHandlerRuntime {
+  /** C++ exceptions for emitted try/catch: recognise, match by type, track the one being handled. */
+  cpp?: {
+    isThrow(error: unknown): boolean;
+    matches(valueType: string | null, value: unknown): boolean;
+    enter(error: unknown): void;
+    leave(): void;
+  };
   readonly members: Record<string, unknown>;
   readonly calls: Record<string, (...args: any[]) => unknown>;
   /**
@@ -1361,6 +1381,8 @@ export interface GeneratedHandlerRuntime {
   stringMethod(value: unknown, method: string, ...args: unknown[]): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
+  /** The low 32 bits of a `wide` answer (execute.ts generatedLow32). */
+  low32(value: unknown): unknown;
   /** C++ `*pointer = value`, over a generated pointer or plain memory. */
   pointerStore(pointer: unknown, value: unknown): unknown;
   /** C++ `a + b` when neither side is known to be a number. */

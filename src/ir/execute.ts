@@ -470,21 +470,6 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'filter_rc_device::AC': 4,
   INPUT_LINE_IRQ0: 0,
   ...HOST_INPUT_LINES,
-  M6801_IRQ1_LINE: 0,
-  M6801_IS3_LINE: 2,
-  M6802_IRQ_LINE: 0,
-  M6805_IRQ_LINE: 0,
-  M68705_IRQ_LINE: 0,
-  M68705_INT_TIMER: 1,
-  M6809_IRQ_LINE: 0,
-  M6809_FIRQ_LINE: 1,
-  KONAMI_IRQ_LINE: 0,
-  KONAMI_FIRQ_LINE: 1,
-  'm6502_device::IRQ_LINE': 0,
-  'm6502_device::NMI_LINE': -1,
-  // The SO pin, as the generated 6502 numbers it (V_LINE = INPUT_LINE_IRQ0 +
-  // 16 in m6502.h): the 1541's gate array raises it for every byte read.
-  'm6502_device::V_LINE': 16,
   // emu/machine.h's machine_phase, which running_machine::phase() answers. A
   // device ignores a port write while MAME is still resetting: the 1541's
   // VIA port B handler drives the spindle motor and stepper only when RUNNING.
@@ -856,6 +841,7 @@ function preparedHandlerRuntime(
       return next;
     },
     fieldAddress: generatedMemberAddress,
+    cpp: GENERATED_CPP_EXCEPTIONS,
     objectAddress: generatedObjectAddress,
     packedWord: generatedPackedWord,
     swapObjects: generatedSwapObjects,
@@ -887,6 +873,7 @@ function preparedHandlerRuntime(
     resize: resizeGeneratedContainer,
     attotime: (seconds: number, method: string, ...args: number[]) => attotimeSecondsMethod(seconds, method, args) ?? 0,
     wide: wideBinary,
+    low32: generatedLow32,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
     macro: (name, ...args) => generatedMacroCall(name, args),
@@ -1477,6 +1464,25 @@ function compileFastOperations(
       if (!whenTrue || !whenFalse) return undefined;
       compiled.push(context =>
         (truthy(condition(context)) ? whenTrue : whenFalse)(context));
+      continue;
+    }
+    if (operation.op === 'try') {
+      for (const entry of operation.catches) if (entry.name) localNames.add(entry.name);
+      const body = compileFastOperations(operation.body, bindings, localNames);
+      const handlers = operation.catches.map(entry => ({ entry, body: compileFastOperations(entry.body, bindings, localNames) }));
+      const cleanup = operation.finally ? compileFastOperations(operation.finally, bindings, localNames) : undefined;
+      if (!body || handlers.some(handler => !handler.body) || (operation.finally && !cleanup)) return undefined;
+      compiled.push(context => generatedTry(
+        () => body(context),
+        operation.catches.map((entry, index) => ({
+          valueType: entry.valueType,
+          run: (value: unknown) => {
+            if (entry.name) context.locals[entry.name] = value;
+            return handlers[index]!.body!(context);
+          },
+        })),
+        cleanup ? () => cleanup(context) : undefined,
+      ));
       continue;
     }
     if (operation.op === 'switch') {
@@ -2177,6 +2183,19 @@ function executeOperations(
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
       } while (truthy(evaluate(operation.condition, context)));
+    } else if (operation.op === 'try') {
+      const result = generatedTry(
+        () => executeOperations(operation.body, context),
+        operation.catches.map(entry => ({
+          valueType: entry.valueType,
+          run: (value: unknown) => {
+            if (entry.name) context.locals[entry.name] = value;
+            return executeOperations(entry.body, context);
+          },
+        })),
+        operation.finally ? () => executeOperations(operation.finally!, context) : undefined,
+      );
+      if (result?.control) return result;
     } else if (operation.op === 'switch') {
       const value = toNumber(evaluate(operation.expression, context));
       let index = operation.cases.findIndex(candidate =>
@@ -2654,7 +2673,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOCF') return new Float64Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
   // A struct type a function declares for itself, and the variable it
-  // declares with it (cpu-compiler.ts lowerLocalStructs): popeye's sprite
+  // declares with it (execution-source.ts lowerLocalStructs): popeye's sprite
   // pass keeps `struct attribute_memory { ... } attributes[64]`. Each element
   // is its own struct, built from the field/initial-value pairs.
   if (name === 'STRUCT_VALUE') return generatedStruct(args);
@@ -2839,8 +2858,12 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     }
     return 0;
   }
-  // A C++ `throw`, as handler-ir lowers it: the source gave up here.
-  if (name === '__throw') throw new Error('MAME source threw an exception');
+  // A C++ `throw`, as handler-ir lowers it: a value a `try` may catch, or
+  // (`throw;`) the exception the innermost handler is handling, thrown on.
+  if (name === '__throw') {
+    if (!args.length) generatedCppRethrow();
+    throw new GeneratedCppThrow(args[0]);
+  }
   // MAME util/multibyte.h: little- and big-endian loads from a byte pointer.
   // The pointer is usually into a buffer (`&cur_block[16]`): a TZX turbo or
   // pure-data block's length is a get_u24le there, and read as a bare array
@@ -3788,12 +3811,84 @@ function binary(operator: string, left: number, right: number): number {
  * interleave ends `& 0x5555`. So the answer returns to a plain number as soon
  * as one can hold it, and the rest of the executor never sees a bigint.
  */
+/**
+ * A C++ exception in flight: what `throw` threw. Only these are caught by a
+ * generated `try`; a host failure is never a C++ exception.
+ */
+export class GeneratedCppThrow {
+  readonly value: unknown;
+  constructor(value: unknown) { this.value = value; }
+}
+
+/** The exceptions handlers are handling, innermost last (`throw;` rethrows it). */
+const HANDLING: GeneratedCppThrow[] = [];
+
+/** What emitted code's try/catch asks (runtime.cpp). */
+export const GENERATED_CPP_EXCEPTIONS = {
+  isThrow: (error: unknown): error is GeneratedCppThrow => error instanceof GeneratedCppThrow,
+  matches: (valueType: string | null, value: unknown): boolean => generatedCatchMatches(valueType ?? undefined, value),
+  enter: (error: GeneratedCppThrow): void => { HANDLING.push(error); },
+  leave: (): void => { HANDLING.pop(); },
+};
+
+export function generatedCppRethrow(): never {
+  const current = HANDLING.at(-1);
+  if (!current) throw new Error('MAME source rethrew with no exception being handled');
+  throw current;
+}
+
+const NUMERIC_CATCH = /^(?:const\s+)?(?:u?int(?:8|16|32|64)_t|u8|u16|u32|u64|s8|s16|s32|s64|int|unsigned(?:\s+int)?|long|short|char|bool|offs_t|signed)\s*&?$/;
+
+/** Whether a catch clause of this type takes this value (none: `catch (...)`). */
+export function generatedCatchMatches(valueType: string | undefined, value: unknown): boolean {
+  if (valueType === undefined) return true;
+  const numeric = NUMERIC_CATCH.test(valueType.trim());
+  return numeric ? typeof value === 'number' || typeof value === 'bigint' : typeof value !== 'number';
+}
+
+/**
+ * C++ try/catch/cleanup for both executors and emitted code: the first catch
+ * whose type takes the thrown value runs (with it handling, for `throw;`),
+ * any other throw goes on, and the cleanup runs on every way out.
+ */
+export function generatedTry<R>(
+  body: () => R,
+  catches: readonly { valueType?: string; run: (value: unknown) => R }[],
+  cleanup?: () => unknown,
+): R {
+  try {
+    return body();
+  } catch (error) {
+    if (!(error instanceof GeneratedCppThrow)) throw error;
+    const handler = catches.find(candidate => generatedCatchMatches(candidate.valueType, error.value));
+    if (!handler) throw error;
+    HANDLING.push(error);
+    try {
+      return handler.run(error.value);
+    } finally {
+      HANDLING.pop();
+    }
+  } finally {
+    cleanup?.();
+  }
+}
+
 export function generatedWideBinary(
   operator: string,
   left: unknown,
   right: unknown,
 ): unknown {
   return wideBinary(operator, left, right);
+}
+
+/**
+ * The low 32 bits of a 64-bit answer, ready for a 32-bit-or-narrower store.
+ * `wide` answers a BigInt once the value leaves the double's exact range, and
+ * `>>> 0` throws on one: Musashi's `m_c_flag = src << (9-shift)` with a u64
+ * `src` stopped the 68010 on its first ROR.L.
+ */
+export function generatedLow32(value: unknown): unknown {
+  return typeof value === 'bigint' ? Number(BigInt.asUintN(32, value)) : value;
 }
 
 const WIDE_OPERATORS: Record<string, (a: bigint, b: bigint) => bigint | boolean> = {

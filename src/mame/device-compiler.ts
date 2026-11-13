@@ -11,7 +11,7 @@ import {
   type MameClass,
   type MameFunction,
 } from './ast.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { isWideType, markWidePrecision } from './wide-precision.ts';
 import { monomorphizeClassTemplate } from './function-template.ts';
@@ -1153,7 +1153,14 @@ function compileMameDeviceSource(
       defines,
       undefined_,
     );
-    return { file, source: options.transformSource ? options.transformSource(file, source) : source };
+    // A function returning a reference to an array, `u32 (&REG_SP_BASE())[7]
+    // { return m_sp; }`, is read as one returning a pointer to its first
+    // element, which every use indexes the same way. Unparsed, Musashi's
+    // stack-pointer swap on every S-flag change wrote nowhere and read 0.
+    const referenceArrays = source.replace(
+      /\b((?:const\s+)?[\w:]+)\s*\(\s*&\s*(\w+)\s*\(([^()]*)\)\s*\)\s*\[[^\]]*\]\s*(?=(?:const\s*)?(?:noexcept\s*)?[{;])/g,
+      '$1 *$2($3) ');
+    return { file, source: options.transformSource ? options.transformSource(file, referenceArrays) : referenceArrays };
   });
   // A file-scope typedef of a scalar names that type through the whole
   // translation unit: nec.cpp's `typedef uint16_t WORD;` is what every
@@ -1677,7 +1684,10 @@ function compileMameDeviceSource(
   // Statement macros the device's own sources define. These have to be
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
-  const functionMacros = sources.flatMap(({ source }) => [...collectFunctionMacros(source), ...collectMemberCallMacros(source)]);
+  const functionMacros = [
+    ...sources.flatMap(({ source }) => [...collectFunctionMacros(source), ...collectMemberCallMacros(source)]),
+    ...coreFunctionMacros(mameSrc),
+  ];
   const stringMacros: Record<string, string> = Object.assign({},
     ...sources.map(({ source }) => parseTextMacros(stripCppComments(source)).strings));
   const hierarchyFunctions = ast.units.flatMap(unit => unit.functions)
@@ -2155,8 +2165,10 @@ function compileMameDeviceSource(
   const ownIncludes = [...new Set(sources.flatMap(({ file, source }) =>
     [...source.matchAll(/^[ \t]*#\s*include\s+"([^"]+)"/gm)].map(found => join(dirname(file), found[1]!))))]
     .filter(file => !sources.some(source => source.file === file) && existsSync(join(mameSrc, file)));
-  const fileStatics = fileScopeStatics([...sources.map(source => source.source),
-    ...ownIncludes.map(file => readFileSync(join(mameSrc, file), 'utf8'))]);
+  const fileStatics = [fileScopeStatics([...sources.map(source => source.source),
+    ...ownIncludes.map(file => readFileSync(join(mameSrc, file), 'utf8'))]),
+  libraryExterns(mameSrc, [...sources.map(source => source.source),
+    ...ownIncludes.map(file => readFileSync(join(mameSrc, file), 'utf8'))])].filter(Boolean).join('\n');
   if (fileStatics) classes.set(FILE_STATICS, { name: FILE_STATICS, body: fileStatics, bases: [] } as unknown as MameClass);
   const members: GeneratedDeviceMember[] = [...hierarchy, ...(fileStatics ? [FILE_STATICS] : [])].flatMap(className => {
     const declaration = classes.get(className);
@@ -2607,6 +2619,7 @@ function compileMameDeviceSource(
     if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') return 1 + loopDepth(operation.body);
     if (operation.op === 'if') return Math.max(loopDepth(operation.then), loopDepth(operation.else ?? []));
     if (operation.op === 'switch') return Math.max(0, ...operation.cases.map(entry => loopDepth(entry.body)));
+    if (operation.op === 'try') return Math.max(loopDepth(operation.body), ...operation.catches.map(entry => loopDepth(entry.body)));
     return 0;
   }));
   const hotMethods = methods
@@ -2732,8 +2745,13 @@ function compileMameDeviceSource(
     const methodNames = new Set(methods.map(method => method.name.split('::').at(-1)!));
     for (const [qualified, table] of Object.entries(sourceTables)) {
       const name = qualified.split('::').at(-1)!;
-      if (known.has(name) || table.columns !== undefined) continue;
-      if (!new RegExp(`(?<![\\w.>])${name}\\b(?!\\s*\\[)`).test(bodies)) continue;
+      if (known.has(name)) continue;
+      // A two-dimensional one counts when code takes a row of it:
+      // `m_cyc_exception = m68ki_exception_cycle_table[0]`.
+      const used = table.columns === undefined
+        ? new RegExp(`(?<![\\w.>])${name}\\b(?!\\s*\\[)`).test(bodies)
+        : new RegExp(`(?<![\\w.>])${name}\\s*\\[[^\\]]*\\](?!\\s*\\[)`).test(bodies);
+      if (!used) continue;
       const values = table.values.map(entry => {
         const text = entry.trim();
         const pointed = /^&\s*(?:\w+::)*(\w+)$/.exec(text)?.[1] ?? /^"(\w+)"$/.exec(text)?.[1];
@@ -2742,7 +2760,9 @@ function compileMameDeviceSource(
         return evalExpr(text, constants) ?? undefined;
       });
       if (values.some(value => value === undefined)) continue;
-      members.push({ name, valueType: 'table', values });
+      const columns = table.columns;
+      members.push({ name, valueType: 'table', values: columns === undefined ? values
+        : Array.from({ length: Math.ceil(values.length / columns) }, (_, row) => values.slice(row * columns, (row + 1) * columns)) });
       known.add(name);
     }
   }
@@ -3731,6 +3751,10 @@ export function lowerStructLocals(
       if (operation.op === 'switch') {
         for (const entry of operation.cases) entry.body = rewrite(entry.body);
       }
+      if (operation.op === 'try') {
+        for (const entry of operation.catches) entry.body = rewrite(entry.body);
+        if (operation.finally) operation.finally = rewrite(operation.finally);
+      }
       if (operation.op !== 'declare') return [operation];
       const fields = fieldsOf(operation.valueType);
       let value = operation.value;
@@ -3977,6 +4001,28 @@ function fileScopeStatics(sources: readonly string[]): string {
     }
   }
   return declarations.join('\n');
+}
+
+/**
+ * The mutable globals a third-party library the sources include declares
+ * `extern`, as member declarations: Musashi's execute_run saves and restores
+ * softfloat's `softfloat_roundingMode` around every run (an RAII
+ * fpu_rounding_saver), and an unknown name kept the whole loop interpreted.
+ * MAME shares them process-wide; every user saves and restores them around
+ * its own work, so a copy per device holds the same values at every use.
+ */
+function libraryExterns(mameSrc: string, sources: readonly string[]): string {
+  const declarations = new Set<string>();
+  for (const source of sources) {
+    for (const include of source.matchAll(/^[ \t]*#\s*include\s+"([^"]+)"/gm)) {
+      const header = join(mameSrc, '3rdparty', include[1]!);
+      if (!existsSync(header)) continue;
+      for (const declared of stripCppComments(readFileSync(header, 'utf8')).matchAll(
+        /^[ \t]*extern\s+(?:THREAD_LOCAL\s+)?((?:\w+\s+)*?\w+)\s+(\w+)\s*;/gm,
+      )) declarations.add(`${declared[1]} ${declared[2]};`);
+    }
+  }
+  return [...declarations].join('\n');
 }
 
 /** Lower a selected C++ constructor, including field initializers, to ordinary method IR. */
@@ -5038,6 +5084,10 @@ function compileMethod(
   // asked: the Z80's execute_run guards its interrupt hook with it, and left
   // as a call it kept the whole instruction loop out of the emitter.
   body = body
+    // address_space_config's accessors are its fields (the config members
+    // carry them): Musashi sizes its autovector map with
+    // `m_program_config.addr_width()`.
+    .replace(/\b(m_\w*config\w*)\s*\.\s*(addr_width|data_width|addr_shift|logaddr_width|page_shift|endianness)\s*\(\s*\)/g, '$1.m_$2')
     .replace(/(?:\b\w+::)?\bdebugger_enabled\s*\(\s*\)/g, 'false')
     .replace(/\bmachine\s*\(\s*\)\s*\.\s*debug_flags\b/g, '0');
   // `space(AS_PROGRAM).cache(m_cprogram13)` binds the accessor to that space:
@@ -5054,6 +5104,11 @@ function compileMethod(
     // Or through a member holding the space: the 8086's
     // `m_opcodes->cache(m_cache8)`, after `m_opcodes = m_program`.
     /(?<![\w.>])(m_\w+)\s*->\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
+    '$2 = $1;',
+  ).replace(
+    // Or a space the method was handed: Musashi's init16(address_space &space,
+    // address_space &ospace) binds `ospace.cache(m_oprogram16)`.
+    /(?<![\w.>])([A-Za-z_]\w*)\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
     '$2 = $1;',
   );
   for (const callback of interruptCallbacks) {
@@ -5243,7 +5298,13 @@ export function memberDeclarations(
   declaration = { ...declaration, body: maskNestedClasses(declaration.body)
     .replace(/;[ \t]+(?=(?:const\s+)?[\w:]+(?:\s*<[^<>;]*>)?[\s*&]+m_\w+\s*(?:=|;|\[|\{))/g, ';\n')
     .replace(/\b(public|protected|private)\s*:(?!:)/g, '$1:\n')
-    .replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1') };
+    .replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1')
+    // A static data member is state too (the build fills it once, every
+    // instance reads it): Musashi's `static u16 m68ki_instruction_state_table
+    // [NUM_CPU_TYPES][0x10000]` and its cycle tables, built by
+    // m68ki_build_opcode_table at the first init. Not a constant, a function
+    // or an inline initialiser, which say otherwise.
+    .replace(/(^\s*|[;{}]\s*)static\s+(?!(?:const|constexpr|inline|void|struct|class|enum)\b)(?=(?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;<>]*>)?\s+\w+\s*(?:\[[^\]]*\]\s*)*;)/gm, '$1') };
   const members: {
     name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
   }[] = [];
@@ -5324,7 +5385,7 @@ export function memberDeclarations(
     // source names with its elaborated specifier, `const struct
     // tms5100_coeffs *m_coeff;`. Neither shape matched above, so the members
     // did not exist and every store into them went nowhere.
-    /^\s*((?:const\s+)?(?:(?:unsigned|signed|long|short)\s+)+(?:int|char|long|short)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?(?:(?:unsigned|signed|long|short)\s+)+(?:int|char|long|short)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*(?:const\s+)?(?:struct|union)\s+([\w:]+)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
     // A reference member, bound by the constructor: ymfm's operator reaches
     // its registers and its engine as `RegisterType &m_regs;` and
@@ -6137,6 +6198,19 @@ function coreEnumerators(
 }
 
 /**
+ * The function-like macros emumem.h gives every device, read from it rather
+ * than restated: Musashi checks `WORD_ALIGNED(address)` on every long read,
+ * and a device's sources reach emumem.h through emu.h, which they never name.
+ * Pure expressions, so substituting them is exactly what the preprocessor
+ * does (COMBINE_DATA stays the IR's own intrinsic).
+ */
+function coreFunctionMacros(mameSrc: string): FunctionMacro[] {
+  const header = join(mameSrc, 'src/emu/emumem.h');
+  if (!existsSync(header)) return [];
+  return collectFunctionMacros(readFileSync(header, 'utf8'), { expressions: true });
+}
+
+/**
  * MAME's address-space indices (`AS_PROGRAM`, `AS_DATA`, ...), read from the
  * emulator core rather than restated here. A device names them when it asks
  * for one of its own spaces: `space(AS_DATA)`.
@@ -6472,12 +6546,16 @@ function constantTables(source: string): Record<string, ConstantTable> {
   // Or a class's own static, defined out of the class as MAME defines one:
   // k053260.cpp's `const int k053260_device::pan_mul[8][2] = { ... };`.
   for (const match of source.matchAll(
-    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
+    // Its bounds may be named (Musashi's `m68ki_exception_cycle_table
+    // [NUM_CPU_TYPES][256]`): then they are what the rows give.
+    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[\s*(\w+)\s*\]\s*\[\s*(\w+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
   )) {
-    const columns = Number(match[4]);
-    const values = [...match[5]!.matchAll(/\{([^{}]*)\}/g)]
-      .flatMap(row => splitMameArgs(row[1]!).map(value => value.trim()).filter(Boolean));
-    if (values.length !== Number(match[3]) * columns) continue;
+    const rowValues = [...match[5]!.matchAll(/\{([^{}]*)\}/g)]
+      .map(row => splitMameArgs(row[1]!.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')).map(value => value.trim()).filter(Boolean));
+    const columns = /^\d+$/.test(match[4]!) ? Number(match[4]) : rowValues[0]?.length ?? 0;
+    const rows = /^\d+$/.test(match[3]!) ? Number(match[3]) : rowValues.length;
+    const values = rowValues.flat();
+    if (!columns || values.length !== rows * columns) continue;
     tables[match[2]!] = { values, columns };
     if (match[1]) tables[`${match[1]}::${match[2]}`] = { values, columns };
   }
@@ -6843,8 +6921,12 @@ function staticStructConstants(
     const elements = initializerItems(body).filter(item => item.startsWith('{'));
     const records = elements.map(element => {
       const items = initializerItems(element.slice(1, -1));
+      // A braced item fills an array field (Musashi's per-row `cycles[NUM_CPU_TYPES]`).
+      const item = (text: string): unknown => text.trim().startsWith('{')
+        ? initializerItems(text.trim().slice(1, -1)).map(item)
+        : quotedItem(text) ?? memberFunctionName(text) ?? evalExpr(text, constants) ?? 0;
       return Object.fromEntries(fields.map((field, index) => [field.name,
-        items[index] === undefined ? 0 : quotedItem(items[index]!) ?? memberFunctionName(items[index]!) ?? evalExpr(items[index]!, constants) ?? 0]));
+        items[index] === undefined ? 0 : item(items[index]!)]));
     });
     lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
   }
@@ -6870,6 +6952,10 @@ function staticStructConstants(
     const elements = initializerItems(body).filter(item => item.startsWith('{'));
     const element = (item: string | undefined): unknown => {
       if (item === undefined) return 0;
+      // A braced element fills an array field: each Musashi opcode row's
+      // `cycles[NUM_CPU_TYPES]`, which m68ki_build_opcode_table copies into
+      // the cycle table. Read as one number, every instruction cost nothing.
+      if (item.trim().startsWith('{')) return initializerItems(item.trim().slice(1, -1)).map(element);
       const quoted = /^"((?:[^"\\]|\\.)*)"$/.exec(item.trim());
       return quoted ? quoted[1]! : memberFunctionName(item) ?? evalExpr(item, constants) ?? 0;
     };
@@ -7400,6 +7486,10 @@ function inlineReferenceCallees(methods: GeneratedDeviceMethod[]): void {
         if (Array.isArray(value)) (nested as Record<string, unknown>)[key] = rewrite(value as GeneratedHandlerOperation[], depth);
       }
       if (nested.op === 'switch') nested.cases = nested.cases.map(entry => ({ ...entry, body: rewrite(entry.body, depth) }));
+      if (nested.op === 'try') {
+        nested.catches = nested.catches.map(entry => ({ ...entry, body: rewrite(entry.body, depth) }));
+        if (nested.finally) nested.finally = rewrite(nested.finally, depth);
+      }
       if (nested.op !== 'call' || depth > 4) return [nested];
       const callee = nested.expression.callee;
       if (callee.kind !== 'identifier') return [nested];

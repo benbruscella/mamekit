@@ -62,6 +62,9 @@ export const DEVICE_MAME_TYPES = [
   // m68000-sdf.cpp and siblings (the build units scripts/src/cpu.lua lists
   // with it), every bus cycle a state the core can stop in.
   'M68000',
+  // m68kcpu.cpp's Musashi 68010 (MAME's own choice for it): its opcode table
+  // built at start, an address error a C++ throw execute_run catches.
+  'M68010',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

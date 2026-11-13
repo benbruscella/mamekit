@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const runtimeDir = dirname(fileURLToPath(import.meta.url));
-const declarationOnly = new Set(['audio-protocol.ts', 'types.ts']);
+const declarationOnly = new Set(['audio-protocol.ts', 'types.ts', 'generated-cpu.ts']);
 const sources = readdirSync(runtimeDir)
   .filter(name => name.endsWith('.ts') && !name.endsWith('.spec.ts'))
   .filter(name => !declarationOnly.has(name));

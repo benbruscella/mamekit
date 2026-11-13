@@ -461,9 +461,12 @@ behind it.
 ### CPU
 
 A CPU is its MAME class compiled whole by the device compiler, as a sound
-chip is (#249): the M6800, I8080, MCS-48, 6809, Z80, LR35902 and 6502
-families so far, the Sega Z80 decryptors and Data East's encrypted 6502s
-among them. MAME's build generators produce the generated
+chip is (#249): every core -- the M6800, I8080, MCS-48, 6809, Z80, LR35902,
+6502, Z8002, TMS320C10, 8088/V30 and TMS34010 families, the 68000 as MAME's
+microcoded `m68000_device` and the 68010 as its Musashi core, the Sega Z80
+decryptors and Data East's encrypted 6502s among them. There is no other kind
+of CPU: no hand-written support layer, and no CPU facts typed in by type
+(`src/runtime/architecture.spec.ts` keeps both lists empty). MAME's build generators produce the generated
 part (`z80make.py`'s state machine, `m6809.hxx`), and `runtime/device-cpu.ts`
 is the board's side of `device_execute_interface`: the core's spaces bound to
 the CPU's bus, its input lines through the board's `device_input`,
@@ -481,30 +484,27 @@ reaches it through the internal map its constructor installs, and mixes it
 below the CPU (`maincpu:nesapu`) at the CPU's own route
 (`src/mame/mixer-children.ts`).
 
-The families not yet moved combine MAME class/state information with
-source-derived instruction programs in `src/mame/cpu-compiler.ts`, pinned by
-a shrink-only guard in `src/runtime/architecture.spec.ts`. A core's own devcb lines answer `isunset()`
-from the lines the machine connected (the bus's `boundSignals`), so a 6502
-skips its SYNC output twice an instruction when nothing listens, exactly as
-MAME's `if (!m_sync_w.isunset())` does. `src/mame/cpu-compiler.ts` and
-`cpu-codegen.ts` produce executable TypeScript plus auditable CPU IR. The
-browser runtime supplies generic register, bus and program-execution machinery.
+A processor's address spaces are its class's own `address_space_config`: the
+board builds the CPU's bus at the data width and byte order the compiled
+device reports, and masks it to the space's byte address width
+(`processorSpaces` in `generated-board.ts`; a word- or bit-addressed space's
+map ranges were scaled to bytes when lowered). A core's own devcb lines answer
+`isunset()` from the lines the machine connected (the bus's `boundSignals`),
+so a 6502 skips its SYNC output twice an instruction when nothing listens,
+exactly as MAME's `if (!m_sync_w.isunset())` does.
 
 A 6502 subclass that changes only its memory interface -- Data East's
-encrypted DECO CPU-7 and C10707 -- is the stock operation list with its bus
-primitives routed through the subclass's own `mi_*` overrides, lowered from its
-source. The fetch is lowered from MAME's `prefetch_start`/`prefetch_end`, so the
-SYNC line (`sync_cb`, `get_sync()`) rises around the opcode read and an
-interrupt is taken only after that read, as MAME takes it.
+encrypted DECO CPU-7 and C10707 -- is its class compiled whole: the stock
+operation list calls the subclass's own `mi_*` overrides. Its reset is an
+instruction, as MAME's is: `device_reset` only sets `m_inst_state =
+STATE_RESET`, and the operation list's `reset` sequence -- three stack reads
+and the vector at `$FFFC` -- runs as the core's next instruction, seven cycles
+on the clock with its reads on the bus (#184).
 
-The 6502 family's reset is an instruction, not a call. MAME's `device_reset`
-only sets `m_inst_state = STATE_RESET`, and the operation list's `reset`
-sequence -- three stack reads and the vector at `$FFFC` -- runs as the core's
-next instruction, seven cycles on the clock with its reads on the bus. The
-compiler records that as `resetInstruction` when `device_reset` says so, and
-the first step after a reset runs it. Run inside `reset()` instead, the
-sequence cost nothing: every 6502 started seven cycles early, and a bus trace
-was two reads short of MAME's (#184).
+A C++ `try`/`catch` is lowered as itself: Musashi's execute_run catches the
+address error its long accesses throw (`throw 10`) and restarts in its
+handler, and the emitted core uses JavaScript's own try/catch for it, catching
+only a C++ throw (`runtime.cpp`).
 
 A call converts each argument to its parameter's declared integer type, as a
 C++ call does, in the emitted and the interpreted core alike. The 6502's
@@ -958,7 +958,8 @@ It has two responsibilities.
 - `generated-effects.ts`: executes typed board effects;
 - `generated-machine.ts`: registers decoded boards and wires device signals;
 - `generated-board.ts`: composes generated CPUs, buses, devices and rendering;
-- `generated-cpu.ts`: executes generated CPU definitions;
+- `generated-cpu.ts`: the processor surface the board drives and the bus it hands one;
+- `device-cpu.ts`: hosts a CPU compiled whole as a board processor;
 - `generated-device.ts`: instantiates generated device definitions;
 - `generated-handler.ts`: evaluates handler programs;
 - `generated-video.ts`: executes video plans;

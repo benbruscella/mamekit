@@ -325,6 +325,9 @@ ${functions}
  * branch stays a block of its own so its locals keep their C++ scope. The
  * interpreter keeps the original program; it never enters the dead branch.
  */
+/** Names each emitted catch's exception apart, nested ones included. */
+let tryCounter = 0;
+
 function withoutDeadBranches(operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
   let changed = false;
   const pruned = operations.flatMap(operation => {
@@ -439,10 +442,15 @@ export function runtimeDeviceDefinition(
   const counts = new Map<string, number>();
   for (const method of definition.methods) counts.set(method.name, (counts.get(method.name) ?? 0) + 1);
   const emittedNames = new Set(emitted.methods);
+  // A lifecycle method keeps its program: the board reads device_start's to
+  // decide what the device waits for before it starts (startReadsHostBindings
+  // -- atarimo checks `m_gfxdecode->gfx(n)`), and they are small.
+  const lifecycle = new Set([definition.start, definition.reset, definition.construct].filter(Boolean) as string[]);
+  const kept = (name: string) => lifecycle.has(name) || /^(?:\w+::)*device_\w+$/.test(name);
   return {
     ...definition,
     methods: definition.methods.map(method =>
-      emittedNames.has(method.name) && counts.get(method.name) === 1 && codegenWrappedParameters(method).length === 0
+      emittedNames.has(method.name) && !kept(method.name) && counts.get(method.name) === 1 && codegenWrappedParameters(method).length === 0
         ? { ...method, program: { operations: [], diagnostics: [] }, emittedOnly: true } as GeneratedDeviceMethod
         : method),
   };
@@ -622,6 +630,10 @@ export function calledIdentifiers(operations: GeneratedHandlerOperation[]): Set<
   const assigned = (target: GeneratedExpression) => {
     if (target.kind === 'call' && target.callee.kind === 'identifier') names.add(`${target.callee.name}=`);
   };
+  // So does taking its address: the pointer writes through the setter.
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'unary' && expression.operator === '&') assigned(expression.operand);
+  }));
   visitOperations(operations, operation => {
     if (operation.op === 'assign') assigned(operation.target);
     visitOperationExpressions(operation, expression => {
@@ -655,6 +667,10 @@ function maximumLoopDepth(
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) {
         maximum = Math.max(maximum, maximumLoopDepth(entry.body, depth));
+      }
+    } else if (operation.op === 'try') {
+      for (const nested of [operation.body, ...operation.catches.map(entry => entry.body), operation.finally ?? []]) {
+        maximum = Math.max(maximum, maximumLoopDepth(nested, depth));
       }
     }
   }
@@ -1220,6 +1236,35 @@ function emitOperation(
       `${pad}} while (${emitExpression(operation.condition, context)});`,
     ].filter(Boolean).join('\n');
   }
+  // C++ try/catch as JavaScript's own, so a return, break or continue in it
+  // leaves as C++'s does. Only a C++ throw is caught (runtime.cpp), by type;
+  // while a handler runs, its exception is the one `throw;` rethrows.
+  if (operation.op === 'try') {
+    const caught = `__cppThrow${tryCounter++}`;
+    const lines = [`${pad}try {`, emitOperations(operation.body, context, indentation + 2), `${pad}}`];
+    if (operation.catches.length) {
+      lines.push(`${pad}catch (${caught}${context.typescript ? ': any' : ''}) {`);
+      lines.push(`${pad}  if (!runtime.cpp.isThrow(${caught})) throw ${caught};`);
+      operation.catches.forEach((entry, index) => {
+        if (entry.name) context.locals.set(entry.name, entry.valueType);
+        lines.push(`${pad}  ${index ? 'else ' : ''}if (runtime.cpp.matches(${JSON.stringify(entry.valueType ?? null)}, ${caught}.value)) {`);
+        lines.push(`${pad}    runtime.cpp.enter(${caught});`);
+        lines.push(`${pad}    try {`);
+        if (entry.name) lines.push(`${pad}      let ${localName(entry.name)}${context.typescript ? ': any' : ''} = ${caught}.value;`);
+        lines.push(emitOperations(entry.body, context, indentation + 6));
+        lines.push(`${pad}    } finally { runtime.cpp.leave(); }`);
+        lines.push(`${pad}  }`);
+      });
+      lines.push(`${pad}  else throw ${caught};`);
+      lines.push(`${pad}}`);
+    }
+    if (operation.finally) {
+      lines.push(`${pad}finally {`, emitOperations(operation.finally, context, indentation + 2), `${pad}}`);
+    } else if (!operation.catches.length) {
+      lines.push(`${pad}finally {}`);
+    }
+    return lines.filter(Boolean).join('\n');
+  }
   // A specialised template switches on a constant (`switch (M)` becomes
   // `switch (1)` for addr_mode::DI), which C++ allows and TypeScript rejects
   // case by case; the discriminant is a number either way.
@@ -1626,10 +1671,18 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     const right = emitExpression(expression.right, context);
     const leftType = expressionValueType(expression.left, context);
     const rightType = expressionValueType(expression.right, context);
-    if (expression.operator === '+' && leftType?.includes('*')) {
+    // Less an array, a pointer is a count of elements, as C decays the array:
+    // the Z8002 numbers its opcode rows `opc - table`, and offset by the
+    // negated table every row was 0.
+    const arrayOperand = (operand: GeneratedExpression) => operand.kind === 'identifier' && !context.locals.has(operand.name) &&
+      Boolean(context.definition.members.find(member => member.name === operand.name)?.arrayLength);
+    // An array member decays to a pointer to its first element, whatever its
+    // element type: Musashi's `REG_A()` answers `m_dar + 8`, and added as
+    // numbers the array concatenated into a string.
+    if (expression.operator === '+' && (leftType?.includes('*') || (arrayOperand(expression.left) && !arrayOperand(expression.right)))) {
       return `runtime.addressOf(${left}, ${right})`;
     }
-    if (expression.operator === '+' && rightType?.includes('*')) {
+    if (expression.operator === '+' && (rightType?.includes('*') || arrayOperand(expression.right))) {
       return `runtime.addressOf(${right}, ${left})`;
     }
     // Neither side is known to be a number, so the value decides -- exactly as
@@ -1640,15 +1693,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         !isKnownNumericType(rightType)) {
       return `runtime.add(${left}, ${right})`;
     }
-    // Less an array, a pointer is a count of elements, as C decays the array:
-    // the Z8002 numbers its opcode rows `opc - table`, and offset by the
-    // negated table every row was 0.
-    const arrayOperand = (operand: GeneratedExpression) => operand.kind === 'identifier' && !context.locals.has(operand.name) &&
-      Boolean(context.definition.members.find(member => member.name === operand.name)?.arrayLength);
     if (expression.operator === '-' && leftType?.includes('*') && arrayOperand(expression.right)) {
       return `runtime.subtract(${left}, ${right})`;
     }
-    if (expression.operator === '-' && leftType?.includes('*') && !rightType?.includes('*')) {
+    if (expression.operator === '-' && (leftType?.includes('*') || arrayOperand(expression.left)) && !rightType?.includes('*') && !arrayOperand(expression.right)) {
       return `runtime.addressOf(${left}, -(${right}))`;
     }
     // Two iterators into one container differ by a count, and either side
@@ -2912,6 +2960,21 @@ function emitAddressOf(
   if (expression.kind === 'member') {
     return `runtime.fieldAddress(${emitExpression(expression.object, context)}, ${JSON.stringify(expression.property)})`;
   }
+  // A call answering a reference to a scalar (Musashi's `&DX()`, a data
+  // register): a pointer whose target is the method's getter and its `name=`
+  // setter, as the interpreter's lValue takes it. An object it answers is
+  // that object.
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+      context.compiled.has(expression.callee.name) && context.compiled.has(`${expression.callee.name}=`)) {
+    const args = expression.args.map(argument => emitExpression(argument, context));
+    const names = args.map((_argument, index) => `__address${index}`);
+    const any = context.typescript ? ': any' : '';
+    const getter = `method_${safeName(expression.callee.name)}(runtime${names.map(name => `, ${name}`).join('')})`;
+    const setter = `method_${safeName(`${expression.callee.name}=`)}(runtime${names.map(name => `, ${name}`).join('')}, __value)`;
+    return `((${names.map(name => `${name}${any}`).join(', ')}) => { const __held${any} = ${getter}; ` +
+      `return __held !== null && typeof __held === 'object' ? runtime.objectAddress(__held) : ` +
+      `{ generatedPointer: true, target: { generatedLValue: true, get: () => ${getter}, set: (__value${any}) => ${setter} }, offset: 0 }; })(${args.join(', ')})`;
+  }
   // A call answering an object: that object (`&regop16() == &m_s`).
   if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
     return `runtime.objectAddress(${emitExpression(expression, context)})`;
@@ -3409,6 +3472,8 @@ function collectLocalNames(
 ): void {
   visitOperations(operations, operation => {
     if (operation.op === 'declare') locals.add(operation.name);
+    // A catch's exception is a local of its handler.
+    if (operation.op === 'try') for (const entry of operation.catches) if (entry.name) locals.add(entry.name);
   });
 }
 
@@ -3431,6 +3496,10 @@ function visitOperations(
       if (operation.op === 'for') visitOperations(operation.iterate, visit);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) visitOperations(entry.body, visit);
+    } else if (operation.op === 'try') {
+      visitOperations(operation.body, visit);
+      for (const entry of operation.catches) visitOperations(entry.body, visit);
+      if (operation.finally) visitOperations(operation.finally, visit);
     }
   }
 }
@@ -3501,7 +3570,16 @@ function wrapTarget(value: string, target: Target): string {
     : wrapType(value, target.valueType);
 }
 
+/**
+ * A 64-bit answer may be a BigInt, which no 32-bit operator takes; its low
+ * word is what every narrower store keeps (execute.ts generatedLow32).
+ */
+function lowWord(value: string): string {
+  return value.startsWith('runtime.wide(') ? `runtime.low32(${value})` : value;
+}
+
 function wrapBits(value: string, bits?: 1 | 8 | 16 | 32, signed = false): string {
+  if (bits) value = lowWord(value);
   if (bits === 1) return `((${value}) ? 1 : 0)`;
   if (bits === 8) {
     return signed ? `((${value}) << 24 >> 24)` : `((${value}) & 0xff)`;
@@ -3549,6 +3627,7 @@ function wrapType(value: string, valueType?: string): string {
   }
   const normalized = valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
   if (normalized === 'bool') return `((${value}) ? 1 : 0)`;
+  if (normalized && /^(?:u8|uint8_t|s8|int8_t|char|u16|uint16_t|unsigned short|s16|int16_t|short|u32|uint32_t|int|s32|int32_t)$/.test(normalized)) value = lowWord(value);
   if (normalized === 'u8' || normalized === 'uint8_t') return `((${value}) & 0xff)`;
   if (normalized === 's8' || normalized === 'int8_t' || normalized === 'char') {
     return `((${value}) << 24 >> 24)`;

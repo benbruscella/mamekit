@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import {
   applyGeneratedMacro,
   compileGeneratedMachineHandler,

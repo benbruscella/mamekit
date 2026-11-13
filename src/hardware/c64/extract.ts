@@ -6,7 +6,7 @@ import { C64_MAME_TYPES } from './definition.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseMameConstructors, parseMameSource } from '../../mame/ast.ts';
-import { normalizeMameExecutionSource } from '../../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../../mame/execution-source.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import { compilePla } from '../../mame/pla-compiler.ts';
 import { compileSid } from '../../mame/sid-compiler.ts';

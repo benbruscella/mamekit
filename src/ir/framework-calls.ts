@@ -32,6 +32,9 @@ const NO_EFFECT_ROOTS = new Set([
   // And the exception hook the x86 cores call on a trap or interrupt (i86.cpp
   // interrupt(), nec_interrupt): it only reports to a running debugger.
   'debugger_exception_hook',
+  // And the privilege hook Musashi calls when the S flag changes: it too only
+  // reports to a running debugger.
+  'debugger_privilege_hook',
   // diexec.h's `trigger(m_inttrigger)`: it wakes a processor parked in
   // spin_until_interrupt/spin_until_trigger. Nothing parks one here (either
   // call would fail as unresolved), so there is never a waiter. The TMS34010

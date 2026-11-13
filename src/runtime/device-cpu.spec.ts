@@ -496,7 +496,7 @@ for (const type of ['I8088', 'V30']) {
     ? [0xb8, 0x34, 0x12, 0x60, 0xb8, 0x00, 0x00, 0x61, 0xa3, 0x02, 0x20, 0xeb, 0xfe]
     : [0xb0, 0x77, 0xa2, 0x02, 0x20, 0xeb, 0xfe], 0x300);
   const ports: [number, number][] = [];
-  const { cpu } = deviceCpu(type, {
+  const { cpu, device } = deviceCpu(type, {
     read: address => memory[address & 0xfffff]!,
     write: (address, data) => { memory[address & 0xfffff] = data; },
     in: () => 0xff,
@@ -511,6 +511,8 @@ for (const type of ['I8088', 'V30']) {
   cpu.run(300);
   assert.equal(memory[0x2002], type === 'V30' ? 0x34 : 0x77, `${type}: the IRQ vectors through 0x20`);
   if (type === 'V30') assert.equal(memory[0x2003], 0x12, 'V30: PUSHA/POPA keep AX');
+  assert.deepEqual([device.spaceConfig?.(0)?.dataBits, device.spaceConfig?.(0)?.addressBits, device.spaceConfig?.(0)?.endianness],
+    [type === 'V30' ? 16 : 8, 20, 'little'], `${type}: its program space as its constructor configures it`);
 }
 
 // The TMS34010 from tms34010.cpp: a bit-addressed 16-bit space (addrshift +3,
@@ -539,6 +541,11 @@ for (const type of ['I8088', 'V30']) {
     in: () => 0xff,
     out: () => {},
   } as CpuBus);
+  // Its program space is its class's address_space_config, which the board
+  // builds its bus from (generated-board processorSpaces).
+  assert.deepEqual(device.spaceConfig?.(0) && (({ dataBits, addressBits, endianness, addressShift }) =>
+    ({ dataBits, addressBits, endianness, addressShift }))(device.spaceConfig(0)!),
+  { dataBits: 16, addressBits: 32, endianness: 'little', addressShift: 3 }, 'TMS34010: bit-addressed 16-bit little-endian space');
   cpu.reset();
   cpu.run(400);
   const members = (device as unknown as { members: { m_regs: { reg: number }[]; m_IOregs: Uint16Array } }).members;
@@ -571,6 +578,8 @@ for (const type of ['I8088', 'V30']) {
     in: () => 0xff,
     out: () => {},
   } as CpuBus);
+  assert.deepEqual([device.spaceConfig?.(0)?.dataBits, device.spaceConfig?.(0)?.addressBits, device.spaceConfig?.(0)?.endianness],
+    [16, 24, 'big'], 'M68000: a 16-bit big-endian 24-bit program space');
   cpu.reset();
   cpu.run(200);
   const members = (device as unknown as { members: { m_da: Uint32Array; m_sp: number } }).members;

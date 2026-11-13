@@ -261,122 +261,41 @@ const SOUND_KINDS: string[] = [];
     '(or, if one was removed, delete it from SOUND_KINDS)');
 }
 
-// The CPU cores' hand-written support layer (#249), as two exact lists that
-// may only shrink. Every opcode body already comes from MAME; what is pinned
-// here is the layer around it, read from the compilers' own TypeScript:
+// The CPU cores' hand-written support layer (#249) is gone: every CPU is its
+// MAME class compiled whole by device-compiler.ts and hosted by DeviceCpu.
+// What is pinned here keeps it gone:
 //
-// - HAND_WRITTEN_CPU_LAYERS, per compiler function: each C++ body composed in
-//   TypeScript (a literal handed to compileMameHandler or to a body helper,
-//   or any statement literal), by the name it goes by; how many `.replace`
-//   edits the function makes to MAME's source; and each number typed into a
-//   constant table or an extractor's seed instead of read from a header.
-// - HAND_WRITTEN_CPU_FACTS: per-CPU facts typed in outside the compilers --
-//   the register-file classes the emitter restates for C++ unions, its
-//   internal-peripheral emitters, its execute_run step, and each CPU type a
-//   clock divider, width, endianness, mask or ROM window is typed in for.
+// - HAND_WRITTEN_CPU_LAYERS: each C++ body composed in TypeScript, `.replace`
+//   edit of MAME's source, or number typed into a constant table, in the
+//   shared execution-source idioms; empty, and it may only stay so.
+// - HAND_WRITTEN_CPU_FACTS: per-CPU facts typed in outside the compiler (a
+//   clock divider, width, endianness, mask or ROM window keyed by CPU type);
+//   empty too -- a processor's spaces are its compiled class's own
+//   address_space_config (generated-board processorSpaces).
+// - RETIRED_CPU_LAYERS: the modules that held the hand cores, which must not
+//   come back.
 //
-// CPU_COMPILER_IDIOMS are the shared lowering functions every core and device
-// goes through: C++ idioms, not hardware, so the scan skips them.
+// CPU_COMPILER_IDIOMS are the shared lowering functions every device goes
+// through: C++ idioms, not hardware, so the scan skips them.
 const CPU_LAYER_FILES = [
-  'mame/cpu-compiler.ts',
-  'mame/namco51-compiler.ts', 'mame/namco53-compiler.ts',
+  'mame/execution-source.ts',
 ];
 const CPU_COMPILER_IDIOMS: Record<string, string> = {
   normalizeMameExecutionSource: 'C++ the handler parser cannot read (attributes, make_unique, vectors, #define in a body)',
   stripInactivePreprocessorBranches: 'the C preprocessor\'s #if, evaluated',
   stripTracingCalls: 'logging and debugger hooks, which change no state',
   lowerLocalStructs: 'a struct declared with its variable, as a value of its fields',
-  parseMameOperationMacros: 'reads a core\'s operation macros',
-  expandMameOperationMacros: 'expands a core\'s operation macros',
-  extractEnumConstants: 'reads enumerators',
-  extractDefineConstants: 'reads #define constants',
-  extractConstexprConstants: 'reads constexpr constants',
-  resolveConstants: 'evaluates constant expressions read from source',
-  hostConstantExpression: 'a constant expression as the little-endian host evaluates it (NATIVE_ENDIAN_VALUE_LE_BE)',
-  exceptionCycles: 'reads m68ki_exception_cycle_table; its edits strip comments',
   allocIntrinsic: 'the ALLOC primitive for an element type',
-  matchPair: 'finds a closing bracket',
-  sourceRef: 'a source reference',
 };
-const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {
-  'mame/cpu-compiler.ts: compileMameM68000': [
-    'body fetch', 'body input', 'body program', 'body reset', 'body service', 'body start',
-  ],
-  'mame/cpu-compiler.ts: m68000SupportMethods': [
-    'body (anonymous)', 'body BIT_B', 'body BIT_F', 'body CFLAG_1', 'body CFLAG_16', 'body CFLAG_8',
-    'body CFLAG_ADD_32', 'body CFLAG_SUB_32', 'body COND_LE', 'body COND_LS', 'body COND_LT',
-    'body EA_A7_PD_8', 'body EA_A7_PI_8', 'body EA_AL_16', 'body EA_AL_32', 'body EA_AL_8',
-    'body EA_AW_16', 'body EA_AW_32', 'body EA_AW_8', 'body EA_PCDI_16', 'body EA_PCDI_32',
-    'body EA_PCDI_8', 'body EA_PCIX_16', 'body EA_PCIX_32', 'body EA_PCIX_8', 'body GET_MSB_16',
-    'body GET_MSB_32', 'body GET_MSB_8', 'body HIGH_NIBBLE', 'body LOW_NIBBLE', 'body MAKE_INT_16',
-    'body MAKE_INT_32', 'body MAKE_INT_8', 'body MASK_OUT_ABOVE_16', 'body MASK_OUT_ABOVE_32',
-    'body MASK_OUT_ABOVE_8', 'body MASK_OUT_BELOW_16', 'body MASK_OUT_BELOW_8', 'body NFLAG_1',
-    'body OPER_I_16', 'body OPER_I_32', 'body OPER_I_8', 'body POW2', 'body ROL_33_64',
-    'body ROR_33_64', 'body VFLAG_1', 'body XFLAG_1', 'body `EA_A${axis}_AI_16`',
-    'body `EA_A${axis}_AI_32`', 'body `EA_A${axis}_AI_8`', 'body `EA_A${axis}_DI_16`',
-    'body `EA_A${axis}_DI_32`', 'body `EA_A${axis}_DI_8`', 'body `EA_A${axis}_IX_16`',
-    'body `EA_A${axis}_IX_32`', 'body `EA_A${axis}_IX_8`', 'body `EA_A${axis}_PD_16`',
-    'body `EA_A${axis}_PD_32`', 'body `EA_A${axis}_PD_8`', 'body `EA_A${axis}_PI_16`',
-    'body `EA_A${axis}_PI_32`', 'body `EA_A${axis}_PI_8`', 'body `NFLAG_${bits}`',
-    'body `OPER_${name}_${bits}`', 'body `ROL_${bits}`', 'body `ROR_${bits}`',
-    'body `VFLAG_ADD_${bits}`', 'body `VFLAG_SUB_${bits}`', 'body `ZFLAG_${bits}`',
-    'body m68ki_branch_16', 'body m68ki_branch_8', 'body m68ki_exception_1010',
-    'body m68ki_exception_1111', 'body m68ki_exception_common', 'body m68ki_exception_format_error',
-    'body m68ki_exception_illegal', 'body m68ki_exception_privilege_violation',
-    'body m68ki_exception_trap', 'body m68ki_exception_trapN', 'body m68ki_fake_pull_16',
-    'body m68ki_fake_pull_32', 'body m68ki_get_ccr', 'body m68ki_get_ea_ix',
-    'body m68ki_get_ea_pcdi', 'body m68ki_get_ea_pcix', 'body m68ki_get_sr', 'body m68ki_jump',
-    'body m68ki_pull_16', 'body m68ki_pull_32', 'body m68ki_push_32', 'body m68ki_read_16',
-    'body m68ki_read_16_fc', 'body m68ki_read_32', 'body m68ki_read_32_fc', 'body m68ki_read_8',
-    'body m68ki_read_8_fc', 'body m68ki_read_imm_16', 'body m68ki_read_imm_32',
-    'body m68ki_read_imm_8', 'body m68ki_read_pcrel_16', 'body m68ki_read_pcrel_32',
-    'body m68ki_read_pcrel_8', 'body m68ki_service_interrupt', 'body m68ki_set_ccr',
-    'body m68ki_set_s_flag', 'body m68ki_set_sr', 'body m68ki_write_16', 'body m68ki_write_16_fc',
-    'body m68ki_write_32', 'body m68ki_write_32_fc', 'body m68ki_write_32_pd', 'body m68ki_write_8',
-    'body m68ki_write_8_fc', 'body m_reset_cb',
-  ],
-  'mame/cpu-compiler.ts: normalizeM68000Source': [
-    '19 source edits',
-  ],
-  'mame/namco51-compiler.ts: compileNamco51Protocol': [
-    'body chip_select', 'body credit', 'body device_reset', 'body player', 'body read',
-    'body reset', 'body rw', 'body switches', 'body vblank', 'body write',
-  ],
-  'mame/namco53-compiler.ts: compileNamco53Protocol': [
-    'body device_reset', 'body read', 'body reset',
-  ],
-};
-const HAND_WRITTEN_CPU_FACTS: string[] = [
-  'gen/emit-machine.ts: generatedCpuAddressSpace: m68000',
-  'gen/emit-machine.ts: generatedCpuAddressSpace: m68010',
-  'gen/emit-machine.ts: generatedCpuAddressSpace: tms320c10',
-  'gen/emit-machine.ts: generatedCpuAddressSpace: tms34010',
-  'gen/emit-machine.ts: generatedCpuAddressSpace: v30',
-  'gen/emit-machine.ts: generatedCpuAddressSpace: z8002',
-  'gen/emit-machine.ts: generatedCpuCycleClock: tms34010',
-  'gen/emit-machine.ts: lowerGeneratedMachine: i8088',
-  'gen/emit-machine.ts: lowerGeneratedMachine: m68000',
-  'gen/emit-machine.ts: lowerGeneratedMachine: m68010',
-  'gen/emit-machine.ts: lowerGeneratedMachine: tms34010',
-  'gen/emit-machine.ts: lowerGeneratedMachine: v30',
-  'mame/cpu-codegen.ts: class Pair16',
-  'mame/cpu-codegen.ts: class Pair16Bytes',
-  'mame/cpu-codegen.ts: class Pair32',
-  'mame/cpu-codegen.ts: class Pair32Bytes',
-  'mame/cpu-codegen.ts: class Pair32Words',
-  'mame/cpu-codegen.ts: class XyHalves',
-  'mame/cpu-codegen.ts: class XyRegister',
-  'mame/cpu-codegen.ts: class XyValue',
-  'mame/cpu-codegen.ts: execute_run step',
-  'runtime/generated-board-shape.ts: generatedCpuDataWidth: m68000',
-  'runtime/generated-board-shape.ts: generatedCpuDataWidth: m68010',
-  'runtime/generated-board-shape.ts: generatedCpuDataWidth: tms320c10',
-  'runtime/generated-board-shape.ts: generatedCpuDataWidth: tms34010',
-  'runtime/generated-board-shape.ts: generatedCpuDataWidth: v30',
-  'runtime/generated-board-shape.ts: generatedCpuDataWidth: z8002',
-  'runtime/generated-board-shape.ts: generatedCpuEndianness: tms34010',
-  'runtime/generated-board-shape.ts: generatedCpuEndianness: v30',
+const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {};
+const HAND_WRITTEN_CPU_FACTS: string[] = [];
+const RETIRED_CPU_LAYERS = [
+  'mame/cpu-compiler.ts', 'mame/cpu-codegen.ts', 'mame/tms34010-compiler.ts',
+  'mame/namco51-compiler.ts', 'mame/namco53-compiler.ts', 'hardware/cpu', 'runtime/generated-cpu-core.ts',
 ];
+for (const retired of RETIRED_CPU_LAYERS) {
+  assert.ok(!existsSync(join(src, retired)), `${retired} held a hand CPU layer (#249); compile the core whole instead`);
+}
 {
   const isString = (node: ts.Node): node is ts.StringLiteral | ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression =>
     ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node);
@@ -466,14 +385,10 @@ const HAND_WRITTEN_CPU_FACTS: string[] = [
   }
 
   const facts: string[] = [];
-  const codegen = readFileSync(join(src, 'mame/cpu-codegen.ts'), 'utf8');
-  for (const match of codegen.matchAll(/^class (\w+)(?![$\w])/gm)) facts.push(`mame/cpu-codegen.ts: class ${match[1]}`);
-  for (const match of codegen.matchAll(/^function (emitInternal\w+)/gm)) facts.push(`mame/cpu-codegen.ts: ${match[1]}`);
-  if (/this\.generatedService\(\);/.test(codegen)) facts.push('mame/cpu-codegen.ts: execute_run step');
   const topology = readFileSync(join(src, 'gen/lower-topology.ts'), 'utf8');
   const cpuTypes = /const CPU_TYPES[^=]*=\s*\{([^}]*)\}/.exec(topology)?.[1] ?? '';
   const types = new Set([...cpuTypes.matchAll(/(\w+)\s*:\s*'(\w+)'/g)].flatMap(match => [match[1]!, match[2]!]));
-  for (const file of ['gen/emit-machine.ts', 'runtime/generated-board-shape.ts', 'gen/lower-topology.ts']) {
+  for (const file of ['gen/emit-machine.ts', 'runtime/generated-board-shape.ts', 'gen/lower-topology.ts', 'runtime/generated-board.ts', 'runtime/device-cpu.ts']) {
     const unit = ts.createSourceFile(file, readFileSync(join(src, file), 'utf8'), ts.ScriptTarget.Latest, true);
     const visit = (node: ts.Node): void => {
       // The table itself names which generated core a device type runs.

@@ -1,4 +1,4 @@
-import { maskComments } from './ast.ts';
+import { maskComments, splitMameArgs } from './ast.ts';
 import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import { nestedOperations, walkExpressions, walkOperations } from '../ir/walk.ts';
 
@@ -115,10 +115,125 @@ export function compileMameHandler(
       String(Number(mhz) * 1_000_000))
     .replace(/\b(\d+(?:\.\d+)?)_kHz_XTAL\b/g, (_all, khz) =>
       String(Number(khz) * 1_000));
-  const parser = new HandlerParser(tokenize(executable));
+  const parser = new HandlerParser(tokenize(lowerLocalObjects(executable)));
   const program = parser.parse();
   markFloatingLocals(program.operations);
   return program;
+}
+
+/** The index of the brace matching the one at `open`, or -1. */
+function closingBrace(text: string, open: number): number {
+  let depth = 0;
+  for (let index = open; index < text.length; index++) {
+    if (text[index] === '{') depth++;
+    else if (text[index] === '}' && --depth === 0) return index;
+  }
+  return -1;
+}
+
+/**
+ * A class a function body defines for one local object, its constructor and
+ * destructor run where C++ runs them: Musashi's execute_run declares
+ * `struct fpu_rounding_saver { ... } rounding_saver(*this);`, saving the FPU's
+ * rounding mode on entry and restoring it on every way out. The object's
+ * fields become locals named for it, its constructor body runs at the
+ * declaration, and its destructor before each later `return` of the block and
+ * at the block's end. (An exception leaving the function is the one exit that
+ * does not run it.) A field bound to a reference parameter is the argument:
+ * `m_cpu(cpu)` handed `*this` makes `m_cpu.m_has_fpu` the device's own member.
+ */
+function lowerLocalObjects(text: string): string {
+  for (let guard = 0; guard < 8; guard++) {
+    const head = /\b(?:struct|class)\s+(\w+)\s*\{/.exec(text);
+    if (!head) return text;
+    const name = head[1]!;
+    const open = head.index + head[0].length - 1;
+    const close = closingBrace(text, open);
+    if (close < 0) return text;
+    const declarator = /^\s*(\w+)\s*(?:\(([^;]*)\))?\s*;/.exec(text.slice(close + 1));
+    if (!declarator) return text;
+    const variable = declarator[1]!;
+    const args = declarator[2] ? splitMameArgs(declarator[2]).map(argument => argument.trim()) : [];
+    let body = text.slice(open + 1, close);
+    // Constructor: `Name(params) : inits { body }`.
+    let constructorBody = '';
+    const fieldInits = new Map<string, string>();
+    const references = new Map<string, string>();
+    const ctor = new RegExp(`(?<![~\\w])${name}\\s*\\(([^)]*)\\)\\s*(?::([^{]*))?\\{`).exec(body);
+    let parameters: string[] = [];
+    if (ctor) {
+      parameters = splitMameArgs(ctor[1]!).map(parameter => parameter.trim()).filter(Boolean);
+      const ctorOpen = ctor.index + ctor[0].length - 1;
+      const ctorClose = closingBrace(body, ctorOpen);
+      constructorBody = body.slice(ctorOpen + 1, ctorClose);
+      for (const init of splitMameArgs(ctor[2] ?? '')) {
+        const parsed = /^\s*(\w+)\s*\(([\s\S]*)\)\s*$/.exec(init);
+        if (parsed) fieldInits.set(parsed[1]!, parsed[2]!.trim());
+      }
+      body = body.slice(0, ctor.index) + body.slice(ctorClose + 1);
+    }
+    let destructorBody = '';
+    const dtor = new RegExp(`~\\s*${name}\\s*\\(\\s*\\)\\s*\\{`).exec(body);
+    if (dtor) {
+      const dtorOpen = dtor.index + dtor[0].length - 1;
+      const dtorClose = closingBrace(body, dtorOpen);
+      destructorBody = body.slice(dtorOpen + 1, dtorClose);
+      body = body.slice(0, dtor.index) + body.slice(dtorClose + 1);
+    }
+    const parameterNames = parameters.map(parameter => /(\w+)\s*$/.exec(parameter.replace(/=.*$/, ''))?.[1] ?? '');
+    const argumentOf = (parameter: string) => {
+      const index = parameterNames.indexOf(parameter);
+      return index >= 0 ? args[index] ?? '0' : parameter;
+    };
+    const fields: { type: string; field: string; init?: string }[] = [];
+    for (const statement of body.split(';')) {
+      const field = /^\s*([\w:<>\s]+?)\s*(&)?\s*(\w+)\s*(?:=\s*([\s\S]+))?$/.exec(statement.trim());
+      if (!field || /^(?:public|private|protected)\b/.test(field[1]!)) continue;
+      if (field[2]) {
+        const bound = fieldInits.get(field[3]!);
+        if (bound !== undefined) references.set(field[3]!, argumentOf(bound));
+        continue;
+      }
+      fields.push({ type: field[1]!.trim(), field: field[3]!, init: fieldInits.get(field[3]!) ?? field[4]?.trim() });
+    }
+    const localName = (field: string) => `${variable}__${field}`;
+    const substitute = (code: string) => {
+      let out = code;
+      for (const [field, target] of references) {
+        const self = target.replace(/\s/g, '') === '*this';
+        out = out.replace(new RegExp(`\\b${field}\\s*\\.\\s*`, 'g'), self ? '' : `(${target}).`);
+        out = out.replace(new RegExp(`\\b${field}\\b`, 'g'), self ? '(*this)' : `(${target})`);
+      }
+      for (const { field } of fields) out = out.replace(new RegExp(`\\b${field}\\b`, 'g'), localName(field));
+      for (const parameter of parameterNames) {
+        if (parameter) out = out.replace(new RegExp(`\\b${parameter}\\b`, 'g'), `(${argumentOf(parameter)})`);
+      }
+      return out;
+    };
+    const prefix = fields.map(({ type, field, init }) => `${type} ${localName(field)} = ${init ? substitute(init) : '0'};`).join(' ') +
+      (constructorBody.trim() ? ` { ${substitute(constructorBody)} }` : '');
+    const destructor = destructorBody.trim() ? `{ ${substitute(destructorBody)} }` : '';
+    // The rest of the enclosing block: up to the brace that closes it.
+    const restStart = close + 1 + declarator[0].length;
+    let depth = 0;
+    let restEnd = text.length;
+    for (let index = restStart; index < text.length; index++) {
+      if (text[index] === '{') depth++;
+      else if (text[index] === '}') {
+        if (depth === 0) { restEnd = index; break; }
+        depth--;
+      }
+    }
+    let rest = text.slice(restStart, restEnd);
+    if (destructor) {
+      rest = rest.replace(/\breturn\b\s*([^;]*);/g, (_all, value: string) => value.trim()
+        ? `{ auto ${variable}__returned = (${value}); ${destructor} return ${variable}__returned; }`
+        : `{ ${destructor} return; }`);
+      rest += ` ${destructor}`;
+    }
+    text = text.slice(0, head.index) + prefix + rest + text.slice(restEnd);
+  }
+  return text;
 }
 
 /** Locals whose declared type makes every read of them a floating-point value. */
@@ -270,6 +385,10 @@ class HandlerParser {
           return { ...operation, body: this.stripLabelMarks(operation.body) };
         case 'switch':
           return { ...operation, cases: operation.cases.map(entry => ({ ...entry, body: this.stripLabelMarks(entry.body) })) };
+        case 'try':
+          return { ...operation, body: this.stripLabelMarks(operation.body),
+            catches: operation.catches.map(entry => ({ ...entry, body: this.stripLabelMarks(entry.body) })),
+            ...(operation.finally ? { finally: this.stripLabelMarks(operation.finally) } : {}) };
         default:
           return operation;
       }
@@ -426,6 +545,13 @@ class HandlerParser {
           case 'switch':
             lowered.cases = lowered.cases.map(entry => ({ ...entry, body: rewrite(entry.body) }));
             break;
+          // A jump out of a try or a catch leaves it as a break would, past
+          // its cleanup: the wrapper's break is taken after it.
+          case 'try':
+            lowered.body = rewrite(lowered.body);
+            lowered.catches = lowered.catches.map(entry => ({ ...entry, body: rewrite(entry.body) }));
+            if (lowered.finally) lowered.finally = rewrite(lowered.finally);
+            return [lowered, { op: 'if', condition: { kind: 'identifier', name: flag }, then: [{ op: 'break' }] }];
           default:
             return [lowered];
         }
@@ -545,6 +671,7 @@ class HandlerParser {
       }
       return { op: 'call', expression: { kind: 'call', callee: { kind: 'identifier', name: '__throw' }, args: [value] } };
     }
+    if (this.atText('try') && this.tokens[this.index + 1]?.text === '{') return this.parseTry();
     if (this.atText('do')) return this.parseDoWhile();
     if (this.isDeclaration()) return this.parseDeclaration();
     // `(void)task;` discards a value to quiet an unused-variable warning;
@@ -937,6 +1064,41 @@ class HandlerParser {
     return { op: 'while', condition, body: this.parseStatementAsBlock() };
   }
 
+  /** `try { ... } catch (int error) { ... } catch (...) { ... }`. */
+  private parseTry(): GeneratedHandlerOperation | undefined {
+    this.take();
+    this.take();
+    const body = this.parseOperations('}');
+    const catches: { valueType?: string; name?: string; body: GeneratedHandlerOperation[] }[] = [];
+    while (this.atText('catch') && this.tokens[this.index + 1]?.text === '(') {
+      this.take();
+      this.take();
+      const words: string[] = [];
+      let depth = 0;
+      while (!this.at('eof') && !(depth === 0 && this.atText(')'))) {
+        const token = this.take();
+        if (token.text === '(') depth++;
+        else if (token.text === ')') depth--;
+        words.push(token.text);
+      }
+      this.consume(')');
+      if (!this.consume('{')) {
+        this.unsupportedStatement('catch without a body');
+        return undefined;
+      }
+      const handler = this.parseOperations('}');
+      const declaration = words.join(' ').replace(/\s*([&*])\s*/g, '$1 ').trim();
+      if (declaration === '...' || declaration === '. . .') {
+        catches.push({ body: handler });
+        continue;
+      }
+      // The last word names the local when a type stands before it.
+      const named = /^(.*?[\w>&*])\s+([A-Za-z_]\w*)$/.exec(declaration);
+      catches.push({ valueType: (named ? named[1]! : declaration).trim(), ...(named ? { name: named[2]! } : {}), body: handler });
+    }
+    return { op: 'try', body, catches };
+  }
+
   private parseDoWhile(): GeneratedHandlerOperation | undefined {
     this.take();
     const body = this.parseStatementAsBlock();
@@ -1138,6 +1300,8 @@ class HandlerParser {
           for (const nested of nestedOperations(operation)) check(nested, true);
         } else if (operation.op === 'switch') {
           for (const entry of operation.cases) check(entry.body, inLoop);
+        } else if (operation.op === 'try') {
+          for (const nested of nestedOperations(operation)) check(nested, inLoop);
         }
       }
     };
@@ -1202,6 +1366,12 @@ class HandlerParser {
             return [{ ...operation, body: rewrite(operation.body, exits, false, false) }];
           case 'while': case 'do-while':
             return [{ ...operation, body: rewrite(operation.body, exits, false, false) }];
+          // A try is kept whole: a jump out of its body or a catch is the
+          // dispatch's continue, which leaves it as JavaScript leaves one.
+          case 'try':
+            return [{ ...operation, body: rewrite(operation.body, exits, ownBreak, ownContinue),
+              catches: operation.catches.map(entry => ({ ...entry, body: rewrite(entry.body, exits, ownBreak, ownContinue) })),
+              ...(operation.finally ? { finally: rewrite(operation.finally, exits, ownBreak, ownContinue) } : {}) }];
           default:
             return [operation];
         }

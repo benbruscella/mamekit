@@ -16,6 +16,7 @@ import {
   generatedAdd,
   generatedPointerStore,
   generatedWideBinary,
+  generatedLow32,
   executeGeneratedProgram,
   generatedReferent,
   generatedValuesEqual,
@@ -33,7 +34,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
+import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -181,6 +182,8 @@ export interface GeneratedDeviceExecutionContext {
   addressOf(value: unknown, index: number): GeneratedPointer;
   /** `&object.field` (execute.ts generatedMemberAddress). */
   fieldAddress(object: unknown, property: string): unknown;
+  /** C++ exceptions for emitted try/catch (execute.ts GENERATED_CPP_EXCEPTIONS). */
+  cpp: typeof GENERATED_CPP_EXCEPTIONS;
   /** `&call()` where the call answers an object (generatedObjectAddress). */
   objectAddress(value: unknown): unknown;
   /** `*(uint16_t *)p` over bytes (generatedPackedWord). */
@@ -209,6 +212,8 @@ export interface GeneratedDeviceExecutionContext {
   synchronize(callback: string, parameter: unknown): number;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
+  /** The low 32 bits of a `wide` answer, before a 32-bit-or-narrower store (execute.ts generatedLow32). */
+  low32(value: unknown): unknown;
   /** C++ `*pointer = value`, over a generated pointer or plain memory. */
   pointerStore(pointer: unknown, value: unknown): unknown;
   /** C++ `a + b` when neither side is known to be a number. */
@@ -2159,6 +2164,7 @@ class IrDevice implements Device {
         return next;
       },
       fieldAddress: generatedMemberAddress,
+      cpp: GENERATED_CPP_EXCEPTIONS,
       objectAddress: generatedObjectAddress,
       packedWord: generatedPackedWord,
       swapObjects: generatedSwapObjects,
@@ -2192,6 +2198,7 @@ class IrDevice implements Device {
       writableMember: name => this.members[name] ?? 0,
       synchronize: (callback, parameter) => generatedSynchronize(this.bindings, callback, parameter),
       wide: generatedWideBinary,
+      low32: generatedLow32,
       invoke: (name, ...args) => {
         if (name.startsWith('new::') && referenceCalls[name]) return referenceCalls[name]!(...args);
         const method = this.selectMethod(name, args);
@@ -3700,6 +3707,10 @@ class IrDevice implements Device {
       // C++ converts the result to the declared return type, as emitted code does.
       return method.returnWidth && typeof value === 'number' ? generatedFieldWidth(value, method.returnWidth) : value;
     } catch (error) {
+      // A C++ exception goes on as itself, for a caller's catch to take:
+      // Musashi's bus access throws an address error out of an opcode
+      // handler to execute_run's `catch (int error)`.
+      if (GENERATED_CPP_EXCEPTIONS.isThrow(error)) throw error;
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`${this.definition.type}.${method.name}: ${message}`, { cause: error });
     }
@@ -4823,6 +4834,23 @@ function mappedDeviceSpace(
       before_time: (_owner, method) => { entry.beforeTime = callable(method ?? _owner, false); return chain; },
       before_delay: (_owner, method) => { entry.beforeDelay = callable(method ?? _owner, false); return chain; },
       after_delay: (_owner, method) => { entry.afterDelay = callable(method ?? _owner, false); return chain; },
+      // A submap the owner's method fills, at this range's start: Musashi's
+      // default CPU space installs `map(mask - 0xf, mask).m(*this,
+      // FUNC(autovectors_map))`, whose own addresses run from 0.
+      m: (owner, method) => {
+        const target = method ?? owner;
+        const name = typeof target === 'object' && target && 'reference' in target
+          ? String((target as { reference: unknown }).reference).split('::').at(-1)!
+          : String(target);
+        if (!device.methodNames().includes(name)) throw new Error(`address map submap ${name} is not a method of the device`);
+        list.splice(list.indexOf(entry), 1);
+        const base = Number(start);
+        const inner = builder(list);
+        const offset = Object.assign((from: number, to: number) => inner(base + Number(from), base + Number(to)),
+          Object.fromEntries(Object.entries(inner)));
+        device.call(name, offset as unknown as number);
+        return chain;
+      },
       // An 8-bit lambda is a byte handler whatever the bus width: the 68000's
       // autovectors answer on one byte lane of its CPU space.
       lr8: handler => { chain.r!(handler); entry.words = false; return chain; },

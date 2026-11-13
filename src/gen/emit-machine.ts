@@ -36,38 +36,6 @@ export function generatedCpuClock(clock: number): number {
   return Math.trunc(clock);
 }
 
-/**
- * MAME device input clocks converted to the instruction-cycle scheduler rate:
- * device_execute_interface's `clocks_to_cycles` of the u32 clock, in the
- * integers MAME computes it in (each core's execute_clocks_to_cycles rounds up).
- */
-export function generatedCpuCycleClock(type: string | undefined, rawClock: number): number {
-  const clock = generatedCpuClock(rawClock);
-  const divided = (divider: number): number => Math.floor((clock + divider - 1) / divider);
-  // tms34010.h execute_clocks_to_cycles: (clocks + 8 - 1) / 8.
-  if (type === 'tms34010') return divided(8);
-  return clock;
-}
-
-/** Explicit address-space facts emitted once instead of rediscovered by the runtime. */
-export function generatedCpuAddressSpace(type: string | undefined, ownerTag: string) {
-  const normalized = type?.toLowerCase() ?? '';
-  const dataWidth = ['m68000', 'm68010', 'z8002', 'v30', 'tms34010', 'tms320c10'].includes(normalized)
-    ? 16 as const
-    : 8 as const;
-  // MAME declares the TMS320C1x's spaces with an address shift of -1 and the
-  // TMS34010's with +3 (bit addresses). Both generated cores normalize to byte
-  // addresses at each access site and their map ranges are scaled to match
-  // (generatedCpuAddressUnitBytes), so nothing is left for the bus to shift.
-  const addressShift = 0;
-  return {
-    ownerTag,
-    name: 'program' as const,
-    dataWidth,
-    addressShift,
-    endianness: ['v30', 'tms34010'].includes(normalized) ? 'little' as const : 'big' as const,
-  };
-}
 import type {
   GeneratedSampleWindow,
 } from '../ir/audio-protocol.ts';
@@ -79,7 +47,7 @@ import { validateBoardIr } from '../ir/validate.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
 import type { BoardConfig } from '../ir/host-config.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
 import { mameExecuteFacts } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
@@ -833,23 +801,13 @@ export function lowerGeneratedMachine(
     )?.to;
     const interruptAcknowledge = maps.find(map => map.id === cpuSpaceMapId)
       ?.ranges.find(range => range.read)?.read;
-    const space = generatedCpuAddressSpace(cpu.type, cpu.tag);
+    // The CPU's address-space widths, byte order and mask are its compiled
+    // class's own address_space_config, which the board reads from the device
+    // (generated-board.ts processorSpace); nothing is typed in here.
     return {
       ...cpu,
       clock: generatedCpuClock(cpu.clock),
-      ...(cpu.mask === undefined && ['m68000', 'm68010'].includes(cpu.type?.toLowerCase() ?? '')
-        ? { mask: 0xffffff }
-        : {}),
-      ...(cpu.mask === undefined && ['i8088', 'v30'].includes(cpu.type?.toLowerCase() ?? '')
-        ? { mask: 0xfffff }
-        : {}),
-      // A 32-bit bit address is a 29-bit byte address once scaled.
-      ...(cpu.mask === undefined && cpu.type?.toLowerCase() === 'tms34010'
-        ? { mask: 0x1fffffff }
-        : {}),
-      space,
-      ...(cpu.io ? { io: { ...cpu.io, space: { ...space, name: 'io' } } } : {}),
-      cycleClock: deviceCycleClock(deviceByTag.get(cpu.tag)?.type, cpu.clock) ?? generatedCpuCycleClock(cpu.type, cpu.clock),
+      cycleClock: deviceCycleClock(deviceByTag.get(cpu.tag)?.type, cpu.clock) ?? generatedCpuClock(cpu.clock),
       ...(interruptMixer !== undefined ? { interruptMixer: Boolean(interruptMixer) } : {}),
       ...(interruptAcknowledge ? { interruptAcknowledge } : {}),
       ...(daisyChain?.length ? { daisyChain: daisyChain as string[] } : {}),
@@ -870,8 +828,7 @@ export function lowerGeneratedMachine(
       kind: 'cpu' as const,
       clock: generatedCpuClock(device.clock),
       cycleClock: runtimeCpu?.cycleClock ?? deviceCycleClock(device.type, device.clock) ??
-        generatedCpuCycleClock(device.type.toLowerCase(), device.clock),
-      space: generatedCpuAddressSpace(device.type, device.tag),
+        generatedCpuClock(device.clock),
     }];
   });
   // What the driver's machine_start leaves in a RAM share at power-on.
@@ -1837,6 +1794,10 @@ function visitOperations(
       visitOperations(operation.body, visit);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) visitOperations(entry.body, visit);
+    } else if (operation.op === 'try') {
+      visitOperations(operation.body, visit);
+      for (const entry of operation.catches) visitOperations(entry.body, visit);
+      visitOperations(operation.finally ?? [], visit);
     }
   }
 }

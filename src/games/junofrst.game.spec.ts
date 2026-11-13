@@ -6,7 +6,7 @@ import { compileMameDevice } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import {
   normalizeMameExecutionSource,
-} from '../mame/cpu-compiler.ts';
+} from '../mame/execution-source.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { executeGeneratedProgram } from '../runtime/generated-handler.ts';
 import { junofrst } from './junofrst.game.ts';

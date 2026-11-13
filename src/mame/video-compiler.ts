@@ -7,7 +7,7 @@ import {
   functionArity, lowerOverloadedCalls, MameAstIndex, overloadedName, parseMameAst, parseMameSource, parseOverloadedName, splitMameArgs,
   type MameFunction,
 } from './ast.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { lowerDriverMemberPointers } from './member-pointers.ts';
 import {

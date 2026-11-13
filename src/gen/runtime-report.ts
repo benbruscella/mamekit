@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { GAME_CATEGORIES, gameOutputDir } from './output-layout.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import { isRuntimeCertified } from './runtime-certification.ts';
 import type { BoardIr } from '../ir/board.ts';
 

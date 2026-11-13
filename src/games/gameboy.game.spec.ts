@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { executeGeneratedHandler } from '../ir/execute.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { gameboy } from './gameboy.game.ts';

@@ -110,6 +110,7 @@ function nestedBlocks(operation: GeneratedHandlerOperation): GeneratedHandlerOpe
     case 'for': return [operation.initialize, operation.iterate, operation.body];
     case 'while': case 'do-while': return [operation.body];
     case 'switch': return operation.cases.map(entry => entry.body);
+    case 'try': return [operation.body, ...operation.catches.map(entry => entry.body), ...(operation.finally ? [operation.finally] : [])];
     default: return [];
   }
 }

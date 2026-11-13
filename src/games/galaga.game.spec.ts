@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { generatedDeviceMethodsSource } from '../mame/device-codegen.ts';
 import { compileMameDevice } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
-import { compileNamco51Protocol } from '../mame/namco51-compiler.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import {
   clearGeneratedDevices,
@@ -104,11 +103,6 @@ for (const [, , pen] of compiledDraw.pixels) pens.set(pen, (pens.get(pen) ?? 0) 
 assert.ok(pens.size >= 30, `05xx must draw stars (got ${pens.size} distinct pens)`);
 assert.ok([...pens.keys()].every(pen => pen >= 512 && pen < 512 + 64),
   '05xx star pens live at STARS_COLOR_BASE');
-
-// The 51xx protocol device lowers from the historical MAME source.
-const namco51 = compileNamco51Protocol();
-assert.equal(namco51.summary.diagnostics, 0);
-assert.ok(namco51.methods.some(method => method.name === 'switches'));
 
 // The 06xx and 54xx lower through the generic device compiler.
 for (const type of ['NAMCO_06XX', 'NAMCO_54XX'] as const) {

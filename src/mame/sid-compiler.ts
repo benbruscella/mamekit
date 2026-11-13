@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evalExpr, parseDefines, parseEnumConstants } from '../kg/parse.ts';
 import { maskComments, parseMameSource, splitMameArgs, type MameFunction } from './ast.ts';
-import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './execution-source.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { compileMameDevice, type GeneratedDeviceDefinition, type GeneratedDeviceMember, type GeneratedStructField } from './device-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';

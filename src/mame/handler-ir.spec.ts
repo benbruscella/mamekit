@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from './handler-ir.ts';
 import type { GeneratedExpression } from '../ir/board.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import {
   executeGeneratedHandler,
   executeGeneratedProgram,

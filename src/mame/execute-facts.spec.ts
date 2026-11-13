@@ -40,5 +40,9 @@ assert.equal(cycles('I8035', 6_000_000), 400_000);
 assert.equal(cycles('I8085A', 6_000_000), 3_000_000);
 assert.equal(cycles('I8080', 2_000_000), 2_000_000);
 assert.equal(cycles('Z80', 3_072_000), 3_072_000);
+// The TMS34010's `(clocks + 8 - 1) / 8`, in MAME's integers (Mortal Kombat's
+// 50 MHz / 8 board clock arrives fractional and is truncated first).
+assert.equal(cycles('TMS34010', 6_250_000), 781_250);
+assert.equal(cycles('TMS34010', 447_444 * 8 - 7), 447_444);
 
 console.log('execute facts: execute_min_cycles from the device class and diexec.cpp');

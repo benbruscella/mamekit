@@ -4,7 +4,7 @@ import { evalExpr } from '../kg/parse.ts';
 import type { GeneratedDevice } from '../ir/board.ts';
 import { executeGeneratedProgram } from '../ir/execute.ts';
 import { compileMameHandler } from './handler-ir.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 
 /** Lower MAME's configured RAM allocation to host-owned byte storage. */
 export function lowerRamAllocation(

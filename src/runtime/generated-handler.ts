@@ -45,6 +45,7 @@ export {
   generatedAdd,
   generatedPointerStore,
   generatedWideBinary,
+  generatedLow32,
   generatedReferent,
   GENERATED_FIELD_WIDTHS,
   generatedFieldWidth,
