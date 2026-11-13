@@ -120,7 +120,7 @@ interface DeviceMethod {
   parameters: string;
   program: GeneratedHandlerProgram;
   /** The declared return type's width, narrower than an int (see device-compiler). */
-  returnWidth?: 8 | 16 | -8 | -16;
+  returnWidth?: 8 | 16 | 32 | -8 | -16 | -32;
 }
 
 type DeviceResource =
@@ -3705,7 +3705,11 @@ class IrDevice implements Device {
       }
       const value = executeGeneratedProgram(method.program, this.bindings, locals).value;
       // C++ converts the result to the declared return type, as emitted code does.
-      return method.returnWidth && typeof value === 'number' ? generatedFieldWidth(value, method.returnWidth) : value;
+      if (!method.returnWidth) return value;
+      if (typeof value === 'number') return generatedFieldWidth(value, method.returnWidth);
+      // A 64-bit answer outside a double's range is a BigInt; its low word is
+      // what the narrower return type keeps.
+      return typeof value === 'bigint' ? generatedFieldWidth(Number(BigInt.asUintN(32, value)), method.returnWidth) : value;
     } catch (error) {
       // A C++ exception goes on as itself, for a caller's catch to take:
       // Musashi's bus access throws an address error out of an opcode

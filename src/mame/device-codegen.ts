@@ -93,7 +93,7 @@ interface EmitContext {
   wrappedReferences: Set<string>;
   returnedReference?: string;
   /** See GeneratedDeviceMethod.returnWidth. */
-  returnWidth?: 8 | 16 | -8 | -16;
+  returnWidth?: 8 | 16 | 32 | -8 | -16 | -32;
   pointerSafeIndex: boolean;
   typescript: boolean;
   /** The emitted method's own constants, resolved before the scope's. */
@@ -1162,12 +1162,14 @@ function emitOperation(
   }
   if (operation.op === 'return') {
     if (!operation.value) return `${pad}return;`;
-    const value = emitExpression(operation.value, context);
     const width = context.returnWidth;
+    const value = width ? lowWord(emitExpression(operation.value, context)) : emitExpression(operation.value, context);
     return `${pad}return ${width === 8 ? `((${value}) & 0xff)`
       : width === 16 ? `((${value}) & 0xffff)`
-        : width === -8 ? `((${value}) << 24 >> 24)`
-          : width === -16 ? `((${value}) << 16 >> 16)` : value};`;
+        : width === 32 ? `((${value}) >>> 0)`
+          : width === -8 ? `((${value}) << 24 >> 24)`
+            : width === -16 ? `((${value}) << 16 >> 16)`
+              : width === -32 ? `((${value}) | 0)` : value};`;
   }
   if (operation.op === 'break') return `${pad}break;`;
   if (operation.op === 'continue') return `${pad}continue;`;

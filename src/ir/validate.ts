@@ -356,8 +356,11 @@ function validateAddressSpace(
   source: BoardIrDiagnostic['source'],
   fail: (path: string, message: string, source?: BoardIrDiagnostic['source']) => void,
 ): void {
-  if (!ranges) return;
-  const limit = mask ?? 0xffff;
+  // Without a map's global_mask the space is as wide as the processor's own
+  // address_space_config, which only its compiled device knows; the board
+  // masks to it at run time (generated-board processorSpaces).
+  if (!ranges || mask === undefined) return;
+  const limit = mask;
   for (const [index, range] of ranges.entries()) {
     if (range.end <= limit) continue;
     fail(

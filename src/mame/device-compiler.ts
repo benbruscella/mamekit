@@ -197,7 +197,7 @@ export interface GeneratedDeviceMethod {
    * returned value to it: the 64H156's `uint8_t yb_r()` returns a ten-bit
    * shift register, and the 1541's VIA has to see its low byte.
    */
-  returnWidth?: 8 | 16 | -8 | -16;
+  returnWidth?: 8 | 16 | 32 | -8 | -16 | -32;
 }
 
 export interface GeneratedDeviceStateEntry {
@@ -1118,9 +1118,23 @@ function compileMameDeviceSource(
   // its typed accessors and its opcode tables all spelled through HighBits.
   // Each file that declares the template is flattened to that one
   // specialisation (monomorphizeClassTemplate), so it reads as a class.
+  // Only along the compiled class's own chain of bases: namco.h derives the
+  // 3-voice WSG and the 8-voice Pole Position WSG from one template, and
+  // taking the first derivation in the file gave POLEPOS_WSG three voices.
   const specialisations = new Map<string, Record<string, number>>();
   const allTexts = [...texts.values()].join('\n');
-  for (const derived of allTexts.matchAll(/\bclass\s+\w+\s*(?:final\s*)?:\s*public\s+(\w+)\s*<\s*([^<>]+?)\s*>/g)) {
+  const derivations = new Map<string, RegExpMatchArray>();
+  for (const derived of allTexts.matchAll(/\bclass\s+(\w+)\s*(?:final\s*)?:\s*public\s+(\w+)\s*(?:<\s*([^<>]+?)\s*>)?/g)) {
+    if (!derivations.has(derived[1]!)) derivations.set(derived[1]!, derived);
+  }
+  const chain: RegExpMatchArray[] = [];
+  for (let name: string | undefined = definition.className.replace(/\s*<[\s\S]*$/, ''), seen = new Set<string>();
+    name && derivations.has(name) && !seen.has(name); seen.add(name), name = derivations.get(name)![2]) {
+    chain.push(derivations.get(name)!);
+  }
+  for (const link of chain) {
+    if (link[3] === undefined) continue;
+    const derived = [link[0], link[2], link[3]] as const;
     const base = derived[1]!;
     const declared = new RegExp(String.raw`template\s*<\s*((?:(?:int|bool|unsigned(?:\s+int)?|u(?:8|16|32)|s(?:8|16|32))\s+\w+\s*,?\s*)+)>\s*class\s+${base}\b`).exec(allTexts);
     if (!declared || specialisations.has(base)) continue;
@@ -2664,8 +2678,12 @@ function compileMameDeviceSource(
   }
   // The return type, from the declaration in the class (an out-of-class
   // definition repeats it, but the AST keeps only the name and parameters).
-  const RETURN_WIDTHS: Record<string, 8 | 16 | -8 | -16> = {
+  // An int one too: the TIA's `int current_x()` computes in u64 from
+  // total_cycles() and returns `3 * (...) - 68`, negative for the first 68
+  // colour clocks, which only the conversion to int makes negative again.
+  const RETURN_WIDTHS: Record<string, 8 | 16 | 32 | -8 | -16 | -32> = {
     u8: 8, uint8_t: 8, s8: -8, int8_t: -8, u16: 16, uint16_t: 16, s16: -16, int16_t: -16,
+    u32: 32, uint32_t: 32, offs_t: 32, unsigned: 32, s32: -32, int32_t: -32, int: -32,
   };
   for (const method of methods) {
     const bare = method.name.split('::').at(-1)!;
@@ -6050,7 +6068,7 @@ function constantValue(expression: string, env: Record<string, number>): number 
  *
  * Read from MAME rather than written here, so the values stay the source's.
  */
-function coreLineStates(mameSrc: string): Record<string, number> {
+export function coreLineStates(mameSrc: string): Record<string, number> {
   const header = join(mameSrc, 'src/emu/diexec.h');
   if (!existsSync(header)) return {};
   // Both of diexec.h's enums: line_state, and the input lines a core's header
