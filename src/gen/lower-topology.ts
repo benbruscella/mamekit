@@ -1,6 +1,5 @@
-
-
 import type { KGNode } from '../kg/types.ts';
+import { DEVICE_MAME_TYPES } from '../hardware/device/definition.ts';
 
 import { gameClassConstants, resolveClassConstants } from './class-constants.ts';
 
@@ -23,7 +22,6 @@ export function hostedDeviceTag(hostTag: string | undefined, rawTag: string): st
   return `${hostTag}:${rawTag}`;
 }
 import { handlerOwnsSharedRam, sourceHandlerDataWidth, cpuProgramAddressShift, cpuInternalMapRanges } from './machine-source.ts';
-import { cpuInternalRomBytes, cpuInternalRomView } from '../mame/cpu-compiler.ts';
 
 export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: GenerateOptions, family: string) {
   // machine configs compose via helper calls (galaxian(config) -> galaxian_base(config));
@@ -173,11 +171,6 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
   // Every CPU carries its own program map (and io map when the driver has
   // one). Device type -> runtime core is a device-library mapping.
   const CPU_TYPES: Record<string, string> = { Z80: 'z80', Z8002: 'z8002', KONAMI: 'konami', KONAMI1: 'konami1', I8035: 'i8035', I8039: 'i8039', MB8884: 'mb8884', M58715: 'm58715', UPD7751: 'upd7751', I8080: 'i8080', I8085A: 'i8085a', I8088: 'i8088', V30: 'v30', M6502: 'm6502', M6507: 'm6507', M6510: 'm6510', DECO_CPU7: 'deco_cpu7', DECO_C10707: 'deco_c10707', M6801U4: 'm6801u4', M6802: 'm6802', M6803: 'm6803', M6808: 'm6808', M68000: 'm68000', M68010: 'm68010', NSC8105: 'nsc8105', MC6809: 'mc6809', MC6809E: 'mc6809e', HD6309E: 'hd6309e', HD63701Y0: 'hd63701y0', RP2A03: 'rp2a03', RP2A03G: 'rp2a03', SEGA_315_5098: 'sega_315_5098', SEGA_315_5177: 'sega_315_5177', LR35902: 'lr35902', TMS320C10: 'tms320c10', TMS34010: 'tms34010' };
-  // ROM windows installed by a CPU's own internal address map. They do not
-  // appear in the driver's set_addrmap graph, but still map DEVICE_SELF ROM.
-  const CPU_INTERNAL_ROM: Record<string, { start: number; end: number; romOffset: number }> = {
-    HD63701Y0: { start: 0xc000, end: 0xffff, romOffset: 0 },
-  };
   const cpuDevs = devices.filter(d => String(d.props.type) in CPU_TYPES);
   if (cpuDevs.length === 0) throw new Error('no supported CPU devices found in machine config');
 
@@ -291,37 +284,22 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
       return mapRefs.find(m => (m.edge.props?.space ?? 'AS_PROGRAM') === space)?.node;
     };
     const programMap = forSpace('AS_PROGRAM');
-    // Without a driver map, a core that maps its own internal ROM runs from it.
-    const internalRomBytes = programMap ? undefined : cpuInternalRomBytes(opts.mameSrc, String(dev.props.type));
-    if (!programMap && dev.props.type !== 'M6801U4' && !internalRomBytes) {
+    // A CPU compiled whole as its MAME class decodes its own internal map
+    // (a 6801U4's ports, RAM and ROM; an MCS-48's ROM view), so the driver
+    // need not map anything.
+    const deviceCore = (DEVICE_MAME_TYPES as readonly string[]).includes(String(dev.props.type));
+    if (!programMap && !deviceCore) {
       throw new Error(`no address map on ${dev.props.tag}`);
     }
     const rangeNodes = programMap ? collectRanges(programMap.id) : [];
     const driverRanges = programMap
       ? rangeNodes.map(range => rangeSpec(range, String(dev.props.tag)))
-      : internalRomBytes
-        ? [{ start: 0, end: internalRomBytes - 1, kind: 'rom', romOffset: 0 }]
-        : [{ start: 0xf000, end: 0xffff, kind: 'rom', romOffset: 0 }];
-    const internalRom = CPU_INTERNAL_ROM[String(dev.props.type)];
+      : [];
     const ranges = [
-      ...(internalRom && !driverRanges.some(range =>
-        range.kind === 'rom' && Number(range.start) <= internalRom.start &&
-        Number(range.end) >= internalRom.end)
-        ? [...driverRanges, { ...internalRom, kind: 'rom' }]
-        : driverRanges),
+      ...driverRanges,
       // The core's own internal map, installed over the driver's: the
       // TMS34010's I/O registers at 0xc0000000.
       ...cpuInternalMapRanges(opts.mameSrc, String(dev.props.type), String(dev.props.tag)),
-      // And an MCS-48's internal ROM, a view over the driver's own map that
-      // reads the chip's region (M58715: Mario's 2K, its bootstrap written
-      // there by sound_start).
-      ...(() => {
-        const view = programMap ? cpuInternalRomView(opts.mameSrc, String(dev.props.type)) : undefined;
-        return view ? [{
-          start: 0, end: view.bytes - 1, kind: 'rom', region: String(dev.props.tag), romOffset: 0,
-          viewTag: view.viewTag, viewEntry: view.viewEntry,
-        }] : [];
-      })(),
     ];
     const explicitRegions = [...new Set(
       rangeNodes

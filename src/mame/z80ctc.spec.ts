@@ -1,5 +1,5 @@
-// The Z80 CTC compiled from MAME's z80ctc.cpp as it stands, and a generated
-// Z80 taking its IM2 vectors from it through the compiled daisy chain
+// The Z80 CTC compiled from MAME's z80ctc.cpp as it stands, and MAME's Z80
+// compiled whole taking its IM2 vectors from it through its daisy chain
 // (z80daisy.cpp). Run with: node src/mame/z80ctc.spec.ts
 
 import assert from 'node:assert/strict';
@@ -7,10 +7,9 @@ import ts from 'typescript';
 import { indexMameHardware } from './hardware.ts';
 import { compileMameDevice } from './device-compiler.ts';
 import { generatedDeviceExecutableSource } from './device-codegen.ts';
-import { compileMameZ80 } from './cpu-compiler.ts';
-import { generatedCpuExecutableSource } from './cpu-codegen.ts';
 import { createDevice, registerGeneratedDevice } from '../runtime/generated-device.ts';
-import { clearGeneratedCpus, createCpu, registerGeneratedCpu, type CpuBus } from '../runtime/generated-cpu.ts';
+import { DeviceCpu } from '../runtime/device-cpu.ts';
+import type { CpuBus } from '../runtime/generated-cpu.ts';
 
 const source = process.env.MAME_SRC ?? '../mame';
 const CLOCK = 5_000_000;
@@ -89,10 +88,9 @@ for (const [label, implementation] of [['IR', definition], ['emitted', emitted]]
   assert.equal(ctc.call('z80daisy_irq_ack'), 0x14, `${label}: channel 2's vector is vector + 4`);
 }
 
-// A generated Z80 in IM 2 with the CTC on its daisy chain: the vector comes
-// from the CTC's z80daisy_irq_ack, and RETI reaches its z80daisy_decode.
-clearGeneratedCpus();
-registerGeneratedCpu(await emittedModule(generatedCpuExecutableSource(compileMameZ80(source))));
+// MAME's Z80 in IM 2 with the CTC on its daisy chain: the vector comes from
+// the CTC's z80daisy_irq_ack, and RETI reaches its z80daisy_decode.
+registerGeneratedDevice(compileMameDevice(source, indexMameHardware(source).get('Z80')!, 'Z80'));
 registerGeneratedDevice(emitted);
 const memory = new Uint8Array(0x10000);
 memory.set([
@@ -115,17 +113,25 @@ const bus: CpuBus = {
   in: () => 0xff,
   out: () => {},
 };
-const cpu = createCpu('Z80', bus);
+const z80 = createDevice('Z80', { tag: 'cpu', clock: CLOCK, configuredSpaces: [0, 2] });
+const cpu = new DeviceCpu(z80, bus, {
+  setInputLine: (line, state) => { z80.call('execute_set_input', line, state); },
+  acknowledgeLine: () => 0xff,
+});
+cpu.reset();
 let now = 0;
 const ctc = createDevice('Z80CTC', { tag: 'ctc', clock: CLOCK, calls: { 'machine().time': () => now } });
 ctc.on('intr_callback', state => cpu.setIrqLine(state !== 0));
-cpu.set('m_chain', ctc.instance!() as unknown as number);
+// What the board's daisy_init does: the chain's head in m_chain.
+const link = ctc.instance!() as unknown as Record<string, unknown>;
+Object.defineProperty(link, 'm_daisy_next', { value: 0, writable: true, enumerable: false });
+z80.set('m_chain', link as unknown as number);
 ctc.call('write', 0, 0x10);
 ctc.call('write', 2, 0x85);
 ctc.call('write', 2, 10); // every 160 cycles
 let cycles = 0;
 while (cycles < 160 * 20) {
-  const taken = cpu.step();
+  const taken = cpu.run(16);
   cycles += taken;
   now += taken / CLOCK;
   ctc.tick!(taken / CLOCK);

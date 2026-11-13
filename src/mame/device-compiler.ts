@@ -1,7 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
-import { evalExpr, expandConstexprCalls, parseAddressMaps, parseConstexprFunctions, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
+import { evalExpr, expandConstexprCalls, parseAddressMaps, parseEnumConstants, parseConstexprFunctions, parseInputPorts, parseTextMacros, resolveLiteralConditionals, type InputPortsDef } from '../kg/parse.ts';
 import type { BoardSourceRef, GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
+import { HOST_INPUT_LINES } from '../ir/board.ts';
 import {
   memberMacroParameters,
   parseMameAst,
@@ -10,8 +11,10 @@ import {
   type MameClass,
   type MameFunction,
 } from './ast.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
+import { isWideType, markWidePrecision } from './wide-precision.ts';
+import { monomorphizeClassTemplate } from './function-template.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { cppDefaultArgument, DEFAULT_CONSTANTS, executeGeneratedProgram } from '../ir/execute.ts';
@@ -33,6 +36,9 @@ import { monomorphizeFunctionTemplate } from './function-template.ts';
 import { renameShadowedLocals } from '../ir/scope.ts';
 import { preprocessedDeviceTransform } from './preprocessed-device.ts';
 import { CPreprocessor } from './c-preprocessor.ts';
+import { generatedInclude } from './mame-build.ts';
+import { lowerMemberPointerValues } from './member-pointers.ts';
+import { integerType, rewriteTypeTemplateCalls, typeInstanceName, typePositions, type DeductionScope, type TypeTemplate } from './template-deduction.ts';
 
 /**
  * A cassette image format a cassette device mounts (lib/formats). A legacy
@@ -143,7 +149,8 @@ export interface GeneratedStructField {
   name: string;
   valueType?: string;
   length?: number;
-  bits?: 8 | 16 | 32;
+  /** 64 only lays out a union (the Z8002's `uint64_t Q[4]`); arithmetic stays at 32. */
+  bits?: 1 | 8 | 16 | 32 | 64;
   signed?: boolean;
   fields?: GeneratedStructField[];
   /** A union: `fields` overlap, each laid out from the union's first byte. */
@@ -190,7 +197,17 @@ export interface GeneratedDeviceMethod {
    * returned value to it: the 64H156's `uint8_t yb_r()` returns a ten-bit
    * shift register, and the 1541's VIA has to see its low byte.
    */
-  returnWidth?: 8 | 16 | -8 | -16;
+  returnWidth?: 8 | 16 | 32 | -8 | -16 | -32;
+}
+
+export interface GeneratedDeviceStateEntry {
+  index: number;
+  name: string;
+  mask?: number;
+  import?: true;
+  export?: true;
+  read: string;
+  write: string;
 }
 
 export interface GeneratedDeviceDefinition {
@@ -219,6 +236,23 @@ export interface GeneratedDeviceDefinition {
    */
   imageInterface?: true;
   constants: Record<string, number>;
+  /**
+   * MAME `device_state_interface`: the registers the core publishes with
+   * `state_add(index, name, lvalue)` in device_start, read and written through
+   * generated `__state_read_N`/`__state_write_N` methods over that lvalue.
+   * `state_int`/`set_state_int` (a driver's protection read of `Z80_HL`, a
+   * snapshot loader) go through them, with the core's own state_export before
+   * a read and state_import after a write where `.callexport()` and
+   * `.callimport()` say so.
+   */
+  stateEntries?: GeneratedDeviceStateEntry[];
+  /**
+   * A core that keeps its place between an instruction's cycles in an
+   * `m_inst_substate` member (the 6502 family checks its icount before every
+   * cycle), so the board brings device time up to where it stands when a
+   * device asks the time mid-instruction (generated-board catchUpDeviceTime).
+   */
+  suspendsMidInstruction?: true;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
@@ -361,6 +395,15 @@ export interface GeneratedDeviceDefinition {
      * start: `space(0).install_rom(...)` over a region (a YM2610's ADPCM).
      */
     installed?: true;
+    /** Declared only when the owner configures a map for it (has_configured_map). */
+    conditional?: true;
+    /** The address_space_config's byte order (`ENDIANNESS_BIG`). */
+    endianness?: 'big' | 'little';
+    /**
+     * Its address shift: -1 a word-addressed space (TMS320C1x), +3 a
+     * bit-addressed one (TMS34010), 0 one address per byte.
+     */
+    addressShift?: number;
   }[];
   start?: string;
   reset?: string;
@@ -383,6 +426,8 @@ export interface GeneratedDeviceDefinition {
      * `set_device_load(FUNC(spectrum_intf2_device::cart_load))`.
      */
     delegateTargets?: Record<string, string>;
+    /** Child devcb signal -> this device's method it is `.set()` to. */
+    callbackTargets?: Record<string, string>;
     /**
      * The option table a child slot's machine config names, compiled:
      * `GENERIC_CARTSLOT(config, m_cart, generic_plain_slot, ...)`.
@@ -460,13 +505,322 @@ export function compileMameDevice(
   compiling: ReadonlySet<string> = new Set(),
   options: DeviceCompileOptions = {},
 ): GeneratedDeviceDefinition {
+  const device = compileMameDeviceReading(mameSrc, definition, type, compiling, options);
+  if (!options.transformSource) {
+    resolveIntegerReferenceOverloads(device);
+    attachLibraryFunctions(mameSrc, device);
+    attachStateEntries(mameSrc, device);
+    markDeviceWidePrecision(mameSrc, device);
+    if (device.sourceFiles.some(file => /\.h$/.test(file) && existsSync(join(mameSrc, file)) &&
+      /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {
+      device.suspendsMidInstruction = true;
+    }
+  }
+  return device;
+}
+
+/**
+ * MAME's own library inlines every device reaches through emu.h, read from
+ * their headers: endianness.h's `template <typename T> constexpr T
+ * BYTE4_XOR_BE(T a) { return a ^ NATIVE_ENDIAN_VALUE_LE_BE(3,0); }` and the
+ * rest of its family, the host taken as little-endian, as MAME's LSB_FIRST
+ * build is. The Z8002 indexes its register file with them (`RW(n)` is
+ * `m_regs.W[BYTE4_XOR_BE(n)]`); unresolved, every register write was lost.
+ */
+// eminline.h's portable multiply and divide helpers too (`mulu_32x32`, which
+// the TMS34010's MPYU uses): each sits under `#ifndef name`, the C version an
+// asm one only replaces with the same result.
+const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h', 'src/osd/osdcomm.h', 'src/osd/eminline.h'];
+type LibraryInline = { parameters: string; body: string; file: string; line: number; returnType?: string };
+const LIBRARY_INLINES = new Map<string, Map<string, LibraryInline>>();
+
+function libraryInlines(mameSrc: string): Map<string, LibraryInline> {
+  const cached = LIBRARY_INLINES.get(mameSrc);
+  if (cached) return cached;
+  const found = new Map<string, LibraryInline>();
+  for (const file of LIBRARY_INLINE_HEADERS) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    const lines = readFileSync(path, 'utf8').split('\n');
+    const endian = (body: string) => body.replace(/\bNATIVE_ENDIAN_VALUE_LE_BE\s*\(\s*([^,()]+)\s*,\s*([^,()]+)\s*\)/g, '($1)');
+    // The host is little-endian, as MAME's LSB_FIRST build: osdcomm.h's
+    // `#ifdef LSB_FIRST` branch holds `little_endianize_int32(x) { return x; }`,
+    // its `#else` the byte swap. Lines in a branch the build leaves out are not read.
+    const active: boolean[] = [];
+    const skipping = () => active.some(on => !on);
+    const kept: string[] = [];
+    lines.forEach((line, index) => {
+      const directive = /^\s*#\s*(ifdef|ifndef|if|else|elif|endif)\b\s*(\w*)/.exec(line);
+      if (directive) {
+        const [, kind, name] = directive;
+        if (kind === 'ifdef' || kind === 'ifndef') active.push(name === 'LSB_FIRST' ? kind === 'ifdef' : true);
+        else if (kind === 'if') active.push(true);
+        else if (kind === 'else' && active.length) active[active.length - 1] = !active[active.length - 1];
+        else if (kind === 'endif') active.pop();
+        return;
+      }
+      if (skipping()) return;
+      kept.push(line);
+      const template = /^\s*template\s*<\s*typename\s+(\w+)\s*>\s*constexpr\s+\1\s+(\w+)\s*\(\s*\1\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
+      if (template) {
+        found.set(template[2]!, { parameters: `int ${template[3]}`, body: `return ${endian(template[4]!)};`, file, line: index + 1 });
+        return;
+      }
+      // A plain one, osdcomm.h's `constexpr uint16_t swapendian_int16(uint16_t
+      // val) { return (val << 8) | (val >> 8); }`: its result is its return
+      // type's, as C++ converts it.
+      const plain = /^\s*constexpr\s+(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(\s*(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\)\s*\{\s*return\s+([^;]+);\s*\}/.exec(line);
+      if (plain) {
+        found.set(plain[2]!, { parameters: `${plain[3]} ${plain[4]}`, body: `return (${plain[1]})(${endian(plain[5]!)});`, file, line: index + 1, returnType: plain[1] });
+      }
+    });
+    // A function over several lines, eminline.h's
+    // `constexpr uint64_t mulu_32x32(uint32_t a, uint32_t b)\n{\n\treturn ...;\n}`.
+    const text = kept.join('\n');
+    for (const match of text.matchAll(/^[ \t]*(?:inline\s+)?constexpr\s+(?:inline\s+)?(u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(([^()]*)\)\s*\n\{([\s\S]*?)\n\}/gm)) {
+      const [, returnType, name, parameters, body] = match;
+      if (found.has(name!)) continue;
+      const line = lines.findIndex(candidate => new RegExp(`\\b${name}\\s*\\(`).test(candidate)) + 1;
+      // Its result is its return type's, as C++ converts it: mul_32x32's
+      // product is a signed 64-bit value.
+      const converted = endian(body!).replace(/\breturn\s+([^;]+);/g, `return (${returnType})($1);`);
+      found.set(name!, { parameters: parameters!.trim(), body: converted, file, line, returnType });
+    }
+  }
+  LIBRARY_INLINES.set(mameSrc, found);
+  return found;
+}
+
+/** An integer type's width and signedness, for overload resolution; undefined for any other. */
+function integerTypeKey(type: string | undefined): string | undefined {
+  const t = type?.replace(/\b(?:const|volatile)\b/g, '').replace(/[&*]/g, '').trim();
+  if (!t) return undefined;
+  const map: Record<string, string> = {
+    u8: 'u8', uint8_t: 'u8', 'unsigned char': 'u8', s8: 's8', int8_t: 's8', char: 's8',
+    u16: 'u16', uint16_t: 'u16', 'unsigned short': 'u16', s16: 's16', int16_t: 's16', short: 's16',
+    u32: 'u32', uint32_t: 'u32', offs_t: 'u32', unsigned: 'u32', 'unsigned int': 'u32',
+    s32: 's32', int32_t: 's32', int: 's32', u64: 'u64', uint64_t: 'u64', s64: 's64', int64_t: 's64',
+  };
+  return map[t];
+}
+
+/**
+ * Overloads of one name and arity told apart by an integer reference's width,
+ * resolved at compile time by the argument's declared type, as C++ binds a
+ * reference: the 68000's `set_16l(u32 &r, u16 v)` keeps r's high half and
+ * `set_16l(u16 &r, u16 v)` replaces it. Left to the runtime, which takes the
+ * last overload, every `set_16l(m_da[16], m_dbin)` cleared the high word and
+ * the reset vector's stack pointer came out 0x1000 instead of 0xff1000.
+ * Each overload gets its typed name; the plain name keeps the last one for
+ * a caller whose argument's type is not known.
+ */
+function resolveIntegerReferenceOverloads(device: GeneratedDeviceDefinition): void {
+  const declared = (parameters: string) => splitMameArgs(parameters).map(parameter => parameter.trim())
+    .filter(parameter => parameter && parameter !== 'void');
+  const groups = new Map<string, GeneratedDeviceMethod[]>();
+  for (const method of device.methods) {
+    const key = `${method.name}/${declared(method.parameters).length}`;
+    groups.set(key, [...groups.get(key) ?? [], method]);
+  }
+  const memberTypes = new Map(device.members.map(member => [member.name, member.valueType]));
+  const resolutions = new Map<string, { arity: number; position: number; byType: Map<string, string> }>();
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const lists = group.map(method => declared(method.parameters));
+    const positions = lists[0]!.map((_unused, index) => index)
+      .filter(index => new Set(lists.map(list => parameterBaseType(list[index] ?? ''))).size > 1);
+    if (positions.length !== 1) continue;
+    const position = positions[0]!;
+    const keys = lists.map(list => /&/.test(list[position]!) ? integerTypeKey(parameterBaseType(list[position]!)) : undefined);
+    if (keys.some(key => key === undefined) || new Set(keys).size !== keys.length) continue;
+    const name = group[0]!.name;
+    const byType = new Map<string, string>();
+    group.forEach((method, index) => {
+      const typed = typedOverloadName(name, method.parameters);
+      byType.set(keys[index]!, typed);
+      device.methods.push({ ...method, name: typed });
+    });
+    resolutions.set(name, { arity: lists[0]!.length, position, byType });
+  }
+  if (!resolutions.size) return;
+  for (const method of device.methods) {
+    const localTypes = new Map<string, string>();
+    for (const parameter of declared(method.parameters)) localTypes.set(parameterName(parameter), parameterBaseType(parameter));
+    walkOperations(method.program.operations, operation => {
+      if (operation.op === 'declare' && operation.valueType) localTypes.set(operation.name, operation.valueType);
+    });
+    const typeOf = (expression: GeneratedExpression): string | undefined => {
+      if (expression.kind === 'identifier') return localTypes.get(expression.name) ?? memberTypes.get(expression.name);
+      if (expression.kind === 'index' && expression.object.kind === 'identifier') {
+        const type = localTypes.get(expression.object.name) ?? memberTypes.get(expression.object.name);
+        return type?.replace(/\s*\[[^\]]*\]/g, '').replace(/\*$/, '').trim();
+      }
+      if (expression.kind === 'cast') return expression.valueType;
+      return undefined;
+    };
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind !== 'call' || expression.callee.kind !== 'identifier') return;
+      const resolution = resolutions.get(expression.callee.name);
+      if (!resolution || expression.args.length !== resolution.arity) return;
+      const key = integerTypeKey(typeOf(expression.args[resolution.position]!));
+      const typed = key ? resolution.byType.get(key) : undefined;
+      if (typed) (expression.callee as { name: string }).name = typed;
+    });
+  }
+}
+
+/**
+ * C's 64-bit promotion over the device's programs (wide-precision.ts): its
+ * 64-bit members, the library inlines and its own methods that return 64 bits.
+ */
+function markDeviceWidePrecision(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  const members = new Set(device.members.filter(member => isWideType(member.valueType)).map(member => member.name));
+  const calls = new Set([...libraryInlines(mameSrc)].filter(([, inline]) => isWideType(inline.returnType)).map(([name]) => name));
+  for (const file of device.sourceFiles) {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) continue;
+    for (const match of stripCppComments(readFileSync(path, 'utf8')).matchAll(
+      /(?:^|[\s;{}])(?:(?:static|inline|constexpr|virtual)\s+)*(?:std::)?(?:u?int64_t|u64|s64)\s+(?:\w+::)*(\w+)\s*\(/g)) {
+      calls.add(match[1]!);
+    }
+  }
+  const memberTypes = new Map(device.members.map(member => [member.name, member.valueType]));
+  markWidePrecision(device.methods, { members, memberTypes, calls });
+}
+
+/** A library inline the device calls and does not define, added as one of its methods. */
+function attachLibraryFunctions(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  const inlines = libraryInlines(mameSrc);
+  if (!inlines.size) return;
+  const defined = new Set(device.methods.map(method => method.name));
+  const wanted = new Set<string>();
+  for (const method of device.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+          inlines.has(expression.callee.name) && !defined.has(expression.callee.name)) wanted.add(expression.callee.name);
+    });
+  }
+  // An inline that calls another brings it too (little_endianize_int32's
+  // big-endian branch is swapendian_int32).
+  const pending = [...wanted];
+  while (pending.length) {
+    const name = pending.shift()!;
+    if (defined.has(name)) continue;
+    defined.add(name);
+    const inline = inlines.get(name)!;
+    const program = compileMameHandler(inline.body);
+    device.methods.push({ name, parameters: inline.parameters, program, source: { file: inline.file, line: inline.line } });
+    walkExpressions(program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+          inlines.has(expression.callee.name) && !defined.has(expression.callee.name)) pending.push(expression.callee.name);
+    });
+  }
+}
+
+/** MAME's generic state indices (emu/distate.h): STATE_GENPC is -1. */
+function distateIndices(mameSrc: string): Record<string, number> {
+  const path = join(mameSrc, 'src/emu/distate.h');
+  const indices: Record<string, number> = {};
+  if (!existsSync(path)) return indices;
+  for (const match of readFileSync(path, 'utf8').matchAll(/\b(STATE_\w+)\s*=\s*(-?\d+)/g)) {
+    indices[match[1]!] = Number(match[2]);
+  }
+  return indices;
+}
+
+/**
+ * The core's `state_add` table, read from its own lowered device_start (or
+ * the init() it calls): the
+ * index each register is published under, its name, `.mask(n)`, whether
+ * `.callimport()`/`.callexport()` follow, and the lvalue it names, which
+ * becomes a generated reader and writer. An entry over something that is no
+ * lvalue (a lambda) is left out; nothing reads it as a register.
+ */
+function attachStateEntries(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  // device_start's own, or a helper it calls: the 6502 family registers its
+  // table in init(), the Z8002 in register_debug_state().
+  const registers = (method: GeneratedDeviceMethod) => {
+    let found = false;
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' && /^state_add\b/.test(expression.callee.name)) found = true;
+    });
+    return found;
+  };
+  const starts = device.methods.filter(registers);
+  if (!starts.length) return;
+  const indices = { ...distateIndices(mameSrc), ...device.constants };
+  const indexOf = (expression: GeneratedExpression): number | undefined => {
+    if (expression.kind === 'number') return expression.value;
+    if (expression.kind === 'identifier') return indices[expression.name.split('::').at(-1)!];
+    if (expression.kind === 'unary' && expression.operator === '-') {
+      const value = indexOf(expression.operand);
+      return value === undefined ? undefined : -value;
+    }
+    if (expression.kind === 'binary' && expression.operator === '+') {
+      const left = indexOf(expression.left), right = indexOf(expression.right);
+      return left === undefined || right === undefined ? undefined : left + right;
+    }
+    return undefined;
+  };
+  const entries: GeneratedDeviceStateEntry[] = [];
+  const done = new Set<GeneratedExpression>();
+  for (const start of starts) {
+    walkExpressions(start.program.operations, expression => {
+      if (expression.kind !== 'call' || done.has(expression)) return;
+      const flags: { name: string; args: GeneratedExpression[] }[] = [];
+      let bottom: GeneratedExpression = expression;
+      while (bottom.kind === 'call' && bottom.callee.kind === 'member') {
+        flags.push({ name: bottom.callee.property, args: bottom.args });
+        bottom = bottom.callee.object;
+      }
+      if (bottom.kind !== 'call' || bottom.callee.kind !== 'identifier' ||
+          !/^state_add\b/.test(bottom.callee.name) || done.has(bottom)) return;
+      done.add(bottom);
+      const [indexExpression, nameExpression, target] = bottom.args;
+      if (!indexExpression || !target || !['identifier', 'member', 'index'].includes(target.kind)) return;
+      const index = indexOf(indexExpression);
+      if (index === undefined) return;
+      const position = entries.length;
+      const mask = flags.find(flag => flag.name === 'mask')?.args[0];
+      const entry: GeneratedDeviceStateEntry = {
+        index,
+        name: nameExpression?.kind === 'string' ? nameExpression.value : String(index),
+        ...(mask?.kind === 'number' ? { mask: mask.value } : {}),
+        ...(flags.some(flag => flag.name === 'callimport') ? { import: true as const } : {}),
+        ...(flags.some(flag => flag.name === 'callexport') ? { export: true as const } : {}),
+        read: `__state_read_${position}`,
+        write: `__state_write_${position}`,
+      };
+      entries.push(entry);
+      device.methods.push(
+        { name: entry.read, parameters: '', source: start.source,
+          program: { operations: [{ op: 'return', value: target }], diagnostics: [] } },
+        { name: entry.write, parameters: 'u64 value', source: start.source,
+          program: { operations: [{ op: 'assign', target, operator: '=', value: { kind: 'identifier', name: 'value' } }], diagnostics: [] } },
+      );
+    });
+  }
+  if (entries.length) device.stateEntries = entries;
+}
+
+function compileMameDeviceReading(
+  mameSrc: string,
+  definition: MameHardwareDefinition,
+  type = definition.type,
+  compiling: ReadonlySet<string> = new Set(),
+  options: DeviceCompileOptions = {},
+): GeneratedDeviceDefinition {
   const device = compileMameDeviceSource(mameSrc, definition, type, compiling, options);
   if (options.transformSource) return device;
   // A device whose classes a macro declares has none until the preprocessor
   // runs: DISCRETE's ~80 node classes are DISCRETE_CLASS_STEP_RESET(...) and
   // friends, and read as written it compiled with no node at all.
   const declaresClasses = macroDeclaresClasses(mameSrc, device.sourceFiles);
-  const transformSource = preprocessedSources(mameSrc, device);
+  // Or whose methods a macro heads: mcs48.cpp writes its 256 opcode handlers
+  // `OPHANDLER( add_a_r0 ) { ... }`, `void mcs48_cpu_device::add_a_r0()`
+  // once expanded, and as written defines none of them.
+  const definesMethods = macroDefinesMethods(mameSrc, device.sourceFiles);
+  const transformSource = preprocessedSources(mameSrc, device, definesMethods);
   // Or one whose code names a macro only another directory's header defines:
   // the Namco 54xx writes `NAMCO_54XX_0_DATA(base)`, which is discrete.h's
   // NODE_RELATIVE, a node number only once expanded.
@@ -481,11 +835,44 @@ export function compileMameDevice(
     });
   }
   const callsForeignMacros = transformSource?.foreignMacros === true || callsForeign;
-  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros) return device;
+  // Or one whose source includes something that is not a header: an opcode
+  // file (`6805ops.hxx`, `m6809.hxx`) is code meant to be read after the
+  // preprocessor. As written, a 6805's handlers are macro heads that define
+  // nothing, and once its member-pointer dispatch lowered, that compiled with
+  // no diagnostic at all -- and no instructions.
+  const readAfterPreprocessor = transformSource?.nonHeader === true;
+  if (!device.summary.diagnostics && !declaresClasses && !callsForeignMacros && !readAfterPreprocessor && !definesMethods) return device;
   if (!transformSource) return device;
   const preprocessed = compileMameDeviceSource(mameSrc, definition, type, compiling, { ...options, transformSource });
-  return preprocessed.summary.diagnostics < device.summary.diagnostics ||
-    ((declaresClasses || callsForeignMacros) && preprocessed.summary.diagnostics <= device.summary.diagnostics) ? preprocessed : device;
+  // Read after the preprocessor because of an include, it is taken when it
+  // finds code the plain reading does not: a 6805's handlers are macro heads
+  // until expanded (611 methods against 148).
+  // And on a tie when that include defines macros: the plain reading of
+  // z80.cpp never sees z80.inc's register macros (`PC`, `A`), compiles them as
+  // bare names with no diagnostic, and ties on the method count. An include
+  // that is data (nes_pcb.hxx) is no reason to leave the plain reading, which
+  // keeps the NES slot's inline header methods.
+  const findsMore = (readAfterPreprocessor && (preprocessed.methods.length > device.methods.length ||
+      (transformSource?.nonHeaderMacros === true && preprocessed.methods.length === device.methods.length))) ||
+    (definesMethods && preprocessed.methods.length > device.methods.length);
+  if (!(preprocessed.summary.diagnostics < device.summary.diagnostics ||
+    ((declaresClasses || callsForeignMacros || findsMore) && preprocessed.summary.diagnostics <= device.summary.diagnostics))) {
+    // Kept as written although the preprocessor found more code: say so, with
+    // what failed, rather than ship a device that silently lacks it (the V30's
+    // opcode handlers are OP() heads that only the preprocessed reading has).
+    if (preprocessed.methods.length > device.methods.length && preprocessed.summary.diagnostics) {
+      const failing = preprocessed.methods.filter(method => method.program.diagnostics.length);
+      console.warn(`  ! ${type}: the preprocessed reading finds ${preprocessed.methods.length} methods against ${device.methods.length} ` +
+        `but ${preprocessed.summary.diagnostics} diagnostics, so it is not used: ` +
+        failing.slice(0, 4).map(method => `${method.name} (${String(method.program.diagnostics[0]).slice(0, 120)})`).join('; '));
+    }
+    return device;
+  }
+  // The preprocessor consumed the #define lines its reading expanded, but they
+  // are the source's constants still: the VLM5030's `IP_SIZE_NORMAL
+  // (160/FR_SIZE)`, which its speed table and the board read by name.
+  for (const [name, value] of Object.entries(device.constants)) preprocessed.constants[name] ??= value;
+  return preprocessed;
 }
 
 /**
@@ -515,6 +902,17 @@ function macroDeclaresClasses(mameSrc: string, files: readonly string[]): boolea
   });
 }
 
+/** Whether a function-like macro in these files heads a member function: `void cls::_name()`. */
+function macroDefinesMethods(mameSrc: string, files: readonly string[]): boolean {
+  return files.some(file => {
+    const path = join(mameSrc, file);
+    if (!existsSync(path)) return false;
+    const text = stripCppComments(readFileSync(path, 'utf8')).replace(/\\\r?\n/g, ' ');
+    return [...text.matchAll(/^\s*#\s*define\s+\w+\(([^)]*)\)([^\n]*)$/gm)]
+      .some(match => /^\s*[\w:<>*&\s]+\s+\w+::\w+\s*\([^)]*\)\s*(?:const\s*)?$/.test(match[2]!));
+  });
+}
+
 /**
  * The preprocessor pass compileMameDevice retries a device with: every source
  * file that defines a class of the device's hierarchy is preprocessed, each
@@ -527,7 +925,11 @@ function macroDeclaresClasses(mameSrc: string, files: readonly string[]): boolea
 function preprocessedSources(
   mameSrc: string,
   device: GeneratedDeviceDefinition,
-): (((file: string, source: string) => string) & { foreignMacros?: boolean; foreignNames?: ReadonlySet<string> }) | undefined {
+  /** A macro heads its methods (macroDefinesMethods): read it preprocessed. */
+  definesMethods = false,
+): (((file: string, source: string) => string) & {
+  foreignMacros?: boolean; foreignNames?: ReadonlySet<string>; nonHeader?: boolean; nonHeaderMacros?: boolean;
+}) | undefined {
   const text = new Map<string, string>();
   const read = (file: string) => {
     if (!text.has(file)) text.set(file, existsSync(join(mameSrc, file)) ? readFileSync(join(mameSrc, file), 'utf8') : '');
@@ -541,6 +943,21 @@ function preprocessedSources(
   const entries = device.sourceFiles.filter(file =>
     file.endsWith('.cpp') && hierarchy.some(className => read(file).includes(`${className}::`)));
   const nonHeader = entries.some(entry => includes(entry).some(path => !path.endsWith('.h')));
+  // A non-header that defines macros the entry itself is written in
+  // (z80.inc's `#define PC m_pc.w`), as opposed to one that is data with
+  // macros of its own (nes_unif.hxx's SPLIT_PRG): read as written, those uses
+  // are bare names.
+  // Or a header beside it that defines function-like macros it calls:
+  // z8000cpu.h's `RW(n)`, which the Z8002 writes as `RW(dst) -= 2`.
+  const nonHeaderMacros = entries.some(entry => includes(entry).some(path => {
+    const file = resolve(path, entry);
+    if (!file) return false;
+    const own = stripCppComments(read(entry));
+    const header = path.endsWith('.h');
+    if (header && dirname(file) !== dirname(entry)) return false;
+    return [...stripCppComments(read(file)).matchAll(header ? /^\s*#\s*define\s+(\w+)\(/gm : /^\s*#\s*define\s+(\w+)/gm)]
+      .some(match => new RegExp(header ? `\\b${match[1]}\\s*\\(` : `\\b${match[1]}\\b`).test(own));
+  }));
   let foreignMacros = false;
   const calledForeign = new Set<string>();
   const transforms = entries.map(entry => {
@@ -575,9 +992,9 @@ function preprocessedSources(
       classes: hierarchy,
     });
   });
-  if (!nonHeader && !foreignMacros && !calledForeign.size) return undefined;
+  if (!nonHeader && !foreignMacros && !calledForeign.size && !definesMethods) return undefined;
   const transform = (file: string, source: string) => transforms.reduce((current, step) => step(file, current), source);
-  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign });
+  return Object.assign(transform, { foreignMacros, foreignNames: calledForeign, nonHeader, nonHeaderMacros });
 }
 
 interface DeviceCompileOptions {
@@ -680,16 +1097,144 @@ function compileMameDeviceSource(
   if (generatorSource && existsSync(join(mameSrc, generatorSource))) {
     for (const file of localSourceFiles(mameSrc, generatorSource)) if (!sourceFiles.includes(file)) sourceFiles.push(file);
   }
+  for (const file of buildUnitSiblings(mameSrc, definition.sourceFile, definition.className)) {
+    if (!sourceFiles.includes(file)) sourceFiles.push(file);
+  }
   // Defines carry from file to file in include order, as the preprocessor
   // sees them.
   const defines = new Map<string, string>();
+  // Names the sources #undef and never #define: undefined everywhere, as the
+  // preprocessor sees them once the header that undefines them is included.
+  const texts = new Map(sourceFiles.map(file => [file, readFileSync(join(mameSrc, file), 'utf8')]));
+  const undefined_ = new Set<string>();
+  const definedAnywhere = new Set<string>();
+  for (const text of texts.values()) {
+    for (const match of text.matchAll(/^\s*#\s*undef\s+(\w+)/gm)) undefined_.add(match[1]!);
+    for (const match of text.matchAll(/^\s*#\s*define\s+(\w+)/gm)) definedAnywhere.add(match[1]!);
+  }
+  for (const name of definedAnywhere) undefined_.delete(name);
+  // A base that is a non-type class template, specialised by the class the
+  // device derives: the TMS320C10 is `tms320c1x_device_base<12>`, its spaces,
+  // its typed accessors and its opcode tables all spelled through HighBits.
+  // Each file that declares the template is flattened to that one
+  // specialisation (monomorphizeClassTemplate), so it reads as a class.
+  // Only along the compiled class's own chain of bases: namco.h derives the
+  // 3-voice WSG and the 8-voice Pole Position WSG from one template, and
+  // taking the first derivation in the file gave POLEPOS_WSG three voices.
+  const specialisations = new Map<string, Record<string, number>>();
+  const allTexts = [...texts.values()].join('\n');
+  const derivations = new Map<string, RegExpMatchArray>();
+  for (const derived of allTexts.matchAll(/\bclass\s+(\w+)\s*(?:final\s*)?:\s*public\s+(\w+)\s*(?:<\s*([^<>]+?)\s*>)?/g)) {
+    if (!derivations.has(derived[1]!)) derivations.set(derived[1]!, derived);
+  }
+  const chain: RegExpMatchArray[] = [];
+  for (let name: string | undefined = definition.className.replace(/\s*<[\s\S]*$/, ''), seen = new Set<string>();
+    name && derivations.has(name) && !seen.has(name); seen.add(name), name = derivations.get(name)![2]) {
+    chain.push(derivations.get(name)!);
+  }
+  for (const link of chain) {
+    if (link[3] === undefined) continue;
+    const derived = [link[0], link[2], link[3]] as const;
+    const base = derived[1]!;
+    const declared = new RegExp(String.raw`template\s*<\s*((?:(?:int|bool|unsigned(?:\s+int)?|u(?:8|16|32)|s(?:8|16|32))\s+\w+\s*,?\s*)+)>\s*class\s+${base}\b`).exec(allTexts);
+    if (!declared || specialisations.has(base)) continue;
+    const parameters = [...declared[1]!.matchAll(/(\w+)\s*(?:,|$)/g)].map(match => match[1]!);
+    const values = derived[2]!.split(',').map(value => Number(evalExpr(value.trim(), {})));
+    if (values.length !== parameters.length || values.some(value => !Number.isInteger(value))) continue;
+    specialisations.set(base, Object.fromEntries(parameters.map((parameter, index) => [parameter, values[index]!])));
+  }
+  if (specialisations.size) {
+    for (const [file, text] of texts) {
+      let flattened = text;
+      for (const [base, values] of specialisations) {
+        const parameters = Object.keys(values).join('|');
+        if (new RegExp(String.raw`template\s*<[^<>]*\b(?:${parameters})\b[^<>]*>`).test(flattened)) {
+          // With the class no longer a template, a dependent name needs no
+          // `typename`: `typename memory_access<12, 1, -1, ...>::cache m_cache`.
+          flattened = monomorphizeClassTemplate(flattened, base, values)
+            .replace(/\btypename\s+(?=[\w:]+\s*<)/g, '');
+        }
+      }
+      texts.set(file, flattened);
+    }
+  }
   const sources = sourceFiles.map(file => {
     // `#if 1 ... #else ... #endif` keeps the branch the preprocessor keeps:
     // the speaker's device_start builds its sinc kernel under `#if 1` and a
     // flat one under `#else`, and both used to run, the second winning.
-    const source = resolveLiteralConditionals(readFileSync(join(mameSrc, file), 'utf8'), defines);
-    return { file, source: options.transformSource ? options.transformSource(file, source) : source };
+    const source = resolveLiteralConditionals(
+      spliceBodyIncludes(mameSrc, file, texts.get(file)!),
+      defines,
+      undefined_,
+    );
+    // A function returning a reference to an array, `u32 (&REG_SP_BASE())[7]
+    // { return m_sp; }`, is read as one returning a pointer to its first
+    // element, which every use indexes the same way. Unparsed, Musashi's
+    // stack-pointer swap on every S-flag change wrote nowhere and read 0.
+    const referenceArrays = source.replace(
+      /\b((?:const\s+)?[\w:]+)\s*\(\s*&\s*(\w+)\s*\(([^()]*)\)\s*\)\s*\[[^\]]*\]\s*(?=(?:const\s*)?(?:noexcept\s*)?[{;])/g,
+      '$1 *$2($3) ');
+    return { file, source: options.transformSource ? options.transformSource(file, referenceArrays) : referenceArrays };
   });
+  // A file-scope typedef of a scalar names that type through the whole
+  // translation unit: nec.cpp's `typedef uint16_t WORD;` is what every
+  // `(WORD)` cast in its instruction includes means.
+  const scalarAliases = new Map<string, string>();
+  for (const { source } of sources) {
+    for (const alias of stripCppComments(source).matchAll(
+      /^typedef\s+((?:unsigned\s+|signed\s+)?(?:u?int(?:8|16|32|64)_t|[us](?:8|16|32|64)|char|short|int|long))\s+(\w+)\s*;/gm,
+    )) scalarAliases.set(alias[2]!, alias[1]!);
+  }
+  if (scalarAliases.size) {
+    const alias = new RegExp(`\\b(?:${[...scalarAliases.keys()].join('|')})\\b`, 'g');
+    for (const entry of sources) {
+      entry.source = entry.source
+        .replace(/^typedef\s+[\w\s]+?\s+(\w+)\s*;/gm, (whole, name: string) => scalarAliases.has(name) ? '' : whole)
+        .replace(alias, name => scalarAliases.get(name)!);
+    }
+  }
+  // A member-function pointer taken as a value is the method's name, which
+  // CALL_METHOD dispatches by: the 6800's opcode tables are file-scope arrays
+  // of `&m6800_cpu_device::aba`, handed to the constructor as `m_insn`. The
+  // preprocessed reading (preprocessed-device.ts) lowers them the same way.
+  if (!options.transformSource) {
+    const declared = [...new Set(sources.flatMap(({ source }) =>
+      [...source.matchAll(/\b(?:class|struct)\s+(\w+)\b/g)].map(match => match[1]!)))];
+    if (declared.length) {
+      // Only inside a file-scope table's initializer: in a body, `&cls::method`
+      // builds a delegate (`vblank_state_delegate(&watchdog_timer_device::
+      // watchdog_vblank, this)`), which is read as written.
+      const evaluate = (argument: string) => {
+        const value = evalExpr(argument, {});
+        return typeof value === 'number' ? value : null;
+      };
+      for (const entry of sources) {
+        if (!/&\s*\w+\s*::/.test(entry.source)) continue;
+        // A table spelled through the file's own macro is read expanded, as
+        // the preprocessor hands it over: mcs48.cpp's 256 opcode handlers
+        // are `OP(add_a_r0)`, with `#define OP(_a) &mcs48_cpu_device::_a`.
+        const spelled = [...entry.source.matchAll(/^[ \t]*#define[ \t]+(\w+)\(([^)]*)\)[ \t]+([^\r\n]*::[^\r\n]*)$/gm)]
+          .map(([, name, parameters, body]) => ({
+            call: new RegExp(`\\b${name}\\s*\\(([^()]*)\\)`, 'g'),
+            parameters: parameters!.split(',').map(parameter => parameter.trim()),
+            body: body!.trim(),
+          }));
+        const expand = (entries: string) => spelled.reduce((text, macro) => text.replace(macro.call, (_call, args: string) => {
+          const values = splitMameArgs(args).map(value => value.trim());
+          return macro.parameters.reduce((body, parameter, index) =>
+            body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), values[index] ?? ''), macro.body);
+        }), entries);
+        entry.source = entry.source.replace(
+          /^((?:const\s+)?[\w:]+(?:\s*<[^;{}]*>)?\s+\w+::\w+\s*(?:\[[^\]]*\]\s*)*=\s*\{)([^{};]*(?:\{[^{}]*\}[^{};]*)*)(\}\s*;)/gm,
+          // Comments out first: after mcs48.cpp's row label `// 00` the next
+          // `&mcs48_cpu_device::ins_a_bus` follows a digit, which the lowering
+          // reads as a bitwise AND.
+          (_whole, head: string, entries: string, tail: string) =>
+            head + lowerMemberPointerValues(expand(stripCppComments(entries)), declared, evaluate) + tail,
+        );
+      }
+    }
+  }
   for (const library of [
     ...formatLibrarySources(mameSrc, sources),
     ...helperLibrarySources(mameSrc, sources),
@@ -784,6 +1329,9 @@ function compileMameDeviceSource(
   const enumCast = enumTypes.length
     ? new RegExp(`(?<![\\w.>])(?:\\w+::)*(?:${enumTypes.join('|')})\\s*\\(`, 'g')
     : undefined;
+  const enumCStyleCast = enumTypes.length
+    ? new RegExp(`(?<![\\w)\\]]\\s*)\\(\\s*(?:\\w+::)*(?:${enumTypes.join('|')})\\s*\\)(?=\\s*[\\w(])`, 'g')
+    : undefined;
   // A smart pointer's `get()` is the storage it owns, which is all a member
   // holding one is here: the AY-3-8910 builds its mixer into
   // `m_vol3d_table.get()`, and as a call on the array it answered nothing,
@@ -817,6 +1365,10 @@ function compileMameDeviceSource(
   const specialize = (className: string, text: string): string => {
     const substitutions = templateArguments.get(className);
     let specialized = enumCast ? text.replace(enumCast, '(') : text;
+    // The C form names the enum in parentheses: the 8086's constructor fills
+    // its ModRM table with `(BREGS)reg_name[i & 7]`, and `(name)` alone reads
+    // as a value, so the whole statement failed to lower.
+    if (enumCStyleCast) specialized = specialized.replace(enumCStyleCast, '');
     if (smartGet) specialized = specialized.replace(smartGet, '$1$2');
     for (const [parameter, argument] of Object.entries(substitutions ?? {})) {
       specialized = specialized.replace(new RegExp(`\\b${parameter}\\b`, 'g'), argument);
@@ -833,17 +1385,16 @@ function compileMameDeviceSource(
     // `std::make_unique<T>(args)` builds a T as `new T(args)` does, and a
     // class template's instance is named as an allocation can be: ymfm's
     // engine builds `std::make_unique<fm_channel<RegisterType>>(*this, ...)`.
-    // T may be declared inside the device's own class: the slapstic makes
-    // each of its states as `std::make_unique<idle>(this, check, info)`. One
-    // a base declares (a processor's `mi_default` memory interface) is still
-    // the runtime's to make.
-    const nestedOwn = className === definition.className;
+    // T may be declared inside a class of the hierarchy: the slapstic makes
+    // each of its states as `std::make_unique<idle>(this, check, info)`, and
+    // m6809_base_device its memory interface as `std::make_unique<mi_default>()`
+    // -- left to a runtime that never made it, every 6809 read was of nothing.
     specialized = specialized.replace(
       /\b(?:std::make_unique\s*<\s*([\w:]+(?:\s*<[^<>;()]*>)?)\s*>|new\s+([\w:]+\s*<[^<>;()]*>))\s*\(/g,
       (text, made: string | undefined, allocated: string | undefined) => {
         const allocatedType = (made ?? allocated)!;
         const template = allocatedType.replace(/\s*<[\s\S]*>$/, '');
-        if (!classes.has(template) && !(nestedOwn && classes.has(`${className}::${template}`))) return text;
+        if (!classes.has(template) && !classes.has(`${className}::${template}`)) return text;
         const name = templateInstanceName(allocatedType);
         if (name !== allocatedType) instanceNames.set(name, allocatedType);
         return `new ${name}(`;
@@ -876,7 +1427,10 @@ function compileMameDeviceSource(
     coreOsdDefines(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
-    ...((helpers) => sources.map(({ source }) => numericConstants(stripCppComments(source), {}, helpers)))(constexprHelpers(mameSrc, sources)),
+    // Seeded with diexec.h's lines: z80.h numbers its own after them
+    // (`Z80_INPUT_LINE_WAIT = INPUT_LINE_IRQ0 + 1`), and without the seed the
+    // enum stopped there and BUSREQ answered to IRQ line 0.
+    ...((helpers, lines) => sources.map(({ source }) => numericConstants(stripCppComments(source), lines, helpers)))(constexprHelpers(mameSrc, sources), coreLineStates(mameSrc)),
     deviceTypeTokens(sources),
   );
   // A class template's members name their argument's constants
@@ -939,7 +1493,7 @@ function compileMameDeviceSource(
   // 68705's timer raised its interrupt on no line at all.
   const pendingDefines = new Map<string, string>();
   for (const { source } of sources) {
-    for (const match of stripCppComments(source).matchAll(/^\s*#define\s+([A-Za-z_]\w*)\s+([^\r\n]+)/gm)) {
+    for (const match of stripCppComments(source).matchAll(/^[ \t]*#define[ \t]+([A-Za-z_]\w*)[ \t]+([^\r\n]+)/gm)) {
       if (constants[match[1]!] === undefined) pendingDefines.set(match[1]!, match[2]!.trim());
     }
   }
@@ -1144,7 +1698,10 @@ function compileMameDeviceSource(
   // Statement macros the device's own sources define. These have to be
   // substituted textually: their bodies read and assign the caller's locals,
   // which no call can do.
-  const functionMacros = sources.flatMap(({ source }) => [...collectFunctionMacros(source), ...collectMemberCallMacros(source)]);
+  const functionMacros = [
+    ...sources.flatMap(({ source }) => [...collectFunctionMacros(source), ...collectMemberCallMacros(source)]),
+    ...coreFunctionMacros(mameSrc),
+  ];
   const stringMacros: Record<string, string> = Object.assign({},
     ...sources.map(({ source }) => parseTextMacros(stripCppComments(source)).strings));
   const hierarchyFunctions = ast.units.flatMap(unit => unit.functions)
@@ -1232,9 +1789,30 @@ function compileMameDeviceSource(
   // Every body, an overridden base's included: avgdvg_device_base allocates
   // the AVG's timers in the device_start avg_device overrides and chains to.
   const allMethodBodies: string[] = [];
+  // The device's own type templates (set_flags<T>), filled once the source
+  // methods are known; each call names its instance (template-deduction.ts).
+  const typeTemplates = new Map<string, TypeTemplate>();
+  // Templates over values, whose calls name them with constants the parser
+  // cannot fold: the Z80's `set_service_attention<SA_IRQ_ON, 1>()` is the
+  // instance `set_service_attention_<value>_1` once SA_IRQ_ON is a number.
+  const valueTemplates = new Set<string>();
+  const typeTemplateSources = new Map<string, MameFunction[]>();
+  const pendingTypeInstances: [string, string][] = [];
+  let deductionScope: ((method: MameFunction) => DeductionScope) | undefined;
   const replaceOrAppend = (method: MameFunction): void => {
     const specialized = specializeMethod(method, specialize);
     specialized.body = expandDynamicMacros(expandLocalMacros(specialized.body), dynamicMacros);
+    if (valueTemplates.size && !specialized.templateParameters?.length) {
+      // The constants as the method's own class sees them: the Z80's SA_*
+      // service bits are an enum inside z80_device.
+      const scoped = hierarchy.reduce<Record<string, number>>((all, className) =>
+        ({ ...all, ...(classScope(className)?.constants ?? {}) }), { ...constants });
+      specialized.body = foldTemplateConstants(specialized.body, valueTemplates, scoped);
+    }
+    if (typeTemplates.size && deductionScope && !specialized.templateParameters?.length) {
+      specialized.body = rewriteTypeTemplateCalls(specialized.body, typeTemplates, deductionScope(specialized),
+        (name, type) => pendingTypeInstances.push([name, type]));
+    }
     // Recorded even for an ignored method: `memory_space_config` is not
     // executable device behaviour, but it is where the space indices are said.
     methodBodies.set(specialized.name, specialized.body);
@@ -1285,6 +1863,59 @@ function compileMameDeviceSource(
   };
 
   const sourceMethods = ast.units.flatMap(unit => unit.functions);
+  // Type templates of the hierarchy: one type parameter, declared as the type
+  // of some parameter, so a call deduces it.
+  for (const className of hierarchy) {
+    const candidates = [
+      ...sourceMethods.filter(candidate => candidate.className === className),
+      ...(classes.get(className) ? inlineMethods(classes.get(className)!) : []),
+    ];
+    for (const candidate of candidates) {
+      const [parameter, ...more] = candidate.templateParameters ?? [];
+      const positions = parameter && !more.length ? typePositions(candidate.parameters, parameter) : undefined;
+      if (!positions) {
+        if (parameter) valueTemplates.add(candidate.name);
+        continue;
+      }
+      const entry = typeTemplates.get(candidate.name) ?? { name: candidate.name, parameter, positions: new Map() };
+      const arity = candidate.parameters.split(',').filter(part => part.trim() && part.trim() !== 'void').length;
+      entry.positions.set(arity, positions);
+      typeTemplates.set(candidate.name, entry);
+      typeTemplateSources.set(candidate.name, [...(typeTemplateSources.get(candidate.name) ?? []), candidate]);
+    }
+  }
+  if (typeTemplates.size) {
+    const memberTypes = new Map<string, string>();
+    for (const className of hierarchy) {
+      const declaration = classes.get(className);
+      if (declaration) for (const member of memberDeclarations(declaration, constants)) memberTypes.set(member.name, member.valueType);
+    }
+    const returnTypes = new Map<string, string | undefined>();
+    const returns = (name: string): string | undefined => {
+      if (returnTypes.has(name)) return returnTypes.get(name);
+      let found: string | undefined;
+      for (const className of [...hierarchy].reverse()) {
+        const body = stripCppComments(classes.get(className)?.body ?? '');
+        const declared = new RegExp(`(?:^|[;{}:])\\s*(?:(?:virtual|static|inline|constexpr)\\s+)*((?:unsigned\\s+|signed\\s+)?[\\w:]+)\\s*&?\\s*${name}\\s*\\(`, 'm').exec(body);
+        if (declared) { found = declared[1]; break; }
+      }
+      returnTypes.set(name, found);
+      return found;
+    };
+    const known = (type: string) => integerType(type) !== undefined || /^PAIR(?:16)?$/.test(type) || structFields.has(type);
+    deductionScope = method => {
+      const locals = new Map<string, string>();
+      for (const declared of `${method.parameters},${method.body}`.matchAll(
+        /(?:^|[;{}(,])\s*(?:const\s+)?((?:unsigned\s+|signed\s+)?[A-Za-z_][\w:]*)\s*&?\s+(\w+)\s*(?=[=;,)\[{])/g)) {
+        if (known(declared[1]!) && !locals.has(declared[2]!)) locals.set(declared[2]!, declared[1]!);
+      }
+      return {
+        variable: name => locals.get(name) ?? memberTypes.get(name),
+        fields: type => structFields.get(type),
+        returns,
+      };
+    };
+  }
   // A configuration statement calls the device through its finder; without
   // the receiver it names the instance as the device's own code would. A
   // qualified reference is this device's only when the class is one of its.
@@ -1362,6 +1993,24 @@ function compileMameDeviceSource(
     }
   }
 
+  // Each type template's instances its calls named, T bound to the type:
+  // `set_flags__T_uint16_t` is set_flags with `uint16_t` for T, its
+  // `sizeof(T)` the width. An instance may name others in turn.
+  const generatedTypeInstances = new Set<string>();
+  while (pendingTypeInstances.length) {
+    const [name, type] = pendingTypeInstances.shift()!;
+    const instance = typeInstanceName(name, type);
+    if (generatedTypeInstances.has(instance)) continue;
+    generatedTypeInstances.add(instance);
+    const parameter = typeTemplates.get(name)!.parameter;
+    // `sizeof(T)` is the type's width, a constant once T is bound.
+    const bytes = { uint8_t: 1, int8_t: 1, bool: 1, uint16_t: 2, int16_t: 2, uint64_t: 8, int64_t: 8 }[type] ?? 4;
+    const bind = (text: string) => text.replace(new RegExp(`\\b${parameter}\\b`, 'g'), type)
+      .replace(new RegExp(`\\bsizeof\\s*\\(\\s*${type}\\s*\\)`, 'g'), String(bytes));
+    for (const template of typeTemplateSources.get(name) ?? []) {
+      replaceOrAppend({ ...template, name: instance, parameters: bind(template.parameters), body: bind(template.body), templateParameters: undefined });
+    }
+  }
   // File-scope helpers the device's own methods call. They belong to no class,
   // so the hierarchy walk above never reaches them, and an unresolved call
   // answers zero rather than failing: `convert_output` in gb.cpp turns a
@@ -1520,7 +2169,22 @@ function compileMameDeviceSource(
       .filter(initializer => /^m_\w+$/.test(initializer.name))
       .map(initializer => [initializer.name, initializer.args.map(argument => argument.trim())])),
   };
-  const members: GeneratedDeviceMember[] = hierarchy.flatMap(className => {
+  // The device's own mutable file-scope state is its state too: the NEC core
+  // keeps its ModRM decode table and parity table as `static struct {...}
+  // Mod_RM;` and `static uint8_t parity_table[256];` beside the class, fills
+  // them in device_start and reads them in every instruction. Not members,
+  // every register field decoded as AW.
+  // A header the sources include from their own directory counts as theirs:
+  // the NEC's Mod_RM is declared in necmodrm.h, which nec.cpp includes.
+  const ownIncludes = [...new Set(sources.flatMap(({ file, source }) =>
+    [...source.matchAll(/^[ \t]*#\s*include\s+"([^"]+)"/gm)].map(found => join(dirname(file), found[1]!))))]
+    .filter(file => !sources.some(source => source.file === file) && existsSync(join(mameSrc, file)));
+  const fileStatics = [fileScopeStatics([...sources.map(source => source.source),
+    ...ownIncludes.map(file => readFileSync(join(mameSrc, file), 'utf8'))]),
+  libraryExterns(mameSrc, [...sources.map(source => source.source),
+    ...ownIncludes.map(file => readFileSync(join(mameSrc, file), 'utf8'))])].filter(Boolean).join('\n');
+  if (fileStatics) classes.set(FILE_STATICS, { name: FILE_STATICS, body: fileStatics, bases: [] } as unknown as MameClass);
+  const members: GeneratedDeviceMember[] = [...hierarchy, ...(fileStatics ? [FILE_STATICS] : [])].flatMap(className => {
     const declaration = classes.get(className);
     if (!declaration) return [];
     // The class's constants size its arrays: the AY-3-8910's
@@ -1711,7 +2375,7 @@ function compileMameDeviceSource(
   }
   const constructorStrings: Record<string, string> = {};
   const constructorPointers: Record<string, string> = {};
-  const constructorBodies: { body: string; env: Record<string, number> }[] = [];
+  const constructorBodies: { body: string; env: Record<string, number>; className: string }[] = [];
   const constructorChain: ConstructorChainValues = { structs: {}, spaceConfigs: {} };
   const constructorValues = constructorInitialValues(
     definition.className,
@@ -1749,6 +2413,14 @@ function compileMameDeviceSource(
     if (!table?.fields || !table.initialValue || !/^const\b/.test(member.valueType)) continue;
     member.fields = table.fields;
     member.initialValue = structuredClone(table.initialValue);
+    delete member.initial;
+  }
+  // A member the constructor chain hands a file-scope table: the 6800's
+  // opcode handlers (method names, CALL_METHOD's) and cycle counts.
+  for (const [name, values] of Object.entries(constructorChain.tables ?? {})) {
+    const member = members.find(candidate => candidate.name === name);
+    if (!member) continue;
+    member.values = values;
     delete member.initial;
   }
   // A pointer member the constructor points at a file-scope table holds that
@@ -1801,6 +2473,25 @@ function compileMameDeviceSource(
   const inputDefaults = deviceInputDefaults(methodBodies.get('device_input_ports'), source);
   const dataAddressBits = executionDataAddressBits(definition.className, source, constants);
   const spaces = deviceAddressSpaces(definition.className, hierarchy, source, constants, methodBodies, constructorChain.spaceConfigs);
+  // An address_space_config member is the configuration its initializer
+  // gives, field by field, as code reads it back: the 68000's default CPU
+  // space map places its autovectors at `make_bitmask<offs_t>(
+  // m_cpu_space_config.m_addr_width) - 0xf`. As a bare number the width
+  // was nothing, and the autovectors sat at negative addresses.
+  for (const [name, config] of Object.entries(constructorChain.spaceConfigs)) {
+    const member = members.find(candidate => candidate.name === name);
+    if (!member || member.fields) continue;
+    member.fields = [
+      { name: 'm_data_width', bits: 8 }, { name: 'm_addr_width', bits: 8 },
+      { name: 'm_addr_shift', bits: 8, signed: true }, { name: 'm_logaddr_width', bits: 8 },
+      { name: 'm_page_shift', bits: 8 }, { name: 'm_endianness', bits: 8 },
+    ];
+    member.initialValue = {
+      m_data_width: config.dataBits, m_addr_width: config.addressBits,
+      m_addr_shift: config.addressShift ?? 0, m_logaddr_width: config.addressBits,
+      m_page_shift: 0, m_endianness: config.endianness === 'big' ? 1 : 0,
+    };
+  }
 
   // Devices this one builds out of other devices. MAME writes them as
   // `TYPE(config, m_member)` inside device_add_mconfig -- a method that is not
@@ -1835,6 +2526,14 @@ function compileMameDeviceSource(
         const delegate = child.delegates?.[setter[1]!];
         if (delegate) delegateTargets[delegate] = setter[2]!;
       }
+      // Its devcbs this device binds to its own methods: the RP2A03's
+      // `m_apu->irq().set(FUNC(rp2a03_device::apu_irq))` and
+      // `m_apu->mem_read().set(FUNC(rp2a03_device::apu_read_mem))`.
+      const callbackTargets: Record<string, string> = {};
+      for (const setter of mconfig.matchAll(new RegExp(
+        String.raw`\b${member}\s*->\s*(\w+)\s*\(\s*\)\s*\.\s*set\s*\(\s*FUNC\s*\(\s*\w+::(\w+)\s*\)\s*\)`, 'g'))) {
+        if (child.callbacks.some(callback => callback.signal === setter[1])) callbackTargets[setter[1]!] = setter[2]!;
+      }
       // `TYPE(config, m_member, options_function, ...)`: a slot's card table.
       const call = mconfig.slice(match.index + match[0].length);
       const slotOptions = /^\s*,\s*([a-z_]\w*)\s*[,)]/.exec(call)?.[1];
@@ -1857,9 +2556,12 @@ function compileMameDeviceSource(
       const chained = call.slice(close, Math.max(close, call.indexOf(';', close)));
       const separate = [...mconfig.matchAll(new RegExp(String.raw`\b${member}\s*->\s*(add_route\s*\([^;]*)\s*;`, 'g'))]
         .map(route => `.${route[1]}`).join('');
+      // A route into this device itself (`add_route(ALL_OUTPUTS, *this, 1.0)`)
+      // makes it the child's mixer, as MAME's device_mixer_interface is: its
+      // target is "*this".
       const routes = [...`${chained}${separate}`.matchAll(
-        /\.add_route\s*\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*([\d.]+)/g,
-      )].map(route => ({ output: route[1] === 'ALL_OUTPUTS' ? -1 : Number(route[1]), target: route[2]!, gain: Number(route[3]) }))
+        /\.add_route\s*\(\s*(\w+)\s*,\s*(?:"([^"]+)"|(\*\s*this))\s*,\s*([\d.]+)/g,
+      )].map(route => ({ output: route[1] === 'ALL_OUTPUTS' ? -1 : Number(route[1]), target: route[2] ?? '*this', gain: Number(route[4]) }))
         .filter(route => Number.isFinite(route.output));
       const childSlot = slotOptions ? composeChildSlot(mameSrc, child, slotOptions, nested) : undefined;
       if (childSlot) child.slot = childSlot;
@@ -1876,6 +2578,7 @@ function compileMameDeviceSource(
         ...(childClock !== null && childClock >= 0 ? { clock: childClock } : {}),
         ...(routes.length ? { routes } : {}),
         ...(Object.keys(delegateTargets).length ? { delegateTargets } : {}),
+        ...(Object.keys(callbackTargets).length ? { callbackTargets } : {}),
         ...(slotOptions && /\bget_card_device\s*\(/.test(child.sourceFiles.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'))
           ? { slotOptions } : {}),
         ...(tags ? { tags } : {}),
@@ -1930,6 +2633,7 @@ function compileMameDeviceSource(
     if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') return 1 + loopDepth(operation.body);
     if (operation.op === 'if') return Math.max(loopDepth(operation.then), loopDepth(operation.else ?? []));
     if (operation.op === 'switch') return Math.max(0, ...operation.cases.map(entry => loopDepth(entry.body)));
+    if (operation.op === 'try') return Math.max(loopDepth(operation.body), ...operation.catches.map(entry => loopDepth(entry.body)));
     return 0;
   }));
   const hotMethods = methods
@@ -1974,8 +2678,12 @@ function compileMameDeviceSource(
   }
   // The return type, from the declaration in the class (an out-of-class
   // definition repeats it, but the AST keeps only the name and parameters).
-  const RETURN_WIDTHS: Record<string, 8 | 16 | -8 | -16> = {
+  // An int one too: the TIA's `int current_x()` computes in u64 from
+  // total_cycles() and returns `3 * (...) - 68`, negative for the first 68
+  // colour clocks, which only the conversion to int makes negative again.
+  const RETURN_WIDTHS: Record<string, 8 | 16 | 32 | -8 | -16 | -32> = {
     u8: 8, uint8_t: 8, s8: -8, int8_t: -8, u16: 16, uint16_t: 16, s16: -16, int16_t: -16,
+    u32: 32, uint32_t: 32, offs_t: 32, unsigned: 32, s32: -32, int32_t: -32, int: -32,
   };
   for (const method of methods) {
     const bare = method.name.split('::').at(-1)!;
@@ -1988,13 +2696,96 @@ function compileMameDeviceSource(
       break;
     }
   }
+  // A method returning a reference is an lvalue: the 6809's
+  // `uint8_t &regop8() { return *m_reg8; }` is assigned through, as
+  // `regop8() = read_operand();`, and `uint16_t &ireg()` picks X, Y, U or S
+  // in a switch. Its `name=` method stores into whatever each return names,
+  // which a call-result assignment runs.
+  const isLvalue = (expression: GeneratedExpression) =>
+    ['identifier', 'member', 'index'].includes(expression.kind) ||
+    (expression.kind === 'unary' && expression.operator === '*');
+  const assigned = '__assigned';
+  const storing = (operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] | undefined => {
+    const mapped: GeneratedHandlerOperation[] = [];
+    for (const operation of operations) {
+      if (operation.op === 'return') {
+        if (!operation.value || !isLvalue(operation.value)) return undefined;
+        // And answers what it stored, as the assignment's value is.
+        mapped.push({ op: 'assign', target: operation.value, operator: '=', value: { kind: 'identifier', name: assigned } },
+          { op: 'return', value: operation.value });
+      } else if (operation.op === 'if') {
+        const then = storing(operation.then);
+        const otherwise = operation.else ? storing(operation.else) : [];
+        if (!then || !otherwise) return undefined;
+        mapped.push({ ...operation, then, ...(operation.else ? { else: otherwise } : {}) });
+      } else if (operation.op === 'switch') {
+        const cases = operation.cases.map(entry => ({ ...entry, body: storing(entry.body) }));
+        if (cases.some(entry => !entry.body)) return undefined;
+        mapped.push({ ...operation, cases: cases as typeof operation.cases });
+      } else if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
+        return undefined;
+      } else {
+        mapped.push(operation);
+      }
+    }
+    return mapped;
+  };
+  for (const method of [...methods]) {
+    const bare = method.name.split('::').at(-1)!;
+    if (!method.program.operations.length || method.program.diagnostics.length) continue;
+    const returnsReference = [...hierarchy].reverse().some(className =>
+      new RegExp(`(?:^|[;{}:])\\s*(?:(?:virtual|static|inline)\\s+)*(?!const\\b)[\\w:<>]+\\s*&\\s*${bare}\\s*\\(`, 'm')
+        .test(stripCppComments(classes.get(className)?.body ?? '')));
+    if (!returnsReference || methods.some(candidate => candidate.name === `${method.name}=`)) continue;
+    const operations = storing(method.program.operations);
+    if (!operations) continue;
+    methods.push({
+      ...method,
+      name: `${method.name}=`,
+      parameters: [method.parameters.trim(), `u32 ${assigned}`].filter(parameter => parameter && parameter !== 'void').join(', '),
+      program: { operations, diagnostics: [] },
+    });
+  }
   const romInterfaceBits = hierarchy.map(className => {
     const declaration = classes.get(className);
     if (!declaration?.bases.includes('device_rom_interface')) return undefined;
     const width = declaration.baseTemplateArguments?.device_rom_interface?.[0];
     return width === undefined ? undefined : evalExpr(width, constants) ?? undefined;
   }).find(width => width !== undefined);
-  runConstructorBodies(constructorBodies, members, methods, constants);
+  // A static table a method names whole, not by index, is state the device
+  // holds: the microcoded 68000's device_start points `m_handlers_f` at
+  // s_handlers_df (every state's handler, by member-function pointer) and
+  // execute_run dispatches through `m_handlers_f[m_inst_state]`. Unnamed as a
+  // value, the pointer held nothing to index.
+  {
+    const bodies = hierarchyFunctions.map(method => method.body).join('\n');
+    const known = new Set(members.map(member => member.name));
+    const methodNames = new Set(methods.map(method => method.name.split('::').at(-1)!));
+    for (const [qualified, table] of Object.entries(sourceTables)) {
+      const name = qualified.split('::').at(-1)!;
+      if (known.has(name)) continue;
+      // A two-dimensional one counts when code takes a row of it:
+      // `m_cyc_exception = m68ki_exception_cycle_table[0]`.
+      const used = table.columns === undefined
+        ? new RegExp(`(?<![\\w.>])${name}\\b(?!\\s*\\[)`).test(bodies)
+        : new RegExp(`(?<![\\w.>])${name}\\s*\\[[^\\]]*\\](?!\\s*\\[)`).test(bodies);
+      if (!used) continue;
+      const values = table.values.map(entry => {
+        const text = entry.trim();
+        const pointed = /^&\s*(?:\w+::)*(\w+)$/.exec(text)?.[1] ?? /^"(\w+)"$/.exec(text)?.[1];
+        if (pointed !== undefined && methodNames.has(pointed)) return pointed;
+        if (text === 'nullptr') return '';
+        return evalExpr(text, constants) ?? undefined;
+      });
+      if (values.some(value => value === undefined)) continue;
+      const columns = table.columns;
+      members.push({ name, valueType: 'table', values: columns === undefined ? values
+        : Array.from({ length: Math.ceil(values.length / columns) }, (_, row) => values.slice(row * columns, (row + 1) * columns)) });
+      known.add(name);
+    }
+  }
+  runConstructorBodies(constructorBodies.map(({ body, env, className }) =>
+    ({ body: specialize(className, body), env })), members, methods, constants);
   // An XTAL reaches a device as its frequency, so `set_clk<0>(const XTAL &)`
   // and `set_clk<0>(double)` take the same number, and of overloads with the
   // same arity the runtime selects the last. MAME's XTAL overload forwards
@@ -2180,6 +2971,11 @@ function compileMameDeviceSource(
   // With more than one argument it parses as a call of the type's name
   // (`checker check(m_start, m_end, ...)`, the slapstic's address predicates),
   // and the class may be declared inside the device.
+  // The class of the hierarchy a nested type is declared in, the leaf first:
+  // m6809_base_device's `mi_default` for a KONAMI-1, konami1_device's own
+  // `mi_konami1` before it.
+  const nestedClassOwner = (type: string): string | undefined =>
+    hierarchy.find(className => classes.has(`${className}::${type}`));
   for (const method of methods) walkOperations(method.program.operations, operation => {
     if (operation.op !== 'declare' || !operation.value) return;
     const value = operation.value;
@@ -2193,8 +2989,9 @@ function compileMameDeviceSource(
       operation.value = { kind: 'call', callee: { kind: 'identifier', name: type }, args };
       return;
     }
-    const nested = classes.has(`${definition.className}::${type}`);
-    const qualified = nested ? `${definition.className}::${type}` : type;
+    const owner = nestedClassOwner(type);
+    const nested = owner !== undefined;
+    const qualified = nested ? `${owner}::${type}` : type;
     if (!nested && (!classes.has(type) || hierarchy.includes(type) || /_device$/.test(type))) return;
     if (!constructorOf(qualified)) return;
     // A struct is plain data unless it defines methods of its own out of
@@ -2202,19 +2999,26 @@ function compileMameDeviceSource(
     if (structFields.has(type) && !sourceMethods.some(helper => helper.className === qualified)) return;
     operation.value = { kind: 'call', callee: { kind: 'identifier', name: `new::${type}` }, args };
   });
+  // Collected first and compiled after the walk: each nested class is a whole
+  // compile of its own, and started from inside the walk's recursion, ymfm's
+  // chain of engine, channel and operator classes ran the stack out.
+  const allocatedTypes = new Set<string>();
   for (const method of methods) walkExpressions(method.program.operations, expression => {
     if (expression.kind !== 'call' || expression.callee.kind !== 'identifier' || !expression.callee.name.startsWith('new::')) return;
-    const allocated = expression.callee.name.slice(5);
-    if (allocations[allocated]) return;
+    allocatedTypes.add(expression.callee.name.slice(5));
+  });
+  for (const allocated of allocatedTypes) {
+    if (allocations[allocated]) continue;
     const name = instanceNames.get(allocated) ?? allocated;
-    const qualified = classes.has(`${definition.className}::${name}`) ? `${definition.className}::${name}` : name;
+    const owner = nestedClassOwner(name);
+    const qualified = owner !== undefined ? `${owner}::${name}` : name;
     if (instanceNames.has(allocated)) {
       compileNestedClass(allocated, qualified);
-      return;
+      continue;
     }
     if (!classes.has(qualified)) throw new Error(`cannot resolve allocated MAME class ${qualified}`);
     compileNestedClass(name, qualified);
-  });
+  }
   // A struct with methods and a constructor of its own, so the methods run
   // emitted: discrete's transform node pushes and pops a `double_stack` for
   // every term of its expression, every sample. Its values stay plain structs
@@ -2965,6 +3769,10 @@ export function lowerStructLocals(
       if (operation.op === 'switch') {
         for (const entry of operation.cases) entry.body = rewrite(entry.body);
       }
+      if (operation.op === 'try') {
+        for (const entry of operation.catches) entry.body = rewrite(entry.body);
+        if (operation.finally) operation.finally = rewrite(operation.finally);
+      }
       if (operation.op !== 'declare') return [operation];
       const fields = fieldsOf(operation.valueType);
       let value = operation.value;
@@ -3108,8 +3916,37 @@ function runConstructorBodies(
   constants: Record<string, number>,
 ): void {
   const state: Record<string, unknown> = {};
+  // A struct member is its fields' shape, arrays as arrays: the 8086's
+  // constructor fills `m_Mod_RM.reg.w[i]`, its ModRM decode table.
+  const shape = (fields: readonly GeneratedStructField[], seed: Record<string, unknown> = {}): Record<string, unknown> | undefined => {
+    const value: Record<string, unknown> = {};
+    for (const field of fields) {
+      if (field.union || /^std::/.test(field.valueType ?? '')) return undefined;
+      const seeded = seed[field.name];
+      if (field.fields) {
+        const one = (index?: number) => shape(field.fields!, ((index === undefined ? seeded : (seeded as unknown[] | undefined)?.[index]) ?? {}) as Record<string, unknown>);
+        const built = field.length ? Array.from({ length: field.length }, (_, index) => one(index)) : one();
+        if (Array.isArray(built) ? built.some(item => !item) : !built) return undefined;
+        value[field.name] = built;
+      } else if (field.length) {
+        value[field.name] = Array.isArray(seeded) ? [...seeded] : new Array(field.length).fill(field.initial ?? 0);
+      } else {
+        value[field.name] = typeof seeded === 'number' ? seeded : field.initial ?? 0;
+      }
+    }
+    return value;
+  };
+  const finiteLeaves = (value: unknown): boolean => typeof value === 'number' ? Number.isFinite(value)
+    : Array.isArray(value) ? value.every(finiteLeaves)
+    : typeof value === 'object' && value !== null && Object.values(value).every(finiteLeaves);
   for (const member of members) {
-    if (member.fields || member.memory || member.finder || member.valueType.startsWith('devcb_')) continue;
+    if (member.fields) {
+      if (member.arrayLength || member.memory || member.finder) continue;
+      const value = shape(member.fields, member.initialValue);
+      if (value) state[member.name] = value;
+      continue;
+    }
+    if (member.memory || member.finder || member.valueType.startsWith('devcb_')) continue;
     if (member.values) state[member.name] = [...member.values];
     else if (member.arrayLength) state[member.name] = new Array(member.arrayLength).fill(0);
     else if (typeof member.initial === 'number' || member.initial === undefined) state[member.name] = member.initial ?? 0;
@@ -3136,11 +3973,74 @@ function runConstructorBodies(
   for (const member of members) {
     if (!(member.name in state) || before.get(member.name) === JSON.stringify(state[member.name])) continue;
     const value = state[member.name];
-    if (typeof value === 'number' && Number.isFinite(value)) member.initial = value;
+    if (member.fields) {
+      if (finiteLeaves(value)) member.initialValue = value as Record<string, unknown>;
+    } else if (typeof value === 'number' && Number.isFinite(value)) member.initial = value;
     else if (Array.isArray(value) && value.every(item => typeof item === 'number' && Number.isFinite(item))) {
       member.values = value as number[];
     }
   }
+}
+
+/** The scope fileScopeStatics' declarations are read as members of. */
+const FILE_STATICS = '__file_statics';
+
+/**
+ * Each uninitialised mutable `static` a source declares at file scope, as a
+ * member declaration without the `static`. One that is initialised is a
+ * table (sourceTables reads those), and a function is not state.
+ */
+function fileScopeStatics(sources: readonly string[]): string {
+  const declarations: string[] = [];
+  for (const raw of sources) {
+    const text = stripCppComments(raw).replace(/^[ \t]*#.*$/gm, '');
+    let depth = 0;
+    let start = 0;
+    // A braced struct is part of its declaration; any other block ends one.
+    let braced = false;
+    for (let index = 0; index < text.length; index++) {
+      const character = text[index];
+      if (character === '{') {
+        if (depth === 0) braced = /^\s*static\s+(?:struct|union)\s*\w*\s*$/.test(text.slice(start, index));
+        depth++;
+      } else if (character === '}') {
+        depth--;
+        if (depth === 0 && !braced) start = index + 1;
+      } else if (character === ';' && depth === 0) {
+        const statement = text.slice(start, index + 1).trim();
+        start = index + 1;
+        const declared = /^static\s+(?!(?:const|constexpr|inline)\b)([\s\S]*;)$/.exec(statement);
+        if (!declared) continue;
+        // Parentheses or an initializer outside the struct's own braces.
+        const outside = declared[1]!.replace(/\{[\s\S]*\}/, '{}');
+        if (/[(=]/.test(outside)) continue;
+        declarations.push(declared[1]!);
+      }
+    }
+  }
+  return declarations.join('\n');
+}
+
+/**
+ * The mutable globals a third-party library the sources include declares
+ * `extern`, as member declarations: Musashi's execute_run saves and restores
+ * softfloat's `softfloat_roundingMode` around every run (an RAII
+ * fpu_rounding_saver), and an unknown name kept the whole loop interpreted.
+ * MAME shares them process-wide; every user saves and restores them around
+ * its own work, so a copy per device holds the same values at every use.
+ */
+function libraryExterns(mameSrc: string, sources: readonly string[]): string {
+  const declarations = new Set<string>();
+  for (const source of sources) {
+    for (const include of source.matchAll(/^[ \t]*#\s*include\s+"([^"]+)"/gm)) {
+      const header = join(mameSrc, '3rdparty', include[1]!);
+      if (!existsSync(header)) continue;
+      for (const declared of stripCppComments(readFileSync(header, 'utf8')).matchAll(
+        /^[ \t]*extern\s+(?:THREAD_LOCAL\s+)?((?:\w+\s+)*?\w+)\s+(\w+)\s*;/gm,
+      )) declarations.add(`${declared[1]} ${declared[2]};`);
+    }
+  }
+  return [...declarations].join('\n');
 }
 
 /** Lower a selected C++ constructor, including field initializers, to ordinary method IR. */
@@ -3287,7 +4187,7 @@ export function mameDeviceShortName(
 export function mameExecuteFacts(
   mameSrc: string,
   type: string,
-): { executes: boolean; minCycles?: number } | undefined {
+): { executes: boolean; minCycles?: number; clocksToCycles?: (clocks: number) => number } | undefined {
   const definition = indexMameHardware(mameSrc).get(type);
   if (!definition) return undefined;
   const className = /^([\w:]+)\s*</.exec(definition.className)?.[1] ?? definition.className;
@@ -3306,7 +4206,33 @@ export function mameExecuteFacts(
       .find(fn => fn.name === 'execute_min_cycles')?.body;
   }).find(found => found !== undefined);
   const minCycles = Number(/^\s*return\s+(\d+)\s*;\s*$/.exec(stripCppComments(body ?? ''))?.[1]);
-  return { executes, ...(Number.isInteger(minCycles) && minCycles > 0 ? { minCycles } : {}) };
+  // device_execute_interface::clocks_to_cycles: the core's own
+  // execute_clocks_to_cycles, run on the clock it is given -- the 6800
+  // family's `(clocks + 4 - 1) / 4`, an MCS-48's `/ 15`. The most derived
+  // definition wins (an i8080 answers `clocks` over the i8085's `/ 2`), and a
+  // core that defines none counts its input clock (diexec.cpp).
+  const clockMethod = [...hierarchy].reverse().concat('device_execute_interface').map(name => {
+    const declaration = classes.get(name);
+    return (declaration ? inlineMethods(declaration) : []).concat(outOfLine.filter(fn => fn.className === name))
+      .find(fn => fn.name === 'execute_clocks_to_cycles');
+  }).find(found => found !== undefined);
+  let clocksToCycles: ((clocks: number) => number) | undefined;
+  if (clockMethod) {
+    const program = compileMameHandler(normalizeMameExecutionSource(clockMethod.body));
+    const parameter = parameterName(splitMameArgs(clockMethod.parameters)[0] ?? 'clocks');
+    if (!program.diagnostics.length) {
+      // Members the constructor chain sets: the 6809's m_clock_divider, 4 on
+      // an MC6809 and 1 on an MC6809E.
+      const members = constructorInitialValues(className, files.map(file => readFileSync(join(mameSrc, file), 'utf8')).join('\n'));
+      // An integer return type (u64), so the quotient is truncated.
+      clocksToCycles = clocks => Math.floor(Number(executeGeneratedProgram(program, { members }, { [parameter]: clocks }).value) || 0);
+    }
+  }
+  return {
+    executes,
+    ...(Number.isInteger(minCycles) && minCycles > 0 ? { minCycles } : {}),
+    ...(clocksToCycles ? { clocksToCycles } : {}),
+  };
 }
 
 function executionClockDivider(source: string): number | undefined {
@@ -3461,6 +4387,120 @@ function composeChildSlot(
   return undefined;
 }
 
+/**
+ * Where an `#include` resolves, as localSourceFiles follows it: beside the
+ * including file, under src/devices, under 3rdparty, then MAME's GEN_DIR.
+ */
+function resolveMameInclude(mameSrc: string, includingAbsolute: string, include: string): string | undefined {
+  return [
+    join(dirname(includingAbsolute), include),
+    join(mameSrc, 'src/devices', include),
+    join(mameSrc, '3rdparty', include),
+  ].find(candidate => existsSync(candidate)) ?? generatedInclude(mameSrc, include);
+}
+
+/**
+ * An `#include` inside a function body is that file's text in that place, as
+ * the C preprocessor has it. MAME's 6809 is written so:
+ *
+ *   void m6809_base_device::execute_one()
+ *   {
+ *     switch(pop_state())
+ *     {
+ *   #include "cpu/m6809/m6809.hxx"
+ *     }
+ *   }
+ *
+ * and read without the text the switch had no cases: the whole instruction
+ * set dropped, with no diagnostic. An include at file level is a separate
+ * source, which localSourceFiles already follows.
+ */
+function spliceBodyIncludes(mameSrc: string, file: string, source: string): string {
+  if (!/^[ \t]*#[ \t]*include\b/m.test(source)) return source;
+  const absolute = join(mameSrc, file);
+  const lines = source.split('\n');
+  let depth = 0;
+  let blockComment = false;
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex]!;
+    const include = /^[ \t]*#[ \t]*include[ \t]+"([^"]+)"/.exec(line);
+    if (include && depth > 0 && !blockComment) {
+      const resolved = resolveMameInclude(mameSrc, absolute, include[1]!);
+      if (!resolved) throw new Error(`${file}:${lineIndex + 1}: #include "${include[1]}" inside a function resolves nowhere`);
+      lines[lineIndex] = spliceBodyIncludes(mameSrc, relative(mameSrc, resolved), readFileSync(resolved, 'utf8'));
+      continue;
+    }
+    for (let index = 0; index < line.length; index++) {
+      const character = line[index]!;
+      if (blockComment) {
+        if (character === '*' && line[index + 1] === '/') { blockComment = false; index++; }
+      } else if (character === '/' && line[index + 1] === '/') {
+        break;
+      } else if (character === '/' && line[index + 1] === '*') {
+        blockComment = true;
+        index++;
+      } else if (character === '"' || character === '\'') {
+        for (index++; index < line.length && line[index] !== character; index++) {
+          if (line[index] === '\\') index++;
+        }
+      } else if (character === '{') {
+        depth++;
+      } else if (character === '}') {
+        depth--;
+      }
+    }
+  }
+  return lines.join('\n');
+}
+
+/** A same-directory header of out-of-line method definitions (`Class::name(...) {`), not declarations. */
+function inlineBodiesHeader(from: string, include: string): boolean {
+  if (extname(include) !== '.h' || include.includes('/')) return false;
+  const path = join(dirname(from), include);
+  if (!existsSync(path)) return false;
+  const definitions = stripCppComments(readFileSync(path, 'utf8'))
+    .match(/^[ \t]*(?:inline\s+)?[\w:<>*&\s]+?\b\w+::~?\w+\s*\([^;{}]*\)\s*(?:const\s*)?\{/gm);
+  return (definitions?.length ?? 0) >= 3;
+}
+
+const BUILD_SCRIPTS = ['cpu.lua', 'sound.lua', 'video.lua', 'machine.lua', 'bus.lua'];
+const BUILD_BLOCKS = new Map<string, string[][]>();
+
+/**
+ * The other build units MAME compiles a device's class from: a .cpp listed
+ * in the same `files { }` block of scripts/src/*.lua as the device's source,
+ * that includes the device's own header and defines methods of its class.
+ * The microcoded 68000's instruction handlers are m68000gen.py's
+ * m68000-sdf.cpp and its siblings, which no header names; without them the
+ * class had its execute_run and none of the states it dispatches to.
+ */
+function buildUnitSiblings(mameSrc: string, sourceFile: string, className: string): string[] {
+  let blocks = BUILD_BLOCKS.get(mameSrc);
+  if (!blocks) {
+    blocks = [];
+    for (const script of BUILD_SCRIPTS) {
+      const path = join(mameSrc, 'scripts/src', script);
+      if (!existsSync(path)) continue;
+      for (const block of readFileSync(path, 'utf8').matchAll(/\bfiles\s*\{([^}]*)\}/g)) {
+        blocks.push([...block[1]!.matchAll(/MAME_DIR\s*\.\.\s*"([^"]+)"/g)].map(found => found[1]!));
+      }
+    }
+    BUILD_BLOCKS.set(mameSrc, blocks);
+  }
+  const block = blocks.find(files => files.includes(sourceFile));
+  if (!block) return [];
+  const header = `${basename(sourceFile, extname(sourceFile))}.h`;
+  const bare = className.split('::').at(-1)!;
+  // A method, or a static member defined there: m68000-decode.cpp holds only
+  // `m68000_device::s_packed_decode_table[]`.
+  const definesMethod = new RegExp(`^[^\\n;{}]*\\b${bare}::~?\\w+\\s*[(\\[=]`, 'm');
+  return block.filter(file => file !== sourceFile && file.endsWith('.cpp') &&
+    dirname(file) === dirname(sourceFile) && existsSync(join(mameSrc, file)) && (() => {
+      const text = readFileSync(join(mameSrc, file), 'utf8');
+      return new RegExp(`^\\s*#\\s*include\\s+"${header.replace(/\./g, '\\.')}"`, 'm').test(text) && definesMethod.test(text);
+    })());
+}
+
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
   const files: string[] = [];
   const seen = new Set<string>();
@@ -3487,7 +4527,12 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
       // `.hxx` is the same convention for data: the coefficient tables one
       // source includes into itself (vlm5030.cpp reads its LPC ladders from
       // tms5110r.hxx), never another device's declarations.
-      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!))) continue;
+      // So is a header beside the .cpp that holds out-of-line method bodies
+      // rather than declarations: i86.cpp's `#include "i86inline.h"`, 89
+      // `i8086_common_cpu_device::` bodies (CLK, PUSH, fetch_word, the flag
+      // ops) every instruction calls. A sibling that only declares a class
+      // is not followed.
+      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!)) && !inlineBodiesHeader(absolute, match[1]!)) continue;
       // Follow headers that are part of the same device family. Includes
       // resolved through MAME's global include paths (screen.h, emu.h, etc.)
       // describe host services, not another source-defined base class.
@@ -3501,11 +4546,11 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
       // `3rdparty` is the other: MAME's FM chips are wrappers over the bundled
       // ymfm library (`#include "ymfm/src/ymfm_opl.h"`), and the chip a
       // DS1001 holds as `m_chip` is declared nowhere else.
-      const included = [
-        join(dirname(absolute), match[1]!),
-        join(mameSrc, 'src/devices', match[1]!),
-        join(mameSrc, '3rdparty', match[1]!),
-      ].find(candidate => existsSync(candidate));
+      //
+      // Last, GEN_DIR: what MAME's build generates rather than the tree
+      // holding it -- the 6809's `#include "cpu/m6809/m6809.hxx"`, which
+      // m6809make.py writes from m6809.lst (mame-build.ts).
+      const included = resolveMameInclude(mameSrc, absolute, match[1]!);
       if (!included) continue;
       visit(included);
       // An .ipp carries the templates; the plain header beside it carries the
@@ -3682,6 +4727,23 @@ function bindDependentPixelSize(method: MameFunction, typeParameters: readonly s
     );
   }
   return body === method.body ? method : { ...method, body };
+}
+
+/**
+ * Calls to value templates with every argument a constant the device knows,
+ * spelled with the numbers (`f<SA_IRQ_ON, 1>(` as `f<4, 1>(`), so the handler
+ * parser names the instance as the compiler generated it.
+ */
+function foldTemplateConstants(body: string, names: ReadonlySet<string>, constants: Record<string, number>): string {
+  const pattern = new RegExp(`(?<![\\w.>:])(${[...names].map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*<([^<>()]+)>\\s*\\(`, 'g');
+  return body.replace(pattern, (whole, name: string, args: string) => {
+    const values = splitMameArgs(args).map(argument => {
+      const text = argument.trim().replace(/\btrue\b/g, '1').replace(/\bfalse\b/g, '0');
+      return evalExpr(text, constants);
+    });
+    return values.every(value => typeof value === 'number' && Number.isInteger(value))
+      ? `${name}<${values.join(', ')}>(` : whole;
+  });
 }
 
 function specializeFunctionTemplate(
@@ -3934,11 +4996,25 @@ function classHierarchy(
       // the slapstic's `struct idle : public state` derives from the
       // `atari_slapstic_device::state` declared beside it.
       const scopes = name.split('::').slice(0, -1);
-      for (let depth = scopes.length; depth > 0; depth--) {
+      let found = false;
+      for (let depth = scopes.length; depth > 0 && !found; depth--) {
         const nested = `${scopes.slice(0, depth).join('::')}::${unqualified}`;
         if (classes.has(nested)) {
           visit(nested);
-          break;
+          found = true;
+        }
+      }
+      // Or a type an enclosing class inherits: konami1_device's
+      // `class mi_konami1 : public mi_default` is m6809_base_device's.
+      for (let depth = scopes.length; depth > 0 && !found; depth--) {
+        const enclosing = scopes.slice(0, depth).join('::');
+        for (const ancestor of classHierarchy(enclosing, classes).reverse()) {
+          const inherited = `${ancestor}::${unqualified}`;
+          if (ancestor !== enclosing && classes.has(inherited)) {
+            visit(inherited);
+            found = true;
+            break;
+          }
         }
       }
     }
@@ -4021,11 +5097,36 @@ function compileMethod(
     body = body.replace(alias[0], '').replace(new RegExp(`(?<![\\w.>])${alias[1]}\\s*\\.`, 'g'), `${chain}.`);
   }
   body = expandStringMacros(body, stringMacros);
+  // MAME's debugger is never running here (debug_flags has no
+  // DEBUG_FLAG_ENABLED), so `debugger_enabled()` is false wherever it is
+  // asked: the Z80's execute_run guards its interrupt hook with it, and left
+  // as a call it kept the whole instruction loop out of the emitter.
+  body = body
+    // address_space_config's accessors are its fields (the config members
+    // carry them): Musashi sizes its autovector map with
+    // `m_program_config.addr_width()`.
+    .replace(/\b(m_\w*config\w*)\s*\.\s*(addr_width|data_width|addr_shift|logaddr_width|page_shift|endianness)\s*\(\s*\)/g, '$1.m_$2')
+    .replace(/(?:\b\w+::)?\bdebugger_enabled\s*\(\s*\)/g, 'false')
+    .replace(/\bmachine\s*\(\s*\)\s*\.\s*debug_flags\b/g, '0');
   // `space(AS_PROGRAM).cache(m_cprogram13)` binds the accessor to that space:
   // every later `m_cprogram13.read_byte(a)` reads through it. The accessor is
   // the space as far as the generated device is concerned.
   body = body.replace(
-    /\b(space\s*\([^()]*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+)\s*\)\s*;/g,
+    // The space may be chosen in place: the 6800 fetches opcodes through
+    // `space(has_space(AS_OPCODES) ? AS_OPCODES : AS_PROGRAM).cache(m_copcodes)`.
+    // Or a field of an object the device holds: the 6809 reads memory
+    // through its memory interface, `space(AS_PROGRAM).cache(m_mintf->cprogram)`.
+    /\b(space\s*\((?:[^()]|\([^()]*\))*\))\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
+    '$2 = $1;',
+  ).replace(
+    // Or through a member holding the space: the 8086's
+    // `m_opcodes->cache(m_cache8)`, after `m_opcodes = m_program`.
+    /(?<![\w.>])(m_\w+)\s*->\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
+    '$2 = $1;',
+  ).replace(
+    // Or a space the method was handed: Musashi's init16(address_space &space,
+    // address_space &ospace) binds `ospace.cache(m_oprogram16)`.
+    /(?<![\w.>])([A-Za-z_]\w*)\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
     '$2 = $1;',
   );
   for (const callback of interruptCallbacks) {
@@ -4052,6 +5153,13 @@ function compileMethod(
     // normalizer folds those together with their declaration. Substituting
     // here as well leaves `static const double TABLE(...) = {...}` behind.
     if (new RegExp(`\\bstatic\\s+[^;{]*\\b${name}\\s*\\[`).test(body)) {
+      continue;
+    }
+    // So is a parameter of that name: segacrpt's file-scope `decode(...,
+    // const uint8_t convtable[32][4], ...)` indexes the table each decrypt()
+    // passes it, and substituting another class's static `convtable` decoded
+    // every Sega Z80 with the wrong one.
+    if (new RegExp(`\\b${name}\\s*(?:\\[[^\\]]*\\]\\s*)*(?:,|$)`).test(method.parameters)) {
       continue;
     }
     body = table.columns === undefined
@@ -4208,7 +5316,13 @@ export function memberDeclarations(
   declaration = { ...declaration, body: maskNestedClasses(declaration.body)
     .replace(/;[ \t]+(?=(?:const\s+)?[\w:]+(?:\s*<[^<>;]*>)?[\s*&]+m_\w+\s*(?:=|;|\[|\{))/g, ';\n')
     .replace(/\b(public|protected|private)\s*:(?!:)/g, '$1:\n')
-    .replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1') };
+    .replace(/(^\s*|[;{}]\s*)mutable\s+/gm, '$1')
+    // A static data member is state too (the build fills it once, every
+    // instance reads it): Musashi's `static u16 m68ki_instruction_state_table
+    // [NUM_CPU_TYPES][0x10000]` and its cycle tables, built by
+    // m68ki_build_opcode_table at the first init. Not a constant, a function
+    // or an inline initialiser, which say otherwise.
+    .replace(/(^\s*|[;{}]\s*)static\s+(?!(?:const|constexpr|inline|void|struct|class|enum)\b)(?=(?:(?:unsigned|signed|long|short)\s+)*[\w:]+(?:\s*<[^;<>]*>)?\s+\w+\s*(?:\[[^\]]*\]\s*)*;)/gm, '$1') };
   const members: {
     name: string; valueType: string; arrayLength?: number; arrayShape?: number[];
   }[] = [];
@@ -4239,14 +5353,18 @@ export function memberDeclarations(
   // bit-engine states as `live_info cur_live, checkpoint_live;`. The type may
   // be elaborated: each slapstic state holds `struct test m_bank[4], m_alt, m_bit;`.
   for (const match of declaration.body.matchAll(
-    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s+const)?)\s+([A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
+    // A template type too: the 6800 keeps both its program and opcode
+    // accessors as `memory_access<16, 0, 0, ENDIANNESS_BIG>::cache m_cprogram, m_copcodes;`.
+    // Pointer declarators too: the 8086's `address_space *m_program, *m_opcodes;`.
+    /^\s*((?:const\s+)?(?:(?:struct|union)\s+)?[\w:]+(?:\s*<[^;<>\r\n]*(?:<[^;<>\r\n]*>[^;<>\r\n]*)*>(?:::\w+)*)?(?:\s+const)?)\s+(\*?\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?(?:\s*,\s*\*?\s*[A-Za-z_]\w*(?:\s*\[[^\]]+\])?)+)\s*;/gm,
   )) {
-    const valueType = match[1]!.replace(/\b(?:struct|union)\s+/, '').replace(/\s+/g, ' ').trim();
-    if (/^(?:return|using|typedef|friend|case|goto|delete|throw)$/.test(valueType)) continue;
+    const baseType = match[1]!.replace(/\b(?:struct|union)\s+/, '').replace(/\s+/g, ' ').trim();
+    if (/^(?:return|using|typedef|friend|case|goto|delete|throw)$/.test(baseType)) continue;
     for (const declarator of match[2]!.split(',').map(value => value.trim())) {
-      const parsed = /^([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
-      const name = parsed[1]!;
-      const arrayLength = parsed[2] === undefined ? undefined : arrayBound(parsed[2]);
+      const parsed = /^(\*?)\s*([A-Za-z_]\w*)(?:\s*\[([^\]]+)\])?$/.exec(declarator)!;
+      const valueType = parsed[1] ? `${baseType} *` : baseType;
+      const name = parsed[2]!;
+      const arrayLength = parsed[3] === undefined ? undefined : arrayBound(parsed[3]);
       if (!members.some(member => member.name === name)) {
         members.push({ valueType, name,
           ...(arrayLength !== undefined && Number.isInteger(arrayLength) ? { arrayLength } : {}) });
@@ -4277,14 +5395,15 @@ export function memberDeclarations(
     // `std::unique_ptr<fm_channel<RegisterType>> m_channel[CHANNELS];`.
     /^\s*((?:const\s+)?[\w:]+<[^;\r\n]+>(?:::\w+)*)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     // `char const *m_default_card;` -- east const, as generic_slot_device
-    // spells all three of its strings.
-    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?(?:\s+const)?)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    // spells all three of its strings. The pointer may be const itself: the
+    // MCS-48's `const mcs48_ophandler *const m_opcode_table;`.
+    /^\s*((?:const\s+)?[\w:]+(?:<[^;\r\n]+>)?(?:\s+const)?)\s*(\*)\s*(?:const\s+)?(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     // A builtin spelled in more than one word -- VLM5030's
     // `unsigned int m_current_energy;` -- and a pointer to a struct the
     // source names with its elaborated specifier, `const struct
     // tms5100_coeffs *m_coeff;`. Neither shape matched above, so the members
     // did not exist and every store into them went nowhere.
-    /^\s*((?:const\s+)?(?:(?:unsigned|signed|long|short)\s+)+(?:int|char|long|short)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
+    /^\s*((?:const\s+)?(?:(?:unsigned|signed|long|short)\s+)+(?:int|char|long|short)?)\s+(\w+)\s*(?:\[([^\]]+)\])?(?:\s*\[[^\]]+\])*(?:\s*(?:=[^;]*|\{[^{}]*\}))?\s*;/gm,
     /^\s*(?:const\s+)?(?:struct|union)\s+([\w:]+)\s*(\*)\s*(\w+)\s*(?:\[([^\]]+)\])?\s*;/gm,
     // A reference member, bound by the constructor: ymfm's operator reaches
     // its registers and its engine as `RegisterType &m_regs;` and
@@ -4493,10 +5612,15 @@ function memoryContainer(
   // required_shared_ptr(*this, DEVICE_SELF) binds the device's own tag.
   const args = constructorBindings[name] ?? [];
   const target = args.at(-1) ?? '';
+  // finder_base::DUMMY_TAG names nothing until the machine configuration
+  // re-tags the finder (Sega's 315-5177 `set_decrypted_tag(...)`), so it is
+  // not the device's own tag.
   return {
     kind: 'shared',
     elementBytes,
-    share: target === 'DEVICE_SELF' ? 'self' : unquoteToken(target) ?? 'self',
+    share: target === 'DEVICE_SELF' ? 'self'
+      : /\bDUMMY_TAG\b/.test(target) ? 'unset'
+        : unquoteToken(target) ?? 'self',
   };
 }
 
@@ -4557,7 +5681,13 @@ export interface ConstructorChainValues {
   /** A struct member the chain builds from a brace list, as its fields' values. */
   structs: Record<string, Record<string, unknown>>;
   /** An `address_space_config` member, as its initializer configures it. */
-  spaceConfigs: Record<string, { name: string; dataBits: number; addressBits: number; map?: string }>;
+  spaceConfigs: Record<string, { name: string; dataBits: number; addressBits: number; map?: string; endianness?: 'big' | 'little'; addressShift?: number }>;
+  /**
+   * A member the chain points at a file-scope table, as the table's entries:
+   * the 6800's `m_insn(insn)` and `m_cycles(cycles)`, handed `m6803_insn`
+   * and `cycles_6803` by the 6803's constructor two levels down.
+   */
+  tables?: Record<string, (string | number)[]>;
 }
 
 /**
@@ -4594,7 +5724,7 @@ export function constructorInitialValues(
    */
   pointers?: Record<string, string>,
   /** Each constructor body that runs, base first, with its arguments' values. */
-  bodies?: { body: string; env: Record<string, number> }[],
+  bodies?: { body: string; env: Record<string, number>; className: string }[],
   /**
    * The member a name means in one class's own code, where a derived class
    * declares a member of a base's name: the Irem G-101's `const u8 m_prg_mask`
@@ -4665,8 +5795,9 @@ export function constructorInitialValues(
   // A table a class defines at file scope (`m6805_base_device::s_hmos_s_ops = {...}`),
   // its entries numbers or, once its member pointers are lowered, method names.
   const tables = new Map<string, (string | number)[]>();
-  for (const table of source.matchAll(/\b\w+::(\w+)\s*=\s*\{([^{};]*(?:\{[^{}]*\}[^{};]*)*)\}\s*;/g)) {
-    const entries = splitMameArgs(table[2]!.replace(/\/\*[\s\S]*?\*\//g, ''))
+  for (const table of source.matchAll(/\b\w+::(\w+)\s*(?:\[[^\]]*\]\s*)*=\s*\{([^{};]*(?:\{[^{}]*\}[^{};]*)*)\}\s*;/g)) {
+    // Both comment forms out: mcs48.cpp labels each opcode row `// 00`.
+    const entries = splitMameArgs(table[2]!.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g, ''))
       .map(entry => entry.trim().replace(/^\((.*)\)$/s, '$1').trim()).filter(Boolean)
       .map(entry => /^"(\w+)"$/.exec(entry)?.[1] ?? constantValue(entry, constants));
     if (entries.length && entries.every(entry => entry !== undefined)) tables.set(table[1]!, entries as (string | number)[]);
@@ -4771,6 +5902,8 @@ export function constructorInitialValues(
           (/^[A-Za-z_]\w*$/.test(passed) && !/^(?:nullptr|NULL|true|false|this)$/.test(passed) && definesFunction(passed) ? passed : undefined);
         const target = pointers && addressedObject(initializer.args[0]!, { ...constants, ...env });
         const struct = structArguments[initializer.args[0]!.trim()];
+        const table = tables.get(substitute(initializer.args[0]!.trim()));
+        if (table && chain) (chain.tables ??= {})[member] = table;
         if (struct && chain) chain.structs[member] = struct;
         else if (text !== undefined && strings) strings[member] = text;
         else if (target) pointers[member] = target;
@@ -4780,12 +5913,15 @@ export function constructorInitialValues(
         const name = /^"([^"]*)"$/.exec(initializer.args[0]!.trim())?.[1];
         if (name === undefined || !/^ENDIANNESS_\w+$/.test(initializer.args[1]!.trim())) continue;
         const map = selectedMapConstructor(argTexts[5] ?? initializer.args[5] ?? '', text => constantValue(text, { ...constants, ...env }));
+        const order = /^ENDIANNESS_(BIG|LITTLE)$/.exec(initializer.args[1]!.trim())?.[1];
         chain.spaceConfigs[memberName(className, initializer.name)] = {
           name, dataBits: args[2]!, addressBits: args[3]!, ...(map ? { map } : {}),
+          ...(order ? { endianness: order === 'BIG' ? 'big' as const : 'little' as const } : {}),
+          ...(args.length > 4 && args[4] ? { addressShift: args[4] } : {}),
         };
       }
     }
-    bodies?.push({ body: constructor.body, env });
+    bodies?.push({ body: constructor.body, env, className });
     for (const assignment of constructor.body.matchAll(/\b(m_\w+)\s*=\s*([^;]+);/g)) {
       const value = constantValue(assignment[2]!, { ...constants, ...env });
       if (value !== undefined && Number.isFinite(value)) result[memberName(className, assignment[1]!)] = value;
@@ -4932,20 +6068,16 @@ function constantValue(expression: string, env: Record<string, number>): number 
  *
  * Read from MAME rather than written here, so the values stay the source's.
  */
-function coreLineStates(mameSrc: string): Record<string, number> {
+export function coreLineStates(mameSrc: string): Record<string, number> {
   const header = join(mameSrc, 'src/emu/diexec.h');
   if (!existsSync(header)) return {};
-  const body = /enum\s+line_state\s*\{([^}]*)\}/.exec(readFileSync(header, 'utf8'))?.[1];
-  if (!body) return {};
-  const states: Record<string, number> = {};
-  let next = 0;
-  for (const entry of body.split(',')) {
-    const match = /^\s*(\w+)\s*(?:=\s*(-?\d+))?/.exec(entry.replace(/\/\/.*$/gm, ''));
-    if (!match) continue;
-    next = match[2] === undefined ? next : Number(match[2]);
-    states[match[1]!] = next++;
-  }
-  return states;
+  // Both of diexec.h's enums: line_state, and the input lines a core's header
+  // names its own by (`#define I8085_TRAP_LINE INPUT_LINE_NMI`), the three
+  // scheduler-level lines numbered as the host delivers them.
+  const source = readFileSync(header, 'utf8');
+  const text = source.slice(0, source.indexOf('\nclass '));
+  const lines: Record<string, number> = { ...parseEnumConstants(text), ...HOST_INPUT_LINES };
+  return lines.CLEAR_LINE === 0 && lines.ASSERT_LINE === 1 && lines.INPUT_LINE_IRQ0 === 0 ? lines : {};
 }
 
 /**
@@ -5081,6 +6213,19 @@ function coreEnumerators(
   // the generated CPUs' is -1.
   return Object.fromEntries(Object.entries(core).filter(([name]) =>
     named.has(name) && DEFAULT_CONSTANTS[name] === undefined));
+}
+
+/**
+ * The function-like macros emumem.h gives every device, read from it rather
+ * than restated: Musashi checks `WORD_ALIGNED(address)` on every long read,
+ * and a device's sources reach emumem.h through emu.h, which they never name.
+ * Pure expressions, so substituting them is exactly what the preprocessor
+ * does (COMBINE_DATA stays the IR's own intrinsic).
+ */
+function coreFunctionMacros(mameSrc: string): FunctionMacro[] {
+  const header = join(mameSrc, 'src/emu/emumem.h');
+  if (!existsSync(header)) return [];
+  return collectFunctionMacros(readFileSync(header, 'utf8'), { expressions: true });
 }
 
 /**
@@ -5253,11 +6398,14 @@ export function numericConstants(
   functions: Parameters<typeof expandConstexprCalls>[1] = {},
 ): Record<string, number> {
   const expressions = new Map<string, string>();
+  // The define's whitespace is horizontal only (as parseDefines has it): with
+  // `\s`, an include guard's bare `#define MAME_CPU_I8085_I8085_H` took the
+  // next line as its value, and i8085.h's I8085_INTR_LINE was never defined.
   // The value runs to the end of the line less any comment. Stopping at the
   // first `/` instead cut every dividing macro in half -- VLM5030's
   // `#define IP_SIZE_NORMAL (160/FR_SIZE)` read as `(160` -- and its speed
   // table then gave every frame zero samples.
-  for (const match of source.matchAll(/^\s*#define\s+(\w+)\s+([^\r\n]+)/gmi)) {
+  for (const match of source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^\r\n]+)/gmi)) {
     const value = match[2]!.replace(/\/\/.*$|\/\*.*?\*\//g, '').trim();
     if (value) expressions.set(match[1]!, value);
   }
@@ -5416,12 +6564,16 @@ function constantTables(source: string): Record<string, ConstantTable> {
   // Or a class's own static, defined out of the class as MAME defines one:
   // k053260.cpp's `const int k053260_device::pan_mul[8][2] = { ... };`.
   for (const match of source.matchAll(
-    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[\s*(\d+)\s*\]\s*\[\s*(\d+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
+    // Its bounds may be named (Musashi's `m68ki_exception_cycle_table
+    // [NUM_CPU_TYPES][256]`): then they are what the rows give.
+    /(?:\bstatic\s+const\s+[\w:]+\s+|(?:^|[;}])\s*const\s+[\w:]+\s+(\w+)::)(\w+)\s*\[\s*(\w+)\s*\]\s*\[\s*(\w+)\s*\]\s*=\s*\{([\s\S]*?\}),?\s*\}\s*;/gm,
   )) {
-    const columns = Number(match[4]);
-    const values = [...match[5]!.matchAll(/\{([^{}]*)\}/g)]
-      .flatMap(row => splitMameArgs(row[1]!).map(value => value.trim()).filter(Boolean));
-    if (values.length !== Number(match[3]) * columns) continue;
+    const rowValues = [...match[5]!.matchAll(/\{([^{}]*)\}/g)]
+      .map(row => splitMameArgs(row[1]!.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')).map(value => value.trim()).filter(Boolean));
+    const columns = /^\d+$/.test(match[4]!) ? Number(match[4]) : rowValues[0]?.length ?? 0;
+    const rows = /^\d+$/.test(match[3]!) ? Number(match[3]) : rowValues.length;
+    const values = rowValues.flat();
+    if (!columns || values.length !== rows * columns) continue;
     tables[match[2]!] = { values, columns };
     if (match[1]) tables[`${match[1]}::${match[2]}`] = { values, columns };
   }
@@ -5533,52 +6685,113 @@ function deviceAddressSpaces(
   chainConfigs: ConstructorChainValues['spaceConfigs'] = {},
 ): NonNullable<GeneratedDeviceDefinition['spaces']> {
   const spaces: NonNullable<GeneratedDeviceDefinition['spaces']> = [];
-  const configs = new Map<string, { name: string; dataBits: number; addressBits: number; map: string }>();
+  const configs = new Map<string, { name: string; dataBits: number; addressBits: number; map: string; endianness?: 'big' | 'little'; addressShift?: number }>();
+  const spaceOrder = (endianness: string, shift: unknown): { endianness?: 'big' | 'little'; addressShift?: number } => ({
+    ...(endianness === 'BIG' || endianness === 'LITTLE' ? { endianness: endianness === 'BIG' ? 'big' as const : 'little' as const } : {}),
+    ...(Number.isInteger(shift) && shift !== 0 ? { addressShift: Number(shift) } : {}),
+  });
+  // What the constructor chain built, with the arguments each constructor was
+  // handed: a 6800's `m_program_config(..., internal)` and an MCS-48's
+  // address width from its feature mask are only known this way.
+  const chained = new Map<string, { name: string; dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number }>();
   for (const [member, config] of Object.entries(chainConfigs)) {
     if (config.map) configs.set(member, { ...config, map: config.map });
+    else chained.set(member, config);
   }
   for (const owner of hierarchy) {
     const escaped = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     for (const match of source.matchAll(new RegExp(
-      `(m_\\w*space_config\\w*)\\s*\\(\\s*"([^"]*)"\\s*,\\s*ENDIANNESS_\\w+\\s*,` +
+      `(m_\\w*config\\w*)\\s*\\(\\s*"([^"]*)"\\s*,\\s*ENDIANNESS_(\\w+)\\s*,` +
       `\\s*([^,]+),\\s*([^,]+),\\s*([^,]+),\\s*address_map_constructor\\s*\\(\\s*FUNC\\s*\\(\\s*${escaped}::(\\w+)`,
       'g',
     ))) {
-      const dataBits = evalExpr(match[3]!.trim(), constants);
-      const addressBits = evalExpr(match[4]!.trim(), constants);
+      const dataBits = evalExpr(match[4]!.trim(), constants);
+      const addressBits = evalExpr(match[5]!.trim(), constants);
+      const addressShift = evalExpr(match[6]!.trim(), constants);
       if (!Number.isInteger(dataBits) || !Number.isInteger(addressBits)) continue;
       configs.set(match[1]!, {
         name: match[2]!,
         dataBits: Number(dataBits),
         addressBits: Number(addressBits),
-        map: match[6]!,
+        map: match[7]!,
+        ...spaceOrder(match[3]!, addressShift),
       });
     }
   }
   // A space configured with no map of its own: what the device installs into
   // it itself at start (a YM2610's ADPCM ROM, `space(0).install_rom(...)`).
-  const unmapped = new Map<string, { name: string; dataBits: number; addressBits: number }>();
+  const unmapped = new Map<string, { name: string; dataBits: number; addressBits: number; endianness?: 'big' | 'little'; addressShift?: number }>(chained);
   for (const match of source.matchAll(
     // The address shift is optional: `m_data_config("data", ENDIANNESS_BIG, 8, 8)`
     // is the Namco WSG's waveform space, which it fills from its own region.
-    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_\w+\s*,\s*([^,()]+),\s*([^,()]+)(?:,\s*([^,()]+))?\)/g,
+    /(m_\w*config\w*)\s*\(\s*"([^"]*)"\s*,\s*ENDIANNESS_(\w+)\s*,\s*([^,()]+),\s*([^,()]+)(?:,\s*([^,()]+))?\)/g,
   )) {
-    if (configs.has(match[1]!)) continue;
-    const dataBits = evalExpr(match[3]!.trim(), constants);
-    const addressBits = evalExpr(match[4]!.trim(), constants);
+    if (configs.has(match[1]!) || unmapped.has(match[1]!)) continue;
+    const dataBits = evalExpr(match[4]!.trim(), constants);
+    const addressBits = evalExpr(match[5]!.trim(), constants);
     if (!Number.isInteger(dataBits) || !Number.isInteger(addressBits)) continue;
-    unmapped.set(match[1]!, { name: match[2]!, dataBits: Number(dataBits), addressBits: Number(addressBits) });
+    unmapped.set(match[1]!, {
+      name: match[2]!,
+      dataBits: Number(dataBits),
+      addressBits: Number(addressBits),
+      ...spaceOrder(match[3]!, match[6] === undefined ? 0 : evalExpr(match[6].trim(), constants)),
+    });
+  }
+  // A constructor body that edits a config its base built: the 6507's
+  // `m_program_config.m_addr_width = 13`, which MAME's 13-bit 2600 map relies
+  // on for every mirror (and for the reset vector at $1FFC). Applied base
+  // first, so the most derived class's edit stands.
+  for (const owner of hierarchy) {
+    const escaped = owner.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    for (const constructor of source.matchAll(new RegExp(`\\b${escaped}::${escaped}\\s*\\(`, 'g'))) {
+      const end = source.indexOf('\n}', constructor.index);
+      const body = source.slice(constructor.index, end < 0 ? undefined : end);
+      // And one that gives it an internal map: the RP2A03's
+      // `m_program_config.m_internal_map = address_map_constructor(FUNC(rp2a03_device::rp2a03_map), this)`,
+      // its APU's registers, ahead of the owner's map as MAME builds them.
+      for (const edit of body.matchAll(/\b(m_\w*config\w*)\s*\.\s*m_internal_map\s*=\s*address_map_constructor\s*\(\s*FUNC\s*\(\s*\w+::(\w+)\s*\)/g)) {
+        const config = configs.get(edit[1]!) ?? unmapped.get(edit[1]!);
+        if (!config) continue;
+        unmapped.delete(edit[1]!);
+        configs.set(edit[1]!, { ...config, map: edit[2]! });
+      }
+      for (const edit of body.matchAll(/\b(m_\w*config\w*)\s*\.\s*m_addr_width\s*=\s*([^;]+);/g)) {
+        const width = evalExpr(edit[2]!.trim(), constants);
+        if (!Number.isInteger(width)) continue;
+        for (const table of [configs, unmapped] as const) {
+          const config = table.get(edit[1]!);
+          if (config) table.set(edit[1]!, { ...config, addressBits: Number(width) } as never);
+        }
+      }
+    }
   }
   if (!configs.size && !unmapped.size) return spaces;
-  const vector = methodBodies.get('memory_space_config');
+  let vector = methodBodies.get('memory_space_config');
   if (vector === undefined) return spaces;
+  // Or what it hands on to: the 68000's `return memory_logical_space_config();`
+  // when its spaces are not disabled.
+  for (const call of [...vector.matchAll(/\b(\w+)\s*\(\s*\)/g)].map(found => found[1]!)) {
+    const delegated = call !== 'memory_space_config' ? methodBodies.get(call) : undefined;
+    if (delegated !== undefined) vector += `\n${delegated}`;
+  }
+  // A space declared only when its owner configures a map for it
+  // (`if (has_configured_map(AS_STACK))`, the 8086's stack, code and extra
+  // spaces; the 6800's and Z80's opcodes): has_space answers for it only then,
+  // so the core falls back to its program space as MAME's does.
+  const conditional = new Set([...vector.matchAll(/\bhas_configured_map\s*\(\s*(\w+)\s*\)/g)]
+    .map(match => Number(evalExpr(match[1]!, constants))).filter(Number.isInteger));
+  const seen = new Set<number>();
   for (const pair of vector.matchAll(
     /std::make_pair\s*\(\s*(\w+)\s*,\s*&\s*(m_\w+)\s*\)/g,
   )) {
     const index = Number(evalExpr(pair[1]!, constants));
+    // memory_space_config may answer in branches (`has_configured_map(AS_OPCODES)
+    // ? {program, opcodes} : {program}`): a space is the same in each.
+    if (seen.has(index)) continue;
+    seen.add(index);
     const installed = unmapped.get(pair[2]!);
     if (installed && Number.isInteger(index)) {
-      spaces.push({ index, ...installed, installed: true });
+      spaces.push({ index, ...installed, installed: true, ...(conditional.has(index) ? { conditional: true as const } : {}) });
       continue;
     }
     const config = configs.get(pair[2]!);
@@ -5590,22 +6803,31 @@ function deviceAddressSpaces(
     // driver here does not.
     const statements = [...map.matchAll(/\bmap\s*\(([^)]*)\)\s*\.\s*(\w+)\s*\(\s*\)/g)];
     if (statements.length !== 1 || statements[0]![2] !== 'ram') {
-      // A map that decodes more than RAM, handed down the constructor chain
-      // as an `address_map_constructor`: the 68705's internal map of ports,
-      // timer, RAM and EPROM, which the host builds by running the method.
-      if (chainConfigs[pair[2]!]?.map === config.map) {
-        spaces.push({ index, name: config.name, addressBits: config.addressBits, dataBits: config.dataBits, map: config.map });
-      }
+      // A map that decodes more than RAM: the 68705's internal map of ports,
+      // timer, RAM and EPROM, or a 6801's on-chip ports, timer and serial
+      // registers. The host builds it by running the method, as MAME does,
+      // and a CPU's owner maps the rest of the space (internal first, so it
+      // takes priority, as address_map's constructor has it).
+      const { map: _map, ...facts } = config;
+      spaces.push({ index, ...facts, map: config.map });
       continue;
     }
     const [start, end] = splitMameArgs(statements[0]![1]!)
       .map(value => Number(evalExpr(value.trim(), constants)));
-    if (start !== 0 || end !== (1 << config.addressBits) - 1) continue;
+    // RAM over part of the space is a map like any other: the M6802's 128
+    // bytes at 0x0000, its owner's map around them.
+    if (start !== 0 || end !== (1 << config.addressBits) - 1) {
+      const { map: _map, ...facts } = config;
+      spaces.push({ index, ...facts, map: config.map });
+      continue;
+    }
     spaces.push({
       index,
       name: config.name,
       addressBits: config.addressBits,
       dataBits: config.dataBits,
+      ...(config.endianness ? { endianness: config.endianness } : {}),
+      ...(config.addressShift ? { addressShift: config.addressShift } : {}),
       ram: true,
     });
   }
@@ -5717,8 +6939,12 @@ function staticStructConstants(
     const elements = initializerItems(body).filter(item => item.startsWith('{'));
     const records = elements.map(element => {
       const items = initializerItems(element.slice(1, -1));
+      // A braced item fills an array field (Musashi's per-row `cycles[NUM_CPU_TYPES]`).
+      const item = (text: string): unknown => text.trim().startsWith('{')
+        ? initializerItems(text.trim().slice(1, -1)).map(item)
+        : quotedItem(text) ?? memberFunctionName(text) ?? evalExpr(text, constants) ?? 0;
       return Object.fromEntries(fields.map((field, index) => [field.name,
-        items[index] === undefined ? 0 : evalExpr(items[index]!, constants) ?? 0]));
+        items[index] === undefined ? 0 : item(items[index]!)]));
     });
     lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
   }
@@ -5728,8 +6954,12 @@ function staticStructConstants(
   // mention of the name beyond its own definition; a quoted element is its
   // string. Unbound, the lookup answered nothing, m_pcb_id was never a
   // number, and call_load_pcb skipped every board's own wiring.
-  for (const match of all.matchAll(/(?:^|[;}\s])static\s+const\s+(?:struct\s+)?(\w+)\s+(\w+)\s*\[\s*\w*\s*\]\s*=\s*\{/g)) {
-    const [, type, name] = match;
+  // Or a class's static one, defined with both names qualified: the 68000's
+  // `const m68000_device::decode_entry m68000_device::s_packed_decode_table[]`,
+  // the value/mask/state rows init_decode_table expands.
+  for (const match of all.matchAll(/(?:^|[;}\s])(?:static\s+const\s+(?:struct\s+)?(\w+)\s+(\w+)|const\s+(?:struct\s+)?(?:\w+::)+(\w+)\s+(?:\w+::)+(\w+))\s*\[\s*\w*\s*\]\s*=\s*\{/g)) {
+    const type = match[1] ?? match[3];
+    const name = match[2] ?? match[4];
     const fields = structFields.get(type!);
     if (!fields) continue;
     // Only for a device whose own methods read it: every NES card includes
@@ -5740,8 +6970,12 @@ function staticStructConstants(
     const elements = initializerItems(body).filter(item => item.startsWith('{'));
     const element = (item: string | undefined): unknown => {
       if (item === undefined) return 0;
+      // A braced element fills an array field: each Musashi opcode row's
+      // `cycles[NUM_CPU_TYPES]`, which m68ki_build_opcode_table copies into
+      // the cycle table. Read as one number, every instruction cost nothing.
+      if (item.trim().startsWith('{')) return initializerItems(item.trim().slice(1, -1)).map(element);
       const quoted = /^"((?:[^"\\]|\\.)*)"$/.exec(item.trim());
-      return quoted ? quoted[1]! : evalExpr(item, constants) ?? 0;
+      return quoted ? quoted[1]! : memberFunctionName(item) ?? evalExpr(item, constants) ?? 0;
     };
     const records = elements.map(item => {
       const items = initializerItems(item.slice(1, -1));
@@ -5751,6 +6985,24 @@ function staticStructConstants(
     lifted.push({ name: name!, valueType: type!, fields, arrayLength: records.length, initialValues: records });
   }
   return lifted;
+}
+
+/**
+ * A member-function pointer in a table row (`&z8002_device::Z01_ssN0_dddd`),
+ * as CALL_METHOD dispatches one: the method's name. The Z8002 decodes every
+ * opcode through such a table; evaluated as a number, every row's handler was 0.
+ */
+function memberFunctionName(item: string): string | undefined {
+  return /^&\s*(?:\w+::)+(\w+)$/.exec(item.trim())?.[1];
+}
+
+/**
+ * A quoted element, as its string: a format's name, or a member-function
+ * pointer lowerMemberPointerValues has already made its method's name
+ * (`"zinvalid"`).
+ */
+function quotedItem(item: string): string | undefined {
+  return /^"((?:[^"\\]|\\.)*)"$/.exec(item.trim())?.[1];
 }
 
 export function structDeclarations(
@@ -5768,8 +7020,10 @@ export function structDeclarations(
     // lost every field after the first comment.
     for (const declaration of structBlocks(littleEndianLayout(stripCppComments(source)))) {
       if (!declaration.name || structs.has(declaration.name)) continue;
-      const fields = structFieldList(declaration.body, constants, declaration.name);
-      if (fields.length) structs.set(declaration.name, fields);
+      const fields = structFieldList(declaration.body, constants, declaration.name, declaration.union);
+      // A union type is its members over one storage: held as a single
+      // anonymous union, a member of the type is that union.
+      if (fields.length) structs.set(declaration.name, declaration.union ? [{ name: '', union: true, fields }] : fields);
     }
   }
   return structs;
@@ -5918,9 +7172,11 @@ function structMethodsOf(
  */
 function structBlocks(
   source: string,
-): { name: string; body: string; declarator?: string; declaratorBound?: string }[] {
-  const blocks: { name: string; body: string; declarator?: string; declaratorBound?: string }[] = [];
-  const opener = /\bstruct\s+(\w+)?\s*\{/g;
+): { name: string; body: string; declarator?: string; declaratorBound?: string; union?: true }[] {
+  const blocks: { name: string; body: string; declarator?: string; declaratorBound?: string; union?: true }[] = [];
+  // A named union is a type the same way: the 6809's `union M6809Q { ... }`,
+  // which its `m_q` holds (A, B, D, E, F, W and Q over one word).
+  const opener = /\b(struct|union)\s+(\w+)?\s*\{/g;
   let match: RegExpExecArray | null;
   while ((match = opener.exec(source)) !== null) {
     const open = source.indexOf('{', match.index);
@@ -5930,10 +7186,19 @@ function structBlocks(
     // `struct SOUND { ... };` declares none.
     const declared = /^\s*(\w+)\s*(?:\[([^\]]*)\])?\s*;/.exec(source.slice(close + 1));
     const declarator = declared?.[1];
-    const name = match[1] ?? declarator ?? '';
+    const union = match[1] === 'union';
+    // An anonymous union with no declarator is only ever part of what holds
+    // it; one with a declarator declares a member of its shape, as the
+    // Z8002's register file is `union { u8 B[16]; u16 W[16]; ... } m_regs`.
+    if (union && !match[2] && !declarator) {
+      opener.lastIndex = close + 1;
+      continue;
+    }
+    const name = match[2] ?? declarator ?? '';
     const body = source.slice(open + 1, close);
     blocks.push({ name, body, ...(declarator ? { declarator } : {}),
-      ...(declared?.[2]?.trim() ? { declaratorBound: declared[2] } : {}) });
+      ...(declared?.[2]?.trim() ? { declaratorBound: declared[2] } : {}),
+      ...(union ? { union: true as const } : {}) });
     // A struct declared inside another is a type of its own, named as C++
     // names it: nes_defs.h declares `square_t` in both `apu_t` and
     // `mmc5_sound_t`, with different fields, and MMC5's `square_t squ[2]` is
@@ -5968,6 +7233,8 @@ function structFieldList(
   body: string,
   constants: Record<string, number>,
   owner?: string,
+  /** The body is a union's: each member starts at its first byte. */
+  inUnion = false,
 ): GeneratedStructField[] {
   const fields: GeneratedStructField[] = [];
   // Struct types this body declares itself: a field of one is of the
@@ -6021,7 +7288,9 @@ function structFieldList(
       // truncate every timestamp it held.
       const integral = /^(?:(?:unsigned|signed|long|short)\s*)*(?:u?int(?:8|16|32|64)?(?:_t)?|[us](?:8|16|32|64)|bool|char|short|long|unsigned|signed|offs_t|pen_t)$/
         .test(valueType);
-      const bits: 8 | 16 | 32 = /64/.test(valueType) ? 32
+      // A bool is true or false, as a bool member is (bits 1): the Z80 stores
+      // its carry as `m_f.c = res & 0x100`, and narrowed to a byte it was 0.
+      const bits: 1 | 8 | 16 | 32 | 64 = valueType === 'bool' ? 1 : /64/.test(valueType) ? 64
         : /(?:^|[^\d])32/.test(valueType) || valueType === 'int' ? 32
           : /16|\bshort\b/.test(valueType) ? 16
             : /8|bool|char/.test(valueType) ? 8
@@ -6059,17 +7328,23 @@ function structFieldList(
     // A named nested struct with no declarator is a type, recorded on its
     // own by structBlocks; it adds no field here.
     const union = start[1] === 'union';
+    const anonymousStruct = !union && !/^struct\s+\w/.test(start[0]);
     if (declarator) {
       const length = bound(declarator[2]);
       fields.push({
         name: declarator[1]!,
         ...(length !== undefined ? { length } : {}),
-        fields: structFieldList(body.slice(open + 1, close), constants),
+        fields: structFieldList(body.slice(open + 1, close), constants, undefined, union),
         // Its members share one storage, each from its first byte.
         ...(union ? { union: true } : {}),
       });
-    } else if (union) {
-      // An anonymous union's members are the enclosing struct's own.
+    } else if (inUnion && (union || anonymousStruct)) {
+      // Inside a union an anonymous member is one more overlapping member,
+      // its own fields named as the union's: m6809.h's `union { struct {
+      // uint8_t f, e, b, a; }; struct { uint16_t w, d; }; } r;`.
+      fields.push({ name: '', fields: structFieldList(body.slice(open + 1, close), constants, undefined, union), ...(union ? { union: true } : {}) });
+    } else if (union || anonymousStruct) {
+      // In a struct, an anonymous member's fields are the struct's own.
       fields.push(...structFieldList(body.slice(open + 1, close), constants));
     }
     cursor = close + 1 + (declarator?.[0].length ?? 0);
@@ -6096,6 +7371,26 @@ function inlineConstructor(
     if (close < 0) continue;
     const body = text.slice(open + 1, close);
     const head = new RegExp(`(?:^|[;{}\\s])${leaf}\\s*\\(`, 'g');
+    // A class that declares no constructor has the implicit default one,
+    // which runs only its members' initializers: m6502_device::mi_default,
+    // the memory interface every 6502 allocates in device_start. An abstract
+    // class (a pure virtual `= 0`) has no instances to construct: ymfm's
+    // ymfm_engine_callbacks is what a chip points at its own owner through.
+    // Only a class with code of its own: an `enum class` reads as one here,
+    // and a plain data struct (atarimo's `dual_entry`) is its fields.
+    const isEnum = /\benum\s+$/.test(text.slice(Math.max(0, declaration.index - 8), declaration.index));
+    const hasMethods = /\b\w+\s*\([^;{}]*\)\s*(?:const\s*)?(?:override\s*)?[;{]/.test(body);
+    if (![...body.matchAll(head)].length && !isEnum && /^\s*class\b/.test(declaration[0]) && hasMethods &&
+        !/\)\s*(?:const\s*)?(?:override\s*)?=\s*0\s*;/.test(body)) {
+      return {
+        className: qualified,
+        name: leaf,
+        parameters: '',
+        body: '',
+        initializers: [],
+        span: { file, line: 1, column: 1 },
+      } as unknown as ReturnType<typeof parseMameConstructors>[number];
+    }
     for (const match of body.matchAll(head)) {
       const parametersOpen = (match.index ?? 0) + match[0].length - 1;
       let depth = 0;
@@ -6209,6 +7504,10 @@ function inlineReferenceCallees(methods: GeneratedDeviceMethod[]): void {
         if (Array.isArray(value)) (nested as Record<string, unknown>)[key] = rewrite(value as GeneratedHandlerOperation[], depth);
       }
       if (nested.op === 'switch') nested.cases = nested.cases.map(entry => ({ ...entry, body: rewrite(entry.body, depth) }));
+      if (nested.op === 'try') {
+        nested.catches = nested.catches.map(entry => ({ ...entry, body: rewrite(entry.body, depth) }));
+        if (nested.finally) nested.finally = rewrite(nested.finally, depth);
+      }
       if (nested.op !== 'call' || depth > 4) return [nested];
       const callee = nested.expression.callee;
       if (callee.kind !== 'identifier') return [nested];

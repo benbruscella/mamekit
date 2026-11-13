@@ -1,7 +1,6 @@
 import {
   generatedBoardSource,
-  generatedCpuCycleClock,
-  generatedCpuAddressSpace,
+  generatedCpuClock,
   generatedScanlineTriggers,
   inferredMemberIndexRank,
   lowerAudioRoutes,
@@ -24,39 +23,17 @@ if (generatedScanlineTriggers(compileMameHandler(`
   throw new Error('non-literal scanline callbacks must retain their full cadence');
 }
 
-for (const type of ['m6802', 'm6803', 'm6808', 'nsc8105', 'm6801u4', 'mc6809']) {
-  if (generatedCpuCycleClock(type, 4_000_000) !== 1_000_000) {
-    throw new Error(`${type} must use MAME's divide-by-four execution clock`);
-  }
-}
-if (generatedCpuCycleClock('mc6809e', 1_000_000) !== 1_000_000) {
-  throw new Error('externally-clocked MC6809E must retain its configured execution clock');
-}
-for (const type of ['i8035', 'i8039', 'mb8884']) {
-  if (generatedCpuCycleClock(type, 6_000_000) !== 400_000) {
-    throw new Error(`${type} must use MAME's divide-by-fifteen execution clock`);
-  }
-}
+// The 6800 and 6809 families run as their MAME classes, whose clock
+// conversion is their own execute_clocks_to_cycles (execute-facts.spec).
 import type { KnowledgeGraph } from '../kg/types.ts';
 import type { BoardConfig } from '../runtime/types.ts';
 
-if (generatedCpuCycleClock('i8085a', 5_500_000) !== 2_750_000) {
-  throw new Error('I8085A must use MAME\'s divide-by-two execution clock');
-}
 // device_t::m_clock is a u32: the PAL C64's XTAL(17'734'472)/18 runs at
-// 985248, and a dividing core rounds its integer cycle rate up.
-if (generatedCpuCycleClock('m6510', 17_734_472 / 18) !== 985_248) {
+// 985248. A dividing core's own execute_clocks_to_cycles (the TMS34010's
+// `(clocks + 8 - 1) / 8`) is read from its source (execute-facts.spec), and
+// its address spaces are its compiled class's (generated-board processorSpace).
+if (generatedCpuClock(17_734_472 / 18) !== 985_248) {
   throw new Error('a CPU clock must be truncated to MAME\'s u32');
-}
-if (generatedCpuCycleClock('mc6809', 3_579_545.25) !== 894_887) {
-  throw new Error('a dividing core must use MAME\'s (clocks + n - 1) / n');
-}
-// The generated TMS34010 converts its bit addresses to bytes at every access
-// (TMS_READ16/TMS_WRITE16) and its map ranges are scaled to match, so the bus
-// itself shifts nothing: a second conversion here would address 1/8 of RAM.
-const tmsSpace = generatedCpuAddressSpace('tms34010', 'maincpu');
-if (tmsSpace.addressShift !== 0 || tmsSpace.dataWidth !== 16 || tmsSpace.endianness !== 'little') {
-  throw new Error(`TMS34010 bit-addressed program space was not preserved: ${JSON.stringify(tmsSpace)}`);
 }
 
 const graph: KnowledgeGraph = {

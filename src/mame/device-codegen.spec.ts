@@ -11,7 +11,7 @@ import {
 } from '../ir/execute.ts';
 import type { GeneratedDeviceDefinition } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import { compileMameHandler } from './handler-ir.ts';
 
 const definition: GeneratedDeviceDefinition = {

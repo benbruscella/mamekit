@@ -15,7 +15,6 @@ import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { aggregateFunctionReferences, deviceTables } from './static-aggregate.ts';
-import { parseZ80OpcodeDsl } from './opcode-dsl.ts';
 
 export interface HardwareUse {
   game: string;
@@ -477,33 +476,6 @@ export function buildHardwareClosure(
       }
 
       const absolute = join(mameSrc, definition.sourceFile);
-      // CPU capabilities compile their complete opcode sources in isolated
-      // workers during emission. Parsing those very large translation units a
-      // second time here merely to scrape generic device methods retained the
-      // 65-game graph closure plus multiple 65,536-opcode ASTs and exhausted
-      // Node's default heap before emission could begin.
-      if (HARDWARE_CAPABILITIES.find(capability =>
-        capability.id === 'cpu' && capability.mameTypes.includes(type))) {
-        const dslFiles = findDeviceDslFiles(absolute, definition.className)
-          .map(file => relative(mameSrc, file));
-        const sourceFiles = sourceClosureFiles(
-          absolute,
-          dslFiles.map(file => join(mameSrc, file)),
-        ).map(file => relative(mameSrc, file));
-        return {
-          type,
-          uses: usedBy,
-          status: 'source-resolved',
-          definition,
-          methods: [],
-          dslFiles,
-          sourceFiles,
-          ...(composedTypes.has(type) ? { composedOf: [...composedTypes.get(type)!].sort() } : {}),
-          ...(declaringClasses.has(type) && !boardLevel.has(type)
-            ? { declaredBy: [...declaringClasses.get(type)!].sort() }
-            : {}),
-        };
-      }
       const unit = unitCache.get(absolute) ??
         parseMameSource(definition.sourceFile, readFileSync(absolute, 'utf8'));
       unitCache.set(absolute, unit);
@@ -857,18 +829,12 @@ export async function emitHardwareClosure(
   }
 
   for (const file of new Set(closure.hardware.flatMap(entry => entry.dslFiles))) {
-    const absolute = join(closure.mameSource, file);
     const stem = basename(file, extname(file));
-    if (basename(file) === 'z80.lst') {
-      const ir = parseZ80OpcodeDsl(file, readFileSync(absolute, 'utf8'));
-      writeFileSync(join(dslDir, `${stem}.ir.json`), JSON.stringify(ir, null, 2));
-    } else {
-      writeFileSync(join(dslDir, `${stem}.source.json`), JSON.stringify({
-        schemaVersion: 1,
-        dialect: 'unlowered-mame-operation-dsl',
-        sourceFile: file,
-      }, null, 2));
-    }
+    writeFileSync(join(dslDir, `${stem}.source.json`), JSON.stringify({
+      schemaVersion: 1,
+      dialect: 'unlowered-mame-operation-dsl',
+      sourceFile: file,
+    }, null, 2));
   }
 
   const lines = [

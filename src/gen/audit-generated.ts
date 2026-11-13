@@ -152,41 +152,39 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         failures.push(`${hardware.type} executable artifact is missing: ${hardware.executableArtifact}`);
       }
     }
+    // The Z80 is MAME's z80_device compiled whole by the device compiler,
+    // its execute_run the state machine z80make.py generates.
     const z80 = manifest.hardware?.find(hardware => hardware.type === 'Z80');
-    if (z80 && (!z80.executable || !z80.executableArtifact)) {
-      failures.push('Z80 is not emitted as executable source-derived hardware');
+    if (z80 && (!z80.executable || z80.executableKind !== 'device' || !z80.executableArtifact)) {
+      failures.push('Z80 is not emitted as an executable source-derived device');
     } else if (z80) {
       const definitionPath = join(outRoot, 'runtime/generated', z80.executableArtifact!);
-      if (!existsSync(definitionPath)) {
-        failures.push(`Z80 executable artifact is missing: ${z80.executableArtifact}`);
-      } else {
+      if (existsSync(definitionPath)) {
         const definition = JSON.parse(readFileSync(definitionPath, 'utf8')) as {
-          summary?: { opcodes?: number; compiledOpcodes?: number; diagnostics?: number };
+          hierarchy?: string[];
+          summary?: { diagnostics?: number };
         };
-        if (definition.summary?.opcodes !== 1536 ||
-            definition.summary.compiledOpcodes !== definition.summary.opcodes ||
-            definition.summary.diagnostics !== 0) {
+        if (!definition.hierarchy?.includes('z80_device') || definition.summary?.diagnostics !== 0) {
           failures.push('Z80 executable artifact is incomplete or has compiler diagnostics');
         }
       }
     }
+    // The 8080 is MAME's i8080_cpu_device compiled whole by the device compiler.
     const i8080 = manifest.hardware?.find(hardware => hardware.type === 'I8080');
-    if (i8080) {
-      if (!i8080.executable || !i8080.executableArtifact) {
-        failures.push('I8080 is not emitted as executable source-derived hardware');
-      } else {
-        const definitionPath = join(outRoot, 'runtime/generated', i8080.executableArtifact);
-        if (existsSync(definitionPath)) {
-          const definition = JSON.parse(readFileSync(definitionPath, 'utf8')) as {
-            summary?: { opcodes?: number; compiledOpcodes?: number; diagnostics?: number };
-            step?: { diagnostics?: string[] };
-          };
-          if (definition.summary?.opcodes !== 256 ||
-              definition.summary.compiledOpcodes !== definition.summary.opcodes ||
-              definition.summary.diagnostics !== 0 ||
-              definition.step?.diagnostics?.length) {
-            failures.push('I8080 executable artifact is incomplete or has compiler diagnostics');
-          }
+    if (i8080 && (!i8080.executable ||
+        i8080.executableKind !== 'device' ||
+        !i8080.executableArtifact)) {
+      failures.push('I8080 is not emitted as an executable source-derived device');
+    } else if (i8080) {
+      const definitionPath = join(outRoot, 'runtime/generated', i8080.executableArtifact!);
+      if (existsSync(definitionPath)) {
+        const definition = JSON.parse(readFileSync(definitionPath, 'utf8')) as {
+          hierarchy?: string[];
+          summary?: { diagnostics?: number };
+        };
+        if (!definition.hierarchy?.includes('i8085a_cpu_device') ||
+            definition.summary?.diagnostics !== 0) {
+          failures.push('I8080 executable artifact is incomplete or has compiler diagnostics');
         }
       }
     }

@@ -12,10 +12,8 @@
 import type { HardwareCapability } from './contract.ts';
 import { SERIAL_EEPROM_ID, SERIAL_EEPROM_MAME_TYPES, SERIAL_EEPROM_PORTS } from './serial-eeprom/definition.ts';
 import { extractSerialEeprom } from './serial-eeprom/extract.ts';
-import { CPU_ID, CPU_MAME_TYPES, CPU_PORTS } from './cpu/definition.ts';
 import { DEVICE_ID, DEVICE_MAME_TYPES, DEVICE_PORTS } from './device/definition.ts';
 import { extractDevices } from './device/extract.ts';
-import { extractCpus } from './cpu/extract.ts';
 import {
   NES_ID,
   NES_MAME_TYPES,
@@ -89,13 +87,6 @@ import { extractVector } from './vector/extract.ts';
 
 export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
   { id: SERIAL_EEPROM_ID, mameTypes: SERIAL_EEPROM_MAME_TYPES, ports: SERIAL_EEPROM_PORTS, extract: extractSerialEeprom },
-  // CPUs — one capability over every generated core.
-  {
-    id: CPU_ID,
-    mameTypes: CPU_MAME_TYPES,
-    ports: CPU_PORTS,
-    extract: extractCpus,
-  },
   // Devices — one capability over every generated MAME device.
   {
     id: DEVICE_ID,

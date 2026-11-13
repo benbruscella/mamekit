@@ -11,6 +11,7 @@ import { compileMameHandler } from '../mame/handler-ir.ts';
 import { lowerDriverMemberPointers } from '../mame/member-pointers.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
+import { coreLineStates } from '../mame/device-compiler.ts';
 import { collectBitAliasMacros, collectMemberAliasMacros, collectMemberExpressionMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
@@ -201,13 +202,19 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       if (!existsSync(cand)) continue;
       const source = readFileSync(cand, 'utf8');
       externalSources.push(source);
+      // A header's own sibling include is spelled from its directory:
+      // konami.h's `#include "m6809.h"`, whose M6809_FIRQ_LINE is what
+      // KONAMI_FIRQ_LINE is defined as (The Simpsons' main CPU FIRQ).
       for (const nested of parseIncludes(source)) {
-        if (nested.includes('/')) pendingExternalIncludes.push(nested);
+        pendingExternalIncludes.push(nested.includes('/') ? nested : join(dirname(inc), nested));
       }
       break;
     }
   }
-  let extConsts: Record<string, number> = {};
+  // Seeded with diexec.h's input lines, which a CPU's header numbers its own
+  // after: m6502.h's `IRQ_LINE = INPUT_LINE_IRQ0`, which Gauntlet's sound
+  // handlers name as `m6502_device::IRQ_LINE`.
+  let extConsts: Record<string, number> = { ...coreLineStates(mameSrc) };
   // Includes are discovered parent-first. Iterate so a child header can seed
   // an enum expression in the parent on the following pass.
   for (let pass = 0; pass <= externalSources.length; pass++) {

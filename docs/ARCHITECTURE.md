@@ -117,9 +117,10 @@ drivers without pretending to be Clang.
 - graphics layouts and decode tables;
 - clocks and evaluable constant expressions.
 
-`src/mame/opcode-dsl.ts` parses MAME CPU operation-list DSLs separately from
-C++. The Z80 compiler expands macros while retaining definition and call-site
-provenance.
+MAME's own build generators (`z80make.py`, `m6809make.py` and the like) turn
+its CPU operation-list DSLs into C++, and MAMEKIT runs them as MAME's build
+does, into `.cache/mame-generated/`; the device compiler then reads that C++
+like any other.
 
 The parser should reject or report unsupported source shapes. Silent fallback
 is dangerous because it creates plausible but incorrect machines.
@@ -459,31 +460,51 @@ behind it.
 
 ### CPU
 
-CPU definitions combine MAME class/state information with source-derived
-instruction programs. Z80 lowers MAME's expanded `z80.lst` opcode DSL. I8080
-lowers the 256 cases in MAME's `execute_one` C++ switch, its helper methods,
-state aliases and cycle tables. A core's own devcb lines answer `isunset()`
-from the lines the machine connected (the bus's `boundSignals`), so a 6502
-skips its SYNC output twice an instruction when nothing listens, exactly as
-MAME's `if (!m_sync_w.isunset())` does. `src/mame/cpu-compiler.ts` and
-`cpu-codegen.ts` produce executable TypeScript plus auditable CPU IR. The
-browser runtime supplies generic register, bus and program-execution machinery.
+A CPU is its MAME class compiled whole by the device compiler, as a sound
+chip is (#249): every core -- the M6800, I8080, MCS-48, 6809, Z80, LR35902,
+6502, Z8002, TMS320C10, 8088/V30 and TMS34010 families, the 68000 as MAME's
+microcoded `m68000_device` and the 68010 as its Musashi core, the Sega Z80
+decryptors and Data East's encrypted 6502s among them. There is no other kind
+of CPU: no hand-written support layer, and no CPU facts typed in by type
+(`src/runtime/architecture.spec.ts` keeps both lists empty). MAME's build generators produce the generated
+part (`z80make.py`'s state machine, `m6809.hxx`), and `runtime/device-cpu.ts`
+is the board's side of `device_execute_interface`: the core's spaces bound to
+the CPU's bus, its input lines through the board's `device_input`,
+`standard_irq_callback` for the vector, and each core's own `execute_run`,
+`m_icount` and `execute_clocks_to_cycles`. It knows nothing about which CPU it
+hosts. A core runs as MAME runs it, stopping between machine cycles when its
+icount is spent and resuming there (the Z80's `m_ref`, the 6502's
+`m_inst_substate`), and its timeslice is cut at the next device timer's
+expiry, as MAME's scheduler cuts it, so the timer fires mid-slice and the
+core resumes where it stood. Its lifecycle is its own: an encrypted Sega Z80
+decrypts its ROM in its own `device_reset` or `device_start`. So is what it
+is built of: the RP2A03 builds its APU in its own `device_add_mconfig`,
+reaches it through the internal map its constructor installs, and mixes it
+(`add_route(ALL_OUTPUTS, *this, 1.0)`); the board's sound plan names the APU
+below the CPU (`maincpu:nesapu`) at the CPU's own route
+(`src/mame/mixer-children.ts`).
+
+A processor's address spaces are its class's own `address_space_config`: the
+board builds the CPU's bus at the data width and byte order the compiled
+device reports, and masks it to the space's byte address width
+(`processorSpaces` in `generated-board.ts`; a word- or bit-addressed space's
+map ranges were scaled to bytes when lowered). A core's own devcb lines answer
+`isunset()` from the lines the machine connected (the bus's `boundSignals`),
+so a 6502 skips its SYNC output twice an instruction when nothing listens,
+exactly as MAME's `if (!m_sync_w.isunset())` does.
 
 A 6502 subclass that changes only its memory interface -- Data East's
-encrypted DECO CPU-7 and C10707 -- is the stock operation list with its bus
-primitives routed through the subclass's own `mi_*` overrides, lowered from its
-source. The fetch is lowered from MAME's `prefetch_start`/`prefetch_end`, so the
-SYNC line (`sync_cb`, `get_sync()`) rises around the opcode read and an
-interrupt is taken only after that read, as MAME takes it.
+encrypted DECO CPU-7 and C10707 -- is its class compiled whole: the stock
+operation list calls the subclass's own `mi_*` overrides. Its reset is an
+instruction, as MAME's is: `device_reset` only sets `m_inst_state =
+STATE_RESET`, and the operation list's `reset` sequence -- three stack reads
+and the vector at `$FFFC` -- runs as the core's next instruction, seven cycles
+on the clock with its reads on the bus (#184).
 
-The 6502 family's reset is an instruction, not a call. MAME's `device_reset`
-only sets `m_inst_state = STATE_RESET`, and the operation list's `reset`
-sequence -- three stack reads and the vector at `$FFFC` -- runs as the core's
-next instruction, seven cycles on the clock with its reads on the bus. The
-compiler records that as `resetInstruction` when `device_reset` says so, and
-the first step after a reset runs it. Run inside `reset()` instead, the
-sequence cost nothing: every 6502 started seven cycles early, and a bus trace
-was two reads short of MAME's (#184).
+A C++ `try`/`catch` is lowered as itself: Musashi's execute_run catches the
+address error its long accesses throw (`throw 10`) and restarts in its
+handler, and the emitted core uses JavaScript's own try/catch for it, catching
+only a C++ throw (`runtime.cpp`).
 
 A call converts each argument to its parameter's declared integer type, as a
 C++ call does, in the emitted and the interpreted core alike. The 6502's
@@ -491,17 +512,17 @@ C++ call does, in the emitted and the interpreted core alike. The 6502's
 moved the stack from `$1FF` to `$300` instead of `$100`, and put every
 page-crossing dummy read on the wrong page (#184).
 
-A Z80 is a `z80_daisy_chain_interface`, and its chain is compiled with it:
-`daisy_chain_present`, `daisy_update_irq_state`, `daisy_get_irq_device` and
-`daisy_call_reti_device` from `machine/z80daisy.cpp`, so the core takes an
-IM 2 vector from `intf->z80daisy_irq_ack()` of the device that is
-interrupting and tells the chain about RETI, as MAME's does (#181). The
-machine's `set_daisy_config(mcr_daisy_chain)` names the devices through a
+A Z80 is a `z80_daisy_chain_interface`, and the chain comes with its class:
+`daisy_update_irq_state`, `daisy_get_irq_device` and `daisy_call_reti_device`
+from `machine/z80daisy.cpp`, so the core takes an IM 2 vector from
+`intf->z80daisy_irq_ack()` of the device that is interrupting and tells the
+chain about RETI, as MAME's does (#181). The machine's
+`set_daisy_config(mcr_daisy_chain)` names the devices through a
 `z80_daisy_config` table, which may sit in another file of the driver
-(`mcr_m.cpp`); the graph resolves it to tags, the IR carries them as the
-CPU's `daisyChain`, and the board does what `daisy_init` does with them:
-links each device's `m_daisy_next` and puts the first in the CPU's `m_chain`.
-Those two are wiring (`link` on a CPU member), never part of a save state.
+(`mcr_m.cpp`); the graph resolves it to tags, the IR carries them as the CPU's
+`daisyChain`, and the board does what `daisy_init` does with them: links each
+device's `m_daisy_next` and puts the first in the CPU's `m_chain`. Those two
+are wiring, never part of a save state.
 
 A core's `state_add` table is part of its IR (`stateEntries`): each state
 index, the register or member it names, and whether `.callimport()` follows a
@@ -937,7 +958,8 @@ It has two responsibilities.
 - `generated-effects.ts`: executes typed board effects;
 - `generated-machine.ts`: registers decoded boards and wires device signals;
 - `generated-board.ts`: composes generated CPUs, buses, devices and rendering;
-- `generated-cpu.ts`: executes generated CPU definitions;
+- `generated-cpu.ts`: the processor surface the board drives and the bus it hands one;
+- `device-cpu.ts`: hosts a CPU compiled whole as a board processor;
 - `generated-device.ts`: instantiates generated device definitions;
 - `generated-handler.ts`: evaluates handler programs;
 - `generated-video.ts`: executes video plans;

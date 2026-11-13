@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evalExpr, parseDefines, parseEnumConstants, stripComments } from '../kg/parse.ts';
 import { compileMameHandler } from './handler-ir.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import type { GeneratedDeviceDefinition, GeneratedDeviceMember } from './device-compiler.ts';
 import { generatedStreamWorkletSource } from './stream-worklet.ts';
 

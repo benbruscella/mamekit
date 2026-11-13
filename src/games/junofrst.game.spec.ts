@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { lowerAudioRoutes } from '../gen/emit-machine.ts';
 import { STREAM_SOUND_TYPES } from '../hardware/speaker/definition.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { compileMameDevice } from '../mame/device-compiler.ts';
+import { indexMameHardware } from '../mame/hardware.ts';
 import {
-  compileMameMcs48,
   normalizeMameExecutionSource,
-} from '../mame/cpu-compiler.ts';
+} from '../mame/execution-source.ts';
 import { compileMameVideo } from '../mame/video-compiler.ts';
 import { executeGeneratedProgram } from '../runtime/generated-handler.ts';
 import { junofrst } from './junofrst.game.ts';
@@ -54,12 +55,14 @@ assert.deepEqual(lowerAudioRoutes(graph, [{ id: dac.id, tag: 'dac' }]).map(route
 assert.deepEqual(graph.nodes.filter(node => node.label === 'Device' && node.props.type === 'FILTER_RC').map(node => node.props.tag),
   ['filter.0.0', 'filter.0.1', 'filter.0.2']);
 
-const mcs48 = compileMameMcs48(mameSrc);
-assert.equal(mcs48.type, 'I8039');
-assert.equal(mcs48.summary.opcodes, 256);
-assert.equal(mcs48.summary.compiledOpcodes, 256);
-assert.equal(mcs48.summary.compiledMethods, mcs48.summary.methods);
+// The sound CPU is MAME's i8039_device compiled whole: mcs48.cpp's opcode
+// table and execute_run, and the 128 bytes of RAM its own data map shares.
+const mcs48 = compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('I8039')!, 'I8039');
 assert.equal(mcs48.summary.diagnostics, 0);
+assert.ok(mcs48.methods.some(method => method.name === 'execute_run'));
+assert.deepEqual(mcs48.spaces?.find(space => space.index === 1), {
+  index: 1, name: 'data', dataBits: 8, addressBits: 7, endianness: 'little', map: 'data_map',
+});
 
 const video = compileMameVideo(graph, mameSrc, machine.id);
 assert.ok(video, 'Juno First MAME video source must lower to executable bitmap IR');

@@ -26,12 +26,26 @@ const NO_EFFECT_ROOTS = new Set([
   // for MAME's debugger, and where its icount lives. The generated cores own
   // their registers and icount.
   'state_add', 'set_icountptr', 'debugger_instruction_hook',
+  // diexec.h's wait hook, which reaches the debugger only with
+  // DEBUG_FLAG_CALL_HOOK (the 6809 calls it while it burns a wait).
+  'debugger_wait_hook',
+  // And the exception hook the x86 cores call on a trap or interrupt (i86.cpp
+  // interrupt(), nec_interrupt): it only reports to a running debugger.
+  'debugger_exception_hook',
+  // And the privilege hook Musashi calls when the S flag changes: it too only
+  // reports to a running debugger.
+  'debugger_privilege_hook',
+  // diexec.h's `trigger(m_inttrigger)`: it wakes a processor parked in
+  // spin_until_interrupt/spin_until_trigger. Nothing parks one here (either
+  // call would fail as unresolved), so there is never a waiter. The TMS34010
+  // signals it on every internal interrupt.
+  'signal_interrupt_trigger',
   // Logging, a device's own `printf` to the console included (the NES
   // cartridge's prg_alloc warns about an odd PRG size that way).
   'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning', 'printf',
   // ymfm's own logging, each switched off by a constexpr LOG_* flag of its
   // `debug` class.
-  'debug::log_fm_write', 'debug::log_keyon', 'debug::log_unconditional',
+  'debug::log_fm_write', 'debug::log_keyon', 'debug::log_unconditional', 'debug::log_unexpected_read_write',
 ]);
 
 /**
@@ -102,6 +116,16 @@ function callRoot(name: string): string {
 /** The method a call chain ends with: `m_fg_tilemap.set_transparent_pen` -> `set_transparent_pen`. */
 function callMethod(name: string): string {
   return /(\w+)$/.exec(name)?.[1] ?? name;
+}
+
+/**
+ * A call that does nothing at all here -- save-state and debugger
+ * registration, logging, the debugger's per-instruction hook -- so a
+ * statement making it can be left out entirely, as a release build without
+ * the debugger leaves `debugger_instruction_hook` out of every instruction.
+ */
+export function isNoEffectStatement(name: string): boolean {
+  return NO_EFFECT_ROOTS.has(callRoot(name));
 }
 
 /** True when MAMEKIT answers this call on purpose without executing it. */

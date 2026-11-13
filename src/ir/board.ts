@@ -156,6 +156,19 @@ export type CpuLine =
   | 'core';
 
 /**
+ * The host's numbers for MAME's scheduler-level input lines. diexec.h numbers
+ * INPUT_LINE_NMI, INPUT_LINE_RESET and INPUT_LINE_HALT from MAX_INPUT_LINES - 3;
+ * the runtime keeps them negative, apart from every line a core numbers for
+ * itself, and every compiled core, device and board resolves the three names
+ * to these. Everything else in diexec.h is read from MAME's source.
+ */
+export const HOST_INPUT_LINES = {
+  INPUT_LINE_NMI: -1,
+  INPUT_LINE_RESET: -2,
+  INPUT_LINE_HALT: -3,
+} as const;
+
+/**
  * How a source drives the pin. MAME's driver_device interrupt generators
  * distinguish these: irqN_line_hold stays asserted until acknowledged,
  * irqN_line_assert leaves the line up, nmi_line_pulse strobes it.
@@ -400,6 +413,14 @@ export const HOST_SERVICE_CALLS: readonly string[] = [
   // The screen's visible rectangle, which a device asks for when it clears a
   // band of its own bitmap (`m_bitmap.fill(colour, screen().visible_area())`).
   'screen().visible_area',
+  // A video processor brings the picture up to a line before it interrupts
+  // and reprograms the screen from its own timing registers: the TMS34010's
+  // scanline callback does both on every line it fires.
+  'screen().update_partial',
+  'screen().configure',
+  // The MC6845 re-bases the screen at the top of each frame it counts, on
+  // every line it steps through (handle_line_timer, Qix's CRTC).
+  'screen().reset_origin',
   // A custom renderer selects the palette's shadow preset while walking its
   // sprite list, and draws its shadow pens through that preset's table.
   'palette().shadow_mode',
@@ -516,6 +537,19 @@ export type GeneratedHandlerOperation =
         values?: GeneratedExpression[];
         body: GeneratedHandlerOperation[];
       }[];
+    }
+  /**
+   * C++ `try`: Musashi reports an address error by `throw 10` from deep in a
+   * bus access, and execute_run catches it to take the exception. A catch
+   * names the type it takes (`int`; none for `...`) and the local it binds;
+   * `finally` is what a scope's local object destructs on the way out
+   * (the RAII `fpu_rounding_saver` execute_run declares).
+   */
+  | {
+      op: 'try';
+      body: GeneratedHandlerOperation[];
+      catches: { valueType?: string; name?: string; body: GeneratedHandlerOperation[] }[];
+      finally?: GeneratedHandlerOperation[];
     };
 
 export interface GeneratedHandlerProgram {
@@ -1303,6 +1337,13 @@ export interface BoardIr {
  * handlers the emitter did not compile.
  */
 export interface GeneratedHandlerRuntime {
+  /** C++ exceptions for emitted try/catch: recognise, match by type, track the one being handled. */
+  cpp?: {
+    isThrow(error: unknown): boolean;
+    matches(valueType: string | null, value: unknown): boolean;
+    enter(error: unknown): void;
+    leave(): void;
+  };
   readonly members: Record<string, unknown>;
   readonly calls: Record<string, (...args: any[]) => unknown>;
   /**
@@ -1319,6 +1360,14 @@ export interface GeneratedHandlerRuntime {
     source: ArrayLike<number> & { [index: number]: number };
     offset: number;
   };
+  /** `&object.field`: a union field by its union and path, else the field's slot. */
+  fieldAddress(object: unknown, property: string): unknown;
+  /** `&call()` where the call answers an object: the object. */
+  objectAddress(value: unknown): unknown;
+  /** `*(uint16_t *)p` over bytes: the word there, little-endian, aligned or not. */
+  packedWord(value: unknown, signed: boolean): number;
+  /** `std::swap` of two objects: their contents trade; false when not objects. */
+  swapObjects(left: unknown, right: unknown): boolean;
   /** C++ `*value`, resolved by the operand's shape rather than assumed. */
   dereference(value: unknown): unknown;
   /** Where a pointer points within its memory, for ordering two pointers (`data < ramend`). */
@@ -1335,6 +1384,8 @@ export interface GeneratedHandlerRuntime {
   stringMethod(value: unknown, method: string, ...args: unknown[]): unknown;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
+  /** The low 32 bits of a `wide` answer (execute.ts generatedLow32). */
+  low32(value: unknown): unknown;
   /** C++ `*pointer = value`, over a generated pointer or plain memory. */
   pointerStore(pointer: unknown, value: unknown): unknown;
   /** C++ `a + b` when neither side is known to be a number. */

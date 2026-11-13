@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import ts from 'typescript';
 
 const root = import.meta.dirname;
 const sharedRuntime = readdirSync(root).filter(file =>
@@ -258,6 +259,150 @@ const SOUND_KINDS: string[] = [];
   assert.deepEqual([...kinds].sort(), [...SOUND_KINDS].sort(),
     'a sound kind that names a chip family is a hand engine; compile the chip and play it through the stream mix ' +
     '(or, if one was removed, delete it from SOUND_KINDS)');
+}
+
+// The CPU cores' hand-written support layer (#249) is gone: every CPU is its
+// MAME class compiled whole by device-compiler.ts and hosted by DeviceCpu.
+// What is pinned here keeps it gone:
+//
+// - HAND_WRITTEN_CPU_LAYERS: each C++ body composed in TypeScript, `.replace`
+//   edit of MAME's source, or number typed into a constant table, in the
+//   shared execution-source idioms; empty, and it may only stay so.
+// - HAND_WRITTEN_CPU_FACTS: per-CPU facts typed in outside the compiler (a
+//   clock divider, width, endianness, mask or ROM window keyed by CPU type);
+//   empty too -- a processor's spaces are its compiled class's own
+//   address_space_config (generated-board processorSpaces).
+// - RETIRED_CPU_LAYERS: the modules that held the hand cores, which must not
+//   come back.
+//
+// CPU_COMPILER_IDIOMS are the shared lowering functions every device goes
+// through: C++ idioms, not hardware, so the scan skips them.
+const CPU_LAYER_FILES = [
+  'mame/execution-source.ts',
+];
+const CPU_COMPILER_IDIOMS: Record<string, string> = {
+  normalizeMameExecutionSource: 'C++ the handler parser cannot read (attributes, make_unique, vectors, #define in a body)',
+  stripInactivePreprocessorBranches: 'the C preprocessor\'s #if, evaluated',
+  stripTracingCalls: 'logging and debugger hooks, which change no state',
+  lowerLocalStructs: 'a struct declared with its variable, as a value of its fields',
+  allocIntrinsic: 'the ALLOC primitive for an element type',
+};
+const HAND_WRITTEN_CPU_LAYERS: Record<string, string[]> = {};
+const HAND_WRITTEN_CPU_FACTS: string[] = [];
+const RETIRED_CPU_LAYERS = [
+  'mame/cpu-compiler.ts', 'mame/cpu-codegen.ts', 'mame/tms34010-compiler.ts',
+  'mame/namco51-compiler.ts', 'mame/namco53-compiler.ts', 'hardware/cpu', 'runtime/generated-cpu-core.ts',
+];
+for (const retired of RETIRED_CPU_LAYERS) {
+  assert.ok(!existsSync(join(src, retired)), `${retired} held a hand CPU layer (#249); compile the core whole instead`);
+}
+{
+  const isString = (node: ts.Node): node is ts.StringLiteral | ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression =>
+    ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node);
+  const textOf = (node: ts.Node) =>
+    ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) ? node.text : node.getText();
+  const enclosing = (node: ts.Node): string => {
+    let name = '(top level)';
+    for (let parent: ts.Node | undefined = node; parent; parent = parent.parent) {
+      if (ts.isFunctionDeclaration(parent) && parent.name) name = parent.name.text;
+    }
+    return name;
+  };
+  const nameOf = (object: ts.ObjectLiteralExpression) => {
+    const named = object.properties.find(property => ts.isPropertyAssignment(property)
+      && property.name.getText() === 'name' && isString(property.initializer));
+    return named && ts.isPropertyAssignment(named) ? textOf(named.initializer) : undefined;
+  };
+  // What a hand body goes by: a helper's leading string (`source('m68ki_read_8',
+  // ...)`), its object's `name`, or the property or variable it is assigned to.
+  const label = (node: ts.Node): string => {
+    for (let parent = node.parent; parent && !ts.isFunctionDeclaration(parent); parent = parent.parent) {
+      if (ts.isCallExpression(parent) && ts.isIdentifier(parent.expression) && parent.arguments.length > 1
+        && isString(parent.arguments[0]!) && parent.arguments[0] !== node
+        && !parent.arguments[0]!.getText().includes(';')) return textOf(parent.arguments[0]!);
+      if (ts.isObjectLiteralExpression(parent) && nameOf(parent)) return nameOf(parent)!;
+      if (ts.isPropertyAssignment(parent)) return nameOf(parent.parent) ?? parent.name.getText();
+      if (ts.isVariableDeclaration(parent)) return parent.name.getText();
+    }
+    return '(anonymous)';
+  };
+  const isReplace = (node: ts.Node): node is ts.CallExpression => ts.isCallExpression(node)
+    && ts.isPropertyAccessExpression(node.expression) && /^replace(?:All)?$/.test(node.expression.name.text);
+  const isHandlerBody = (node: ts.Node) => {
+    for (let parent = node.parent; parent && !ts.isStatement(parent); parent = parent.parent) {
+      if (!ts.isCallExpression(parent) || !ts.isIdentifier(parent.expression)) continue;
+      if (parent.expression.text === 'compileMameHandler') return true;
+      if (/^(?:source|method)$/.test(parent.expression.text) && parent.arguments.at(-1) === node) return true;
+    }
+    return false;
+  };
+  const isNumber = (node: ts.Node): boolean => ts.isNumericLiteral(node)
+    || ts.isPrefixUnaryExpression(node) && ts.isNumericLiteral(node.operand);
+  const inConstantTable = (node: ts.Node): boolean => {
+    for (let parent = node.parent; parent && !ts.isFunctionDeclaration(parent); parent = parent.parent) {
+      if ((ts.isVariableDeclaration(parent) || ts.isPropertyAssignment(parent))
+        && /constants$/i.test(parent.name.getText())) return true;
+      if (ts.isCallExpression(parent) && ts.isIdentifier(parent.expression)
+        && /^extract\w*(?:Constants|Array)$/.test(parent.expression.text)) return true;
+    }
+    return false;
+  };
+  const found: Record<string, string[]> = {};
+  for (const file of CPU_LAYER_FILES) {
+    const unit = ts.createSourceFile(file, readFileSync(join(src, file), 'utf8'), ts.ScriptTarget.Latest, true);
+    const visit = (node: ts.Node): void => {
+      const fn = enclosing(node);
+      if (CPU_COMPILER_IDIOMS[fn] === undefined) {
+        const entries = found[`${file}: ${fn}`] ??= [];
+        if (isReplace(node)) entries.push('edit');
+        else if (isString(node) && !(isReplace(node.parent) && node.parent.arguments[0] !== node)
+          && (isHandlerBody(node)
+            || /;/.test(textOf(node)) && /[A-Za-z_]\w*\s*(?:\(|[-+|&]?=)/.test(textOf(node)))) {
+          entries.push(`body ${label(node)}`);
+        } else if (ts.isPropertyAssignment(node) && isNumber(node.initializer) && inConstantTable(node)) {
+          entries.push(`constant ${node.name.getText()}`);
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(unit);
+  }
+  const layers = Object.fromEntries(Object.entries(found)
+    .filter(([, entries]) => entries.length)
+    .map(([key, entries]) => {
+      const edits = entries.filter(entry => entry === 'edit').length;
+      return [key, [...new Set(entries.filter(entry => entry !== 'edit')),
+        ...edits ? [`${edits} source edits`] : []].sort()];
+    }));
+  assert.deepEqual(layers, Object.fromEntries(Object.entries(HAND_WRITTEN_CPU_LAYERS).map(([key, entries]) =>
+    [key, [...entries].sort()])),
+    'a CPU compiler composes C++, edits MAME\'s source or types a constant in by hand; compile the core\'s own ' +
+    'device_reset/execute_set_input/execute_run and read its headers instead (or, if one was removed, delete ' +
+    'it from HAND_WRITTEN_CPU_LAYERS)');
+  for (const name of Object.keys(CPU_COMPILER_IDIOMS)) {
+    assert.ok(CPU_LAYER_FILES.some(file => new RegExp(`\\bfunction\\s+${name}\\b`)
+      .test(readFileSync(join(src, file), 'utf8'))), `CPU_COMPILER_IDIOMS: ${name} no longer exists; delete its entry`);
+  }
+
+  const facts: string[] = [];
+  const topology = readFileSync(join(src, 'gen/lower-topology.ts'), 'utf8');
+  const cpuTypes = /const CPU_TYPES[^=]*=\s*\{([^}]*)\}/.exec(topology)?.[1] ?? '';
+  const types = new Set([...cpuTypes.matchAll(/(\w+)\s*:\s*'(\w+)'/g)].flatMap(match => [match[1]!, match[2]!]));
+  for (const file of ['gen/emit-machine.ts', 'runtime/generated-board-shape.ts', 'gen/lower-topology.ts', 'runtime/generated-board.ts', 'runtime/device-cpu.ts']) {
+    const unit = ts.createSourceFile(file, readFileSync(join(src, file), 'utf8'), ts.ScriptTarget.Latest, true);
+    const visit = (node: ts.Node): void => {
+      // The table itself names which generated core a device type runs.
+      if (ts.isVariableDeclaration(node) && node.name.getText() === 'CPU_TYPES') return;
+      const named = ts.isStringLiteral(node) ? node.text
+        : ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) ? node.name.text : undefined;
+      if (named !== undefined && types.has(named)) facts.push(`${file}: ${enclosing(node)}: ${named}`);
+      ts.forEachChild(node, visit);
+    };
+    visit(unit);
+  }
+  assert.deepEqual([...new Set(facts)].sort(), [...HAND_WRITTEN_CPU_FACTS].sort(),
+    'a per-CPU fact is typed in outside the compiler; read it from the core\'s source instead (or, if one was ' +
+    'removed, delete it from HAND_WRITTEN_CPU_FACTS)');
 }
 
 // A list keyed by a file that is gone would pass silently forever.

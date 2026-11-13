@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evalExpr, parseDefines, parseEnumConstants } from '../kg/parse.ts';
 import { maskComments, parseMameSource, splitMameArgs, type MameFunction } from './ast.ts';
-import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './execution-source.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { compileMameDevice, type GeneratedDeviceDefinition, type GeneratedDeviceMember, type GeneratedStructField } from './device-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
@@ -31,7 +31,7 @@ export function compileSid(mameSource: string, hardware: MameHardwareDefinition)
     if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`SID constant unresolved: ${expression}`);
     return value;
   };
-  const aliases = new Map(units.flatMap(unit => [...unit.source.matchAll(/^\s*#define\s+(\w+)\s+([^\n]+)$/gm)].map(match => [match[1]!, match[2]!.trim()] as const)));
+  const aliases = new Map(units.flatMap(unit => [...unit.source.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^\n]+)$/gm)].map(match => [match[1]!, match[2]!.trim()] as const)));
   const functionTables: string[] = [];
   function declarations(body: string): GeneratedDeviceMember[] {
     body = body.replace(/\*(?=\w)/g, '* ');

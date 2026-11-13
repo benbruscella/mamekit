@@ -34,7 +34,7 @@ export const STREAM_SOUND_TYPES: readonly string[] = [
   // The RP2A03's own APU (nes_apu.cpp), compiled by the NES capability, and
   // the consoles' sound chips, each compiled by its console's capability:
   // the TIA's sound half, the C64's SID and the Game Boy's APU.
-  'NES_APU', 'TIA', 'MOS6581', 'MOS8580', 'DMG_APU',
+  'NES_APU', 'APU_2A03', 'TIA', 'MOS6581', 'MOS8580', 'DMG_APU',
   ...SOUND_DEVICE_MAME_TYPES,
 ];
 

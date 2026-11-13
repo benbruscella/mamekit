@@ -64,7 +64,17 @@ export function stripComments(src: string): string {
  * `#define YMFM_DEBUG_LOG_WAVFILES (0)` in ymfm_fm.h and tests it, as
  * `#if (YMFM_DEBUG_LOG_WAVFILES)`, in ymfm_fm.ipp as well.
  */
-export function resolveLiteralConditionals(src: string, defined = new Map<string, string>()): string {
+export function resolveLiteralConditionals(
+  src: string,
+  defined = new Map<string, string>(),
+  /**
+   * Names the translation unit only ever `#undef`s, never defines: an
+   * `#ifdef` of one is dead and an `#ifndef` live. tms5220.h opens with
+   * `#undef TMS5220_PERFECT_INTERPOLATION_HACK`, and read as two live
+   * branches its `int16_t m_current_energy` was declared again as int32_t.
+   */
+  undefinedNames: ReadonlySet<string> = new Set(),
+): string {
   const lines = src.split('\n');
   // Each open block: whether it is a literal one we resolve, whether its
   // current branch is live, and whether some earlier branch already was.
@@ -79,6 +89,9 @@ export function resolveLiteralConditionals(src: string, defined = new Map<string
     // define is one of two alternatives.
     const certain = stack.every(block => block.literal && block.live);
     if (define && certain) defined.set(define[1]!, define[2]!);
+    // A define with no value is still a define, for `#ifdef`.
+    const bare = /^\s*#\s*define\s+(\w+)\s*(?:\/\/.*|\/\*.*\*\/\s*)?$/.exec(line);
+    if (bare && certain && !defined.has(bare[1]!)) defined.set(bare[1]!, '');
     const undef = /^\s*#\s*undef\s+(\w+)/.exec(line);
     if (undef) defined.delete(undef[1]!);
     const directive = /^\s*#\s*(if|ifdef|ifndef|elif|else|endif)\b\s*(.*)$/.exec(line);
@@ -93,8 +106,15 @@ export function resolveLiteralConditionals(src: string, defined = new Map<string
         stack.push({ literal: true, live: true, taken: true, guard: true });
         return line;
       }
-      const isLiteral = keyword === 'if' && Boolean(literal);
-      const live = isLiteral ? Number(literal![1]) !== 0 : true;
+      // `#ifdef X` is decided when X is certainly defined (an unconditional
+      // `#define` seen before it, as tms5220.cpp's `#define FAST_START_HACK 1`
+      // before its `#ifdef FAST_START_HACK`) or certainly not (undefinedNames).
+      const known = keyword !== 'if' && /^\w+$/.test(rest) && (defined.has(rest) || undefinedNames.has(rest));
+      const isLiteral = (keyword === 'if' && Boolean(literal)) || known;
+      const present = defined.has(rest);
+      const live = known
+        ? (keyword === 'ifdef' ? present : !present)
+        : isLiteral ? Number(literal![1]) !== 0 : true;
       const printed = outerLive();
       stack.push({ literal: isLiteral, live, taken: live });
       return isLiteral || !printed ? '' : line;
@@ -306,6 +326,20 @@ export function evalExpr(expr: string, consts: Record<string, number> = {}): num
   s = s.replace(/([0-9]+(?:\.[0-9]+)?)_kHz_XTAL/g, (_, n) => String(Math.round(Number(n) * 1e3)));
   s = s.replace(/([0-9]+(?:\.[0-9]+)?)_Hz_XTAL/g, (_, n) => String(Math.round(Number(n))));
   s = s.replace(/XTAL\s*\(\s*([0-9]+)\s*\)/g, '$1');
+  // endianness.h's NATIVE_ENDIAN_VALUE_LE_BE(le, be) is the little-endian
+  // value on this host, as MAME's LSB_FIRST build has it: the 8086's byte
+  // registers are `AL = NATIVE_ENDIAN_VALUE_LE_BE(0x0, 0x1)`.
+  s = s.replace(/\bNATIVE_ENDIAN_VALUE_LE_BE\s*\(\s*([^,()]+?)\s*,\s*([^,()]+?)\s*\)/g, '($1)');
+  // coretmpl.h's `util::make_bitmask<T>(n)`: the low n bits set, or all of T's
+  // once n reaches its width. The TMS320C10's address mask is
+  // `make_bitmask<uint32_t>(HighBits)`; unread it was 0, and every table read,
+  // computed call and stack push it masks went to address 0.
+  s = s.replace(/(?:\butil::)?\bmake_bitmask\s*<\s*([\w\s]+?)\s*>\s*\(([^()]*)\)/g, (whole, type: string, argument: string) => {
+    const n = evalExpr(argument, consts);
+    if (n === null || !Number.isInteger(n) || n < 0) return whole;
+    const width = /64/.test(type) ? 64 : /16/.test(type) ? 16 : /8\b|char/.test(type) ? 8 : 32;
+    return String(n >= width ? 2 ** width - 1 : 2 ** n - 1);
+  });
   // Qualified names first: substituting a leaf (`SSSD`) inside its own
   // qualified spelling (`floppy_image::SSSD`) left `floppy_image::1146311507`,
   // which evaluates to nothing.
@@ -2030,7 +2064,14 @@ export function parseMachineConfigs(
       }
     }
     for (const stmt of statements) {
-      const s = expandAddrMapForwarders(stmt.trim(), addrMapForwarders);
+      // A tag setter handed a finder takes that finder's tag, as MAME's
+      // `set_tag(finder)` does: System 1's `z80.set_decrypted_tag(
+      // m_decrypted_opcodes)` names the share the 315-5177 decrypts into.
+      const s = expandAddrMapForwarders(stmt.trim(), addrMapForwarders)
+        .replace(/(\.\s*set_\w*tag\s*\(\s*)(m_\w+)(\s*\))/, (whole, open: string, member: string, close: string) => {
+          const tag = finderTag(member);
+          return tag === undefined ? whole : `${open}":${tag}"${close}`;
+        });
       if (!s) continue;
 
       // Derived configurations remove inherited devices by tag.  This must be

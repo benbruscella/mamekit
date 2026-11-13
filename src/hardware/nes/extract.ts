@@ -7,7 +7,6 @@ import {
   type GeneratedDeviceDefinition,
 } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
-import { compileNesApu } from '../../mame/nes-apu-compiler.ts';
 import {
   HARDWARE_INDEX_ENV,
   indexMameHardware,
@@ -25,7 +24,6 @@ import type {
 } from '../contract.ts';
 import {
   NES_MAME_TYPES,
-  NES_CPU_TYPES,
   nesDeviceIrArtifact,
   nesDeviceModuleArtifact,
 } from './definition.ts';
@@ -49,16 +47,13 @@ const CART_INTERFACE = 'device_nes_cart_interface';
 export function extractNes(input: CapabilityInput): Promise<CapabilityExtraction | undefined> | undefined {
   const present = input.entries.filter(entry =>
     NES_MAME_TYPES.includes(entry.type as (typeof NES_MAME_TYPES)[number]));
-  const hasApu = input.entries.some(entry =>
-    NES_CPU_TYPES.includes(entry.type as (typeof NES_CPU_TYPES)[number]));
-  if (!present.length && !hasApu) return undefined;
-  return extractPresentNes(input, present, hasApu);
+  if (!present.length) return undefined;
+  return extractPresentNes(input, present);
 }
 
 async function extractPresentNes(
   input: CapabilityInput,
   present: CapabilityInput['entries'],
-  hasApu: boolean,
 ): Promise<CapabilityExtraction | undefined> {
   const definitions = indexMameHardware(input.mameSource);
   const machineWiring = nesMachineWiring(input.mameSource);
@@ -129,18 +124,6 @@ async function extractPresentNes(
   }
   if (!compiled.size) return undefined;
 
-  // The RP2A03's own APU, the device its device_add_mconfig builds
-  // (nes_apu.cpp), compiled whole: a stream device the board holds under the
-  // CPU, every method an entry point (it steps once a CPU clock).
-  if (hasApu) {
-    const apuType = compileNesApu(input.mameSource).type;
-    const definition = definitions.get(apuType);
-    if (!definition) throw new Error(`NES: ${apuType} is not indexed`);
-    const apu = compileMameDevice(input.mameSource, definition, apuType);
-    if (apu.summary.diagnostics) throw new Error(`NES: ${apuType} has ${apu.summary.diagnostics} compiler diagnostics`);
-    apu.hotMethods = apu.methods.map(method => method.name);
-    compiled.set(apuType, apu);
-  }
   const executable: CapabilityExtraction['executable'] = {};
   const entryMethods: Record<string, readonly LoweredMethod[]> = {};
   const entrySourceFiles: Record<string, readonly string[]> = {};

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import {
   executeGeneratedHandler,

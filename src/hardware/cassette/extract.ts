@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseMameSource } from '../../mame/ast.ts';
 import { compileCassetteDevice, compileCassetteFormatList } from '../../mame/cassette-compiler.ts';
-import { normalizeMameExecutionSource } from '../../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../../mame/execution-source.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';

@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { evalExpr, parseDefines } from '../kg/parse.ts';
 import { parseMameSource } from './ast.ts';
-import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource, stripInactivePreprocessorBranches } from './execution-source.ts';
 import { compileMameDevice, lowerStructLocals, structDeclarations, type CassetteImageFormat, type GeneratedDeviceDefinition } from './device-compiler.ts';
 import { indexMameHardware } from './hardware.ts';
 import { compileMameHandler } from './handler-ir.ts';

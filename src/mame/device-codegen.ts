@@ -2,6 +2,8 @@ import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board
 import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDereference, STRING_MUTATORS } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
+import { isNoEffectStatement } from '../ir/framework-calls.ts';
+import { walkExpressions } from '../ir/walk.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
@@ -91,7 +93,7 @@ interface EmitContext {
   wrappedReferences: Set<string>;
   returnedReference?: string;
   /** See GeneratedDeviceMethod.returnWidth. */
-  returnWidth?: 8 | 16 | -8 | -16;
+  returnWidth?: 8 | 16 | 32 | -8 | -16 | -32;
   pointerSafeIndex: boolean;
   typescript: boolean;
   /** The emitted method's own constants, resolved before the scope's. */
@@ -169,11 +171,38 @@ export function generatedDeviceMethodsSource(
     [...methodCounts].filter(([, count]) => count > 1).map(([name]) => name),
   );
   const methodsByName = new Map(definition.methods.map(method => [method.name, method]));
+  // A method a member-function-pointer table names: CALL_METHOD reaches it
+  // by that name, out of sight of the static call graph. The 6800's opcode
+  // handlers are its `m_insn` table and run once per instruction.
+  const tableMethods = new Set<string>();
+  const collectNames = (value: unknown): void => {
+    if (typeof value === 'string') { if (methodsByName.has(value)) tableMethods.add(value); }
+    else if (Array.isArray(value)) value.forEach(collectNames);
+    else if (value && typeof value === 'object') Object.values(value).forEach(collectNames);
+  };
+  // A static table of rows is one too: the Z8002's `Z8000_init table[]`,
+  // each row's handler a member-function pointer.
+  for (const member of (definition as { members?: { values?: unknown; initialValue?: unknown; initialValues?: unknown }[] }).members ?? []) {
+    collectNames(member.values);
+    collectNames(member.initialValue);
+    collectNames(member.initialValues);
+  }
+  // Or a table folded into the code that indexes it: the NEC core's
+  // `(this->*s_nec_instruction[fetchop()])()` is CALL_METHOD(TABLE(fetchop(),
+  // "i_add_br8", ...)), every opcode handler named there.
+  for (const method of definition.methods) {
+    walkExpressions(method.program.operations, expression => {
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' && expression.callee.name === 'TABLE') {
+        for (const argument of expression.args) if (argument.kind === 'string') collectNames(argument.value);
+      }
+    });
+  }
   const roots = definition.methods.filter(method =>
     !overloaded.has(method.name) &&
     method.program.diagnostics.length === 0 &&
     (
       definition.hotMethods?.includes(method.name) ||
+      tableMethods.has(method.name) ||
       definition.timers.some(timer => timer.callback === method.name) ||
       // A bus entry point: MAME spells a memory handler's address as `offs_t`,
       // and a processor calls one once per access. These carry no loop for the
@@ -185,8 +214,11 @@ export function generatedDeviceMethodsSource(
       // device_execute_interface entry points run every device clock, even
       // when their loop only calls helpers and has no switch of its own.
       method.name === 'execute_run' ||
+      // Every input-line change a processor sees (IRQs, NMI, a 6801's IS3).
+      method.name === 'execute_set_input' ||
       isStreamRenderer(method) ||
-      installsLambda(method.program.operations) ||
+      (!definition.boardScope && isCliprectRenderer(method)) ||
+      installsLambda(method.program.operations, !definition.boardScope) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -269,12 +301,17 @@ export function generatedDeviceMethodsSource(
   const source = `(() => {
   const cppMin = (a${operand}, b${operand}) => (b < a ? b : a);
   const cppMax = (a${operand}, b${operand}) => (a < b ? b : a);
+  const cppStringText = (value${typescript ? ': unknown' : ''}) => typeof value === 'string' ? value
+    : typeof value === 'number' || typeof value === 'boolean' ? String(Number(value))
+    : value === undefined || value === null ? '' : String(value);
 ${[...constantTables].map(([values, name]) => `  const ${name} = [${values}];`).join('\n')}
 ${[...structCopiers.values()].join('\n')}
 ${functions}
-  return {
+  // CALL_METHOD's direct targets: each emitted method by its name.
+  const __methodTable${typescript ? ': Record<string, any>' : ''} = {
     ${entries}
   };
+  return __methodTable;
 })()`;
   return { source, methods: [...supportedNames], links: [...links].sort() };
 }
@@ -289,6 +326,9 @@ ${functions}
  * branch stays a block of its own so its locals keep their C++ scope. The
  * interpreter keeps the original program; it never enters the dead branch.
  */
+/** Names each emitted catch's exception apart, nested ones included. */
+let tryCounter = 0;
+
 function withoutDeadBranches(operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
   let changed = false;
   const pruned = operations.flatMap(operation => {
@@ -339,6 +379,11 @@ function constantCondition(expression: GeneratedExpression): number | undefined 
   }
   if (expression.kind === 'binary') {
     const left = constantCondition(expression.left);
+    // C short-circuits: `0 && x` is false and `1 || x` true without
+    // evaluating x. The TMS34010's LOGGFX is `if (LOG_GFX_OPS &&
+    // machine().input().code_pressed(KEYCODE_L))`, inside every PIXBLT.
+    if (expression.operator === '&&' && left === 0) return 0;
+    if (expression.operator === '||' && left !== undefined && left !== 0) return 1;
     const right = constantCondition(expression.right);
     if (left === undefined || right === undefined) return undefined;
     switch (expression.operator) {
@@ -364,9 +409,14 @@ function constantCondition(expression: GeneratedExpression): number | undefined 
  * a handler the bus runs on every access: the slapstic's tap decodes all of
  * the 68010's, and created by the interpreter it was interpreted each time.
  */
-function installsLambda(operations: GeneratedHandlerOperation[]): boolean {
+function installsLambda(operations: GeneratedHandlerOperation[], memberLambdas = false): boolean {
   let found = false;
   visitOperations(operations, operation => {
+    // Or, in a device, stores one in a std::function member it calls later:
+    // Musashi's init16 gives m_readimm16 the lambda every instruction fetch
+    // runs, and a lambda the interpreter built ran interpreted at every call.
+    if (memberLambdas && operation.op === 'assign' && operation.value?.kind === 'lambda' && operation.target?.kind === 'identifier' &&
+        /^m_/.test(operation.target.name)) found = true;
     visitOperationExpressions(operation, expression => {
       if (expression.kind !== 'call') return;
       const callee = expression.callee.kind === 'member' ? expression.callee.property
@@ -385,12 +435,41 @@ function containsSwitch(operations: GeneratedHandlerOperation[]): boolean {
   return found;
 }
 
+/**
+ * The definition the browser loads beside the emitted module: a method that
+ * only ever runs emitted (in the compiled map, its name unique) carries no
+ * program, since nothing executes it. The microcoded 68000's 6,000 bus-cycle
+ * states made the full IR 300 MB; the auditable IR keeps every program.
+ */
+export function runtimeDeviceDefinition(
+  definition: GeneratedDeviceDefinition,
+  emitted: ReturnType<typeof generatedDeviceMethodsSource>,
+): GeneratedDeviceDefinition {
+  const counts = new Map<string, number>();
+  for (const method of definition.methods) counts.set(method.name, (counts.get(method.name) ?? 0) + 1);
+  const emittedNames = new Set(emitted.methods);
+  // A lifecycle method keeps its program: the board reads device_start's to
+  // decide what the device waits for before it starts (startReadsHostBindings
+  // -- atarimo checks `m_gfxdecode->gfx(n)`), and they are small.
+  const lifecycle = new Set([definition.start, definition.reset, definition.construct].filter(Boolean) as string[]);
+  const kept = (name: string) => lifecycle.has(name) || /^(?:\w+::)*device_\w+$/.test(name);
+  return {
+    ...definition,
+    methods: definition.methods.map(method =>
+      emittedNames.has(method.name) && !kept(method.name) && counts.get(method.name) === 1 && codegenWrappedParameters(method).length === 0
+        ? { ...method, program: { operations: [], diagnostics: [] }, emittedOnly: true } as GeneratedDeviceMethod
+        : method),
+  };
+}
+
 export function generatedDeviceExecutableSource(
   definition: GeneratedDeviceDefinition,
   dataFile: string,
   coreModule = '../../core/generated-device.js',
+  /** The emitted methods, when the caller already generated them. */
+  emitted?: ReturnType<typeof generatedDeviceMethodsSource>,
 ): string {
-  const assignments = generatedDeviceAssignments(definition, 'definition').join('\n');
+  const assignments = generatedDeviceAssignments(definition, 'definition', emitted).join('\n');
   return `// GENERATED from MAME device source; do not edit.
 import type {
   GeneratedDeviceDefinition,
@@ -409,8 +488,9 @@ export default device;
 function generatedDeviceAssignments(
   definition: GeneratedDeviceDefinition,
   target: string,
+  precomputed?: ReturnType<typeof generatedDeviceMethodsSource>,
 ): string[] {
-  const emitted = generatedDeviceMethodsSource(definition, true);
+  const emitted = precomputed ?? generatedDeviceMethodsSource(definition, true);
   const compiled = emitted.methods.length
     ? `${emitted.source} as GeneratedDeviceMethodMap`
     : '{} as GeneratedDeviceMethodMap';
@@ -540,13 +620,33 @@ function methodClosure(
   return [...selected.values()];
 }
 
+/** Whether evaluating the expression could call or assign anything. */
+function hasCall(expression: GeneratedExpression): boolean {
+  if (expression.kind === 'call' || expression.kind === 'assignment' || expression.kind === 'lambda') return true;
+  return Object.values(expression).some(value =>
+    Array.isArray(value)
+      ? value.some(item => item && typeof item === 'object' && 'kind' in item && hasCall(item as GeneratedExpression))
+      : value && typeof value === 'object' && 'kind' in value && hasCall(value as GeneratedExpression));
+}
+
 export function calledIdentifiers(operations: GeneratedHandlerOperation[]): Set<string> {
   const names = new Set<string>();
+  // An assignment to a call's result runs that method's `name=` (the
+  // compiler's setter for a reference-returning method: the 6809's regop8).
+  const assigned = (target: GeneratedExpression) => {
+    if (target.kind === 'call' && target.callee.kind === 'identifier') names.add(`${target.callee.name}=`);
+  };
+  // So does taking its address: the pointer writes through the setter.
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'unary' && expression.operator === '&') assigned(expression.operand);
+  }));
   visitOperations(operations, operation => {
+    if (operation.op === 'assign') assigned(operation.target);
     visitOperationExpressions(operation, expression => {
       if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
         names.add(expression.callee.name);
       }
+      if (expression.kind === 'assignment') assigned(expression.target);
     });
   });
   return names;
@@ -573,6 +673,10 @@ function maximumLoopDepth(
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) {
         maximum = Math.max(maximum, maximumLoopDepth(entry.body, depth));
+      }
+    } else if (operation.op === 'try') {
+      for (const nested of [operation.body, ...operation.catches.map(entry => entry.body), operation.finally ?? []]) {
+        maximum = Math.max(maximum, maximumLoopDepth(nested, depth));
       }
     }
   }
@@ -669,7 +773,11 @@ export function supportsMethod(
   ]);
   const callees = calledIdentifiers(method.program.operations);
   const addressOnly = addressOnlyLocals(method.program.operations, locals);
+  const structLocals = structLocalNames(method.program.operations, definition);
   const scalarLocals = integerScalarLocals(method.program.operations);
+  const objectReferenceParameters = new Set(parameters
+    .filter(parameter => isObjectReference(parameter.valueType))
+    .map(parameter => parameter.name));
   // The receiver of a bound framework chain is never emitted on its own.
   const chainReceivers = new Set<GeneratedExpression>();
   visitOperations(method.program.operations, operation => {
@@ -712,9 +820,21 @@ export function supportsMethod(
           // its own routine this way; declined, the APU's whole sample loop
           // ran interpreted, 1.79 million samples a second).
           (expression.operand.kind === 'member' && structFieldIsStruct(expression.operand, definition)) ||
+          // Any other field: runtime.fieldAddress, as the interpreter takes it
+          // (in a union, the union and its path). The 6309's TFR reads and
+          // writes registers through `&m_q.r.a`-style addresses.
+          expression.operand.kind === 'member' ||
           (
             expression.operand.kind === 'call' &&
             expression.operand.callee.kind === 'member'
+          ) ||
+          // `&regop16()`: a compiled method answering an object (a PAIR16
+          // register) by reference, whose address is that object
+          // (runtime.objectAddress). The 6809's stack choice compares it.
+          (
+            expression.operand.kind === 'call' &&
+            expression.operand.callee.kind === 'identifier' &&
+            compiled.has(expression.operand.callee.name)
           ) ||
           (
             expression.operand.kind === 'identifier' &&
@@ -739,6 +859,11 @@ export function supportsMethod(
               // declining it left them interpreted every frame. A pointer
               // local (`&dst` above) is still declined.
               scalarLocals.has(expression.operand.name) ||
+              // A local of a struct the device declares: an object at run
+              // time, so its address is that object, as the interpreter
+              // takes it. The TMS34010 hands its line `&params` to the
+              // scanline delegate and every PIXBLT its window `&dstxy`.
+              structLocals.has(expression.operand.name) ||
               // A local whose address is all the method ever uses: what the
               // callee does through it no emitted code here can observe, and
               // the callee is handed the same lvalue-backed pointer the
@@ -746,7 +871,13 @@ export function supportsMethod(
               // `&p` to the sample writer this way, and declining it ran a
               // tape's whole PCM conversion -- a second and more -- through
               // interpreted get/set closures, one pair per sample.
-              addressOnly.has(expression.operand.name)
+              addressOnly.has(expression.operand.name) ||
+              // A parameter bound to an object by reference (`address_space
+              // &space`): its address is that object, as the interpreter takes
+              // it. Musashi's init16 keeps `m_space = &space` before installing
+              // the memory lambdas every instruction fetch goes through, and
+              // declined, those lambdas ran interpreted.
+              objectReferenceParameters.has(expression.operand.name)
             )
           );
       } else if (expression.kind === 'binary') {
@@ -803,6 +934,30 @@ export function supportsMethod(
   return supported;
 }
 
+/**
+ * A device's render entry point by MAME's own spelling: a method handed the
+ * region to draw as `const rectangle &cliprect`. (A board's handlers keep
+ * their own selection.) The screen update calls it every frame
+ * whether or not its own body loops -- atarimo's `draw_async` hands each dirty
+ * rectangle to a lambda that draws it -- and left interpreted it pulled the
+ * whole sprite pass back into the interpreter with it.
+ */
+/**
+ * `address_space &space`: a reference to a framework object -- an address
+ * space, a device or an interface -- which code keeps or calls but never
+ * stores a value into. A struct or register union (`PAIR16 &reg`) is a value
+ * the callee may assign through, and keeps its get/set wrapping.
+ */
+function isObjectReference(valueType: string | undefined): boolean {
+  if (!valueType || !/&\s*$/.test(valueType)) return false;
+  const bare = valueType.replace(/&\s*$/, '').replace(/\b(?:const|volatile)\b/g, '').trim();
+  return /^(?:[\w:]*::)?(?:address_space|\w+_device|\w+_interface)$/.test(bare);
+}
+
+function isCliprectRenderer(method: GeneratedDeviceMethod): boolean {
+  return /\brectangle\s*&\s*cliprect\b|\brectangle\s+const\s*&\s*cliprect\b/.test(method.parameters);
+}
+
 function emitMethod(
   definition: CodegenScope,
   method: GeneratedDeviceMethod,
@@ -823,7 +978,7 @@ function emitMethod(
         .filter(parameter =>
           isMutableReference(parameter.valueType) &&
           parameter.name !== returnedReference &&
-          assignsIdentifier(method.program.operations, parameter.name))
+          assignsIdentifier(method.program.operations, parameter.name, !isObjectReference(parameter.valueType)))
         .map(parameter => parameter.name),
     ),
     returnedReference,
@@ -864,6 +1019,13 @@ function emitMethod(
     return `${localName(parameter.name)}${annotation}${fallback === undefined ? '' : ` = ${fallback}`}`;
   }).join(', ');
   const returned = returnedReference ? `\n    return ${localName(returnedReference)};` : '';
+  // A narrow integer parameter takes its value converted, as a C++ call does:
+  // the 6502's `set_l(uint16_t base, uint8_t val)` is handed `TMP + m_Y`, and
+  // unconverted every page-crossing dummy read went to the next page.
+  const narrowed = parameters
+    .filter(parameter => NARROW_PARAMETER.test(parameter.valueType.replace(/\bconst\b/g, '').trim()))
+    .map(parameter => `    ${localName(parameter.name)} = ${wrapType(localName(parameter.name), parameter.valueType)};\n`)
+    .join('');
   // Emitted first, read once: the body below refers to these by their local.
   const body = emitOperations(method.program.operations, context, 4);
   const hoisted = [...(context.hoisted ?? [])]
@@ -882,7 +1044,7 @@ function emitMethod(
   const emitted = `  function method_${safeName(method.name)}(runtime${annotation}${args ? `, ${args}` : ''})${annotation} {
     const members = runtime.members;${linked}${temps}
 ${[...context.dereferencedParameters!].map(([parameter, name]) => `    const ${name} = runtime.dereference(${localName(parameter)});`).join('\n')}
-${hoisted}${hoisted ? '\n' : ''}${body}${returned}
+${narrowed}${hoisted}${hoisted ? '\n' : ''}${body}${returned}
   }`;
   // `*p` through a copy of its own: V8 keeps one feedback vector a function,
   // so a single shared dereference saw every object shape of every method
@@ -1027,16 +1189,26 @@ function emitOperation(
       (pointee ? ` ${pointee} = runtime.dereference(${localName((operation.target as { name: string }).name)});` : '');
   }
   if (operation.op === 'call') {
+    const callee = operation.expression.kind === 'call' && operation.expression.callee.kind === 'identifier'
+      ? operation.expression.callee.name : undefined;
+    // Its arguments are names or values with no effect of their own (a PC,
+    // a register): nothing is left to evaluate.
+    if (callee && !context.compiled.has(callee) && isNoEffectStatement(callee) &&
+        operation.expression.kind === 'call' && operation.expression.args.every(argument => !hasCall(argument))) {
+      return `${pad}/* ${callee}: no effect */`;
+    }
     return `${pad}${emitExpression(operation.expression, context)};`;
   }
   if (operation.op === 'return') {
     if (!operation.value) return `${pad}return;`;
-    const value = emitExpression(operation.value, context);
     const width = context.returnWidth;
+    const value = width ? lowWord(emitExpression(operation.value, context)) : emitExpression(operation.value, context);
     return `${pad}return ${width === 8 ? `((${value}) & 0xff)`
       : width === 16 ? `((${value}) & 0xffff)`
-        : width === -8 ? `((${value}) << 24 >> 24)`
-          : width === -16 ? `((${value}) << 16 >> 16)` : value};`;
+        : width === 32 ? `((${value}) >>> 0)`
+          : width === -8 ? `((${value}) << 24 >> 24)`
+            : width === -16 ? `((${value}) << 16 >> 16)`
+              : width === -32 ? `((${value}) | 0)` : value};`;
   }
   if (operation.op === 'break') return `${pad}break;`;
   if (operation.op === 'continue') return `${pad}continue;`;
@@ -1104,6 +1276,35 @@ function emitOperation(
       emitOperations(operation.body, context, indentation + 2),
       `${pad}} while (${emitExpression(operation.condition, context)});`,
     ].filter(Boolean).join('\n');
+  }
+  // C++ try/catch as JavaScript's own, so a return, break or continue in it
+  // leaves as C++'s does. Only a C++ throw is caught (runtime.cpp), by type;
+  // while a handler runs, its exception is the one `throw;` rethrows.
+  if (operation.op === 'try') {
+    const caught = `__cppThrow${tryCounter++}`;
+    const lines = [`${pad}try {`, emitOperations(operation.body, context, indentation + 2), `${pad}}`];
+    if (operation.catches.length) {
+      lines.push(`${pad}catch (${caught}${context.typescript ? ': any' : ''}) {`);
+      lines.push(`${pad}  if (!runtime.cpp.isThrow(${caught})) throw ${caught};`);
+      operation.catches.forEach((entry, index) => {
+        if (entry.name) context.locals.set(entry.name, entry.valueType);
+        lines.push(`${pad}  ${index ? 'else ' : ''}if (runtime.cpp.matches(${JSON.stringify(entry.valueType ?? null)}, ${caught}.value)) {`);
+        lines.push(`${pad}    runtime.cpp.enter(${caught});`);
+        lines.push(`${pad}    try {`);
+        if (entry.name) lines.push(`${pad}      let ${localName(entry.name)}${context.typescript ? ': any' : ''} = ${caught}.value;`);
+        lines.push(emitOperations(entry.body, context, indentation + 6));
+        lines.push(`${pad}    } finally { runtime.cpp.leave(); }`);
+        lines.push(`${pad}  }`);
+      });
+      lines.push(`${pad}  else throw ${caught};`);
+      lines.push(`${pad}}`);
+    }
+    if (operation.finally) {
+      lines.push(`${pad}finally {`, emitOperations(operation.finally, context, indentation + 2), `${pad}}`);
+    } else if (!operation.catches.length) {
+      lines.push(`${pad}finally {}`);
+    }
+    return lines.filter(Boolean).join('\n');
   }
   // A specialised template switches on a constant (`switch (M)` becomes
   // `switch (1)` for addr_mode::DI), which C++ allows and TypeScript rejects
@@ -1200,7 +1401,22 @@ function hoistedName(name: string): string {
  * `runtime.writableMember` may materialise into a fresh array. Mutating the
  * object a member already points at is not a rebind and does not disqualify it.
  */
+const STABLE_MEMBERS = new WeakMap<object, Set<string>>();
+
+/**
+ * Members no method in this scope rebinds -- once per scope: emitMethod asks
+ * for every method it emits, and the microcoded 68000's 6,000 states made the
+ * per-method rescan of every method's IR 85% of an eighteen-minute build.
+ */
 function stableMemberNames(definition: CodegenScope): Set<string> {
+  const cached = STABLE_MEMBERS.get(definition.methods);
+  if (cached) return cached;
+  const found = computeStableMemberNames(definition);
+  STABLE_MEMBERS.set(definition.methods, found);
+  return found;
+}
+
+function computeStableMemberNames(definition: CodegenScope): Set<string> {
   const rebound = new Set<string>();
   // `cur_live = checkpoint_live` on a struct member copies fields into the
   // object the member already holds (runtime.copyStruct), so the binding
@@ -1375,6 +1591,18 @@ function literalValue(expression: GeneratedExpression, context?: EmitContext): n
   }
 }
 
+/**
+ * A framework constant named without its class -- diexec.h's INPUT_LINE_NMI,
+ * which the runtime numbers its own way -- where the device has no member of
+ * that name: the interpreter falls back to the same table. Emitted as a
+ * member read it was 0, so a 6800's IRQ line was taken for its NMI.
+ */
+function frameworkConstant(name: string, context: EmitContext): number | undefined {
+  if (name.includes('::') || DEFAULT_CONSTANTS[name] === undefined) return undefined;
+  if (context.definition.members.some(member => member.name === name)) return undefined;
+  return DEFAULT_CONSTANTS[name];
+}
+
 /** The integer an identifier is emitted as, resolved exactly as emitExpression does. */
 function literalIdentifier(name: string, context: EmitContext): number | undefined {
   if (context.locals.has(name)) return undefined;
@@ -1385,7 +1613,8 @@ function literalIdentifier(name: string, context: EmitContext): number | undefin
     context.definition.constants[name] ??
     (leaf !== name ? DEFAULT_CONSTANTS[name] : undefined) ??
     context.methodConstants?.[leaf] ??
-    context.definition.constants[leaf];
+    context.definition.constants[leaf] ??
+    frameworkConstant(name, context);
   if (constant !== undefined) return Number.isInteger(constant) ? constant : undefined;
   if (context.compiled.has(name)) return undefined;
   const value = Number(constMemberValue(name, context));
@@ -1425,7 +1654,8 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       context.definition.constants[expression.name] ??
       (leaf !== expression.name ? DEFAULT_CONSTANTS[expression.name] : undefined) ??
       context.methodConstants?.[leaf] ??
-      context.definition.constants[leaf];
+      context.definition.constants[leaf] ??
+      frameworkConstant(expression.name, context);
     if (constant !== undefined) return String(constant);
     if (context.compiled.has(expression.name)) {
       return `method_${safeName(expression.name)}.bind(undefined, runtime)`;
@@ -1441,6 +1671,13 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       // `*this` is the device's own object, never a pointer or an array:
       // POKEY hands it to a channel's inc_chan on every clock.
       if (expression.operand.kind === 'identifier' && expression.operand.name === 'this' && !context.boardScope) return operand;
+      // `*(uint16_t *)p`: the word at p, read straight from the bytes.
+      if (expression.operand.kind === 'cast' && expression.operand.pointer) {
+        const view = packedPointerView(expression.operand.valueType);
+        if (view === 'false' || view === 'true') {
+          return `runtime.packedWord(${emitExpression(expression.operand.operand, context)}, ${view})`;
+        }
+      }
       return `runtime.dereference(${operand})`;
     }
     return expression.operator === '!' ? `((${operand}) ? 0 : 1)` : `(${expression.operator}${operand})`;
@@ -1475,10 +1712,18 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     const right = emitExpression(expression.right, context);
     const leftType = expressionValueType(expression.left, context);
     const rightType = expressionValueType(expression.right, context);
-    if (expression.operator === '+' && leftType?.includes('*')) {
+    // Less an array, a pointer is a count of elements, as C decays the array:
+    // the Z8002 numbers its opcode rows `opc - table`, and offset by the
+    // negated table every row was 0.
+    const arrayOperand = (operand: GeneratedExpression) => operand.kind === 'identifier' && !context.locals.has(operand.name) &&
+      Boolean(context.definition.members.find(member => member.name === operand.name)?.arrayLength);
+    // An array member decays to a pointer to its first element, whatever its
+    // element type: Musashi's `REG_A()` answers `m_dar + 8`, and added as
+    // numbers the array concatenated into a string.
+    if (expression.operator === '+' && (leftType?.includes('*') || (arrayOperand(expression.left) && !arrayOperand(expression.right)))) {
       return `runtime.addressOf(${left}, ${right})`;
     }
-    if (expression.operator === '+' && rightType?.includes('*')) {
+    if (expression.operator === '+' && (rightType?.includes('*') || arrayOperand(expression.right))) {
       return `runtime.addressOf(${right}, ${left})`;
     }
     // Neither side is known to be a number, so the value decides -- exactly as
@@ -1489,7 +1734,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
         !isKnownNumericType(rightType)) {
       return `runtime.add(${left}, ${right})`;
     }
-    if (expression.operator === '-' && leftType?.includes('*') && !rightType?.includes('*')) {
+    if (expression.operator === '-' && leftType?.includes('*') && arrayOperand(expression.right)) {
+      return `runtime.subtract(${left}, ${right})`;
+    }
+    if (expression.operator === '-' && (leftType?.includes('*') || arrayOperand(expression.left)) && !rightType?.includes('*') && !arrayOperand(expression.right)) {
       return `runtime.addressOf(${left}, -(${right}))`;
     }
     // Two iterators into one container differ by a count, and either side
@@ -1549,6 +1797,17 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       // Pointers order by where they point within their memory.
       if (operator !== '===' && operator !== '!==' && (leftType?.includes('*') || rightType?.includes('*'))) {
         return `((runtime.pointerOffset(${left}) ${operator} runtime.pointerOffset(${right})) ? 1 : 0)`;
+      }
+      // Two declared integers (or literals) compare as they are: Number() of
+      // an integer is the integer, and the 6809 tests `m_icount <= 0` and its
+      // dispatch selector on every instruction.
+      // Not a bool: one may hold a JavaScript boolean, and `true === 1` is
+      // false. Not 64-bit: a wide value is an object Number() reads.
+      const integral = (value: GeneratedExpression, type: string | undefined) =>
+        (value.kind === 'number' && Number.isFinite(value.value)) ||
+        (type !== undefined && !/\bbool\b|64/.test(type) && integerBitsForType(type));
+      if (integral(expression.left, leftType) && integral(expression.right, rightType)) {
+        return `(((${left}) ${operator} (${right})) ? 1 : 0)`;
       }
       return `((Number(${left}) ${operator} Number(${right})) ? 1 : 0)`;
     }
@@ -1688,6 +1947,39 @@ const PURE_MATH: Record<string, { call: string; arity: number }> = Object.fromEn
   [`std::${name as string}`, { call: call as string, arity: arity as number }],
 ]));
 
+const PAIR_VIEWS: Record<string, Record<string, string>> = {
+  w: { l: 'u16', h: 'u16' },
+  sw: { l: 's16', h: 's16' },
+  b: { l: 'u8', h: 'u8', h2: 'u8', h3: 'u8' },
+  sb: { l: 's8', h: 's8', h2: 's8', h3: 's8' },
+};
+
+/** Which of emucore.h's unions a local or member holds, if one. */
+function pairKind(value: GeneratedExpression, context: EmitContext): 'PAIR' | 'PAIR16' | undefined {
+  if (value.kind !== 'identifier') return undefined;
+  const declared = (context.locals.has(value.name)
+    ? context.locals.get(value.name)
+    : context.definition.members.find(member => member.name === value.name)?.valueType)?.replace(/\bconst\b/g, '').trim();
+  return declared === 'PAIR' || declared === 'PAIR16' ? declared : undefined;
+}
+
+function pairViewType(expression: GeneratedExpression, context: EmitContext): string | undefined {
+  if (expression.kind !== 'member') return undefined;
+  // PAIR's word is `.d`; PAIR16's is `.w` (the 6809's `m_pc.w`).
+  const words: Record<string, Record<string, string>> = {
+    PAIR: { d: 'u32', sd: 's32' },
+    PAIR16: { w: 'u16', sw: 's16' },
+  };
+  const own = pairKind(expression.object, context);
+  if (own) return words[own]![expression.property];
+  const view = expression.object;
+  const holder = view.kind === 'member' ? pairKind(view.object, context) : undefined;
+  if (view.kind !== 'member' || !holder) return undefined;
+  if (holder === 'PAIR16' && view.property !== 'b' && view.property !== 'sb') return undefined;
+  if (holder === 'PAIR16' && !['l', 'h'].includes(expression.property)) return undefined;
+  return PAIR_VIEWS[view.property]?.[expression.property];
+}
+
 function expressionValueType(
   expression: GeneratedExpression,
   context: EmitContext,
@@ -1697,6 +1989,11 @@ function expressionValueType(
     return context.definition.members.find(member => member.name === expression.name)?.valueType;
   }
   if (expression.kind === 'cast') return expression.valueType;
+  // MAME's PAIR union: each view is an integer of its width -- `.d` the word,
+  // `.w.l`/`.w.h` its halves, `.b.l`... its bytes, and the `s` forms signed.
+  // The 6800 steps its program counter as `m_pc.w.l++` on every fetch.
+  const pairView = pairViewType(expression, context);
+  if (pairView) return pairView;
   // A struct field declares its width, so `m_line.window_start_y_index + 4` is
   // known integer arithmetic and needs neither the runtime's `add` nor its
   // pointer tests. The Game Boy PPU's per-dot window check does five of these.
@@ -1776,6 +2073,16 @@ function emitCall(
     return `runtime.synchronize(${JSON.stringify(synchronize.callback ?? '')}, ` +
       `${synchronize.parameter ? emitExpression(synchronize.parameter, context) : '0'})`;
   }
+  // std::swap(a, b): objects trade contents (runtime.swapObjects), anything
+  // else is the two stores, through the emitter's own assignment.
+  if (expression.callee.kind === 'identifier' && (expression.callee.name === 'swap' || expression.callee.name === 'std::swap') &&
+      expression.args.length === 2 && !context.compiled.has(expression.callee.name)) {
+    const [left, right] = expression.args as [GeneratedExpression, GeneratedExpression];
+    const a = methodTemp(context);
+    const b = methodTemp(context);
+    return `(${a} = ${emitExpression(left, context)}, ${b} = ${emitExpression(right, context)}, ` +
+      `(runtime.swapObjects(${a}, ${b}) ? 0 : (${emitAssignment(left, '=', right, context, b)}, ${emitAssignment(right, '=', left, context, a)}, 0)))`;
+  }
   if (expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
     // A board package can override a source method with a shape-recognised
@@ -1818,6 +2125,15 @@ function emitCall(
       return `(typeof ${localName(name)} === 'function' ? ${localName(name)}(${args.join(', ')}) : ` +
         `runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
     }
+    // A std::function member holds the callable its device stored there: the
+    // 8086's `m_or8 = [this](offs_t a) { return m_cache8.read_byte(a); }`,
+    // which every opcode fetch calls as `m_or8(pc)`. Through the call table it
+    // was no function at all, and every fetch read 0.
+    if (/^(?:const\s+)?std::function\s*</.test(context.definition.members.find(member => member.name === name)?.valueType ?? '')) {
+      const held = methodTemp(context);
+      return `(typeof (${held} = members.${name}) === 'function' ? ${held}(${args.join(', ')}) : ` +
+        `(${fallbackLink(context, name)} ? ${callLink(context, name)}(${args.join(', ')}) : runtime.macro(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''})))`;
+    }
     if (name === 'COMBINE_DATA') {
       // The interpreter reads data/mem_mask from the handler's locals; emitted
       // code passes its own parameters, with MAME's full-mask default.
@@ -1831,15 +2147,28 @@ function emitCall(
         !context.definition.methods.some(method => method.name === name)) {
       return `${name === 'std::min' ? 'cppMin' : 'cppMax'}(+(${args[0]}), +(${args[1]}))`;
     }
+    if (name === 'STRING_APPEND') return `(cppStringText(${args[0] ?? "''"}) + cppStringText(${args[1] ?? "''"}))`;
     if (name === 'BIT') {
       const mask = args[2] ? `((1 << (${args[2]})) - 1)` : '1';
       return `(((${args[0] ?? '0'}) >>> (${args[1] ?? '0'})) & ${mask})`;
     }
+    // The comma operator (handler-ir's COMMA): each operand in turn, the last
+    // one's value, as JavaScript's own comma does.
+    if (name === 'COMMA' && args.length) {
+      return `(${args.join(', ')})`;
+    }
     if (name === 'BITSWAP') {
-      const source = args[0] ?? '0';
+      // The source is evaluated once, as bitswap<N>()'s argument is: the
+      // DECO C10707 bitswaps every opcode it reads with
+      // `bitswap<8>(m_cprogram.read_byte(adr), ...)`, and repeated per bit
+      // that was eight bus reads a fetch.
+      const plain = /^[\w.$]+$/.test(args[0] ?? '0');
+      const held = plain ? undefined : methodTemp(context);
+      const source = held ?? args[0] ?? '0';
       const bits = args.slice(1);
-      return `(${bits.map((bit, index) =>
-        `(((${source}) >>> (${bit})) & 1) << ${bits.length - index - 1}`).join(' | ') || '0'})`;
+      const swapped = bits.map((bit, index) =>
+        `(((${source}) >>> (${bit})) & 1) << ${bits.length - index - 1}`).join(' | ') || '0';
+      return held ? `(${held} = ${args[0]}, ${swapped})` : `(${swapped})`;
     }
     if (name === 'rgb_t' && expression.args.every(argument => argument.kind === 'number')) {
       return String(applyGeneratedMacro(name, expression.args.map(argument =>
@@ -1976,6 +2305,16 @@ function emitCall(
         `typeof ${member} === 'function' ? ${member}(${args.join(', ')}) : ` +
         `runtime.invoke(${JSON.stringify(name)}${args.length ? `, ${args.join(', ')}` : ''}))`;
     }
+    // A call through a member-function pointer: the pointer holds a method's
+    // name, and an emitted method of that name is called directly -- the 6800
+    // and MCS-48 dispatch every instruction this way. Anything else takes the
+    // shared path below.
+    if (name === 'CALL_METHOD' && args.length >= 1) {
+      const rest = args.slice(1);
+      return `((__method) => __method ? __method(runtime${rest.length ? `, ${rest.join(', ')}` : ''}) : ` +
+        `(${callLink(context, name)} ? ${callLink(context, name)}(${args.join(', ')}) : ` +
+        `runtime.macro("CALL_METHOD"${args.length ? `, ${args.join(', ')}` : ''})))(__methodTable[${args[0]}])`;
+    }
     // <cmath> answers the same everywhere, so it is spelled directly. The
     // speaker's filter takes `std::abs` of 64 taps for every one of 48,000
     // samples a second, and down the macro chain that was a fifth of a frame.
@@ -2032,15 +2371,16 @@ function emitCall(
     // std::vector::resize. A plain array (a vector of vectors or of structs)
     // grows in place by elements of its own kind; a typed array is replaced,
     // so a member or local holding one takes the new array back.
-    if (expression.callee.property === 'resize' && args.length === 1) {
+    if (expression.callee.property === 'resize' && (args.length === 1 || args.length === 2)) {
       const holder = expression.callee.object;
+      const resized = `runtime.resize(${object}, ${args.join(', ')})`;
       if (holder.kind === 'identifier' && context.locals.has(holder.name) && !context.wrappedReferences.has(holder.name)) {
-        return `(${localName(holder.name)} = runtime.resize(${object}, ${args[0]}))`;
+        return `(${localName(holder.name)} = ${resized})`;
       }
       if (holder.kind === 'identifier' && context.definition.members.some(member => member.name === holder.name)) {
-        return `(members.${holder.name} = runtime.resize(${object}, ${args[0]}))`;
+        return `(members.${holder.name} = ${resized})`;
       }
-      return `runtime.resize(${object}, ${args[0]})`;
+      return resized;
     }
     if (
       ['bytes', 'size', 'length'].includes(expression.callee.property) &&
@@ -2234,7 +2574,11 @@ function valueMemberCallCode(
   // board binding, not a method of the object -- answers through the links
   // table first, as the interpreter resolves the call: emitted directly, the
   // Namco 51xx's chip_select never reached its MB8843 and Dig Dug went silent.
-  if (finder) {
+  // So does a shared-memory finder re-pointed from the machine configuration:
+  // the 315-5177's `m_decrypted.set_tag(tag)` is the runtime's binding, and as
+  // a method of the share's bytes it was no call at all, so wboy decrypted
+  // into a share nothing read.
+  if (finder || (member?.memory && property === 'set_tag')) {
     const chain = memberCallName(expression, context.methodConstants);
     const direct = `((${object})?.${property}?.(${args.join(', ')}) ?? 0)`;
     if (!chain) return direct;
@@ -2438,6 +2782,15 @@ function emitAssignment(
   right = emitExpression(value, context),
 ): string {
   if (expression.kind === 'call') {
+    // A method returning a reference is assigned through its `name=`, the
+    // operator applied to what the getter reads (the 6809's `ireg() += 2`).
+    if (expression.callee.kind === 'identifier' && context.compiled.has(`${expression.callee.name}=`) &&
+        context.compiled.has(expression.callee.name) && /^(?:[-+*/%&|^]|<<|>>)?=$/.test(operator)) {
+      const args = expression.args.map(argument => emitExpression(argument, context));
+      const next = operator === '=' ? right
+        : `((${emitExpression(expression, context)}) ${operator.slice(0, -1)} (${right}))`;
+      return `method_${safeName(`${expression.callee.name}=`)}(runtime, ${[...args, next].join(', ')})`;
+    }
     if (operator !== '=' || expression.callee.kind !== 'member') {
       throw new Error('device codegen only supports assignment to member call results');
     }
@@ -2495,6 +2848,17 @@ function emitAssignment(
       : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     return `runtime.writeIndex(${object}, ${index}, ${next})`;
   }
+  // A PAIR assigned from a PAIR copies the word, as the union is copied:
+  // the 6800's `m_ppc = m_pc` keeps the previous PC, not a second name for
+  // the current one.
+  const pairType = (candidate: GeneratedExpression) => expressionValueType(candidate, context)?.replace(/\bconst\b/g, '').trim();
+  if (operator === '=' && expression.kind === 'identifier' && pairType(expression) === 'PAIR' && pairType(value) === 'PAIR') {
+    return `(${emitExpression(expression, context)}.d = (${right}).d)`;
+  }
+  // PAIR16 the same, by its 16-bit word: the 6809's `m_ppc = m_pc`.
+  if (operator === '=' && expression.kind === 'identifier' && pairType(expression) === 'PAIR16' && pairType(value) === 'PAIR16') {
+    return `(${emitExpression(expression, context)}.w = (${right}).w)`;
+  }
   // C++ struct assignment copies: `cur_live = checkpoint_live` on the 64H156
   // must leave two structs, not one object under two names.
   if (operator === '=' && expression.kind === 'identifier' && !context.locals.has(expression.name)) {
@@ -2523,7 +2887,8 @@ function emitAssignment(
   // A struct field or member declared with a width is an integer, whatever
   // spelling (if any) the target carries.
   const next = pointerAssignment(target.code, operator, right,
-    target.valueType ?? (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : target.pointerArithmetic ? 'auto*' : undefined));
+    pairViewType(expression, context) ?? target.valueType ??
+      (target.bits ? `${target.signed ? 's' : 'u'}${target.bits}` : target.pointerArithmetic ? 'auto*' : undefined));
   if (expression.kind === 'unary' && expression.operator === '*') {
     return `${target.code} = ${next}`;
   }
@@ -2555,7 +2920,15 @@ function pointerAssignment(
       ? `((${current}) & (${right}))`
       : `runtime.andAssign(${current}, ${right})`;
   }
-  // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical.
+  // `>>=` follows the binary `>>` rule above: unsigned C++ shifts stay logical,
+  // a declared signed one is arithmetic, and only an undeclared one asks the
+  // runtime. The 6809 pops a state with `m_state >>= 9` every instruction.
+  if (operator === '>>=' && /^(?:const\s+)?(?:uint(?:8|16|32)_t|u(?:8|16|32)|unsigned(?:\s+int)?|offs_t)$/.test(valueType ?? '')) {
+    return `((${current}) >>> (${right}))`;
+  }
+  if (operator === '>>=' && /^(?:const\s+)?(?:int(?:8|16|32)_t|s(?:8|16|32)|int|signed(?:\s+int)?)$/.test(valueType ?? '')) {
+    return `((${current}) >> (${right}))`;
+  }
   return operator === '='
     ? right
     : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
@@ -2609,6 +2982,49 @@ function emitAddressOf(
   if (expression.kind === 'member' && structFieldIsStruct(expression, context.definition)) {
     return emitExpression(expression, context);
   }
+  // A PAIR or PAIR16 is an object too: `&m_s` is the 6809's stack register.
+  if (expression.kind === 'identifier' && pairKind(expression, context)) {
+    return emitExpression(expression, context);
+  }
+  // A local of a struct the device declares is an object; its address is it.
+  if (expression.kind === 'identifier' && context.locals.has(expression.name) &&
+      isDeclaredStructType(context.locals.get(expression.name), context.definition)) {
+    return emitExpression(expression, context);
+  }
+  // A parameter bound to an object by reference: its address is the object.
+  if (expression.kind === 'identifier' && context.locals.has(expression.name) &&
+      isObjectReference(context.locals.get(expression.name)) && !context.wrappedReferences.has(expression.name)) {
+    return emitExpression(expression, context);
+  }
+  // A reference parameter's address is its argument's (execute.ts lValue):
+  // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }`.
+  if (expression.kind === 'identifier' && context.wrappedReferences.has(expression.name)) {
+    const name = localName(expression.name);
+    return `(${name}.address ? ${name}.address() : ({ generatedPointer: true, target: ${name}, offset: 0 }))`;
+  }
+  // A field's: in a union, the union and its path (runtime.fieldAddress).
+  if (expression.kind === 'member') {
+    return `runtime.fieldAddress(${emitExpression(expression.object, context)}, ${JSON.stringify(expression.property)})`;
+  }
+  // A call answering a reference to a scalar (Musashi's `&DX()`, a data
+  // register): a pointer whose target is the method's getter and its `name=`
+  // setter, as the interpreter's lValue takes it. An object it answers is
+  // that object.
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+      context.compiled.has(expression.callee.name) && context.compiled.has(`${expression.callee.name}=`)) {
+    const args = expression.args.map(argument => emitExpression(argument, context));
+    const names = args.map((_argument, index) => `__address${index}`);
+    const any = context.typescript ? ': any' : '';
+    const getter = `method_${safeName(expression.callee.name)}(runtime${names.map(name => `, ${name}`).join('')})`;
+    const setter = `method_${safeName(`${expression.callee.name}=`)}(runtime${names.map(name => `, ${name}`).join('')}, __value)`;
+    return `((${names.map(name => `${name}${any}`).join(', ')}) => { const __held${any} = ${getter}; ` +
+      `return __held !== null && typeof __held === 'object' ? runtime.objectAddress(__held) : ` +
+      `{ generatedPointer: true, target: { generatedLValue: true, get: () => ${getter}, set: (__value${any}) => ${setter} }, offset: 0 }; })(${args.join(', ')})`;
+  }
+  // A call answering an object: that object (`&regop16() == &m_s`).
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
+    return `runtime.objectAddress(${emitExpression(expression, context)})`;
+  }
   // `&m_value` on a scalar: the interpreter answers with a pointer whose target
   // is the slot's own get/set pair (execute.ts addressOf), so a callee that
   // stores through it -- `get_sample(..., &m_value)` -- writes the member with
@@ -2637,8 +3053,15 @@ function emitReferenceArgument(
   }
   const target = targetInfo(expression, context);
   const annotation = context.typescript ? ': any' : '';
+  // Its own address too, for a callee that takes it (`m_reg8 = &reg`): only
+  // a field's, which can name a union; anything else keeps the slot itself.
+  const address = expression.kind === 'member'
+    ? `, address: () => runtime.fieldAddress(${emitExpression(expression.object, context)}, ${JSON.stringify(expression.property)})`
+    : expression.kind === 'identifier' && (pairKind(expression, context) || namesStructMember(expression.name, context))
+      ? `, address: () => ${emitExpression(expression, context)}`
+      : '';
   return `({ generatedLValue: true, get: () => ${emitExpression(expression, context)}, ` +
-    `set: (value${annotation}) => { ${target.code} = ${wrapTarget('value', target)}; } })`;
+    `set: (value${annotation}) => { ${target.code} = ${wrapTarget('value', target)}; }${address} })`;
 }
 
 /**
@@ -2652,7 +3075,20 @@ function singleReturnedReference(
   const assigned = (tryParseParameters(method.parameters) ?? []).filter(parameter =>
     isMutableReference(parameter.valueType) &&
     assignsIdentifier(method.program.operations, parameter.name));
+  // Handing the value back cannot stand in for a reference the method keeps
+  // the address of (the 6809's `m_reg8 = &reg`): that one stays a reference.
+  if (assigned.length === 1 && takesAddress(method.program.operations, assigned[0]!.name)) return undefined;
   return assigned.length === 1 ? assigned[0]!.name : undefined;
+}
+
+/** Whether `&name` appears in these operations. */
+function takesAddress(operations: GeneratedHandlerOperation[], name: string): boolean {
+  let taken = false;
+  visitOperations(operations, operation => visitOperationExpressions(operation, expression => {
+    if (expression.kind === 'unary' && expression.operator === '&' &&
+        expression.operand.kind === 'identifier' && expression.operand.name === name) taken = true;
+  }));
+  return taken;
 }
 
 function containsReturn(operations: GeneratedHandlerOperation[]): boolean {
@@ -2701,7 +3137,7 @@ export function codegenWrappedParameters(method: GeneratedDeviceMethod): string[
       isMutableReference(parameter.valueType) &&
       (
         parameter.name === returnedReference ||
-        assignsIdentifier(method.program.operations, parameter.name)
+        assignsIdentifier(method.program.operations, parameter.name, !isObjectReference(parameter.valueType))
       ))
     .map(parameter => parameter.name);
 }
@@ -2782,6 +3218,12 @@ function plainlyAssigned(operations: GeneratedHandlerOperation[], name: string):
 function assignsIdentifier(
   operations: GeneratedHandlerOperation[],
   name: string,
+  /**
+   * Whether taking its address counts. Not for a reference to an object
+   * (`address_space &space`): its address is the object, kept as itself, and
+   * nothing can store through it into the caller's binding.
+   */
+  addressWrites = true,
 ): boolean {
   let assigned = false;
   visitOperations(operations, operation => {
@@ -2799,6 +3241,14 @@ function assignsIdentifier(
         expression.target.kind === 'identifier' &&
         expression.target.name === name
       ) {
+        assigned = true;
+      }
+      // Its address taken is as good as written: the 6809's
+      // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }` keeps it, and every
+      // `regop8() = ...` writes through. Passed by value, that wrote a dead
+      // local and accumulator A never changed.
+      if (addressWrites && expression.kind === 'unary' && expression.operator === '&' &&
+          expression.operand.kind === 'identifier' && expression.operand.name === name) {
         assigned = true;
       }
     });
@@ -2906,7 +3356,8 @@ function targetInfo(expression: GeneratedExpression, context: EmitContext): Targ
     const field = structFieldOf(expression, context) ?? allocatedObjectField(expression, context);
     return {
       code: emitExpression(expression, context),
-      ...(field?.bits ? { bits: field.bits, signed: field.signed } : {}),
+      // A 64-bit field (a union's) is stored as the runtime holds it, unnarrowed.
+      ...(field?.bits && field.bits !== 64 ? { bits: field.bits, signed: field.signed } : {}),
       // A pointer field steps by pointer arithmetic, and so does one whose
       // type it cannot follow (a range-for element's): discrete's tasks read
       // each buffered source as `sn.buffer = *sn.ptr++`.
@@ -2944,7 +3395,18 @@ function tryParseParameters(
   // emitted method took an argument its callers never pass -- which is a
   // compile error the moment such a method is selected for codegen.
   if (parameters.trim() === 'void') return parsed;
-  for (const parameter of parameters.split(',').map(entry => entry.trim()).filter(Boolean)) {
+  // Split at commas outside a template's arguments
+  // (`memory_access<23, 1, 0, ENDIANNESS_BIG>::specific &space, uint32_t addr`).
+  const entries: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const character of parameters) {
+    if (character === '<' || character === '(' || character === '[') depth++;
+    else if (character === '>' || character === ')' || character === ']') depth = Math.max(0, depth - 1);
+    if (character === ',' && depth === 0) { entries.push(current); current = ''; } else current += character;
+  }
+  entries.push(current);
+  for (const parameter of entries.map(entry => entry.trim()).filter(Boolean)) {
     const name = /(\w+)\s*(?:=[\s\S]*)?$/.exec(parameter)?.[1];
     if (!name) return undefined;
     parsed.push({
@@ -3062,6 +3524,8 @@ function collectLocalNames(
 ): void {
   visitOperations(operations, operation => {
     if (operation.op === 'declare') locals.add(operation.name);
+    // A catch's exception is a local of its handler.
+    if (operation.op === 'try') for (const entry of operation.catches) if (entry.name) locals.add(entry.name);
   });
 }
 
@@ -3084,6 +3548,10 @@ function visitOperations(
       if (operation.op === 'for') visitOperations(operation.iterate, visit);
     } else if (operation.op === 'switch') {
       for (const entry of operation.cases) visitOperations(entry.body, visit);
+    } else if (operation.op === 'try') {
+      visitOperations(operation.body, visit);
+      for (const entry of operation.catches) visitOperations(entry.body, visit);
+      if (operation.finally) visitOperations(operation.finally, visit);
     }
   }
 }
@@ -3154,7 +3622,16 @@ function wrapTarget(value: string, target: Target): string {
     : wrapType(value, target.valueType);
 }
 
+/**
+ * A 64-bit answer may be a BigInt, which no 32-bit operator takes; its low
+ * word is what every narrower store keeps (execute.ts generatedLow32).
+ */
+function lowWord(value: string): string {
+  return value.startsWith('runtime.wide(') ? `runtime.low32(${value})` : value;
+}
+
 function wrapBits(value: string, bits?: 1 | 8 | 16 | 32, signed = false): string {
+  if (bits) value = lowWord(value);
   if (bits === 1) return `((${value}) ? 1 : 0)`;
   if (bits === 8) {
     return signed ? `((${value}) << 24 >> 24)` : `((${value}) & 0xff)`;
@@ -3184,6 +3661,9 @@ function packedPointerView(valueType: string | undefined): string | undefined {
   return undefined;
 }
 
+/** The value parameter types a call converts its argument to, narrower than the int it computes in. */
+const NARROW_PARAMETER = /^(?:u8|uint8_t|s8|int8_t|u16|uint16_t|s16|int16_t|unsigned short|short)$/;
+
 function wrapType(value: string, valueType?: string): string {
   if (valueType?.includes('*')) {
     // A pointer declaration is not a narrowing, but a *wider* element type
@@ -3199,6 +3679,7 @@ function wrapType(value: string, valueType?: string): string {
   }
   const normalized = valueType?.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
   if (normalized === 'bool') return `((${value}) ? 1 : 0)`;
+  if (normalized && /^(?:u8|uint8_t|s8|int8_t|char|u16|uint16_t|unsigned short|s16|int16_t|short|u32|uint32_t|int|s32|int32_t)$/.test(normalized)) value = lowWord(value);
   if (normalized === 'u8' || normalized === 'uint8_t') return `((${value}) & 0xff)`;
   if (normalized === 's8' || normalized === 'int8_t' || normalized === 'char') {
     return `((${value}) << 24 >> 24)`;
@@ -3258,6 +3739,23 @@ const ATTOTIME_METHODS = new Set(['as_ticks', 'as_double', 'as_attoseconds', 'is
  * A scalar member is not: its address needs a get/set wrapper, and taking one
  * stays interpreted.
  */
+/** A declared type naming a struct the device declares (not a pointer or reference to one). */
+function isDeclaredStructType(valueType: string | undefined, definition: CodegenScope): boolean {
+  const type = valueType?.replace(/\b(?:const|volatile|struct)\b/g, '').trim();
+  if (!type || /[*&]/.test(type)) return false;
+  const structs = (definition as { structs?: Record<string, unknown> }).structs ?? {};
+  return Boolean(structs[type] ?? structs[type.split('::').at(-1)!]);
+}
+
+/** The locals a method declares with a struct type the device declares. */
+function structLocalNames(operations: GeneratedHandlerOperation[], definition: CodegenScope): Set<string> {
+  const names = new Set<string>();
+  visitOperations(operations, operation => {
+    if (operation.op === 'declare' && isDeclaredStructType(operation.valueType, definition)) names.add(operation.name);
+  });
+  return names;
+}
+
 function structMemberNames(definition: CodegenScope): Set<string> {
   return new Set(
     definition.members

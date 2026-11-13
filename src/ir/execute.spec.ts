@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { compileMameHandler } from '../mame/handler-ir.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import {
   applyGeneratedMacro,
   compileGeneratedMachineHandler,
@@ -745,6 +745,16 @@ check('std::fill and min/max_element over array iterators', () => {
   assert.deepEqual(members.m_irq_state, [0, 0, 0]);
   assert.equal((members as Record<string, unknown>).m_min, 2);
   assert.equal((members as Record<string, unknown>).m_max, 9);
+});
+
+// The Game Boy cartridge slot checksums its ROM at reset with std::accumulate
+// over a pointer range, from the header's own sum.
+check('std::accumulate sums a pointer range from its initial value', () => {
+  const members = { m_rom: [1, 2, 3, 250], m_sum: 0 };
+  executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(`
+    u8 const *const data = &m_rom[0];
+    m_sum = std::accumulate(&data[0], &data[4], 10);`)), { members } as never);
+  assert.equal(members.m_sum, 266);
 });
 
 // The floppy drive's call_load spells it `std::strcmp`, and an unknown macro

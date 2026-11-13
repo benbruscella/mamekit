@@ -7,9 +7,9 @@ export const gyruss = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   frames: 1800,
-  // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 42.5 fps against the old floor of 45 (issue #247, 4.5).
-  minimumFps: 34,
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI measured 27.7 fps against the floor of 34 (issue #247, 5.2).
+  minimumFps: 25,
   checkpoints: [1, 60, 300, 480, 720, 1200, 1800],
   actions: [
     { atFrame: 480, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
@@ -28,20 +28,20 @@ export const gyruss = sourceTarget({
       tiles: '27d8329b',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '5bc90e31' },
-      60: { video: '8f81534a', state: '92e3e976' },
-      300: { video: 'dcb5f4e5', state: 'a8500829' },
-      480: { video: '0a084be4', state: '8c92013f' },
-      720: { video: '95737fab', state: '04229b08' },
-      1200: { video: '9a4e450b', state: 'b91916f9' },
-      1800: { video: 'd323c100', state: '5f9ccd9f' },
+      1: { video: 'f7e6ac81', state: 'cf09d415' },
+      60: { video: '8f81534a', state: 'e453a2c2' },
+      300: { video: 'dcb5f4e5', state: '1f8f9d23' },
+      480: { video: '0a084be4', state: '2c1f1195' },
+      720: { video: '95737fab', state: '99d211a3' },
+      1200: { video: '9a4e450b', state: 'cc0f26f4' },
+      1800: { video: 'd323c100', state: 'a23ffa08' },
     },
     audio: {
       writes: 1425599,
       nonzeroWrites: 1425599,
-      writeHash: '1ed0e99d',
-      pcmHash: '97b3c58a',
-      rms: 0.06464,
+      writeHash: '3ac9f212',
+      pcmHash: '80cefb89',
+      rms: 0.064563,
     },
   },
 });

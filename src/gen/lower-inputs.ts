@@ -9,7 +9,7 @@ import type { BoardConfig } from '../ir/host-config.ts';
 import type { GeneratedHandler } from '../ir/board.ts';
 
 import { compileMameHandler } from '../mame/handler-ir.ts';
-import { normalizeMameExecutionSource } from '../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 
 import type { GenerateOptions } from './generate.ts';
 

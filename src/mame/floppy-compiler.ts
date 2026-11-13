@@ -15,7 +15,7 @@ import { join } from 'node:path';
 import { stripComments } from '../kg/parse.ts';
 import { walkExpressions } from '../ir/walk.ts';
 import { parseMameConstructors, parseMameSource } from './ast.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import { addSourceConstructor, compileMameDevice, type GeneratedDeviceDefinition } from './device-compiler.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import type { MameHardwareDefinition } from './hardware.ts';

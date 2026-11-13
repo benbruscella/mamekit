@@ -23,7 +23,7 @@ export interface FunctionMacro {
 }
 
 /** Names the IR answers itself; expanding a redefinition would shadow them. */
-const INTRINSICS = new Set(['BIT', 'BITSWAP', 'TABLE', 'COMBINE_DATA',
+const INTRINSICS = new Set(['BIT', 'BITSWAP', 'TABLE', 'COMBINE_DATA', 'COMMA',
   // Discrete node identities are translated by the host audio protocol.
   'NODE', 'NODE_INDEX', 'NODE_RELATIVE']);
 
@@ -43,13 +43,19 @@ const TRACING = /^(?:LOG[A-Z0-9_]*|VPRINTF|PRINTF)$/;
  */
 export function collectFunctionMacros(
   source: string,
-  options: { includeForwarders?: boolean } = {},
+  options: { includeForwarders?: boolean; expressions?: boolean } = {},
 ): FunctionMacro[] {
   const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
   const macros: FunctionMacro[] = [];
   for (const match of joined.matchAll(/^[ \t]*#define[ \t]+(\w+)\(([^)]*)\)[ \t]*(.*)$/gm)) {
     const [, name, parameters, body] = match;
-    if (!name || INTRINSICS.has(name) || TRACING.test(name) || !body?.trim()) continue;
+    if (!name || INTRINSICS.has(name) || TRACING.test(name)) continue;
+    // An empty one expands to nothing: Musashi's `#define MMULOG(...)`, its
+    // MMU logging switched off, leaves every `MMULOG(...)` call no statement.
+    if (!body?.trim()) {
+      macros.push({ name, parameters: parameters!.split(',').map(parameter => parameter.trim()).filter(Boolean), body: '' });
+      continue;
+    }
     // Statement macros only. An *expression* macro is already served better
     // elsewhere: a constant folds through parseDefines, and a symbolic one is
     // forwarded to the runtime by name -- which is how a discrete-sound node
@@ -57,6 +63,7 @@ export function collectFunctionMacros(
     // `NODE_RELATIVE(base, 0)` discards the very name the sound runtime routes
     // on, and silenced Galaga and Dig Dug outright.
     if (
+      !options.expressions &&
       !/[;{]/.test(body) &&
       !(options.includeForwarders && /\b[A-Z_][A-Z0-9_]*\s*\(/.test(body))
     ) continue;
@@ -166,13 +173,22 @@ export function expandFunctionMacros(body: string, macros: readonly FunctionMacr
       // empty, is no argument at all. Counted as one, the 6522's interrupt
       // acknowledge never expanded and reading port A never cleared CA1.
       if (call && macro && !macro.parameters.length && call.args.length === 1 && !call.args[0]) call.args = [];
-      if (!macro || !call || call.args.length !== macro.parameters.length) {
+      // A variadic macro (`MMULOG(...)`) takes any number past its named ones.
+      const variadic = macro?.parameters.at(-1) === '...';
+      if (!macro || !call || (variadic
+        ? call.args.length < macro.parameters.length - 1
+        : call.args.length !== macro.parameters.length)) {
         result += expanded.slice(index, at + match[0].length);
         index = at + match[0].length;
         continue;
       }
       let substituted = macro.body;
+      if (variadic) {
+        const named = macro.parameters.length - 1;
+        substituted = substituted.replace(/\b__VA_ARGS__\b/g, call.args.slice(named).join(', '));
+      }
       for (const [position, parameter] of macro.parameters.entries()) {
+        if (parameter === '...') continue;
         substituted = substituted.replace(
           new RegExp(`\\b${parameter}\\b`, 'g'),
           // Parenthesised so an argument that is an expression keeps its

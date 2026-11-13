@@ -1,7 +1,7 @@
 import { CPreprocessor } from '../../mame/c-preprocessor.ts';
 import { compileMameDevice, constructorInitialValues } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
-import { normalizeMameExecutionSource } from '../../mame/cpu-compiler.ts';
+import { normalizeMameExecutionSource } from '../../mame/execution-source.ts';
 import { compileMameHandler } from '../../mame/handler-ir.ts';
 import { executeGeneratedProgram } from '../../ir/execute.ts';
 import { splitMameArgs, parseMameConstructors } from '../../mame/ast.ts';

@@ -1,4 +1,4 @@
-import { maskComments } from './ast.ts';
+import { maskComments, splitMameArgs } from './ast.ts';
 import type { GeneratedExpression, GeneratedHandlerOperation, GeneratedHandlerProgram } from '../ir/board.ts';
 import { nestedOperations, walkExpressions, walkOperations } from '../ir/walk.ts';
 
@@ -115,10 +115,125 @@ export function compileMameHandler(
       String(Number(mhz) * 1_000_000))
     .replace(/\b(\d+(?:\.\d+)?)_kHz_XTAL\b/g, (_all, khz) =>
       String(Number(khz) * 1_000));
-  const parser = new HandlerParser(tokenize(executable));
+  const parser = new HandlerParser(tokenize(lowerLocalObjects(executable)));
   const program = parser.parse();
   markFloatingLocals(program.operations);
   return program;
+}
+
+/** The index of the brace matching the one at `open`, or -1. */
+function closingBrace(text: string, open: number): number {
+  let depth = 0;
+  for (let index = open; index < text.length; index++) {
+    if (text[index] === '{') depth++;
+    else if (text[index] === '}' && --depth === 0) return index;
+  }
+  return -1;
+}
+
+/**
+ * A class a function body defines for one local object, its constructor and
+ * destructor run where C++ runs them: Musashi's execute_run declares
+ * `struct fpu_rounding_saver { ... } rounding_saver(*this);`, saving the FPU's
+ * rounding mode on entry and restoring it on every way out. The object's
+ * fields become locals named for it, its constructor body runs at the
+ * declaration, and its destructor before each later `return` of the block and
+ * at the block's end. (An exception leaving the function is the one exit that
+ * does not run it.) A field bound to a reference parameter is the argument:
+ * `m_cpu(cpu)` handed `*this` makes `m_cpu.m_has_fpu` the device's own member.
+ */
+function lowerLocalObjects(text: string): string {
+  for (let guard = 0; guard < 8; guard++) {
+    const head = /\b(?:struct|class)\s+(\w+)\s*\{/.exec(text);
+    if (!head) return text;
+    const name = head[1]!;
+    const open = head.index + head[0].length - 1;
+    const close = closingBrace(text, open);
+    if (close < 0) return text;
+    const declarator = /^\s*(\w+)\s*(?:\(([^;]*)\))?\s*;/.exec(text.slice(close + 1));
+    if (!declarator) return text;
+    const variable = declarator[1]!;
+    const args = declarator[2] ? splitMameArgs(declarator[2]).map(argument => argument.trim()) : [];
+    let body = text.slice(open + 1, close);
+    // Constructor: `Name(params) : inits { body }`.
+    let constructorBody = '';
+    const fieldInits = new Map<string, string>();
+    const references = new Map<string, string>();
+    const ctor = new RegExp(`(?<![~\\w])${name}\\s*\\(([^)]*)\\)\\s*(?::([^{]*))?\\{`).exec(body);
+    let parameters: string[] = [];
+    if (ctor) {
+      parameters = splitMameArgs(ctor[1]!).map(parameter => parameter.trim()).filter(Boolean);
+      const ctorOpen = ctor.index + ctor[0].length - 1;
+      const ctorClose = closingBrace(body, ctorOpen);
+      constructorBody = body.slice(ctorOpen + 1, ctorClose);
+      for (const init of splitMameArgs(ctor[2] ?? '')) {
+        const parsed = /^\s*(\w+)\s*\(([\s\S]*)\)\s*$/.exec(init);
+        if (parsed) fieldInits.set(parsed[1]!, parsed[2]!.trim());
+      }
+      body = body.slice(0, ctor.index) + body.slice(ctorClose + 1);
+    }
+    let destructorBody = '';
+    const dtor = new RegExp(`~\\s*${name}\\s*\\(\\s*\\)\\s*\\{`).exec(body);
+    if (dtor) {
+      const dtorOpen = dtor.index + dtor[0].length - 1;
+      const dtorClose = closingBrace(body, dtorOpen);
+      destructorBody = body.slice(dtorOpen + 1, dtorClose);
+      body = body.slice(0, dtor.index) + body.slice(dtorClose + 1);
+    }
+    const parameterNames = parameters.map(parameter => /(\w+)\s*$/.exec(parameter.replace(/=.*$/, ''))?.[1] ?? '');
+    const argumentOf = (parameter: string) => {
+      const index = parameterNames.indexOf(parameter);
+      return index >= 0 ? args[index] ?? '0' : parameter;
+    };
+    const fields: { type: string; field: string; init?: string }[] = [];
+    for (const statement of body.split(';')) {
+      const field = /^\s*([\w:<>\s]+?)\s*(&)?\s*(\w+)\s*(?:=\s*([\s\S]+))?$/.exec(statement.trim());
+      if (!field || /^(?:public|private|protected)\b/.test(field[1]!)) continue;
+      if (field[2]) {
+        const bound = fieldInits.get(field[3]!);
+        if (bound !== undefined) references.set(field[3]!, argumentOf(bound));
+        continue;
+      }
+      fields.push({ type: field[1]!.trim(), field: field[3]!, init: fieldInits.get(field[3]!) ?? field[4]?.trim() });
+    }
+    const localName = (field: string) => `${variable}__${field}`;
+    const substitute = (code: string) => {
+      let out = code;
+      for (const [field, target] of references) {
+        const self = target.replace(/\s/g, '') === '*this';
+        out = out.replace(new RegExp(`\\b${field}\\s*\\.\\s*`, 'g'), self ? '' : `(${target}).`);
+        out = out.replace(new RegExp(`\\b${field}\\b`, 'g'), self ? '(*this)' : `(${target})`);
+      }
+      for (const { field } of fields) out = out.replace(new RegExp(`\\b${field}\\b`, 'g'), localName(field));
+      for (const parameter of parameterNames) {
+        if (parameter) out = out.replace(new RegExp(`\\b${parameter}\\b`, 'g'), `(${argumentOf(parameter)})`);
+      }
+      return out;
+    };
+    const prefix = fields.map(({ type, field, init }) => `${type} ${localName(field)} = ${init ? substitute(init) : '0'};`).join(' ') +
+      (constructorBody.trim() ? ` { ${substitute(constructorBody)} }` : '');
+    const destructor = destructorBody.trim() ? `{ ${substitute(destructorBody)} }` : '';
+    // The rest of the enclosing block: up to the brace that closes it.
+    const restStart = close + 1 + declarator[0].length;
+    let depth = 0;
+    let restEnd = text.length;
+    for (let index = restStart; index < text.length; index++) {
+      if (text[index] === '{') depth++;
+      else if (text[index] === '}') {
+        if (depth === 0) { restEnd = index; break; }
+        depth--;
+      }
+    }
+    let rest = text.slice(restStart, restEnd);
+    if (destructor) {
+      rest = rest.replace(/\breturn\b\s*([^;]*);/g, (_all, value: string) => value.trim()
+        ? `{ auto ${variable}__returned = (${value}); ${destructor} return ${variable}__returned; }`
+        : `{ ${destructor} return; }`);
+      rest += ` ${destructor}`;
+    }
+    text = text.slice(0, head.index) + prefix + rest + text.slice(restEnd);
+  }
+  return text;
 }
 
 /** Locals whose declared type makes every read of them a floating-point value. */
@@ -221,11 +336,68 @@ class HandlerParser {
   private readonly labels = new Map<GeneratedHandlerOperation, string>();
 
   parse(): GeneratedHandlerProgram {
-    const operations = this.parseOperations();
+    let operations = this.parseOperations();
+    // A jump no enclosing switch or later label could take: into a loop from
+    // before it, or backward. z80make.py's execute_run runs its slow path,
+    // then `goto process;` into the middle of the fast `while (true)` loop,
+    // whose instructions `goto process;` again. The body is one case of a
+    // switch entered at the top, and lowerSwitchGotos flattens it like any.
+    if (this.gotos.size && [...this.gotos.values()].some(label =>
+      [...this.labels.values()].includes(label))) {
+      const lowered = this.lowerSwitchGotos({ kind: 'number', value: 0 },
+        [{ values: [{ kind: 'number', value: 0 }], body: operations }]);
+      operations = Array.isArray(lowered) ? lowered : [lowered];
+    }
+    operations = this.stripLabelMarks(operations);
+    // `stream.str()`: the string a string stream holds is the local itself.
+    if (this.streamLocals.size) {
+      walkExpressions(operations, expression => {
+        if (expression.kind === 'call' && !expression.args.length && expression.callee.kind === 'member' &&
+            expression.callee.property === 'str' && expression.callee.object.kind === 'identifier' &&
+            this.streamLocals.has(expression.callee.object.name)) {
+          const name = expression.callee.object.name;
+          for (const key of Object.keys(expression)) delete (expression as unknown as Record<string, unknown>)[key];
+          Object.assign(expression, { kind: 'identifier', name });
+        }
+      });
+    }
     for (const [, label] of this.gotos) {
       this.diagnostics.push(`unsupported goto ${label}`);
     }
     return { operations, diagnostics: this.diagnostics };
+  }
+
+  /**
+   * A label's mark stays in its list until a `goto` to it is lowered: an
+   * enclosing switch may still need it (lowerSwitchGotos). What is left once
+   * the whole body is read marks nothing anyone jumps to.
+   */
+  private stripLabelMarks(list: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
+    return list.filter(operation => !this.labels.has(operation)).map(operation => {
+      switch (operation.op) {
+        case 'if':
+          return { ...operation, then: this.stripLabelMarks(operation.then),
+            ...(operation.else ? { else: this.stripLabelMarks(operation.else) } : {}) };
+        case 'for':
+          return { ...operation, initialize: this.stripLabelMarks(operation.initialize),
+            iterate: this.stripLabelMarks(operation.iterate), body: this.stripLabelMarks(operation.body) };
+        case 'while': case 'do-while':
+          return { ...operation, body: this.stripLabelMarks(operation.body) };
+        case 'switch':
+          return { ...operation, cases: operation.cases.map(entry => ({ ...entry, body: this.stripLabelMarks(entry.body) })) };
+        case 'try':
+          return { ...operation, body: this.stripLabelMarks(operation.body),
+            catches: operation.catches.map(entry => ({ ...entry, body: this.stripLabelMarks(entry.body) })),
+            ...(operation.finally ? { finally: this.stripLabelMarks(operation.finally) } : {}) };
+        default:
+          return operation;
+      }
+    });
+  }
+
+  /** A real `break`/`continue`, not a goto's or a label's placeholder. */
+  private isExit(operation: GeneratedHandlerOperation, op: 'break' | 'continue'): boolean {
+    return operation.op === op && !this.gotos.has(operation) && !this.labels.has(operation);
   }
 
   private parseOperations(stop = ''): GeneratedHandlerOperation[] {
@@ -236,7 +408,34 @@ class HandlerParser {
       else if (operation) operations.push(operation);
     }
     if (stop) this.consume(stop);
-    return this.lowerForwardGotos(operations);
+    return this.backwardJumps ? operations : this.lowerForwardGotos(operations);
+  }
+
+  /**
+   * Whether the body jumps back to a label it has passed: the microcoded
+   * 68000's CHK handlers `goto trap1;` from below `trap1:`. Such a body is
+   * flattened whole into one switch (parse()); wrapping its forward jumps
+   * in loops first left the backward one nothing it could reach.
+   */
+  private backwardJumpsCache?: boolean;
+  private get backwardJumps(): boolean {
+    return this.backwardJumpsCache ??= this.findBackwardJumps();
+  }
+
+  private findBackwardJumps(): boolean {
+    const seen = new Set<string>();
+    for (let index = 0; index + 2 < this.tokens.length; index++) {
+      const token = this.tokens[index]!;
+      if (token.text === 'goto' && this.tokens[index + 1]?.kind === 'identifier' && this.tokens[index + 2]?.text === ';') {
+        if (seen.has(this.tokens[index + 1]!.text)) return true;
+      } else if (token.kind === 'identifier' && this.tokens[index + 1]?.text === ':' &&
+          this.tokens[index + 2]?.text !== ':' && this.tokens[index - 1]?.text !== ':' &&
+          !['case', 'default', 'public', 'private', 'protected'].includes(token.text) &&
+          (index === 0 || [';', '{', '}', ':'].includes(this.tokens[index - 1]!.text))) {
+        seen.add(token.text);
+      }
+    }
+    return false;
   }
 
   /**
@@ -254,11 +453,34 @@ class HandlerParser {
    * at their own level, which would change meaning once wrapped.
    */
   private lowerForwardGotos(operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] {
-    const at = operations.findIndex(operation => this.labels.has(operation));
-    if (at < 0) return operations;
+    // Labels in source order, each against every statement before it: the
+    // microcoded 68000's handlers branch `if (m_t) goto aixl5; else goto
+    // aixl2;` and both regions end `goto adsw2;`. Lowered last label first,
+    // over only the statements after the previous label, adsw2 never saw the
+    // jump from aixl2's region and aixl5 never saw the one before aixl2.
+    let list = operations;
+    let from = 0;
+    for (;;) {
+      const at = list.findIndex((operation, index) => index >= from && this.labels.has(operation));
+      if (at < 0) return list;
+      const lowered = this.lowerForwardGoto(list, at);
+      if (!lowered) {
+        from = at + 1;
+        continue;
+      }
+      list = lowered.list;
+      from = lowered.resume;
+    }
+  }
+
+  /** The jump to the label at `at` from the statements before it, structured; undefined when it has none or cannot be. */
+  private lowerForwardGoto(
+    operations: GeneratedHandlerOperation[],
+    at: number,
+  ): { list: GeneratedHandlerOperation[]; resume: number } | undefined {
     const label = this.labels.get(operations[at]!)!;
     const before = operations.slice(0, at);
-    const after = this.lowerForwardGotos(operations.slice(at + 1));
+    const after = operations.slice(at + 1);
     const flag = `__goto_${label}`;
     const jumps = (list: GeneratedHandlerOperation[]): boolean => {
       let found = false;
@@ -267,9 +489,11 @@ class HandlerParser {
       });
       return found;
     };
-    if (!jumps(before)) return [...before, ...after];
+    // Nothing before it jumps here: the mark stays for an enclosing switch
+    // whose cases jump into this list (lowerSwitchGotos).
+    if (!jumps(before)) return undefined;
     const exitsOwnLevel = (list: GeneratedHandlerOperation[]): boolean => list.some(operation =>
-      ((operation.op === 'break' || operation.op === 'continue') && !this.gotos.has(operation)) ||
+      this.isExit(operation, 'break') || this.isExit(operation, 'continue') ||
       (operation.op === 'if' && nestedOperations(operation).some(exitsOwnLevel)));
     // A local declared before the jump stays in scope after the label, so a
     // scalar the code after the label reads is declared ahead of the wrapper
@@ -297,7 +521,7 @@ class HandlerParser {
         : undefined;
     }).filter((operation): operation is GeneratedHandlerOperation => operation !== undefined);
     // Unlowered, the goto placeholder survives and parse() reports it.
-    if (exitsOwnLevel(before) || unhoistable) return [...before, ...after];
+    if (exitsOwnLevel(before) || unhoistable) return undefined;
     const raise: GeneratedHandlerOperation[] = [
       { op: 'assign', target: { kind: 'identifier', name: flag }, operator: '=', value: { kind: 'number', value: 1 } },
       { op: 'break' },
@@ -321,6 +545,13 @@ class HandlerParser {
           case 'switch':
             lowered.cases = lowered.cases.map(entry => ({ ...entry, body: rewrite(entry.body) }));
             break;
+          // A jump out of a try or a catch leaves it as a break would, past
+          // its cleanup: the wrapper's break is taken after it.
+          case 'try':
+            lowered.body = rewrite(lowered.body);
+            lowered.catches = lowered.catches.map(entry => ({ ...entry, body: rewrite(entry.body) }));
+            if (lowered.finally) lowered.finally = rewrite(lowered.finally);
+            return [lowered, { op: 'if', condition: { kind: 'identifier', name: flag }, then: [{ op: 'break' }] }];
           default:
             return [lowered];
         }
@@ -330,12 +561,14 @@ class HandlerParser {
           then: [{ op: 'break' }],
         }];
       });
-    return [
+    const head: GeneratedHandlerOperation[] = [
       ...hoisted,
       { op: 'declare', name: flag, valueType: 'int', value: { kind: 'number', value: 0 } },
       { op: 'while', condition: { kind: 'number', value: 1 }, body: [...rewrite(body), { op: 'break' }] },
-      ...after,
     ];
+    // The mark is spent: the label is where the wrapper ends.
+    this.labels.delete(operations[at]!);
+    return { list: [...head, ...after], resume: head.length };
   }
 
   private parseStatement(): GeneratedHandlerOperation | GeneratedHandlerOperation[] | undefined {
@@ -354,6 +587,45 @@ class HandlerParser {
         this.tokens[this.index + 1]?.text === ':') {
       const label = this.take().text;
       this.take();
+      const mark: GeneratedHandlerOperation = { op: 'continue' };
+      this.labels.set(mark, label);
+      return mark;
+    }
+    // MAME's release build defines NDEBUG (scripts/genie.lua), so <cassert>'s
+    // assert is `((void)0)`: its argument is never evaluated, and may be
+    // anything -- z80make.py ends a switch with
+    // `assert((void("switch statement above must cover all possible cases!"), false));`.
+    if (this.atText('assert') && this.tokens[this.index + 1]?.text === '(') {
+      this.take();
+      let depth = 0;
+      do {
+        const token = this.take();
+        if (token.text === '(') depth++;
+        else if (token.text === ')') depth--;
+      } while (depth > 0 && !this.at('eof'));
+      this.consume(';');
+      return undefined;
+    }
+    // A case label inside a nested statement of a switch: a mark the switch
+    // jumps to (parseSwitch).
+    const enclosing = this.switchCases.at(-1);
+    if (enclosing && (this.atText('case') || (this.atText('default') && this.tokens[this.index + 1]?.text === ':'))) {
+      const label = `__case_${this.nestedCaseSerial++}`;
+      if (this.consume('default')) {
+        enclosing.push({ label });
+      } else {
+        this.take();
+        const value = this.parseExpression();
+        if (!value) {
+          this.unsupportedStatement('invalid switch case');
+          return undefined;
+        }
+        enclosing.push({ values: [value], label });
+      }
+      if (!this.consume(':')) {
+        this.unsupportedStatement('switch case without colon');
+        return undefined;
+      }
       const mark: GeneratedHandlerOperation = { op: 'continue' };
       this.labels.set(mark, label);
       return mark;
@@ -399,6 +671,7 @@ class HandlerParser {
       }
       return { op: 'call', expression: { kind: 'call', callee: { kind: 'identifier', name: '__throw' }, args: [value] } };
     }
+    if (this.atText('try') && this.tokens[this.index + 1]?.text === '{') return this.parseTry();
     if (this.atText('do')) return this.parseDoWhile();
     if (this.isDeclaration()) return this.parseDeclaration();
     // `(void)task;` discards a value to quiet an unused-variable warning;
@@ -420,12 +693,16 @@ class HandlerParser {
       return undefined;
     }
     if (expression.kind === 'assignment') {
-      const assignments: GeneratedHandlerOperation[] = tieAssignments(expression, start.offset) ?? [{
-        op: 'assign',
-        target: expression.target,
-        operator: expression.operator,
-        value: expression.value,
-      }];
+      const appendsString = expression.operator === '+=' && expression.target.kind === 'identifier' &&
+        this.stringLocals.has(expression.target.name);
+      const assignments: GeneratedHandlerOperation[] = tieAssignments(expression, start.offset) ?? [appendsString
+        ? this.stringAppend(expression.target, expression.value)
+        : {
+          op: 'assign',
+          target: expression.target,
+          operator: expression.operator,
+          value: expression.value,
+        }];
       // A C++ prefix update is an lvalue (`++cursor &= mask`). JavaScript
       // assignment expressions are values, so retain the update as a separate
       // operation. Evaluate the RHS first, as C++17 assignment requires.
@@ -467,6 +744,9 @@ class HandlerParser {
         this.unsupportedStatement(`invalid assignment at byte ${start.offset}`);
         return undefined;
       }
+      if (operator === '+=' && expression.kind === 'identifier' && this.stringLocals.has(expression.name)) {
+        return this.stringAppend(expression, value);
+      }
       return { op: 'assign', target: expression, operator, value };
     }
     if (this.peek().text === '++' || this.peek().text === '--') {
@@ -486,6 +766,9 @@ class HandlerParser {
       this.unsupportedStatement(`unsupported expression statement at byte ${start.offset}`);
       return undefined;
     }
+    // `result << a << b;` on a string stream appends each operand in turn.
+    const appended = this.streamAppend(expression);
+    if (appended) return appended;
     const operation = this.expressionStatement(expression);
     // `m_rom_view[i + 1];` names a view entry and nothing more. MAME creates
     // the empty entry on first use; a view here is built from its installs,
@@ -497,6 +780,32 @@ class HandlerParser {
       return undefined;
     }
     return operation;
+  }
+
+  /** Locals declared as string streams, and as strings (streams included). */
+  private readonly streamLocals = new Set<string>();
+  private readonly stringLocals = new Set<string>();
+
+  /** `s += v` on a string local: STRING_APPEND, which every executor defines. */
+  private stringAppend(target: GeneratedExpression, value: GeneratedExpression): GeneratedHandlerOperation {
+    return {
+      op: 'assign',
+      target,
+      operator: '=',
+      value: { kind: 'call', callee: { kind: 'identifier', name: 'STRING_APPEND' }, args: [target, value] },
+    };
+  }
+
+  private streamAppend(expression: GeneratedExpression): GeneratedHandlerOperation[] | undefined {
+    const operands: GeneratedExpression[] = [];
+    let left: GeneratedExpression = expression;
+    while (left.kind === 'binary' && left.operator === '<<') {
+      operands.unshift(left.right);
+      left = left.left;
+    }
+    if (left.kind !== 'identifier' || !this.streamLocals.has(left.name) || !operands.length) return undefined;
+    const stream = left;
+    return operands.map(value => this.stringAppend(stream, value));
   }
 
   /**
@@ -517,14 +826,20 @@ class HandlerParser {
       };
     }
     if (expression.kind !== 'conditional') return undefined;
+    // An arm that only reads is evaluated for nothing, as long as the other
+    // arm has an effect: the NEC's discarded GetRMByte is `ModRM >= 0xc0 ?
+    // m_regs.b[...] : (CALL_METHOD(s_GetEA[ModRM]), read_byte(m_EA))`.
+    const inert = (arm: GeneratedExpression) => pureLvalue(arm) || arm.kind === 'number';
     const whenTrue = this.expressionStatement(expression.whenTrue);
     const whenFalse = this.expressionStatement(expression.whenFalse);
-    if (!whenTrue || !whenFalse) return undefined;
+    if ((!whenTrue && !inert(expression.whenTrue)) || (!whenFalse && !inert(expression.whenFalse)) || (!whenTrue && !whenFalse)) {
+      return undefined;
+    }
     return {
       op: 'if',
       condition: expression.condition,
-      then: [whenTrue],
-      else: [whenFalse],
+      then: whenTrue ? [whenTrue] : [],
+      else: whenFalse ? [whenFalse] : [],
     };
   }
 
@@ -749,6 +1064,41 @@ class HandlerParser {
     return { op: 'while', condition, body: this.parseStatementAsBlock() };
   }
 
+  /** `try { ... } catch (int error) { ... } catch (...) { ... }`. */
+  private parseTry(): GeneratedHandlerOperation | undefined {
+    this.take();
+    this.take();
+    const body = this.parseOperations('}');
+    const catches: { valueType?: string; name?: string; body: GeneratedHandlerOperation[] }[] = [];
+    while (this.atText('catch') && this.tokens[this.index + 1]?.text === '(') {
+      this.take();
+      this.take();
+      const words: string[] = [];
+      let depth = 0;
+      while (!this.at('eof') && !(depth === 0 && this.atText(')'))) {
+        const token = this.take();
+        if (token.text === '(') depth++;
+        else if (token.text === ')') depth--;
+        words.push(token.text);
+      }
+      this.consume(')');
+      if (!this.consume('{')) {
+        this.unsupportedStatement('catch without a body');
+        return undefined;
+      }
+      const handler = this.parseOperations('}');
+      const declaration = words.join(' ').replace(/\s*([&*])\s*/g, '$1 ').trim();
+      if (declaration === '...' || declaration === '. . .') {
+        catches.push({ body: handler });
+        continue;
+      }
+      // The last word names the local when a type stands before it.
+      const named = /^(.*?[\w>&*])\s+([A-Za-z_]\w*)$/.exec(declaration);
+      catches.push({ valueType: (named ? named[1]! : declaration).trim(), ...(named ? { name: named[2]! } : {}), body: handler });
+    }
+    return { op: 'try', body, catches };
+  }
+
   private parseDoWhile(): GeneratedHandlerOperation | undefined {
     this.take();
     const body = this.parseStatementAsBlock();
@@ -776,6 +1126,35 @@ class HandlerParser {
       return undefined;
     }
     const cases: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[] = [];
+    const nestedCases: { values?: GeneratedExpression[]; label: string }[] = [];
+    this.switchCases.push(nestedCases);
+    try {
+      this.parseSwitchCases(cases);
+    } finally {
+      this.switchCases.pop();
+    }
+    if (!this.consume('}')) {
+      this.unsupportedStatement('unterminated switch');
+      return undefined;
+    }
+    // A case inside a nested statement of this switch (Duff's device, which
+    // m6502make.py writes for every page-crossing access) is entered by a
+    // jump: a case of the switch's own, first so nothing falls into it.
+    cases.unshift(...nestedCases.map(entry => {
+      const jump: GeneratedHandlerOperation = { op: 'break' };
+      this.gotos.set(jump, entry.label);
+      return { ...(entry.values ? { values: entry.values } : {}), body: [jump] };
+    }));
+    return this.lowerSwitchGotos(expression, cases);
+  }
+
+  /** For each switch being read, the cases met inside its nested statements. */
+  private readonly switchCases: { values?: GeneratedExpression[]; label: string }[][] = [];
+  private nestedCaseSerial = 0;
+
+  private parseSwitchCases(
+    cases: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[],
+  ): void {
     while (!this.at('eof') && !this.atText('}')) {
       const values: GeneratedExpression[] = [];
       let isDefault = false;
@@ -787,18 +1166,18 @@ class HandlerParser {
           const value = this.parseExpression();
           if (!value) {
             this.unsupportedStatement('invalid switch case');
-            return undefined;
+            return;
           }
           values.push(value);
         }
         if (!this.consume(':')) {
           this.unsupportedStatement('switch case without colon');
-          return undefined;
+          return;
         }
       }
       if (!values.length && !isDefault) {
         this.unsupportedStatement('switch body before first case');
-        return undefined;
+        return;
       }
       let body: GeneratedHandlerOperation[] = [];
       cases.push({ ...(isDefault ? {} : { values }), body });
@@ -822,96 +1201,320 @@ class HandlerParser {
         else if (statement) body.push(statement);
       }
     }
-    if (!this.consume('}')) {
-      this.unsupportedStatement('unterminated switch');
-      return undefined;
-    }
-    return this.lowerSwitchGotos(expression, cases);
   }
 
   /**
-   * `goto` between the case bodies of one switch, forward or back: MAME's
+   * `goto` within one switch, to a label anywhere in its cases: MAME's
    * mathbox enters a shared tail of another command's code from two cases
-   * (`goto step_048;`, `goto step_0bf;`). Each such label became a case of
-   * its own above; a jump to it is the switch dispatched again on that case:
+   * (`goto step_048;`), and the code m6809make.py writes is nothing else --
+   * `switch(pop_state()) { case 55: goto state_55; ... }` with `state_55:`
+   * inside an `if` of an instruction, or inside SYNC's wait loop, where the
+   * instruction stopped when its cycles ran out. Every jump is the switch
+   * dispatched again:
    *
    *   int __switch = expression;
    *   while (1) { switch (__switch) { ...goto L -> { __switch = <L>; continue; }... } break; }
    *
-   * A `continue` of the switch's own would now reach the wrapper instead of
-   * an enclosing loop, and a goto inside a loop in a case would continue that
-   * loop, so either leaves the goto unlowered (and reported).
+   * A label at the switch's own level is a case of its own. A label inside an
+   * `if`, `while`, `do`, or `for` -- or a loop that jumps -- is flattened into
+   * the switch: the statement becomes cases in its own order, its condition a
+   * jump around them, its `break`/`continue` jumps to the cases after it and
+   * at its top. Locals declared in a flattened case are declared before the
+   * wrapper, since a later case reads what an earlier one set.
+   *
+   * A `continue` at a case's own level belongs to a loop around the switch,
+   * and would reach the wrapper instead, so it leaves the jumps unlowered (and
+   * reported); so does a label inside a nested switch.
    */
   private lowerSwitchGotos(
     expression: GeneratedExpression,
     parsed: (Extract<GeneratedHandlerOperation, { op: 'switch' }>['cases'][number] & { label?: string })[],
   ): GeneratedHandlerOperation | GeneratedHandlerOperation[] {
-    // A case is dispatched on a value no real case can have: a label's index,
-    // negated past anything an unsigned offset or register holds.
-    const labelValue = (index: number): GeneratedExpression => ({ kind: 'number', value: -0x40000000 - index });
-    const labels = parsed.flatMap(entry => entry.label ? [entry.label] : []);
-    const cases = parsed.map(entry => {
-      const { label, ...rest } = entry;
-      return label ? { ...rest, values: [labelValue(labels.indexOf(label))] } : rest;
-    });
-    const plain: GeneratedHandlerOperation = { op: 'switch', expression, cases };
-    if (!labels.length) return plain;
-    let lowerable = true;
-    let jumped = false;
-    const visit = (list: GeneratedHandlerOperation[], inLoop: boolean): void => {
-      for (const operation of list) {
-        const target = this.gotos.get(operation);
-        if (target !== undefined && labels.includes(target)) {
-          jumped = true;
-          if (inLoop) lowerable = false;
+    type Operation = GeneratedHandlerOperation;
+    type Case = Extract<Operation, { op: 'switch' }>['cases'][number];
+    // Unlowered here, a label at this switch's level goes back to being a
+    // mark in the case that falls into it: a jump to it may come from an
+    // enclosing switch (m6809make.py's `case 195: goto state_195;` reaches a
+    // label inside an addressing mode's own switch).
+    const plain = (): Operation => {
+      const cases: Case[] = [];
+      for (const entry of parsed) {
+        const { label, ...rest } = entry;
+        if (label === undefined || !cases.length) {
+          cases.push(label === undefined ? rest : { ...rest, values: [this.labelValue(0)] });
           continue;
         }
-        if (operation.op === 'continue' && !inLoop) lowerable = false;
+        const mark: Operation = { op: 'continue' };
+        this.labels.set(mark, label);
+        const previous = cases[cases.length - 1]!;
+        cases[cases.length - 1] = { ...previous, body: [...previous.body, mark, ...entry.body] };
+      }
+      return { op: 'switch', expression, cases };
+    };
+
+    // The labels this switch can be entered at: its own, and the marks inside
+    // its cases that a goto in its cases names.
+    const marks = new Map<Operation, string>();
+    const targets = new Set<string>();
+    const scan = (list: Operation[]): void => walkOperations(list, operation => {
+      const mark = this.labels.get(operation);
+      if (mark !== undefined) marks.set(operation, mark);
+      const target = this.gotos.get(operation);
+      if (target !== undefined) targets.add(target);
+    });
+    for (const entry of parsed) scan(entry.body);
+    const regionLabels = new Set<string>([
+      ...parsed.flatMap(entry => entry.label ? [entry.label] : []),
+      ...[...marks.values()].filter(label => targets.has(label)),
+    ]);
+    if (![...regionLabels].some(label => targets.has(label))) return plain();
+
+    const isTarget = (operation: Operation): boolean => {
+      const label = this.labels.get(operation);
+      return label !== undefined && regionLabels.has(label);
+    };
+    const isRegionGoto = (operation: Operation): boolean => {
+      const target = this.gotos.get(operation);
+      return target !== undefined && regionLabels.has(target);
+    };
+    const deep = (operation: Operation, test: (candidate: Operation) => boolean): boolean => {
+      let found = false;
+      walkOperations([operation], candidate => { if (test(candidate)) found = true; });
+      return found;
+    };
+    const loop = (operation: Operation): boolean =>
+      operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while';
+    const needsFlattening = (operation: Operation): boolean =>
+      deep(operation, isTarget) || (loop(operation) && deep(operation, isRegionGoto));
+
+    // What stays unlowered: a `continue` outside every loop of the cases,
+    // which belongs to a loop around the switch and would reach the wrapper.
+    let lowerable = true;
+    const check = (list: Operation[], inLoop: boolean): void => {
+      for (const operation of list) {
+        if (this.isExit(operation, 'continue') && !inLoop) lowerable = false;
         if (operation.op === 'if') {
-          visit(operation.then, inLoop);
-          if (operation.else) visit(operation.else, inLoop);
-        } else if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
-          visit(operation.body, true);
+          check(operation.then, inLoop);
+          if (operation.else) check(operation.else, inLoop);
+        } else if (loop(operation)) {
+          for (const nested of nestedOperations(operation)) check(nested, true);
         } else if (operation.op === 'switch') {
-          for (const entry of operation.cases) visit(entry.body, inLoop);
+          for (const entry of operation.cases) check(entry.body, inLoop);
+        } else if (operation.op === 'try') {
+          for (const nested of nestedOperations(operation)) check(nested, inLoop);
         }
       }
     };
-    for (const entry of cases) visit(entry.body, false);
-    if (!jumped || !lowerable) return plain;
-    const selector = `__switch_${labels.join('_')}`;
-    const rewrite = (list: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] => list.flatMap(operation => {
-      const target = this.gotos.get(operation);
-      if (target !== undefined && labels.includes(target)) {
-        this.gotos.delete(operation);
-        return [
-          { op: 'assign', target: { kind: 'identifier', name: selector }, operator: '=', value: labelValue(labels.indexOf(target)) },
-          { op: 'continue' },
-        ] as GeneratedHandlerOperation[];
+    for (const entry of parsed) check(entry.body, false);
+    if (!lowerable) return plain();
+    // Labels numbered just past the cases when every case is a literal, so
+    // the dispatch is one dense range V8 can make a jump table of: the
+    // 6809's execute_one re-enters this switch on every instruction, and
+    // labels far below its states made each dispatch a search.
+    const literals = parsed.flatMap(entry => entry.values ?? []);
+    const dense = literals.length > 0 && literals.every(value => value.kind === 'number' && Number.isInteger(value.value));
+    const caseValues = dense ? literals.map(value => (value as { value: number }).value) : [];
+    const outerBase = this.labelBase;
+    this.labelBase = dense ? Math.max(...caseValues) + 1 : undefined;
+    const labelBase = this.labelBase;
+    const lowestCase = dense ? Math.min(...caseValues) : 0;
+    try {
+
+    const order: string[] = [];
+    const indexOf = (label: string): number => {
+      let index = order.indexOf(label);
+      if (index < 0) { order.push(label); index = order.length - 1; }
+      return index;
+    };
+    // Switch-level labels keep the numbering plainCases() gives them.
+    for (const entry of parsed) if (entry.label) indexOf(entry.label);
+    // Named by its labels when they are all the switch's own (as it always
+    // was); a flattened switch has too many for a name, so it is numbered.
+    const ownLabels = parsed.flatMap(entry => entry.label ? [entry.label] : []);
+    const nestedTargets = [...marks.values()].some(label => regionLabels.has(label));
+    const selector = nestedTargets || parsed.some(entry => entry.body.some(operation => needsFlattening(operation)))
+      ? `__switch_${this.switchSerial++}`
+      : `__switch_${ownLabels.join('_')}`;
+    let synthetic = 0;
+    const fresh = (what: string): string => `${selector}_${what}_${synthetic++}`;
+    const jump = (label: string): Operation[] => [
+      { op: 'assign', target: { kind: 'identifier', name: selector }, operator: '=', value: this.labelValue(indexOf(label)) },
+      { op: 'continue' },
+    ];
+    const not = (condition: GeneratedExpression): GeneratedExpression => ({ kind: 'unary', operator: '!', operand: condition });
+    interface Exits { breakTo: string; continueTo: string }
+
+    // Rewrite jumps inside a statement that is kept whole: region gotos, and
+    // the flattened loop's own break/continue (not those of a loop or switch
+    // of the statement's own).
+    const rewrite = (list: Operation[], exits: Exits | undefined, ownBreak: boolean, ownContinue: boolean): Operation[] =>
+      list.flatMap(operation => {
+        if (isRegionGoto(operation)) {
+          const label = this.gotos.get(operation)!;
+          this.gotos.delete(operation);
+          return jump(label);
+        }
+        if (exits && ownBreak && this.isExit(operation, 'break')) return jump(exits.breakTo);
+        if (exits && ownContinue && this.isExit(operation, 'continue')) return jump(exits.continueTo);
+        switch (operation.op) {
+          case 'if':
+            return [{ ...operation, then: rewrite(operation.then, exits, ownBreak, ownContinue),
+              ...(operation.else ? { else: rewrite(operation.else, exits, ownBreak, ownContinue) } : {}) }];
+          case 'switch':
+            return [{ ...operation, cases: operation.cases.map(entry => ({ ...entry, body: rewrite(entry.body, exits, false, ownContinue) })) }];
+          case 'for':
+            return [{ ...operation, body: rewrite(operation.body, exits, false, false) }];
+          case 'while': case 'do-while':
+            return [{ ...operation, body: rewrite(operation.body, exits, false, false) }];
+          // A try is kept whole: a jump out of its body or a catch is the
+          // dispatch's continue, which leaves it as JavaScript leaves one.
+          case 'try':
+            return [{ ...operation, body: rewrite(operation.body, exits, ownBreak, ownContinue),
+              catches: operation.catches.map(entry => ({ ...entry, body: rewrite(entry.body, exits, ownBreak, ownContinue) })),
+              ...(operation.finally ? { finally: rewrite(operation.finally, exits, ownBreak, ownContinue) } : {}) }];
+          default:
+            return [operation];
+        }
+      });
+
+    const cases: Case[] = [];
+    let current: Operation[] = [];
+    const open = (label: string): void => {
+      current = [];
+      cases.push({ values: [this.labelValue(indexOf(label))], body: current });
+    };
+    const flattenList = (list: Operation[], exits: Exits | undefined): void => {
+      for (const operation of list) {
+        if (this.labels.has(operation)) {
+          if (isTarget(operation)) open(this.labels.get(operation)!);
+          continue;
+        }
+        if (needsFlattening(operation)) flatten(operation, exits);
+        else current.push(...rewrite([operation], exits, true, true));
       }
+    };
+    const flatten = (operation: Operation, exits: Exits | undefined): void => {
       if (operation.op === 'if') {
-        return [{ ...operation, then: rewrite(operation.then), ...(operation.else ? { else: rewrite(operation.else) } : {}) }];
+        const done = fresh('endif');
+        const otherwise = operation.else ? fresh('else') : done;
+        current.push({ op: 'if', condition: not(operation.condition), then: jump(otherwise) });
+        flattenList(operation.then, exits);
+        if (operation.else) {
+          current.push(...jump(done));
+          open(otherwise);
+          flattenList(operation.else, exits);
+        }
+        open(done);
+      } else if (operation.op === 'while') {
+        const top = fresh('while');
+        const done = fresh('wend');
+        open(top);
+        current.push({ op: 'if', condition: not(operation.condition), then: jump(done) });
+        flattenList(operation.body, { breakTo: done, continueTo: top });
+        current.push(...jump(top));
+        open(done);
+      } else if (operation.op === 'do-while') {
+        const top = fresh('do');
+        const test = fresh('dotest');
+        const done = fresh('dend');
+        open(top);
+        flattenList(operation.body, { breakTo: done, continueTo: test });
+        open(test);
+        current.push({ op: 'if', condition: operation.condition, then: jump(top) });
+        open(done);
+      } else if (operation.op === 'switch') {
+        // Evaluated once, then a jump to the case it selects; the cases keep
+        // their order, so one still falls into the next, and `break` leaves.
+        const value = fresh('selected');
+        const done = fresh('send');
+        current.push({ op: 'declare', name: value, valueType: 'int', value: operation.expression });
+        const entries = operation.cases.map(entry => ({ entry, label: fresh(entry.values ? 'case' : 'default') }));
+        for (const { entry, label } of entries) {
+          if (!entry.values) continue;
+          const condition = entry.values
+            .map((candidate): GeneratedExpression => ({ kind: 'binary', operator: '==', left: { kind: 'identifier', name: value }, right: candidate }))
+            .reduce((left, right) => ({ kind: 'binary', operator: '||', left, right }));
+          current.push({ op: 'if', condition, then: jump(label) });
+        }
+        const fallback = entries.find(({ entry }) => !entry.values);
+        current.push(...jump(fallback ? fallback.label : done));
+        for (const { entry, label } of entries) {
+          open(label);
+          flattenList(entry.body, { breakTo: done, continueTo: exits?.continueTo ?? '' });
+        }
+        open(done);
+      } else if (operation.op === 'for') {
+        const top = fresh('for');
+        const step = fresh('forstep');
+        const done = fresh('fend');
+        current.push(...rewrite(operation.initialize, exits, true, true));
+        open(top);
+        current.push({ op: 'if', condition: not(operation.condition), then: jump(done) });
+        flattenList(operation.body, { breakTo: done, continueTo: step });
+        open(step);
+        current.push(...operation.iterate);
+        current.push(...jump(top));
+        open(done);
       }
-      if (operation.op === 'switch') {
-        return [{ ...operation, cases: operation.cases.map(entry => ({ ...entry, body: rewrite(entry.body) })) }];
+    };
+    for (const entry of parsed) {
+      current = [];
+      const { label, ...rest } = entry;
+      cases.push(label ? { ...rest, values: [this.labelValue(indexOf(label))], body: current } : { ...rest, body: current });
+      flattenList(entry.body, undefined);
+    }
+
+    // A local one case declares is in scope in the cases after it.
+    const hoisted = new Map<string, Operation>();
+    const hoist = (list: Operation[]): Operation[] => list.flatMap(operation => {
+      if (operation.op === 'declare' && !(operation.value?.kind === 'call' && operation.value.callee.kind === 'identifier' &&
+          ['ARRAY', 'ALLOC'].includes(operation.value.callee.name))) {
+        if (!hoisted.has(operation.name)) {
+          hoisted.set(operation.name, { op: 'declare', name: operation.name,
+            ...(operation.valueType ? { valueType: operation.valueType } : {}) } as Operation);
+        }
+        return operation.value
+          ? [{ op: 'assign', target: { kind: 'identifier', name: operation.name }, operator: '=', value: operation.value } as Operation]
+          : [];
       }
       return [operation];
     });
+    // Hoisted whether or not anything was flattened: a jump re-enters the
+    // switch, and a local the cases share must outlive the dispatch.
+    const loweredCases = cases.map(entry => ({ ...entry, body: hoist(entry.body) }));
+    // A value at or past the labels is no case of the switch's own: it takes
+    // the default (or nothing), as below the lowest case it does.
+    const selected: GeneratedExpression = { kind: 'identifier', name: selector };
+    const guard: Operation[] = labelBase === undefined ? [] : [{
+      op: 'if',
+      condition: { kind: 'binary', operator: '>=', left: selected, right: { kind: 'number', value: labelBase } },
+      then: [{ op: 'assign', target: selected, operator: '=', value: { kind: 'number', value: lowestCase - 1 } }],
+    }];
     return [
+      ...hoisted.values(),
       { op: 'declare', name: selector, valueType: 'int', value: expression },
+      ...guard,
       {
         op: 'while',
         condition: { kind: 'number', value: 1 },
         body: [
-          {
-            op: 'switch',
-            expression: { kind: 'identifier', name: selector },
-            cases: cases.map(entry => ({ ...entry, body: rewrite(entry.body) })),
-          },
+          { op: 'switch', expression: { kind: 'identifier', name: selector }, cases: loweredCases },
           { op: 'break' },
         ],
       },
     ];
+    } finally {
+      this.labelBase = outerBase;
+    }
+  }
+
+  private switchSerial = 0;
+  /** Where the switch being lowered numbers its labels (lowerSwitchGotos). */
+  private labelBase: number | undefined;
+
+  /** A case for a label: past the switch's cases, else a value no real case can have. */
+  private labelValue(index: number): GeneratedExpression {
+    return { kind: 'number', value: this.labelBase !== undefined ? this.labelBase + index : -0x40000000 - index };
   }
 
   private parseMutation(terminator: string): GeneratedHandlerOperation | undefined {
@@ -966,6 +1569,11 @@ class HandlerParser {
     // `std::vector<uint32_t> &codelookup = ...` is a declaration, and reading
     // its angle brackets as `<` and `>` yields an assignment to a comparison.
     let cursor = this.skipTemplateArguments(this.skipQualifiedName(this.index));
+    // A name that goes on past its template's arguments:
+    // `memory_access<23, 1, 0, ENDIANNESS_BIG>::specific &space = ...` (the Z8002).
+    while (this.tokens[cursor]?.text === '::' && this.tokens[cursor + 1]?.kind === 'identifier') {
+      cursor = this.skipTemplateArguments(this.skipQualifiedName(cursor + 1));
+    }
     while (this.tokens[cursor]?.text === '*' || this.tokens[cursor]?.text === '&') cursor++;
     // `Type *const name(...)`: cv-qualifiers belong to the pointer, not to the
     // declared name. Stopping at `const` read the whole statement as an
@@ -1020,6 +1628,17 @@ class HandlerParser {
       while (this.atText('::') && this.tokens[this.index + 1]?.kind === 'identifier') {
         this.take();
         name += `::${this.take().text}`;
+      }
+      // Its template's arguments, and a name that goes on after them
+      // (`memory_access<23, 1, 0, ENDIANNESS_BIG>::specific`): the type is
+      // `memory_access::specific`, its arguments naming nothing the IR carries.
+      while (this.skipTemplateArguments(this.index) !== this.index &&
+          this.tokens[this.skipTemplateArguments(this.index)]?.text === '::') {
+        this.index = this.skipTemplateArguments(this.index);
+        while (this.atText('::') && this.tokens[this.index + 1]?.kind === 'identifier') {
+          this.take();
+          name += `::${this.take().text}`;
+        }
       }
       typeWords.push(name);
     }
@@ -1191,10 +1810,24 @@ class HandlerParser {
           args: [],
         };
       }
+      // A default-constructed std::string is empty, and so is a string stream,
+      // which is a string here: `<<` appends to it and `.str()` reads it
+      // (z80daisy.cpp's daisy_show_chain builds its text in one).
+      const stream = /^std::(?:o|io)?stringstream$/.test(declarationType ?? '');
+      if (stream) this.streamLocals.add(name.text);
+      if (stream || declarationType === 'std::string') this.stringLocals.add(name.text);
+      if (!value && (stream || declarationType === 'std::string')) value = { kind: 'string', value: '' };
+      // MAME's PAIR union (emucore.h) as a local: one word read and written
+      // as .d, .w.l/.w.h or .b.l/.b.h, as the 6800's `PAIR r,d,b;` uses it.
+      // PAIR16 the same over one 16-bit word (the 6809's `PAIR16 temp;`).
+      const pairType = declarationType?.replace(/\bconst\b/g, '').trim();
+      if (!value && (pairType === 'PAIR' || pairType === 'PAIR16')) {
+        value = { kind: 'call', callee: { kind: 'identifier', name: `${pairType}_VALUE` }, args: [] };
+      }
       declarations.push({
         op: 'declare',
         name: name.text,
-        ...(declarationType ? { valueType: declarationType } : {}),
+        ...(declarationType ? { valueType: stream ? 'std::string' : declarationType } : {}),
         ...(value ? { value } : {}),
         // A function-local static keeps its value between calls; the device
         // compiler gives it storage that outlives the call.
@@ -1591,7 +2224,20 @@ class HandlerParser {
     }
     if (token.text === '(') {
       const expression = this.parseExpression();
-      return expression && this.consume(')') ? expression : undefined;
+      if (!expression) return undefined;
+      // The comma operator: each operand in turn, the value the last one's.
+      // The NEC core's GetRMWord is `(ModRM >= 0xc0 ? reg : (CALL_METHOD(
+      // s_GetEA[ModRM]), m_program->read_word_unaligned(m_EA)))`.
+      if (this.atText(',')) {
+        const operands: GeneratedExpression[] = [expression];
+        while (this.consume(',')) {
+          const next = this.parseExpression();
+          if (!next) return undefined;
+          operands.push(next);
+        }
+        return this.consume(')') ? { kind: 'call', callee: { kind: 'identifier', name: 'COMMA' }, args: operands } : undefined;
+      }
+      return this.consume(')') ? expression : undefined;
     }
     // A `[` where a value is expected introduces a lambda -- a subscript is
     // postfix and never reaches here. MAME installs address-space taps with
@@ -1605,7 +2251,7 @@ class HandlerParser {
   }
 
   /**
-   * `[capture] (params) [mutable] [-> type] { body }`.
+   * `[capture] [(params)] [mutable] [-> type] { body }`.
    *
    * A plain capture is skipped: what a MAME lambda captures by name is `this`
    * or an enclosing local, and the body already runs in that scope. An
@@ -1645,9 +2291,12 @@ class HandlerParser {
       if (!this.consume(',')) break;
     }
     if (!this.consume(']')) return undefined;
-    if (!this.consume('(')) return undefined;
     const parameters: string[] = [];
-    if (!this.consume(')')) {
+    // The parameter list may be left out when there are none:
+    // `state_add<uint32_t>(STATE_GENPCBASE, "CURPC", [this] { return ...; })`.
+    const listed = this.consume('(');
+    if (!listed && !this.atText('{') && !this.atText('mutable') && !this.atText('->')) return undefined;
+    if (listed && !this.consume(')')) {
       while (!this.at('eof')) {
         const words: string[] = [];
         let nesting = 0;

@@ -12,6 +12,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { evalExpr, parseEnumConstants } from '../kg/parse.ts';
+import { generatedInclude } from './mame-build.ts';
 import { CPreprocessor } from './c-preprocessor.ts';
 import { lowerMemberPointerCalls, lowerMemberPointerValues } from './member-pointers.ts';
 
@@ -37,6 +38,10 @@ export function preprocessedDeviceTransform(
 ): (file: string, source: string) => string {
   const included = new Set<string>();
   const preprocessor = new CPreprocessor({
+    // What MAME's build defines on a little-endian host (every host this runs
+    // on), as the plain reading takes it (littleEndianLayout): the 6809's
+    // `union M6809Q` has A in its high byte only under LSB_FIRST.
+    defines: { LSB_FIRST: '' },
     read: (path, from) => {
       const candidates = [
         join(dirname(from), path),
@@ -48,6 +53,17 @@ export function preprocessedDeviceTransform(
         if (!existsSync(full) || !options.allow(file)) continue;
         included.add(file);
         return { path: full, source: readFileSync(full, 'utf8') };
+      }
+      // What MAME's build generates into GEN_DIR rather than the tree holds:
+      // the 6809's execute_one is `switch(pop_state()) { #include
+      // "cpu/m6809/m6809.hxx" }`, written by m6809make.py (mame-build.ts).
+      const generated = generatedInclude(mameSrc, path);
+      if (generated) return { path: generated, source: readFileSync(generated, 'utf8') };
+      // A .hxx or .ipp is code or data the including file is incomplete
+      // without; dropped, the 6809 compiled with no instructions and no
+      // diagnostic. Headers outside the device's family are host services.
+      if (/\.(?:hxx|ipp)$/.test(path)) {
+        throw new Error(`${relative(mameSrc, from)}: #include "${path}" resolves nowhere`);
       }
       return undefined;
     },

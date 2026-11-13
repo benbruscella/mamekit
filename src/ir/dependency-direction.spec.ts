@@ -3,7 +3,7 @@
 //
 // Imports are read with the TypeScript parser rather than a regex: several
 // compilers emit browser import statements at column zero inside template
-// literals (src/mame/cpu-codegen.ts, device-codegen.ts, audio-compiler.ts).
+// literals (src/mame/device-codegen.ts, audio-compiler.ts).
 // Those are generated source text, not dependencies of the compiler itself,
 // and only a real parser tells the two apart.
 

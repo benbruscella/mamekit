@@ -1,6 +1,6 @@
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
 import { compileMameDevice } from '../../mame/device-compiler.ts';
-import type { MameHardwareDefinition } from '../../mame/hardware.ts';
+import { isDeclarativeHostHardwareType, type MameHardwareDefinition } from '../../mame/hardware.ts';
 import { generatedStreamWorkletSource } from '../../mame/stream-worklet.ts';
 import type { CapabilityExtraction, CapabilityInput } from '../contract.ts';
 import {
@@ -28,6 +28,12 @@ export function extractStreamVariants(input: CapabilityInput): CapabilityExtract
   for (const entry of input.entries) {
     const uses = entry.uses?.filter(use => use.stream) ?? [];
     if (!uses.length || !entry.definition || STREAM_SOUND_TYPES.includes(entry.type)) continue;
+    // A declarative host type is played from its own plan, never compiled as
+    // a stream: the NETLIST_SOUND is the board's compiled netlist
+    // (lower-netlist.ts). It once stayed out only because its class did not
+    // compile; once C++ try/catch did, frogger built a netlist_mame_device
+    // whose device_start reached for the netlist library itself.
+    if (isDeclarativeHostHardwareType(entry.type)) continue;
     const device = compileMameDevice(input.mameSource, entry.definition as MameHardwareDefinition, entry.type, new Set(), {
       configuration: uses.flatMap(use => use.configuration ?? []),
       references: uses.flatMap(use => use.references ?? []),

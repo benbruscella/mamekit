@@ -19,6 +19,7 @@ import type {
   GeneratedHandlerProgram,
   GeneratedStateMember,
 } from './board.ts';
+import { HOST_INPUT_LINES } from './board.ts';
 
 /**
  * Where a struct's declared field widths hang, for the interpreter to narrow
@@ -29,6 +30,12 @@ export const GENERATED_FIELD_WIDTHS = Symbol.for('mamekit.fieldWidths');
 
 /** Marks a C struct instance the host built from a declared shape. */
 export const GENERATED_STRUCT = Symbol.for('mamekit.struct');
+/**
+ * On each view of a union's storage: the union it belongs to and the field
+ * path to the view, so a field's address names something a save state keeps
+ * (the union itself, which saves its bytes once) rather than the view.
+ */
+export const UNION_VIEW = Symbol.for('mamekit.unionView');
 
 /** How a growable vector makes a new element (another vector, a struct). */
 const GENERATED_ELEMENT = Symbol.for('mamekit.vectorElement');
@@ -56,11 +63,11 @@ export function generatedVector(element?: (...args: unknown[]) => unknown): unkn
 }
 
 /** `vector.resize(length)` on a growable vector: in place, new elements of its kind. */
-export function resizeGeneratedVector(vector: unknown[], length: number): unknown[] {
+export function resizeGeneratedVector(vector: unknown[], length: number, fill?: unknown): unknown[] {
   const element = (vector as { [GENERATED_ELEMENT]?: () => unknown })[GENERATED_ELEMENT];
   const target = Math.max(0, Math.floor(length));
   if (vector.length > target) vector.length = target;
-  while (vector.length < target) vector.push(element ? element() : 0);
+  while (vector.length < target) vector.push(fill !== undefined ? fill : element ? element() : 0);
   return vector;
 }
 
@@ -77,8 +84,15 @@ export function resizableBuffer(maxByteLength: number): ArrayBuffer {
 }
 
 /** `container.resize(length)` for emitted code: the resized container. */
-export function resizeGeneratedContainer(container: unknown, length: number): unknown {
-  if (Array.isArray(container)) return resizeGeneratedVector(container, length);
+/**
+ * `container.resize(length[, value])`: std::vector::resize sets what it adds
+ * to `value`, or value-initialises it. The 68000's init_decode_table starts
+ * `m_decode_table.resize(0x10000, S_ILLEGAL)` and fills only the slots that
+ * still hold S_ILLEGAL; filled with 0 instead, every opcode decoded as reset.
+ */
+export function resizeGeneratedContainer(container: unknown, length: number, fill?: unknown): unknown {
+  if (Array.isArray(container)) return resizeGeneratedVector(container, length, fill);
+  const value = fill === undefined ? 0 : toNumber(fill);
   if (!ArrayBuffer.isView(container)) return container;
   const current = container as unknown as ArrayLike<number> & { constructor: new (size: number) => ArrayLike<number> & { set(values: ArrayLike<number>): void } };
   const target = Math.max(0, Math.floor(length));
@@ -93,10 +107,11 @@ export function resizeGeneratedContainer(container: unknown, length: number): un
     const previous = current.length;
     buffer.resize(target * width);
     // std::vector::resize value-initialises what it adds.
-    if (target > previous) (container as unknown as Uint8Array).fill(0, previous);
+    if (target > previous) (container as unknown as Uint8Array).fill(value, previous);
     return container;
   }
   const resized = new current.constructor(target);
+  if (value !== 0 && target > current.length) (resized as unknown as Uint8Array).fill(value, current.length);
   resized.set((container as unknown as { subarray(start: number, end: number): ArrayLike<number> }).subarray(0, Math.min(target, current.length)));
   return resized;
 }
@@ -160,6 +175,10 @@ export function isGeneratedStruct(value: unknown): value is Record<string, unkno
  * element by element. Returns the target.
  */
 export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
+  if (isPairValue(target) && isPairValue(source) && target !== source) {
+    target.word[0] = source.word[0]!;
+    return target;
+  }
   if (!isGeneratedStruct(target) || !source || typeof source !== 'object' || target === source) return source;
   const from = source as Record<string, unknown>;
   // A struct's fields never change once it is built, so their names are read
@@ -191,7 +210,23 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
  * VLM5030 aims `m_coeff = &vlm5030_coeff;` at its coefficient table, and
  * copied from a pointer the table stayed zero and Hyper Sports lost its speech.
  */
+/**
+ * MAME's PAIR and PAIR16 unions as the device runtime builds them (one word
+ * behind their views): assigned from another, one takes the word, as the
+ * union is copied.
+ */
+function isPairValue(value: unknown): value is { word: Uint32Array | Uint16Array } {
+  if (!value || typeof value !== 'object') return false;
+  const word = (value as { word?: unknown }).word;
+  return (word instanceof Uint32Array && 'd' in (value as object)) ||
+    (word instanceof Uint16Array && 'w' in (value as object));
+}
+
 function copiesStruct(target: unknown, value: unknown): boolean {
+  if (isPairValue(target)) {
+    const source = isLValue(value) ? value.get() : value;
+    return isPairValue(source) && source !== target;
+  }
   if (!isGeneratedStruct(target)) return false;
   const source = isLValue(value) ? value.get() : value;
   return Boolean(source) && typeof source === 'object' && !isGeneratedPointer(source);
@@ -245,6 +280,7 @@ export function attotimeSecondsMethod(seconds: number, method: string, args: rea
  */
 export function generatedFieldWidth(value: number, width: number): number {
   const bits = Math.abs(width);
+  if (bits === 1) return value ? 1 : 0;
   if (width < 0) {
     if (bits === 8) return value << 24 >> 24;
     if (bits === 16) return value << 16 >> 16;
@@ -263,6 +299,11 @@ export interface IrInputPorts {
 export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
   members?: Record<string, unknown>;
+  /**
+   * Members declared as pointers (`PAIR16 *m_reg16`): assigning one aims it,
+   * never copies into what it points at, though that is a struct.
+   */
+  pointerMembers?: ReadonlySet<string>;
   getters?: Record<string, () => unknown>;
   setters?: Record<string, (value: number) => void>;
   inputs?: IrInputPorts;
@@ -316,6 +357,8 @@ export interface GeneratedLValue {
   readonly generatedLValue: true;
   get(): unknown;
   set(value: unknown): void;
+  /** The storage's own address, when a reference parameter's is taken (`m_reg8 = &reg`). */
+  address?(): unknown;
 }
 
 export type GeneratedCallArgument = unknown | GeneratedLValue;
@@ -337,6 +380,8 @@ interface GeneratedPointer {
   readonly source?: unknown;
   readonly offset: number;
   readonly target?: GeneratedLValue;
+  /** A field of a union, by its path from the union `source` (generatedFieldAddress). */
+  readonly path?: readonly string[];
 }
 
 interface ExecutionResult {
@@ -424,24 +469,7 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'filter_rc_device::HIGHPASS': 3,
   'filter_rc_device::AC': 4,
   INPUT_LINE_IRQ0: 0,
-  INPUT_LINE_NMI: -1,
-  INPUT_LINE_RESET: -2,
-  INPUT_LINE_HALT: -3,
-  M6801_IRQ1_LINE: 0,
-  M6801_IS3_LINE: 2,
-  M6802_IRQ_LINE: 0,
-  M6805_IRQ_LINE: 0,
-  M68705_IRQ_LINE: 0,
-  M68705_INT_TIMER: 1,
-  M6809_IRQ_LINE: 0,
-  M6809_FIRQ_LINE: 1,
-  KONAMI_IRQ_LINE: 0,
-  KONAMI_FIRQ_LINE: 1,
-  'm6502_device::IRQ_LINE': 0,
-  'm6502_device::NMI_LINE': -1,
-  // The SO pin, as the generated 6502 numbers it (V_LINE = INPUT_LINE_IRQ0 +
-  // 16 in m6502.h): the 1541's gate array raises it for every byte read.
-  'm6502_device::V_LINE': 16,
+  ...HOST_INPUT_LINES,
   // emu/machine.h's machine_phase, which running_machine::phase() answers. A
   // device ignores a port write while MAME is still resetting: the 1541's
   // VIA port B handler drives the spindle motor and stepper only when RUNNING.
@@ -514,6 +542,13 @@ export function executeGeneratedHandler(
 ): number | undefined {
   const result = executeGeneratedProgram(program, bindings, args);
   return result.returned && result.value !== undefined ? toNumber(result.value) : undefined;
+}
+
+/** The text a std::string append adds for a value: a string as itself, a number in decimal. */
+export function cppStringText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint' || typeof value === 'boolean') return String(Number(value));
+  return value === undefined || value === null ? '' : String(value);
 }
 
 export function executeGeneratedProgram(
@@ -805,6 +840,11 @@ function preparedHandlerRuntime(
       }
       return next;
     },
+    fieldAddress: generatedMemberAddress,
+    cpp: GENERATED_CPP_EXCEPTIONS,
+    objectAddress: generatedObjectAddress,
+    packedWord: generatedPackedWord,
+    swapObjects: generatedSwapObjects,
     addressOf: (value, index) => isGeneratedPointer(value)
       ? {
         generatedPointer: true,
@@ -833,6 +873,7 @@ function preparedHandlerRuntime(
     resize: resizeGeneratedContainer,
     attotime: (seconds: number, method: string, ...args: number[]) => attotimeSecondsMethod(seconds, method, args) ?? 0,
     wide: wideBinary,
+    low32: generatedLow32,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
       bindings.calls?.[name]?.(...args.map(toNumber)) ?? 0,
     macro: (name, ...args) => generatedMacroCall(name, args),
@@ -1425,6 +1466,25 @@ function compileFastOperations(
         (truthy(condition(context)) ? whenTrue : whenFalse)(context));
       continue;
     }
+    if (operation.op === 'try') {
+      for (const entry of operation.catches) if (entry.name) localNames.add(entry.name);
+      const body = compileFastOperations(operation.body, bindings, localNames);
+      const handlers = operation.catches.map(entry => ({ entry, body: compileFastOperations(entry.body, bindings, localNames) }));
+      const cleanup = operation.finally ? compileFastOperations(operation.finally, bindings, localNames) : undefined;
+      if (!body || handlers.some(handler => !handler.body) || (operation.finally && !cleanup)) return undefined;
+      compiled.push(context => generatedTry(
+        () => body(context),
+        operation.catches.map((entry, index) => ({
+          valueType: entry.valueType,
+          run: (value: unknown) => {
+            if (entry.name) context.locals[entry.name] = value;
+            return handlers[index]!.body!(context);
+          },
+        })),
+        cleanup ? () => cleanup(context) : undefined,
+      ));
+      continue;
+    }
     if (operation.op === 'switch') {
       const subject = compileFastExpression(operation.expression, bindings, localNames);
       const cases = operation.cases.map(entry => ({
@@ -1545,7 +1605,7 @@ function compileFastAssign(
         // C++ struct assignment copies into the struct, as the interpreter's
         // own store does: ymfm hands its operator map back through
         // `operator_mapping &dest` as `dest = s_fixed_map`.
-        if (operator === '=' && copiesStruct(current, value)) {
+        if (operator === '=' && !context.localTypes[name]?.includes('*') && copiesStruct(current, value)) {
           copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
           return;
         }
@@ -1555,7 +1615,7 @@ function compileFastAssign(
         return;
       }
       const current = context.bindings.getters?.[name]?.() ?? context.bindings.members?.[name];
-      if (operator === '=' && copiesStruct(current, value)) {
+      if (operator === '=' && !context.bindings.pointerMembers?.has(name) && copiesStruct(current, value)) {
         copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
         return;
       }
@@ -1579,6 +1639,7 @@ function compileFastAssign(
       if (isGeneratedPointer(object)) setPointerValue(object, at, next);
       else if (ArrayBuffer.isView(object)) (object as Uint8Array)[at] = toNumber(next);
       else if (Array.isArray(object)) object[at] = next;
+      else if (isIndexableMemory(object)) (object as unknown as Record<number, unknown>)[at] = next;
     };
   }
   return (context, value) => assign(target, operator, value, context);
@@ -1955,6 +2016,20 @@ function compilePackedPointerView(
   return undefined;
 }
 
+/**
+ * A value converted to a 64-bit integer, exactly: a bigint keeps every bit
+ * (wrapped to the type), and comes back a number once one can hold it, as
+ * the exact evaluator answers. Math.trunc(Number(...)) rounded the TMS34010's
+ * MPYU product to a double.
+ */
+function narrow64(value: unknown, signed: boolean): unknown {
+  if (typeof value === 'bigint') {
+    const wrapped = signed ? BigInt.asIntN(64, value) : BigInt.asUintN(64, value);
+    return wrapped >= WIDE_MINIMUM && wrapped <= WIDE_MAXIMUM ? Number(wrapped) : wrapped;
+  }
+  return Math.trunc(toNumber(value));
+}
+
 /** Narrowing for an already const-stripped declared type. */
 function compileValueNarrowing(declared: string | undefined): (value: unknown) => unknown {
   if (declared === 'uint8_t' || declared === 'u8') return value => toNumber(value) & 0xff;
@@ -1973,7 +2048,8 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
   if (declared === 'int' || declared === 'int32_t' || declared === 's32') return value => toNumber(value) | 0;
   if (declared === 'uint64_t' || declared === 'u64' ||
       declared === 'int64_t' || declared === 's64') {
-    return value => Math.trunc(toNumber(value));
+    const signed = declared === 'int64_t' || declared === 's64';
+    return value => narrow64(value, signed);
   }
   // A `float` local rounds to single precision on every store, as it does in
   // C++; `double` and every unnamed scalar type keep their value unchanged.
@@ -1988,8 +2064,11 @@ function compileValueNarrowing(declared: string | undefined): (value: unknown) =
     };
   }
   // wrapValue's terminal case: an unnamed scalar type (`int`, `double`, a
-  // driver typedef) keeps its numeric value unchanged.
-  return toNumber;
+  // driver typedef) keeps its numeric value unchanged. A member-function
+  // pointer typedef holds its method's name (`word_read_func word_read =
+  // &tms340x0_device::memory_r`, lowered to "memory_r"), which no number
+  // stands for: narrowed, every TMS34010 PIXBLT called method "0".
+  return value => typeof value === 'string' && !/^[-+.\d]/.test(value) ? value : toNumber(value);
 }
 
 // A MAME signature is a constant, so parsing it is cached by that string.
@@ -2104,6 +2183,19 @@ function executeOperations(
         if (result.control === 'return') return result;
         if (result.control === 'break') break;
       } while (truthy(evaluate(operation.condition, context)));
+    } else if (operation.op === 'try') {
+      const result = generatedTry(
+        () => executeOperations(operation.body, context),
+        operation.catches.map(entry => ({
+          valueType: entry.valueType,
+          run: (value: unknown) => {
+            if (entry.name) context.locals[entry.name] = value;
+            return executeOperations(entry.body, context);
+          },
+        })),
+        operation.finally ? () => executeOperations(operation.finally!, context) : undefined,
+      );
+      if (result?.control) return result;
     } else if (operation.op === 'switch') {
       const value = toNumber(evaluate(operation.expression, context));
       let index = operation.cases.findIndex(candidate =>
@@ -2374,6 +2466,9 @@ const CONSTANT_MACROS: ReadonlyMap<string, number> = new Map([
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   const constant = CONSTANT_MACROS.get(name);
   if (constant !== undefined) return constant;
+  // The comma operator (handler-ir lowers `(a, b)` to COMMA): its operands
+  // were evaluated in order as arguments; the value is the last one's.
+  if (name === 'COMMA') return args.at(-1) ?? 0;
   // MAME's downcast<T>(x) is a checked static_cast: the object itself.
   if (name === 'downcast' && args.length === 1) return args[0];
   // As the C library and as `std::` spell it: the floppy drive's call_load
@@ -2436,6 +2531,9 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // placeholder, not hardware, and it is answered first because a renderer
   // carries dozens of them through its hottest loop.
   if (name === 'TRACE_NOOP') return 0;
+  // std::string's append, as handler-ir lowers `s += v` and `stream << v` on a
+  // string local: the text of a number in decimal, as ostream writes it.
+  if (name === 'STRING_APPEND') return `${cppStringText(args[0])}${cppStringText(args[1])}`;
   if (name === 'BIT') {
     // MAME BIT(x, n) extracts one bit; BIT(x, n, w) extracts a w-bit field.
     const width = args.length > 2 ? toNumber(args[2]) : 1;
@@ -2575,7 +2673,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'ALLOCF') return new Float64Array(Math.max(0, toNumber(args[0])));
   if (name === 'ARRAY') return args;
   // A struct type a function declares for itself, and the variable it
-  // declares with it (cpu-compiler.ts lowerLocalStructs): popeye's sprite
+  // declares with it (execution-source.ts lowerLocalStructs): popeye's sprite
   // pass keeps `struct attribute_memory { ... } attributes[64]`. Each element
   // is its own struct, built from the field/initial-value pairs.
   if (name === 'STRUCT_VALUE') return generatedStruct(args);
@@ -2678,6 +2776,23 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     }
     return { generatedPointer: true, source: args[0].source, offset: best } satisfies GeneratedPointer;
   }
+  // std::accumulate(first, last, init): the sum over the range from init. The
+  // Game Boy cartridge slot checksums its whole ROM so at reset. A sum taken
+  // in the accumulator's own type wraps to the same value its assignment
+  // keeps, so the plain sum is it.
+  if (name === 'std::accumulate') {
+    const asPointer = (value: unknown): GeneratedPointer | undefined => isGeneratedPointer(value)
+      ? value
+      : isIndexableMemory(value) ? { generatedPointer: true, source: value, offset: 0 } : undefined;
+    const first = asPointer(args[0]), last = asPointer(args[1]);
+    if (first && last && first.source === last.source) {
+      let sum = toNumber(args[2]);
+      for (let offset = first.offset; offset < last.offset; offset++) {
+        sum += toNumber(pointerValue(first, offset - first.offset));
+      }
+      return sum;
+    }
+  }
   if (name === 'memcpy' || name === 'memmove') {
     copyGeneratedMemory(args[0], args[1], toNumber(args[2]), true);
     return args[0];
@@ -2743,8 +2858,12 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     }
     return 0;
   }
-  // A C++ `throw`, as handler-ir lowers it: the source gave up here.
-  if (name === '__throw') throw new Error('MAME source threw an exception');
+  // A C++ `throw`, as handler-ir lowers it: a value a `try` may catch, or
+  // (`throw;`) the exception the innermost handler is handling, thrown on.
+  if (name === '__throw') {
+    if (!args.length) generatedCppRethrow();
+    throw new GeneratedCppThrow(args[0]);
+  }
   // MAME util/multibyte.h: little- and big-endian loads from a byte pointer.
   // The pointer is usually into a buffer (`&cur_block[16]`): a TZX turbo or
   // pure-data block's length is a get_u24le there, and read as a bare array
@@ -2938,7 +3057,7 @@ function applyIdentifierCall(
   if (['u32', 'uint32_t'].includes(name)) return toNumber(args[0]) >>> 0;
   if (['int', 's32', 'int32_t'].includes(name)) return toNumber(args[0]) | 0;
   if (['u64', 'uint64_t', 's64', 'int64_t'].includes(name)) {
-    return Math.trunc(toNumber(args[0]));
+    return narrow64(args[0], name === 's64' || name === 'int64_t');
   }
   if (name === 'bool') return toNumber(args[0]) ? 1 : 0;
   // The handler parser deliberately keeps C++ direct-initialization in its
@@ -3187,7 +3306,7 @@ function evaluateCall(
       // extent and, for vectors, in-place resizing.
       if (isIndexableMemory(object)) {
         if (method === 'resize') {
-          resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context);
+          resizeGeneratedMemory(expression.callee.object, toNumber(args[0]), context, args[1]);
           return 0;
         }
       }
@@ -3239,7 +3358,10 @@ function assign(
     const current = Object.hasOwn(context.locals, target.name)
       ? localReference?.get() ?? local
       : context.bindings.getters?.[target.name]?.() ?? context.bindings.members?.[target.name];
-    if (operator === '=' && copiesStruct(current, value)) {
+    const aims = Object.hasOwn(context.locals, target.name)
+      ? Boolean(context.localTypes[target.name]?.includes('*'))
+      : Boolean(context.bindings.pointerMembers?.has(target.name));
+    if (operator === '=' && !aims && copiesStruct(current, value)) {
       copyGeneratedStruct(current, isLValue(value) ? value.get() : value);
       return;
     }
@@ -3318,7 +3440,9 @@ function assign(
     return;
   }
   if (target.kind === 'call') {
-    assignCallResult(target, value, context);
+    // Through a returned reference the operator applies to what it names:
+    // the 6809's `ireg() += 2`.
+    assignCallResult(target, operator === '=' ? value : assignmentValue(operator, evaluate(target, context), value), context);
     return;
   }
   throw new Error(`unsupported generated assignment target "${target.kind}"`);
@@ -3567,10 +3691,39 @@ export function bigEndianWordBytes(view: unknown): Uint8Array | undefined {
  * elements are its words, read and written high byte first.
  */
 function wordView(bytes: Uint8Array | Int8Array, signed: boolean): unknown {
-  if (!isBigEndianWords(bytes)) {
+  if (!isBigEndianWords(bytes) && (bytes.byteOffset & 1) === 0) {
     return signed
       ? new Int16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1)
       : new Uint16Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, bytes.byteLength >>> 1);
+  }
+  // From an odd byte: a little-endian host reads the word unaligned, as the
+  // T-Unit's LSB_FIRST pixel extractor does (`*(uint16_t *)&base[o >> 3]`).
+  // The same bytes, read and written in place.
+  if (!isBigEndianWords(bytes)) {
+    const source = bytes as Uint8Array;
+    return new Proxy(new Array<number>(source.length >>> 1), {
+      get(target, property, receiver) {
+        if (typeof property === 'string' && /^\d+$/.test(property)) {
+          const at = Number(property) * 2;
+          if (at + 1 >= source.length) return 0;
+          const word = source[at]! | (source[at + 1]! << 8);
+          return signed ? (word << 16) >> 16 : word;
+        }
+        return Reflect.get(target, property, receiver);
+      },
+      set(target, property, value, receiver) {
+        if (typeof property === 'string' && /^\d+$/.test(property)) {
+          const at = Number(property) * 2;
+          const word = toNumber(value) & 0xffff;
+          if (at + 1 < source.length) {
+            source[at] = word & 0xff;
+            source[at + 1] = word >>> 8;
+          }
+          return true;
+        }
+        return Reflect.set(target, property, value, receiver);
+      },
+    });
   }
   const source = bytes as Uint8Array;
   const view = new Proxy(new Array<number>(source.length >>> 1), {
@@ -3658,12 +3811,84 @@ function binary(operator: string, left: number, right: number): number {
  * interleave ends `& 0x5555`. So the answer returns to a plain number as soon
  * as one can hold it, and the rest of the executor never sees a bigint.
  */
+/**
+ * A C++ exception in flight: what `throw` threw. Only these are caught by a
+ * generated `try`; a host failure is never a C++ exception.
+ */
+export class GeneratedCppThrow {
+  readonly value: unknown;
+  constructor(value: unknown) { this.value = value; }
+}
+
+/** The exceptions handlers are handling, innermost last (`throw;` rethrows it). */
+const HANDLING: GeneratedCppThrow[] = [];
+
+/** What emitted code's try/catch asks (runtime.cpp). */
+export const GENERATED_CPP_EXCEPTIONS = {
+  isThrow: (error: unknown): error is GeneratedCppThrow => error instanceof GeneratedCppThrow,
+  matches: (valueType: string | null, value: unknown): boolean => generatedCatchMatches(valueType ?? undefined, value),
+  enter: (error: GeneratedCppThrow): void => { HANDLING.push(error); },
+  leave: (): void => { HANDLING.pop(); },
+};
+
+export function generatedCppRethrow(): never {
+  const current = HANDLING.at(-1);
+  if (!current) throw new Error('MAME source rethrew with no exception being handled');
+  throw current;
+}
+
+const NUMERIC_CATCH = /^(?:const\s+)?(?:u?int(?:8|16|32|64)_t|u8|u16|u32|u64|s8|s16|s32|s64|int|unsigned(?:\s+int)?|long|short|char|bool|offs_t|signed)\s*&?$/;
+
+/** Whether a catch clause of this type takes this value (none: `catch (...)`). */
+export function generatedCatchMatches(valueType: string | undefined, value: unknown): boolean {
+  if (valueType === undefined) return true;
+  const numeric = NUMERIC_CATCH.test(valueType.trim());
+  return numeric ? typeof value === 'number' || typeof value === 'bigint' : typeof value !== 'number';
+}
+
+/**
+ * C++ try/catch/cleanup for both executors and emitted code: the first catch
+ * whose type takes the thrown value runs (with it handling, for `throw;`),
+ * any other throw goes on, and the cleanup runs on every way out.
+ */
+export function generatedTry<R>(
+  body: () => R,
+  catches: readonly { valueType?: string; run: (value: unknown) => R }[],
+  cleanup?: () => unknown,
+): R {
+  try {
+    return body();
+  } catch (error) {
+    if (!(error instanceof GeneratedCppThrow)) throw error;
+    const handler = catches.find(candidate => generatedCatchMatches(candidate.valueType, error.value));
+    if (!handler) throw error;
+    HANDLING.push(error);
+    try {
+      return handler.run(error.value);
+    } finally {
+      HANDLING.pop();
+    }
+  } finally {
+    cleanup?.();
+  }
+}
+
 export function generatedWideBinary(
   operator: string,
   left: unknown,
   right: unknown,
 ): unknown {
   return wideBinary(operator, left, right);
+}
+
+/**
+ * The low 32 bits of a 64-bit answer, ready for a 32-bit-or-narrower store.
+ * `wide` answers a BigInt once the value leaves the double's exact range, and
+ * `>>> 0` throws on one: Musashi's `m_c_flag = src << (9-shift)` with a u64
+ * `src` stopped the 68010 on its first ROR.L.
+ */
+export function generatedLow32(value: unknown): unknown {
+  return typeof value === 'bigint' ? Number(BigInt.asUintN(32, value)) : value;
 }
 
 const WIDE_OPERATORS: Record<string, (a: bigint, b: bigint) => bigint | boolean> = {
@@ -3830,33 +4055,105 @@ function addressOf(expression: GeneratedExpression, context: ExecutionContext): 
     // `pbuf = &m_buffers.back()` in discrete's task setup.
     if (memory && typeof memory === 'object' && !isLValue(memory) && !isReference(memory)) return memory;
   }
-  // A field's address names the object it was taken on, once: discrete's
-  // tasks point each node input at `&dest_task.source_list.back().buffer`,
-  // and re-read later every input read whichever source was added last.
-  // A struct's fields lie one after another, and C walks them with the same
-  // pointer: DISCRETE's op-amp oscillator reads its eight resistors with
-  // `r_info_ptr = &info->r1; ... r_info_ptr++`.
+  // A reference parameter's address is its argument's (the 6809's
+  // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }`); an object's, the object
+  // (a PAIR16 register, a struct), as a call answering one is (`&regop16()`).
+  if (expression.kind === 'identifier' || (expression.kind === 'call' && expression.callee.kind === 'identifier')) {
+    const local = expression.kind === 'identifier' && Object.hasOwn(context.locals, expression.name)
+      ? context.locals[expression.name] : undefined;
+    if (isLValue(local) && local.address) return local.address();
+    const value = isLValue(local) ? local.get() : evaluate(expression, context);
+    if (isPairValue(value) || isGeneratedStruct(value)) return value;
+    if (value && typeof value === 'object' && (value as { [UNION_VIEW]?: unknown })[UNION_VIEW]) return generatedObjectAddress(value);
+    // Any other object a call answers is its own address: the 68000's
+    // `m_s_program = &space(AS_PROGRAM)` holds the space itself, which
+    // `m_s_program->specific(m_r_program)` then binds the accessor to.
+    if (expression.kind === 'call' && value && typeof value === 'object' && !isLValue(value) && !isReference(value)) return value;
+  }
   if (expression.kind === 'member') {
-    const object = memberObject(evaluate(expression.object, context), expression.property);
-    if (object && typeof object === 'object' && !isLValue(object) && !isReference(object) && !isGeneratedPointer(object)) {
-      const fields = object as Record<string, unknown>;
-      const property = expression.property;
-      if (isIndexableMemory(fields[property])) return fields[property];
-      const view = structFieldView(fields);
-      const offset = view.keys.indexOf(property);
-      if (offset >= 0) return { generatedPointer: true, source: view.fields, offset };
-      return {
-        generatedPointer: true,
-        target: { generatedLValue: true, get: () => fields[property] ?? 0, set: (value: unknown) => { fields[property] = value; } },
-        offset: 0,
-      };
-    }
+    const address = generatedMemberAddress(evaluate(expression.object, context), expression.property);
+    if (address !== undefined) return address;
   }
   return {
     generatedPointer: true,
     target: lValue(expression, context),
     offset: 0,
   };
+}
+
+/**
+ * A field's address, as `&object.field` takes it, for the interpreter and
+ * emitted code alike (runtime.fieldAddress). In a union, the union and the
+ * path to the field (generatedFieldAddress). Otherwise it names the object it
+ * was taken on, once: discrete's tasks point each node input at
+ * `&dest_task.source_list.back().buffer`, and re-read later every input read
+ * whichever source was added last. A struct's fields lie one after another,
+ * and C walks them with the same pointer: DISCRETE's op-amp oscillator reads
+ * its eight resistors with `r_info_ptr = &info->r1; ... r_info_ptr++`.
+ */
+export function generatedMemberAddress(raw: unknown, property: string): unknown {
+  const field = generatedFieldAddress(raw, property);
+  if (field) return field;
+  const object = memberObject(raw, property);
+  if (!object || typeof object !== 'object' || isLValue(object) || isReference(object) || isGeneratedPointer(object)) return undefined;
+  const fields = object as Record<string, unknown>;
+  if (isIndexableMemory(fields[property])) return fields[property];
+  // A field holding an object is that object (a struct's PAIR16, a nested struct).
+  if (isPairValue(fields[property]) || isGeneratedStruct(fields[property])) return fields[property];
+  const view = structFieldView(fields);
+  const offset = view.keys.indexOf(property);
+  if (offset >= 0) return { generatedPointer: true, source: view.fields, offset };
+  return {
+    generatedPointer: true,
+    target: { generatedLValue: true, get: () => fields[property] ?? 0, set: (value: unknown) => { fields[property] = value; } },
+    offset: 0,
+  };
+}
+
+/**
+ * `std::swap(a, b)` of two objects: their contents trade places and each
+ * keeps its identity, as C++ swaps values (the Z80's `swap(m_af, m_af2)` for
+ * EX AF,AF'). False when they are not objects, so the caller assigns.
+ */
+export function generatedSwapObjects(left: unknown, right: unknown): boolean {
+  if (isPairValue(left) && isPairValue(right)) {
+    const word = left.word[0]!;
+    left.word[0] = right.word[0]!;
+    right.word[0] = word;
+    return true;
+  }
+  if (isGeneratedStruct(left) && isGeneratedStruct(right) && left !== right) {
+    const saved = { ...left };
+    copyGeneratedStruct(left, right);
+    copyGeneratedStruct(right, saved);
+    return true;
+  }
+  return false;
+}
+
+/** `&value` where the value is an object -- a PAIR16 register a call hands back: the object. */
+export function generatedObjectAddress(value: unknown): unknown {
+  if (isPairValue(value) || isGeneratedStruct(value)) return value;
+  // A view inside a union (the 6809's D, `m_q.p.d`): its union and path.
+  const view = value && typeof value === 'object'
+    ? (value as { [UNION_VIEW]?: { root: object; path: readonly string[] } })[UNION_VIEW]
+    : undefined;
+  if (view) return { generatedPointer: true, source: view.root, path: view.path, offset: 0 };
+  // Any other object (an address space): itself, as the interpreter takes it.
+  if (value && typeof value === 'object' && !isLValue(value) && !isReference(value)) return value;
+  throw new Error('address of a call result that is not an object');
+}
+
+/**
+ * A union field's address: its union and the path to it, which a save state
+ * can name (the union's views are not themselves kept). Undefined for a
+ * field that is not in a union.
+ */
+export function generatedFieldAddress(object: unknown, property: string): GeneratedPointer | undefined {
+  const view = object && typeof object === 'object'
+    ? (object as { [UNION_VIEW]?: { root: object; path: readonly string[] } })[UNION_VIEW]
+    : undefined;
+  return view ? { generatedPointer: true, source: view.root, path: [...view.path, property], offset: 0 } : undefined;
 }
 
 const STRUCT_FIELD_VIEWS = new WeakMap<object, { keys: string[]; fields: ArrayLike<unknown> }>();
@@ -3887,14 +4184,52 @@ function offsetPointer(pointer: GeneratedPointer, offset: number): GeneratedPoin
   return { ...pointer, offset: pointer.offset + offset };
 }
 
+/**
+ * The object a union-field pointer's path ends in (the union and the path are
+ * what a save state keeps): the 6809 reads and writes its accumulators
+ * through one on every instruction.
+ */
+function pathHolder(pointer: GeneratedPointer): Record<string, unknown> {
+  // Walked each time, not cached on the pointer: these pointers are made
+  // fresh at almost every use (the TMS34010's `int32_t *rd = &AREG(n)`, once
+  // an instruction), so a cache was one defineProperty per pointer that no
+  // second read ever hit -- a seventh of a Mortal Kombat frame.
+  const path = pointer.path!;
+  let at = pointer.source as Record<string, unknown>;
+  for (let index = 0; index < path.length - 1; index++) at = at[path[index]!] as Record<string, unknown>;
+  return at;
+}
+
 function pointerValue(pointer: GeneratedPointer, index: number): unknown {
   const offset = pointer.offset + index;
+  if (pointer.path) return offset === 0 ? pathHolder(pointer)[pointer.path.at(-1)!] ?? 0 : 0;
   if (pointer.target) return offset === 0 ? pointer.target.get() : 0;
   return indexValue(pointer.source, offset);
 }
 
+/**
+ * Element `index` of a pointer, read or written as the executor does it: a
+ * union field's path and an lvalue target included. Emitted code reads `*rd`
+ * through readIndex(rd, 0), and indexing the pointer's source directly read
+ * the TMS34010's `int32_t *rd = &AREG(n)` from the union's root, as 0, so
+ * every ZEXT cleared its register.
+ */
+export function generatedPointerElement(pointer: unknown, index: number): unknown {
+  return isGeneratedPointer(pointer) ? pointerValue(pointer, index) : undefined;
+}
+
+export function setGeneratedPointerElement(pointer: unknown, index: number, value: unknown): boolean {
+  if (!isGeneratedPointer(pointer)) return false;
+  setPointerValue(pointer, index, value);
+  return true;
+}
+
 function setPointerValue(pointer: GeneratedPointer, index: number, value: unknown): void {
   const offset = pointer.offset + index;
+  if (pointer.path) {
+    if (offset === 0) pathHolder(pointer)[pointer.path.at(-1)!] = value;
+    return;
+  }
   if (pointer.target) {
     if (offset === 0) pointer.target.set(value);
     return;
@@ -4022,8 +4357,16 @@ export function generatedValuesEqual(left: unknown, right: unknown): boolean {
       leftValue.min_y === rightValue.min_y && leftValue.max_y === rightValue.max_y;
   }
   if (isGeneratedPointer(leftValue) && isGeneratedPointer(rightValue)) {
+    // A union field's pointer names its field by path: the 6809's
+    // device_pre_save asks `m_reg8 == &m_q.r.a` and then `== &m_q.r.b`, and
+    // with the union alone compared, B read as A and a load re-aimed every
+    // accumulator operation at A.
+    const leftPath = leftValue.path;
+    const rightPath = rightValue.path;
     return leftValue.source === rightValue.source &&
-      leftValue.offset === rightValue.offset;
+      leftValue.offset === rightValue.offset &&
+      (leftPath === rightPath || (leftPath !== undefined && rightPath !== undefined &&
+        leftPath.length === rightPath.length && leftPath.every((key, index) => key === rightPath[index])));
   }
   // A container's begin() is the container itself (generatedContainerAccessor),
   // and an iterator into it is a pointer: `buf.begin() == it` is the pointer
@@ -4303,17 +4646,21 @@ function resizeGeneratedMemory(
   target: GeneratedExpression,
   length: number,
   context: ExecutionContext,
+  fill?: unknown,
 ): void {
   const current = evaluate(target, context);
   if (Array.isArray(current)) {
-    resizeGeneratedVector(current, length);
+    resizeGeneratedVector(current, length, fill);
     return;
   }
   if (!isIndexableMemory(current) || current.length === length) return;
-  if (ArrayBuffer.isView(current) && resizeGeneratedContainer(current, length) === current) return;
-  const resized = ArrayBuffer.isView(current)
-    ? new (current.constructor as new (size: number) => ArrayLike<unknown>)(length)
-    : new Array<number>(length).fill(0);
+  if (ArrayBuffer.isView(current)) {
+    // Grown in place over a resizable buffer, or a new array the holder takes.
+    const resized = resizeGeneratedContainer(current, length, fill);
+    if (resized !== current) assign(target, '=', resized, context);
+    return;
+  }
+  const resized = new Array<number>(length).fill(fill === undefined ? 0 : toNumber(fill));
   copyGeneratedMemory(resized, current, Math.min(length, current.length));
   assign(target, '=', resized, context);
 }
@@ -4363,6 +4710,24 @@ export function generatedByteView(value: unknown): unknown {
 
 export function generatedPackedView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
   return packedByteView(value, signed);
+}
+
+/**
+ * `*(uint16_t *)p` over bytes: the word at the pointer, little-endian as the
+ * host reads it, aligned or not -- the T-Unit's LSB_FIRST pixel extractor,
+ * once per pixel, with no view built for it. A big-endian region or anything
+ * that is not a byte pointer is read through its view as before.
+ */
+export function generatedPackedWord(value: unknown, signed: boolean): number {
+  const pointer = value as GeneratedPointer | undefined;
+  const direct = pointer && typeof pointer === 'object' && pointer.generatedPointer === true && pointer.target === undefined &&
+    pointer.source instanceof Uint8Array ? pointer.source : undefined;
+  if (direct && !isBigEndianWords(direct)) {
+    const at = pointer!.offset;
+    const word = (direct[at] ?? 0) | ((direct[at + 1] ?? 0) << 8);
+    return signed ? (word << 16) >> 16 : word;
+  }
+  return toNumber(dereferenceGeneratedValue(packedByteView(value, signed)));
 }
 
 /** The source spelling of an assignment target, for diagnostics. */
@@ -4432,8 +4797,16 @@ export function dereferenceGeneratedValue(value: unknown): unknown {
 }
 
 function isIndexableMemory(value: unknown): value is ArrayLike<unknown> {
-  return ArrayBuffer.isView(value) || Array.isArray(value);
+  return ArrayBuffer.isView(value) || Array.isArray(value) ||
+    (typeof value === 'object' && value !== null && (value as { [UNION_ELEMENTS]?: true })[UNION_ELEMENTS] === true);
 }
+
+/**
+ * Marks a union's array field the runtime keeps as accessors (a 64-bit one,
+ * exact as a bigint, which no typed array of numbers can hold): indexed like
+ * memory, read and written through its elements' getters and setters.
+ */
+export const UNION_ELEMENTS = Symbol.for('mamekit.unionElements');
 
 /**
  * A MAME memory container's own accessor, answered from the container.
@@ -4787,6 +5160,7 @@ function lValue(expression: GeneratedExpression, context: ExecutionContext): Gen
     generatedLValue: true,
     get: () => evaluate(expression, context),
     set: value => assign(expression, '=', value, context),
+    address: () => addressOf(expression, context),
   };
 }
 

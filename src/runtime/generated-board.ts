@@ -2,7 +2,8 @@ import { boardConfigFromIr } from '../ir/host-config.ts';
 import { generatedMachine } from './generated-machine.ts';
 import { Bus, byteAddress, type HandlerRegistry, type InstalledRange, type ReadHandler, type WriteHandler } from './bus.ts';
 import { installedOffset, RecordingAddressSpace, type InstalledDelegate } from './address-space-install.ts';
-import { createCpu, generatedCpuFacts, hasGeneratedCpu, type Cpu } from './generated-cpu.ts';
+import type { Cpu, CpuBus } from './generated-cpu.ts';
+import { DeviceCpu } from './device-cpu.ts';
 import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
 import {
   beginGeneratedTimerDelivery,
@@ -51,6 +52,7 @@ import {
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
 import {
+  HOST_INPUT_LINES,
   HOST_SERVICE_CALLS,
   type BoardEffect,
   type BoardIr,
@@ -81,8 +83,6 @@ import type {
   Regions,
 } from './types.ts';
 import {
-  generatedCpuDataWidth,
-  generatedCpuEndianness,
 } from './generated-board-shape.ts';
 import { hasDeviceType } from './generated-source-shape.ts';
 import { GeneratedRectangle, isEncodedRectangle } from './rectangle.ts';
@@ -240,15 +240,26 @@ export function generatedCompositeCallbackBindings(
  * Missing generated hardware is an error; composition only executes emitted
  * CPU, device, handler, callback and scheduling definitions.
  */
+/**
+ * Test-only: a stand-in for a processor slot, so a board spec can drive the
+ * scheduler's bus hooks (`timing`, `parked`, `signal`) directly. Production
+ * never passes one -- every CPU is its MAME class compiled whole, hosted by
+ * DeviceCpu.
+ */
+export interface BoardProcessorFixture {
+  processor(type: string, bus: CpuBus): Cpu | undefined;
+}
+
 export function createGeneratedBoard(
   machine: BoardIr,
   config: BoardConfig,
   regions: Regions,
   inputs: InputPorts,
   sinks: BoardSinks,
+  fixture?: BoardProcessorFixture,
 ): Board {
   const configured = withSlotCards(withEmptySlots(machine, config.emptySlots), config.slotCards);
-  return new IrBoard(configured, boardConfigFromIr(configured, config), regions, inputs, sinks);
+  return new IrBoard(configured, boardConfigFromIr(configured, config), regions, inputs, sinks, fixture);
 }
 
 /** A device's source-allocated storage as it stands at power-on. */
@@ -327,9 +338,7 @@ export function withSlotCards(machine: BoardIr, cards: Readonly<Record<string, s
   };
 }
 
-const INPUT_LINE_NMI = -1;
-const INPUT_LINE_RESET = -2;
-const INPUT_LINE_HALT = -3;
+const { INPUT_LINE_NMI, INPUT_LINE_RESET, INPUT_LINE_HALT } = HOST_INPUT_LINES;
 const CLEAR_LINE = 0;
 const ASSERT_LINE = 1;
 const HOLD_LINE = 2;
@@ -422,6 +431,8 @@ class IrBoard implements Board {
   readonly fbWidth: number;
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
   private screenUpdateNow?: () => void;
+  /** screen_device::update_partial(line), once video is composed. */
+  private screenUpdatePartial?: (line: number) => void;
   private screenPixel?: (x: number, y: number) => number;
   readonly fbHeight: number;
 
@@ -655,6 +666,8 @@ class IrBoard implements Board {
   /** Delegates devices registered with `screen_device::register_vblank_callback`. */
   private readonly vblankCallbacks = new Map<string, (screen: unknown, state: number) => unknown>();
   private readonly inputs: InputPorts;
+  /** A spec's processor stand-in (BoardProcessorFixture); never set in production. */
+  private readonly processorFixture: BoardProcessorFixture | undefined;
   private readonly inputLatchPrevious = new Map<string, boolean>();
   private readonly pendingExidyCollisions = new Map<number, number[]>();
 
@@ -664,14 +677,29 @@ class IrBoard implements Board {
     regions: Regions,
     inputs: InputPorts,
     sinks: BoardSinks,
+    fixture?: BoardProcessorFixture,
   ) {
+    this.processorFixture = fixture;
     // The screen is the board's own: a processor may reposition its visible
     // area, and that must not carry into the next board built from this IR.
+    // So are its processors' address-space facts, which it completes from
+    // each CPU's compiled device (processorSpaces).
     machine = {
       ...machine,
-      execution: { ...machine.execution, screen: { ...machine.execution.screen } },
+      execution: {
+        ...machine.execution,
+        screen: { ...machine.execution.screen },
+        cpus: machine.execution.cpus.map(cpu => ({ ...cpu, ...(cpu.io ? { io: { ...cpu.io } } : {}) })),
+        ...(machine.execution.participants
+          ? { participants: machine.execution.participants.map(participant => ({ ...participant })) }
+          : {}),
+      },
     };
     this.machine = machine;
+    // Before any device starts: a device_start that binds a share
+    // (`owner()->memshare(tag())`, sprite.h) asks whether a 16-bit processor
+    // owns it, and asked too early Gauntlet bound its motion objects as bytes.
+    this.processorSpaces(machine);
     this.hostState['cpu-clocks'] = this.cpuClocks;
     this.hostState['vector-display'] = this.vectorPoints;
     this.inputs = inputs;
@@ -715,7 +743,9 @@ class IrBoard implements Board {
     // MAME devices may alias board memory shares (buffered spriteram binds its
     // own tag), so every declared share exists before any device is created.
     for (const cpu of machine.execution.cpus) {
-      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]) {
+      // The opcodes map's too: Sega's encrypted Z80s decrypt into a share only
+      // their decrypted_opcodes map declares (`rom().share("decrypted_opcodes")`).
+      for (const range of [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? []), ...(cpu.opcode?.ranges ?? [])]) {
         if (!range.share) continue;
         this.shares[range.share] ??= new Uint8Array(range.end - range.start + 1);
       }
@@ -793,7 +823,36 @@ class IrBoard implements Board {
             this.screenUpdateNow?.();
             return 1;
           },
+          // screen_device::update_partial(scanline): the picture up to that
+          // line. The TMS34010 brings it up to its DPYINT line before it
+          // raises the display interrupt.
+          update_partial: (line: number) => {
+            this.screenUpdatePartial?.(Number(line));
+            return 1;
+          },
+          // screen_device::configure(width, height, visarea, period): a video
+          // processor reprograms the screen from its own timing registers (the
+          // TMS34010 from HEBLNK/HSBLNK: Mortal Kombat moves its window ten
+          // pixels left of the set_raw one). The framebuffer keeps its size,
+          // so a window of the same size moves and any other shape is left.
+          configure: (_width: number, _height: number, visarea: unknown) => {
+            const area = visarea as { min_x?: number; max_x?: number; min_y?: number; max_y?: number } | undefined;
+            const screen = machine.execution.screen;
+            if (!area || area.min_x === undefined || area.max_x === undefined || area.min_y === undefined || area.max_y === undefined) return 0;
+            if (area.max_x - area.min_x + 1 !== screen.width || area.max_y - area.min_y + 1 !== screen.height) return 0;
+            screen.xOffset = area.min_x;
+            screen.yOffset = area.min_y;
+            return 0;
+          },
           pixel: (x: number, y: number) => this.screenPixel?.(Number(x), Number(y)) ?? 0,
+          // screen_device::reset_origin(beamy, beamx): MAME re-bases its VBLANK
+          // timing so the beam stands at (beamy, beamx) now. The MC6845 calls it
+          // at the top of every frame it counts out; the frame runner owns the
+          // beam and starts each frame at line 0 already, so on a CRTC programmed
+          // to the screen's own frame (Qix's) there is nothing to move. A CRTC
+          // counting a different frame length would drift against this screen,
+          // which the frame runner does not model yet.
+          reset_origin: () => 0,
           // screen_device::clock(): the pixel clock set_raw gave it.
           clock: () => machine.execution.screen.pixelClock ??
             machine.execution.screen.refresh * (machine.execution.screen.htotal ?? machine.execution.screen.width) *
@@ -866,7 +925,7 @@ class IrBoard implements Board {
               const bytes = this.shares[leaf];
               if (!bytes) return 0;
               const words = machine.execution.cpus.some(cpu =>
-                generatedCpuDataWidth(cpu.type ?? 'Z80') === 16 &&
+                cpu.space?.dataWidth === 16 &&
                 [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])].some(range => range.share === String(generatedCallValue(tag))));
               const view = words ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >>> 1) : bytes;
               return { ptr: () => view, bytes: () => bytes.length };
@@ -965,7 +1024,7 @@ class IrBoard implements Board {
                 },
                 data_width: () => {
                   const cpu = processor();
-                  return cpu?.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(cpu?.type ?? '');
+                  return cpu?.space?.dataWidth === 16 ? 16 : 8;
                 },
                 addrmask: () => this.cpuBuses.get(target)?.addrmask() ?? Bus.addressMaskOf(processor()?.ranges ?? []),
                 // MAME `install_readwrite_tap(start, end, mirror, name, read, write)`:
@@ -1101,6 +1160,17 @@ class IrBoard implements Board {
               if (method === 'adjust_icount') {
                 return (delta: number) => this.adjustGeneratedIcount(cpuSpec.tag, delta);
               }
+              // device_execute_interface::spin_until_time: the processor is
+              // suspended, eating its cycles, until that much time has passed
+              // -- the same charge from where it stands as a negative
+              // adjust_icount. The C64's VIC-II burns its BA cycles so
+              // (`m_cpu->spin_until_time(m_cpu->cycles_to_attotime(m_rdy_cycles))`);
+              // unanswered, they were never taken.
+              if (method === 'spin_until_time') {
+                return (seconds: number) => this.adjustGeneratedIcount(
+                  cpuSpec.tag, -Math.ceil(Number(seconds) / this.secondsPerCycleOf(cpuSpec) - CYCLE_ROUNDING),
+                );
+              }
               if (method === 'set_input_line') {
                 return (line: number, state: number) => {
                   const cpu = this.cpus.get(cpuSpec.tag);
@@ -1120,6 +1190,14 @@ class IrBoard implements Board {
               const cpu = this.cpus.get(cpuSpec.tag);
               if (cpu?.hasMethod(method)) {
                 return (...args: number[]) => cpu.invoke(method, ...args);
+              }
+              // A CPU compiled whole is a device whose class does not declare
+              // device_execute_interface's surface; the board answers it, as
+              // MAME's CPU does to whoever holds it. The Namco 06xx asks its
+              // CPU `suspended(SUSPEND_REASON_HALT | ...)` before an NMI.
+              if (cpu instanceof DeviceCpu && !this.devices.get(tag)?.methodNames().includes(method)) {
+                const surface = this.deviceReferents.get(cpuSpec.tag) as Record<string, unknown> | undefined;
+                if (typeof surface?.[method] === 'function') return surface[method] as (...args: number[]) => unknown;
               }
               const call = (...args: number[]) => {
                 const device = this.devices.get(tag);
@@ -1190,6 +1268,10 @@ class IrBoard implements Board {
           },
           regions,
           ...(specification.romMap?.length ? { romRead: this.deviceRomRead(specification.tag, specification.romMap, regions) } : {}),
+          // A CPU compiled as a device: the spaces its owner maps -- program,
+          // and IO and decrypted opcodes where the driver gives those maps.
+          ...((cpu => cpu ? { configuredSpaces: [0, ...(cpu.io ? [2] : []), ...(cpu.opcode ? [3] : [])] } : {})(
+            machine.execution.cpus.find(candidate => candidate.tag === specification.tag))),
           configuration: config,
           // Machine-config chained setup calls (m_starfield->set_starfield_config(...))
           // lowered from the driver's constant arguments. MAME makes them
@@ -2065,8 +2147,10 @@ class IrBoard implements Board {
     this.effects = bindBoardEffects(machine, this.effectBindings(sinks, registry));
 
     for (const specification of machine.execution.cpus) {
-      const type = specification.type ?? 'Z80';
-      if (!hasGeneratedCpu(type)) {
+      const type = specification.type ?? '';
+      // Every CPU is its MAME class compiled whole, a generated device that
+      // executes (device-cpu.ts).
+      if (!this.processorFixture && !this.devices.get(specification.tag)?.methodNames().includes('execute_run')) {
         throw new Error(
           `${machine.game}: CPU ${specification.tag}:${type} has no generated executable definition`,
         );
@@ -2088,9 +2172,9 @@ class IrBoard implements Board {
         rom,
         registry,
         this.shares,
-        specification.space?.dataWidth === 16 ? 16 : generatedCpuDataWidth(type),
+        specification.space?.dataWidth === 16 ? 16 : 8,
         regions,
-        specification.space?.endianness ?? generatedCpuEndianness(type),
+        specification.space?.endianness ?? 'big',
         specification.unmapHigh === true,
       );
       this.cpuBuses.set(specification.tag, bus);
@@ -2117,7 +2201,10 @@ class IrBoard implements Board {
         this.bindings.calls![`${viewTag.replace(/^m_/, '')}.disable`] = disable;
       }
       if (specification.opcode) {
-        const opcodeRom = regions[specification.opcode.region];
+        // A region a driver init decrypted into, or the share a CPU decrypts
+        // into itself: an encrypted Sega Z80's device_reset fills the
+        // `decrypted_opcodes` share its opcode map reads.
+        const opcodeRom = regions[specification.opcode.region] ?? this.shares[specification.opcode.region];
         if (!opcodeRom) {
           throw new Error(
             `${machine.game}: missing opcode region ${specification.opcode.region}`,
@@ -2135,9 +2222,7 @@ class IrBoard implements Board {
         bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
       }
       if (specification.io) {
-        const ioDataWidth = specification.io.space?.dataWidth === 16
-          ? 16
-          : generatedCpuDataWidth(type);
+        const ioDataWidth = specification.io.space?.dataWidth === 16 ? 16 : 8;
         const ioBus = new Bus(
           specification.io.ranges,
           new Uint8Array(0),
@@ -2145,7 +2230,7 @@ class IrBoard implements Board {
           this.shares,
           ioDataWidth,
           undefined,
-          specification.io.space?.endianness ?? generatedCpuEndianness(type),
+          specification.io.space?.endianness ?? 'big',
         );
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
@@ -2321,69 +2406,12 @@ class IrBoard implements Board {
       const instructionTick: { resolved: boolean; tick?: (cycles: number) => void } =
         { resolved: false };
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
-      // Delegates the machine configuration bound on this processor, by the
-      // name the core calls them: the TMS34010 draws each scanline through
-      // `scanline_ind16_cb` and moves VRAM rows through the shift-register
-      // pair, all of them methods of the video device.
-      const cpuFacts = generatedCpuFacts(type);
-      // The timer clock runs two cycles into each instruction of a core that
-      // stops between an instruction's cycles (see the timing hook).
-      const lookahead = cpuFacts.suspendsMidInstruction === true;
-      const cpuDelegates = new Map<string, { tag: string; method: string }>();
-      for (const binding of machine.devices?.find(device => device.tag === specification.tag)?.delegates ?? []) {
-        const name = cpuFacts.delegateSetters?.[binding.setter];
-        if (name) cpuDelegates.set(name, { tag: binding.tag, method: binding.method });
-      }
       const screenSpec = machine.execution.screen;
-      const cpu = createCpu(type, {
+      const cpuBus: CpuBus = {
         // Exactly the callbacks `signal` below would run for this processor.
         boundSignals: new Set(machine.callbacks
           .filter(callback => callback.ownerTag === specification.tag)
           .map(callback => callback.signal)),
-        ...(cpuDelegates.size ? {
-          hasDelegate: (name: string) => cpuDelegates.has(name),
-          delegate: (name: string, ...args: unknown[]) => {
-            const target = cpuDelegates.get(name);
-            const device = target ? this.devices.get(target.tag) : undefined;
-            if (!target || !device) return 0;
-            return Number(device.invoke(target.method, ...args as GeneratedCallArgument[])) || 0;
-          },
-        } : {}),
-        // The screen a video processor drives, measured on the same beam the
-        // device timers use.
-        ...(cpuFacts.scanlineTimer ? {
-          screen: {
-            vpos: () => Math.floor(this.beamPosition() + this.halfPixelLines()) % Math.max(1, screenSpec.vtotal),
-            hpos: () => Math.floor(this.currentLineFraction * (screenSpec.htotal ?? screenSpec.width)),
-            width: () => Math.max(1, screenSpec.htotal ?? screenSpec.width),
-            height: () => Math.max(1, screenSpec.vtotal),
-            visibleArea: () => ({
-              min_x: screenSpec.xOffset ?? 0,
-              max_x: (screenSpec.xOffset ?? 0) + screenSpec.width - 1,
-              min_y: screenSpec.yOffset ?? 0,
-              max_y: (screenSpec.yOffset ?? 0) + screenSpec.height - 1,
-            }),
-            updatePartial: (line: number) => {
-              if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
-            },
-            // A TMS34010 reprograms the visible area from HEBLNK/HSBLNK (Mortal
-            // Kombat moves it ten pixels left of its set_raw window). The
-            // framebuffer keeps its size, so a window of the same size moves
-            // and any other shape is left alone.
-            configure: (_width, _height, visarea) => {
-              const width = visarea.max_x - visarea.min_x + 1;
-              const height = visarea.max_y - visarea.min_y + 1;
-              if (width !== screenSpec.width || height !== screenSpec.height) return;
-              screenSpec.xOffset = visarea.min_x;
-              screenSpec.yOffset = visarea.min_y;
-            },
-            untilNextLine: () =>
-              (1 - this.currentLineFraction) * this.lineSeconds(),
-            // palette_device::black_pen(): the entry appended after the
-            // palette's own, which is black.
-            blackPen: () => machine.video?.ramPalette?.entries ?? 0,
-          },
-        } : {}),
         read: address => bus.read(busAddress(address)),
         // Keep native 16-bit address-map handlers atomic. In particular,
         // Neo Geo's palette RAM self-test writes complete 68000 words; losing
@@ -2393,6 +2421,8 @@ class IrBoard implements Board {
         // A 68000 long access is two word accesses on the real bus, so keep
         // it that way: address-space taps must see the same two.
         read32be: address => bus.read32be(busAddress(address)),
+        read16le: address => bus.read16le(busAddress(address)),
+        write16le: (address, data) => bus.write16le(busAddress(address), data),
         ...(bus.readOpcode ? {
           // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
           readOpcode: address => bus.readOpcode!(address),
@@ -2446,17 +2476,6 @@ class IrBoard implements Board {
             if (current < timing.previousCycles) timing.previousCycles = 0;
             advanceTimedHardware((current - timing.previousCycles) * timerSecondsPerCycle());
             timing.previousCycles = current === target ? 0 : current;
-            // MAME's 6502 polls its interrupt lines after the opcode fetch,
-            // past the point where a timeslice ending on that fetch stops it
-            // (m6502make.py expands `prefetch()` around the read), so a timer
-            // due before the cycle after the fetch has fired by the poll; the
-            // instruction's next access sees the same timers. Without it the
-            // 2C02's NMI, raised four cycles after the VBLANK flag, landed an
-            // instruction late whenever it fell due inside the fetch (#184).
-            // Under perfect quantum each slice is one cycle already.
-            if (lookahead && current < target && !this.frameRunner.lockstepping) {
-              this.catchUpDeviceTime?.(-2);
-            }
           } else if (cardClockDevices.has(specification.tag)) {
             if (clamped < timing.previousCycles) timing.previousCycles = 0;
             tickCardDevices(specification.tag, clamped - timing.previousCycles);
@@ -2476,6 +2495,17 @@ class IrBoard implements Board {
           if (specification.tag === timerClockCpu?.tag) {
             for (const device of this.devices.values()) {
               soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            }
+            // And the driver's own precise timers, which come due on the same
+            // clock (firePreciseTimers): the Spectrum's ULA interrupt is a
+            // pair of them 32 cycles apart. A slice that ran past both raised
+            // and dropped INT with no instruction in between, so the Z80 never
+            // took an interrupt, never scanned its keyboard and never beeped.
+            if (this.preciseTimerMembers.size && this.pendingTimers.size) {
+              const now = this.machineSeconds();
+              for (const [member, pending] of this.pendingTimers) {
+                if (this.preciseTimerMembers.has(member)) soonest = Math.min(soonest, Math.max(0, pending.at - now));
+              }
             }
           }
           return Number.isFinite(soonest)
@@ -2515,14 +2545,23 @@ class IrBoard implements Board {
           }
           return result ?? 0;
         },
+      };
+      // A CPU compiled whole as its MAME class (device-cpu.ts): the generated
+      // device is the core, and this processor slot hosts it.
+      const fixtureCpu = this.processorFixture?.processor(type, cpuBus);
+      const coreDevice = fixtureCpu ? undefined : this.devices.get(specification.tag)!;
+      const cpu: Cpu = fixtureCpu ?? new DeviceCpu(coreDevice!, cpuBus, {
+        setInputLine: (line, state) => { this.deviceInputLine(specification.tag, coreDevice!, line, state); },
+        acknowledgeLine: line => this.deviceIrqAcknowledge(specification.tag, coreDevice!, line),
       });
       if (specification.interruptMixer !== undefined) {
         cpu.set('m_interrupt_mixer', Number(specification.interruptMixer));
       }
       for (const configuration of machine.devices?.find(device => device.tag === specification.tag)?.configuration ?? []) {
         // A CPU's setters here are numeric; one naming another device's tag
-        // is wiring the board already composed.
-        if (cpu.hasMethod(configuration.method) &&
+        // is wiring the board already composed. A device core was configured
+        // with the rest of the devices.
+        if (!coreDevice && cpu.hasMethod(configuration.method) &&
             configuration.args.every(argument => typeof argument === 'number')) {
           cpu.invoke(configuration.method, ...configuration.args as number[]);
         }
@@ -2535,7 +2574,7 @@ class IrBoard implements Board {
       // time never runs backwards. The C64's datassette stopped itself
       // whenever its read timer fell due inside the instruction that started
       // the motor: MAME's cassette refuses to move to a negative position.
-      if (specification.tag === timerClockCpu?.tag && cpuFacts.suspendsMidInstruction && cpu.elapsedCycles) {
+      if (specification.tag === timerClockCpu?.tag && (cpu.suspendsMidInstruction?.() ?? this.suspendsMidInstruction(specification)) && cpu.elapsedCycles) {
         this.catchUpDeviceTime = (lag = 0) => {
           if (this.deliveringDeviceTime || !this.coreExecuting || this.runningCpu !== specification.tag) return;
           // The processor began this slice where its last one overran to.
@@ -2646,12 +2685,6 @@ class IrBoard implements Board {
         this.setCpuClock(specification, Number(clock));
         return 0;
       };
-      // The core's own one-line accessors (`m_maincpu->get_sync()`), read
-      // from the member the generated definition says each returns.
-      const accessors = generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {};
-      for (const [accessor, member] of Object.entries(accessors)) {
-        calls[`m_${specification.tag}.${accessor}`] ??= () => Number(cpu.get(member)) || 0;
-      }
       // MAME's device_state_interface, by the state index the CPU's own lowered
       // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
       calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
@@ -2682,12 +2715,23 @@ class IrBoard implements Board {
         'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
         'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
         'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
-        ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
       ];
       this.deviceReferents.set(specification.tag, Object.fromEntries(cpuMethodNames.map(name => [
         name,
         (...args: number[]) => calls[`m_${specification.tag}.${name}`]!(...args),
       ])));
+      // A CPU compiled whole is a device, and another device's finder reaches
+      // that device itself: it answers device_execute_interface's surface
+      // here too, as MAME's CPU does to anyone holding it. The Namco 06xx
+      // asks its CPU `suspended(SUSPEND_REASON_HALT | ...)` before an NMI.
+      if (coreDevice && cpu instanceof DeviceCpu) {
+        const self = (coreDevice as unknown as { members?: { this?: Record<string, unknown> } }).members?.this;
+        if (self) {
+          for (const name of cpuMethodNames) {
+            self[name] = (...args: number[]) => calls[`m_${specification.tag}.${name}`]!(...args);
+          }
+        }
+      }
       // A hosted processor named like the machine's own does not displace it:
       // the 1541's `m_maincpu` reaches the drive's 6502 in the drive's scope
       // only, or the C64 driver's halt and reset would land on the drive.
@@ -2699,7 +2743,6 @@ class IrBoard implements Board {
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
           'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
           'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
-          ...Object.keys(generatedCpuFacts(specification.type ?? 'Z80').accessors ?? {}),
         ];
         for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
@@ -2736,7 +2779,7 @@ class IrBoard implements Board {
       const declaredBits = machine.execution.shareBindings
         ?.find(binding => binding.share === tag)?.bits;
       const cpuOwnedBits = machine.execution.cpus.some(cpu =>
-        generatedCpuDataWidth(cpu.type ?? 'Z80') === 16 &&
+        cpu.space?.dataWidth === 16 &&
         [...(cpu.ranges ?? []), ...(cpu.io?.ranges ?? [])]
           .some(range => range.share === tag))
         ? 16
@@ -2774,8 +2817,11 @@ class IrBoard implements Board {
         return cycles - device.get('m_icount');
       },
     });
+    const executionCpuTags = new Set(machine.execution.cpus.map(cpu => cpu.tag));
     const hostedProcessors = (machine.devices ?? []).flatMap(specification => {
       if (!specification.hostTag) return [];
+      // A CPU compiled as a device is the board's processor already.
+      if (executionCpuTags.has(specification.tag)) return [];
       const device = this.devices.get(specification.tag);
       const host = this.devices.get(specification.hostTag);
       // Device ROM regions retain the ROM-set device path (for example
@@ -3002,6 +3048,16 @@ class IrBoard implements Board {
       // module to ask, so the IR carries the member on the callback.
       const member = device?.delegates?.()[callback.signal] ?? callback.member;
       if (!member || !callback.targetMethod) continue;
+      // Or a method of another device: the TMS34010 draws each line through
+      // `set_scanline_ind16_callback(m_video, FUNC(midtunit_video_device::
+      // scanline_update))`, and moves VRAM rows through the shift-register pair.
+      const targetDevice = callback.targetTag ? this.devices.get(callback.targetTag) : undefined;
+      if (device && callback.delegate && targetDevice?.methodNames().includes(callback.targetMethod)) {
+        const method = callback.targetMethod;
+        device.bindCall(member, (...args: unknown[]) => targetDevice.invoke(method, ...args as GeneratedCallArgument[]),
+          targetDevice.parameters(method).join(', '));
+        continue;
+      }
       const handler = machine.handlers?.find(candidate =>
         candidate.ownerClass === callback.targetClass &&
         candidate.method === callback.targetMethod);
@@ -3175,6 +3231,9 @@ class IrBoard implements Board {
       this.screenUpdateNow = () => {
         if (activeFramebuffer) video?.updateNow(activeFramebuffer, this.beamLine(), this.beamHpos());
       };
+      this.screenUpdatePartial = line => {
+        if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
+      };
       const screen = machine.execution.screen;
       this.screenPixel = (x, y) => {
         const column = Math.floor(x) - (screen.xOffset ?? 0);
@@ -3317,7 +3376,7 @@ class IrBoard implements Board {
         // A core MAME stops between bus cycles stands, mid-instruction, at
         // the cycles before this instruction and those it has paid for so far
         // (the access in progress included, as total_cycles counts it).
-        ...(generatedCpuFacts(specification.type ?? '').suspendsMidInstruction ? {
+        ...(this.suspendsMidInstruction(specification) ? {
           position: () => this.runningStalled + this.runningSliceCycles + (this.cpus.get(specification.tag)?.elapsedCycles?.() ?? 0),
         } : {}),
         run: (cycles: number) => {
@@ -3421,12 +3480,6 @@ class IrBoard implements Board {
         this.currentLine = line;
         this.currentLineFraction = 0;
         if (phase === 'before-processors') {
-          // A processor's own scanline timer (the TMS34010's scanline_callback)
-          // fires at the start of each line, with that line.
-          for (const specification of machine.execution.cpus) {
-            const timer = generatedCpuFacts(specification.type ?? '').scanlineTimer;
-            if (timer) this.cpus.get(specification.tag)?.invoke(timer, line);
-          }
           // The screen's VBLANK edges, to every delegate a device registered
           // (`register_vblank_callback`): the K051960/K052109's IRQ, the
           // watchdog's counter.
@@ -3599,6 +3652,14 @@ class IrBoard implements Board {
             this.deviceInputLine(tag, target(), Number(line), Number(state));
         }
         if (name === 'tag') return () => tag;
+        // A CPU compiled whole answers device_execute_interface's surface
+        // through the board, as MAME's CPU does to whoever holds it: the Namco
+        // 06xx asks its CPU `suspended(SUSPEND_REASON_HALT | ...)`.
+        const processor = this.deviceReferents.get(tag) as Record<string, unknown> | undefined;
+        if (processor && typeof processor === 'object' && name in processor && this.cpus.get(tag) instanceof DeviceCpu &&
+            !target().methodNames().includes(name)) {
+          return processor[name];
+        }
         // A finder re-tagged in machine configuration (the 54xx's
         // `set_discrete("discrete")`) before the device it names exists: the
         // board bound this finder to that device already.
@@ -4374,9 +4435,62 @@ class IrBoard implements Board {
    * MAME 0.289; now none). Undefined where the timer clock's processor
    * finishes each instruction first, so there is nothing to catch up.
    */
+  /**
+   * Each processor's address spaces as its compiled class configures them,
+   * read from its registered device definition
+   * (address_space_config: data width, byte order, address width): the
+   * 68000's 16-bit big-endian 24-bit program space, the TMS34010's 16-bit
+   * little-endian bit-addressed one. Map ranges are already in bytes (a
+   * word- or bit-addressed space was scaled when lowered), so the bus shifts
+   * nothing and masks to the byte address width; a map's own global_mask
+   * stands where the driver gave one.
+   */
+  private processorSpaces(machine: BoardIr): void {
+    const definitions = new Map((machine.devices ?? []).map(device => [device.tag, device]));
+    const semantics = (tag: string, index: number, name: string) => {
+      const device = definitions.get(tag);
+      const config = device ? generatedDeviceDefinition(generatedDeviceKey(device))?.spaces?.find(space => space.index === index) : undefined;
+      if (!config) return undefined;
+      return {
+        ownerTag: tag,
+        name,
+        dataWidth: config.dataBits > 8 ? 16 as const : 8 as const,
+        addressShift: 0,
+        endianness: config.endianness ?? 'big' as const,
+        byteAddressBits: config.addressBits - (config.addressShift ?? 0),
+      };
+    };
+    const plain = (space: ReturnType<typeof semantics>) => {
+      if (!space) return undefined;
+      const { byteAddressBits: _bits, ...rest } = space;
+      return rest;
+    };
+    for (const cpu of machine.execution.cpus) {
+      const program = semantics(cpu.tag, 0, 'program');
+      if (!program) continue;
+      cpu.space ??= plain(program);
+      if (cpu.mask === undefined && program.byteAddressBits > 0 && program.byteAddressBits < 32) {
+        cpu.mask = 2 ** program.byteAddressBits - 1;
+      }
+      if (cpu.io) cpu.io.space ??= plain(semantics(cpu.tag, 2, 'io')) ?? { ...plain(program)!, name: 'io' };
+    }
+    for (const participant of machine.execution.participants ?? []) {
+      participant.space ??= plain(semantics(participant.tag, 0, 'program'));
+    }
+  }
+
+  /**
+   * Whether MAME's core for this processor stops between an instruction's
+   * cycles: its class keeps an m_inst_substate (the 6502 family).
+   */
+  private suspendsMidInstruction(specification: { tag: string; type?: string }): boolean {
+    return (this.cpus.get(specification.tag)?.suspendsMidInstruction?.() ??
+      this.devices.get(specification.tag)?.suspendsMidInstruction?.()) === true;
+  }
+
   private deviceAccessLag(device: Device): number | undefined {
     const timerClockCpu = this.machine.execution.cpus[0];
-    if (!timerClockCpu || !generatedCpuFacts(timerClockCpu.type ?? '').suspendsMidInstruction) return undefined;
+    if (!timerClockCpu || !this.suspendsMidInstruction(timerClockCpu)) return undefined;
     return this.machine.execution.perfectQuantum === true &&
       device.methodNames().includes('execute_run') ? 1 : 0;
   }
@@ -4679,6 +4793,13 @@ class IrBoard implements Board {
     links.forEach((handle, index) => {
       Object.defineProperty(handle, 'm_daisy_next', {
         value: links[index + 1] ?? 0, writable: true, enumerable: false, configurable: true,
+      });
+      // device_interface::device(): the device the interface is part of.
+      // z80_daisy_chain_interface::interface_post_reset resets every chained
+      // device after the Z80's own reset, as `intf->device().reset()`.
+      const device = this.devices.get(specification.daisyChain![index]!)!;
+      Object.defineProperty(handle, 'device', {
+        value: () => ({ reset: () => { device.reset(); return 0; } }), writable: true, enumerable: false, configurable: true,
       });
     });
     cpu.set('m_chain', links[0] as unknown as number);

@@ -633,6 +633,54 @@ export class Bus {
       : ((this.read(addr) << 8) | this.read(addr + 1)) & 0xffff;
   }
 
+  /**
+   * The little-endian word, for a 16-bit space MAME declares ENDIANNESS_LITTLE
+   * (the V30's, the TMS34010's): one call to a word handler when both bytes
+   * land in it, else the two bytes, low first.
+   */
+  read16le = (addr: number): number => {
+    addr &= this.addressMask;
+    if (this.accessTaps.length) this.tap(addr, false);
+    this.tapDepth++;
+    try {
+      this.lookup(addr, false);
+      const id = this.lookupId;
+      const base = this.lookupBase;
+      this.lookup((addr + 1) & this.addressMask, false);
+      const direct = id === this.lookupId && base === this.lookupBase ? this.wordReadFns[id] : undefined;
+      if (!direct) return (this.read(addr) | (this.read(addr + 1) << 8)) & 0xffff;
+      // Word functions answer in the big-endian view on every bus (a
+      // little-endian one swaps inside them, as read16be relies on), so the
+      // little-endian word is that one swapped.
+      const word = direct(addr, addr - base) & 0xffff;
+      return ((word & 0xff) << 8) | (word >>> 8);
+    } finally {
+      this.tapDepth--;
+    }
+  };
+
+  /** The little-endian word written: one word handler call, or two bytes, low first. */
+  write16le = (addr: number, data: number): void => {
+    addr &= this.addressMask;
+    if (this.accessTaps.length) this.tap(addr, true);
+    this.tapDepth++;
+    try {
+      this.lookup(addr, true);
+      const id = this.lookupId;
+      const base = this.lookupBase;
+      this.lookup((addr + 1) & this.addressMask, true);
+      const direct = id === this.lookupId && base === this.lookupBase ? this.wordWriteFns[id] : undefined;
+      if (direct) {
+        direct(addr, addr - base, ((data & 0xff) << 8) | ((data >>> 8) & 0xff));
+        return;
+      }
+      this.write(addr, data);
+      this.write(addr + 1, data >>> 8);
+    } finally {
+      this.tapDepth--;
+    }
+  };
+
   /** MAME reads a 68000 long as two word accesses, and taps it as two. */
   read32be = (addr: number): number =>
     ((this.read16be(addr) << 16) | this.read16be(addr + 2)) >>> 0;

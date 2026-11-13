@@ -22,6 +22,49 @@ export const DEVICE_MAME_TYPES = [
   // MAME's 6805 core and the 68705's ports, timer and EPROM, read after the C
   // preprocessor (compileMameDevice).
   'M68705P5',
+  // The 6800 family, each its MAME class compiled whole: m6800_cpu_device's
+  // execute_run, and m6801's timer, serial port and on-chip ports in its own
+  // internal map. A board runs them as processors (runtime/device-cpu.ts).
+  'M6802', 'M6808', 'M6803', 'M6801U4', 'HD63701Y0', 'NSC8105',
+  // i8085.cpp's i8085a_cpu_device and its i8080 subclass, execute_run and all.
+  'I8080', 'I8085A',
+  // mcs48.cpp's mcs48_cpu_device: its internal ROM a view its EA pin selects.
+  'I8035', 'I8039', 'MB8884', 'M58715', 'UPD7751',
+  // m6809.cpp's m6809_base_device, its execute_run the generated m6809.hxx
+  // state machine; hd6309.cpp, konami.cpp and konami1.cpp beside it.
+  'MC6809', 'MC6809E', 'HD6309E', 'KONAMI', 'KONAMI1',
+  // z80.cpp's z80_device, its execute_run the state machine z80make.py
+  // generates; Sega's encrypted Z80s are its subclasses.
+  'Z80', 'SEGA_315_5098', 'SEGA_315_5177',
+  // lr35902.cpp's Sharp core, opc_main.hxx and opc_cb.hxx in its execute_run.
+  'LR35902',
+  // m6502.cpp and its subclasses, their operation lists through m6502make.py:
+  // the 6507's 13-bit space, the 6510's port, and Data East's encrypted parts
+  // behind their own memory interfaces.
+  'M6502', 'M6507', 'M6510', 'DECO_CPU7', 'DECO_C10707',
+  // The NES's RP2A03: the 6502 without decimal mode, its APU a child it builds
+  // and mixes, reached through the internal map its constructor installs.
+  'RP2A03', 'RP2A03G',
+  // z8000.cpp's Z8002, its register file a union over one buffer and its
+  // opcodes a table of member-function pointers; Pole Position's sub-CPUs.
+  'Z8002',
+  // tms320c1x.cpp's TMS320C10, the class template tms320c1x_device_base<12>
+  // flattened to that specialisation; Wardner's DSP.
+  'TMS320C10',
+  // i86.cpp's 8088 (its inline bodies in i86inline.h) and nec.cpp's V30,
+  // whose opcode handlers are OP() heads read after the preprocessor.
+  'I8088', 'V30',
+  // tms34010.cpp's TMS34010: a bit-addressed 16-bit space (addrshift +3),
+  // its PIXBLT/FILL variants read after the preprocessor, the scanline timer
+  // and the screen it drives its own (Midway T-Unit).
+  'TMS34010',
+  // m68000.cpp's microcoded 68000, its instruction states m68000gen.py's
+  // m68000-sdf.cpp and siblings (the build units scripts/src/cpu.lua lists
+  // with it), every bus cycle a state the core can stop in.
+  'M68000',
+  // m68kcpu.cpp's Musashi 68010 (MAME's own choice for it): its opcode table
+  // built at start, an address error a C++ throw execute_run catches.
+  'M68010',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

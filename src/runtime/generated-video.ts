@@ -26,6 +26,8 @@ export type DeviceScreenUpdate = (
 export interface GeneratedVideoPrimitives extends VideoRenderer {
   /** MAME `screen_device::frame_number()`, counted at each vblank end. */
   screenFrameNumber?(): number;
+  /** The board's palette, which `screen_device::palette()` answers. */
+  devicePalette?(): GeneratedPaletteDevice | undefined;
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
   generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
   /** Execute a source-matched hot screen-update shape without IR tree walking. */
@@ -408,6 +410,9 @@ export class GeneratedVideoRenderer implements VideoRenderer {
       // The screen's own frame count (vblankEnd): the Spectrum's FLASH is
       // `frame_number() / 16`, read on every line it draws.
       frame_number: () => this.primitives.screenFrameNumber?.() ?? 0,
+      // screen_device::palette(): the palette the screen was configured with,
+      // the board's own. The TMS34010's update asks it for black_pen().
+      palette: () => this.primitives.devicePalette?.(),
     };
     const handlerKey =
       `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
@@ -826,6 +831,7 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   }
 
   readonly colors: Uint32Array;
+  private readonly indexed: boolean;
   private readonly plan: GeneratedRamPalettePlan;
   private readonly ram: Uint8Array;
   private readonly ext?: Uint8Array;
@@ -837,8 +843,11 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     shares: Record<string, Uint8Array> = {},
     /** Share tags some address-map range stores into. See `adopt` below. */
     busWrittenShares: ReadonlySet<string> = new Set(),
+    /** The screen is a pen bitmap (IND16), which decides what black_pen() is. */
+    indexed = true,
   ) {
     this.plan = plan;
+    this.indexed = indexed;
     this.bytesPerEntry = plan.extShare ? plan.bytesPerEntry / 2 : plan.bytesPerEntry;
     const bytes = plan.entries * this.bytesPerEntry;
     // Whether the device's colour RAM *is* the board's share is a fact of the
@@ -862,7 +871,11 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     };
     this.ram = adopt(plan.tag);
     if (plan.extShare) this.ext = adopt(plan.extShare);
-    this.colors = new Uint32Array(plan.entries);
+    // palette_t allocates a black and a white entry after the palette's own
+    // (black_entry(), white_entry()), which no write reaches.
+    this.colors = new Uint32Array(plan.entries + 2);
+    this.colors[plan.entries] = packRgb(0, 0, 0);
+    this.colors[plan.entries + 1] = packRgb(0xff, 0xff, 0xff);
     for (let pen = 0; pen < plan.entries; pen++) this.update(pen);
     this.reset();
   }
@@ -913,7 +926,7 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
   }
 
   private update(pen: number): void {
-    if (pen < 0 || pen >= this.colors.length) return;
+    if (pen < 0 || pen >= this.plan.entries) return;
     const raw = this.plan.inverted ? ~this.entry(pen) : this.entry(pen);
     const rgb: Record<'r' | 'g' | 'b', number> = { r: 0, g: 0, b: 0 };
     const intensity = this.plan.intensity
@@ -931,11 +944,14 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
     return 0;
   }
 
+  /**
+   * device_palette_interface::black_pen(): on an IND16 screen the black entry
+   * palette_t appends (0 past 65535), on an RGB32 one black itself. The TMS34010
+   * fills the lines outside its display with it.
+   */
   black_pen(): number {
-    for (let pen = 0; pen < this.colors.length; pen++) {
-      if (this.colors[pen] === 0xff000000) return pen;
-    }
-    return 0;
+    if (!this.indexed) return packRgb(0, 0, 0);
+    return this.plan.entries < 65536 ? this.plan.entries : 0;
   }
 
   pens(): Uint32Array {
@@ -944,7 +960,7 @@ class GeneratedRamPalette implements GeneratedPaletteDevice {
 
   /** palette_device::set_pen_color overloads used by driver-owned RAM writers. */
   set_pen_color(pen: number, colorOrRed: number, green?: number, blue?: number): void {
-    if (pen < 0 || pen >= this.colors.length) return;
+    if (pen < 0 || pen >= this.plan.entries) return;
     this.colors[pen] = green === undefined || blue === undefined
       ? colorOrRed >>> 0
       : packRgb(colorOrRed, green, blue);
@@ -2620,6 +2636,7 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
         ramPalettePlan,
         shares,
         generatedBusWrittenShares(machine),
+        isIndexedScreen(machine),
       );
       this.palettes.set('m_palette', this.ramPalette);
     }

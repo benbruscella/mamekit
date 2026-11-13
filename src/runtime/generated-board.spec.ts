@@ -9,7 +9,7 @@ import {
   bindGeneratedInputState,
   bindGeneratedRegionState,
   bindGeneratedShareState,
-  createGeneratedBoard,
+  createGeneratedBoard as createBoard,
   generatedCompositeCallbackBindings,
   generatedDeviceCallbackArguments,
   generatedCpuMemberBindings,
@@ -19,12 +19,30 @@ import {
   withEmptySlots,
 } from './generated-board.ts';
 import type { BoundEffect } from './generated-effects.ts';
-import { registerGeneratedCpu } from './generated-cpu.ts';
+import type { Cpu, CpuBus } from './generated-cpu.ts';
 import {
   registerGeneratedDevice,
   createDevice,
   type Device,
 } from './generated-device.ts';
+
+// Processor stand-ins that drive the scheduler's bus hooks directly
+// (BoardProcessorFixture): every real CPU is a compiled device.
+const fixtureCpus = new Map<string, { create(bus: CpuBus): Cpu; suspendsMidInstruction?: boolean }>();
+const registerGeneratedCpu = (fixture: { type: string; summary?: unknown; suspendsMidInstruction?: boolean; create(bus: CpuBus): Cpu }) => {
+  fixtureCpus.set(fixture.type, fixture);
+};
+type BoardArgs = Parameters<typeof createBoard>;
+const processors = {
+  processor: (type: string, bus: CpuBus) => {
+    const fixture = fixtureCpus.get(type);
+    if (!fixture) return undefined;
+    const cpu = fixture.create(bus);
+    return fixture.suspendsMidInstruction ? Object.assign(cpu, { suspendsMidInstruction: () => true }) : cpu;
+  },
+};
+const createGeneratedBoard = (machine: BoardArgs[0], config: BoardArgs[1], regions: BoardArgs[2], inputs: BoardArgs[3], sinks: BoardArgs[4]) =>
+  createBoard(machine, config, regions, inputs, sinks, processors);
 
 const state: Record<string, unknown> = {};
 const first = new Uint8Array(0x100);

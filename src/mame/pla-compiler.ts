@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseMameSource } from './ast.ts';
 import { compileMameHandler } from './handler-ir.ts';
-import { normalizeMameExecutionSource } from './cpu-compiler.ts';
+import { normalizeMameExecutionSource } from './execution-source.ts';
 import { compileMameDevice } from './device-compiler.ts';
 import type { MameHardwareDefinition } from './hardware.ts';
 import type { GeneratedExpression, GeneratedHandlerProgram } from '../ir/board.ts';
