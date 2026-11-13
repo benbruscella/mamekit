@@ -1056,11 +1056,17 @@ class IrTimer {
   }
 
   adjust(delay: number, parameter = 0, period = Infinity): void {
+    // Where the clock stands, read before anything changes: reading it can
+    // catch the devices up, which delivers this timer's old schedule first,
+    // as MAME's synchronize does. Read after the new delay was stored, the
+    // catch-up fired the new zero delay with the old (absent) period and
+    // disarmed it: the Neo Geo's uPD4990A TP toggled once, and the BIOS
+    // waited for its next edge forever (Metal Slug silent).
+    const armed = Number.isFinite(delay) ? Number(this.now?.()) : NaN;
     // MAME clamps a start delay in the past to now: the timer fires at once.
     // A sub-nanosecond negative is what a duration measured against the
     // instruction-time device clock comes to when the deadline is "now".
     this.remainingSeconds = Number.isFinite(delay) ? Math.max(0, delay) : Infinity;
-    const armed = Number.isFinite(delay) ? Number(this.now?.()) : NaN;
     let expiry = armed + this.remainingSeconds;
     // A delay too small to move a double of the clock's size still moves
     // MAME's attotime: a callback that re-arms for "a hair later" must find
