@@ -4185,17 +4185,19 @@ function offsetPointer(pointer: GeneratedPointer, offset: number): GeneratedPoin
 }
 
 /**
- * The object a union-field pointer's path ends in, kept on the pointer out of
- * sight of a save state (the union and the path are what it saves): the
- * 6809 reads and writes its accumulators through one on every instruction.
+ * The object a union-field pointer's path ends in (the union and the path are
+ * what a save state keeps): the 6809 reads and writes its accumulators
+ * through one on every instruction.
  */
-const PATH_HOLDER = Symbol('mamekit.pathHolder');
 function pathHolder(pointer: GeneratedPointer): Record<string, unknown> {
-  const cached = (pointer as { [PATH_HOLDER]?: Record<string, unknown> })[PATH_HOLDER];
-  if (cached) return cached;
-  const holder = pointer.path!.slice(0, -1).reduce<unknown>((at, key) => (at as Record<string, unknown>)[key], pointer.source) as Record<string, unknown>;
-  Object.defineProperty(pointer, PATH_HOLDER, { value: holder, enumerable: false, configurable: true });
-  return holder;
+  // Walked each time, not cached on the pointer: these pointers are made
+  // fresh at almost every use (the TMS34010's `int32_t *rd = &AREG(n)`, once
+  // an instruction), so a cache was one defineProperty per pointer that no
+  // second read ever hit -- a seventh of a Mortal Kombat frame.
+  const path = pointer.path!;
+  let at = pointer.source as Record<string, unknown>;
+  for (let index = 0; index < path.length - 1; index++) at = at[path[index]!] as Record<string, unknown>;
+  return at;
 }
 
 function pointerValue(pointer: GeneratedPointer, index: number): unknown {

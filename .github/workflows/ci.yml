@@ -70,6 +70,8 @@ jobs:
             hash/spectrum_cart.xml
             hash/spectrum_cass.xml
             3rdparty/ymfm/src
+            3rdparty/softfloat3/source/include
+            3rdparty/softfloat3/bochs_ext
           sparse-checkout-cone-mode: false
 
       - name: Set up Node.js
@@ -147,6 +149,8 @@ jobs:
             hash/spectrum_cart.xml
             hash/spectrum_cass.xml
             3rdparty/ymfm/src
+            3rdparty/softfloat3/source/include
+            3rdparty/softfloat3/bochs_ext
           sparse-checkout-cone-mode: false
 
       - name: Set up Node.js
@@ -210,6 +214,8 @@ jobs:
             hash/spectrum_cart.xml
             hash/spectrum_cass.xml
             3rdparty/ymfm/src
+            3rdparty/softfloat3/source/include
+            3rdparty/softfloat3/bochs_ext
           sparse-checkout-cone-mode: false
 
       - name: Set up Node.js
