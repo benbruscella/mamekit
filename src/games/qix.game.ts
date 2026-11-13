@@ -7,6 +7,8 @@ export const qix = sourceTarget({
   screen: { width: 256, height: 256 },
   soundKind: 'stream',
   frames: 900,
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI measured 22.5 fps against the floor of 40 (issue #247, 5.2).
   minimumFps: 20,
   checkpoints: [1, 10, 30, 60, 180, 300, 480, 600, 900],
   actions: [

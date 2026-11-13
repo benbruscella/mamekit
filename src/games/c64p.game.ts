@@ -111,6 +111,8 @@ export const c64p = {
     software: { list: 'c64_flop_orig', name: 'bbsb' },
     romEnvironment: 'MAMEKIT_C64_ROM',
     frames: 2600,
+    // CPUs compiled whole from MAME (#249): CI measured 9.9 fps against the
+    // floor of 10 (issue #247, 5.2).
     minimumFps: 8,
     checkpoints: [1, 300, 1200, 2250, 2500, 2600],
     actions: [],

@@ -25,8 +25,8 @@ export const nbajam = sourceTarget({
   screen: { width: 400, height: 254 },
   soundKind: 'stream',
   frames: 2400,
-  // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 17.0 fps against the old floor of 30 (issue #247, 4.5).
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI ran past 300 s against the floor of 13 (issue #247, 5.2).
   minimumFps: 9,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1800, 2400],
   actions: [

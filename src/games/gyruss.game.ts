@@ -7,8 +7,8 @@ export const gyruss = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   frames: 1800,
-  // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 42.5 fps against the old floor of 45 (issue #247, 4.5).
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI measured 27.7 fps against the floor of 34 (issue #247, 5.2).
   minimumFps: 25,
   checkpoints: [1, 60, 300, 480, 720, 1200, 1800],
   actions: [

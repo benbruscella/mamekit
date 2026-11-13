@@ -7,6 +7,8 @@ export const kungfum = sourceTarget({
   screen: { width: 256, height: 256 },
   soundKind: 'stream',
   frames: 1800,
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI measured 40.9 fps against the floor of 45 (issue #247, 5.2).
   minimumFps: 36,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],
   actions: [

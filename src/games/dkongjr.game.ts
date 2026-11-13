@@ -7,6 +7,8 @@ export const dkongjr = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   frames: 1800,
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI measured 41.6 fps against the floor of 45 (issue #247, 5.2).
   minimumFps: 37,
   checkpoints: [1, 60, 180, 300, 600, 1200, 1800],
   actions: [

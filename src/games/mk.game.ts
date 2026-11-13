@@ -26,8 +26,8 @@ export const mk = sourceTarget({
   screen: { width: 400, height: 254 },
   soundKind: 'stream',
   frames: 2400,
-  // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 17.3 fps against the old floor of 30 (issue #247, 4.5).
+  // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
+  // CI measured 9.9 fps against the floor of 13 (issue #247, 5.2).
   minimumFps: 9,
   checkpoints: [1, 120, 300, 600, 1200, 1800, 2100, 2400],
   actions: [
