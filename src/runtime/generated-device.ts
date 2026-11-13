@@ -1367,8 +1367,15 @@ class IrDevice implements Device {
           // Compiled methods are keyed by name, so an overloaded one is left
           // to the interpreter, which picks the overload by its arguments.
           const overloaded = methods.filter(candidate => candidate.name === method.name).length > 1;
-          const compiled = overloaded ? undefined : definition.allocations?.[type]?.compiledMethods?.[method.name] ??
-            definition.compiledStructMethods?.[type]?.[method.name];
+          // An overload set whose arities do not overlap is also compiled under
+          // one alias per arity (`dirty__4`, `dirty__1`: the device compiler's
+          // arity aliases), and the overload chosen by its arguments runs that.
+          // Interpreted, atarimo's sparse_dirty_bitmap::dirty ran for every
+          // sprite a frame and was most of a Gauntlet frame.
+          const compiled = overloaded
+            ? definition.allocations?.[type]?.compiledMethods?.[`${method.name}__${names.length}`]
+            : definition.allocations?.[type]?.compiledMethods?.[method.name] ??
+              definition.compiledStructMethods?.[type]?.[method.name];
           if (compiled) {
             // Four check_borrow calls a clock: no rest array, no mapped copy.
             const referent = (argument: unknown) => generatedReferent(argument) as GeneratedCallArgument;

@@ -217,7 +217,8 @@ export function generatedDeviceMethodsSource(
       // Every input-line change a processor sees (IRQs, NMI, a 6801's IS3).
       method.name === 'execute_set_input' ||
       isStreamRenderer(method) ||
-      installsLambda(method.program.operations) ||
+      (!definition.boardScope && isCliprectRenderer(method)) ||
+      installsLambda(method.program.operations, !definition.boardScope) ||
       maximumLoopDepth(method.program.operations) >= 2 ||
       (
         maximumLoopDepth(method.program.operations) >= 1 &&
@@ -408,9 +409,14 @@ function constantCondition(expression: GeneratedExpression): number | undefined 
  * a handler the bus runs on every access: the slapstic's tap decodes all of
  * the 68010's, and created by the interpreter it was interpreted each time.
  */
-function installsLambda(operations: GeneratedHandlerOperation[]): boolean {
+function installsLambda(operations: GeneratedHandlerOperation[], memberLambdas = false): boolean {
   let found = false;
   visitOperations(operations, operation => {
+    // Or, in a device, stores one in a std::function member it calls later:
+    // Musashi's init16 gives m_readimm16 the lambda every instruction fetch
+    // runs, and a lambda the interpreter built ran interpreted at every call.
+    if (memberLambdas && operation.op === 'assign' && operation.value?.kind === 'lambda' && operation.target?.kind === 'identifier' &&
+        /^m_/.test(operation.target.name)) found = true;
     visitOperationExpressions(operation, expression => {
       if (expression.kind !== 'call') return;
       const callee = expression.callee.kind === 'member' ? expression.callee.property
@@ -769,6 +775,9 @@ export function supportsMethod(
   const addressOnly = addressOnlyLocals(method.program.operations, locals);
   const structLocals = structLocalNames(method.program.operations, definition);
   const scalarLocals = integerScalarLocals(method.program.operations);
+  const objectReferenceParameters = new Set(parameters
+    .filter(parameter => isObjectReference(parameter.valueType))
+    .map(parameter => parameter.name));
   // The receiver of a bound framework chain is never emitted on its own.
   const chainReceivers = new Set<GeneratedExpression>();
   visitOperations(method.program.operations, operation => {
@@ -862,7 +871,13 @@ export function supportsMethod(
               // `&p` to the sample writer this way, and declining it ran a
               // tape's whole PCM conversion -- a second and more -- through
               // interpreted get/set closures, one pair per sample.
-              addressOnly.has(expression.operand.name)
+              addressOnly.has(expression.operand.name) ||
+              // A parameter bound to an object by reference (`address_space
+              // &space`): its address is that object, as the interpreter takes
+              // it. Musashi's init16 keeps `m_space = &space` before installing
+              // the memory lambdas every instruction fetch goes through, and
+              // declined, those lambdas ran interpreted.
+              objectReferenceParameters.has(expression.operand.name)
             )
           );
       } else if (expression.kind === 'binary') {
@@ -919,6 +934,30 @@ export function supportsMethod(
   return supported;
 }
 
+/**
+ * A device's render entry point by MAME's own spelling: a method handed the
+ * region to draw as `const rectangle &cliprect`. (A board's handlers keep
+ * their own selection.) The screen update calls it every frame
+ * whether or not its own body loops -- atarimo's `draw_async` hands each dirty
+ * rectangle to a lambda that draws it -- and left interpreted it pulled the
+ * whole sprite pass back into the interpreter with it.
+ */
+/**
+ * `address_space &space`: a reference to a framework object -- an address
+ * space, a device or an interface -- which code keeps or calls but never
+ * stores a value into. A struct or register union (`PAIR16 &reg`) is a value
+ * the callee may assign through, and keeps its get/set wrapping.
+ */
+function isObjectReference(valueType: string | undefined): boolean {
+  if (!valueType || !/&\s*$/.test(valueType)) return false;
+  const bare = valueType.replace(/&\s*$/, '').replace(/\b(?:const|volatile)\b/g, '').trim();
+  return /^(?:[\w:]*::)?(?:address_space|\w+_device|\w+_interface)$/.test(bare);
+}
+
+function isCliprectRenderer(method: GeneratedDeviceMethod): boolean {
+  return /\brectangle\s*&\s*cliprect\b|\brectangle\s+const\s*&\s*cliprect\b/.test(method.parameters);
+}
+
 function emitMethod(
   definition: CodegenScope,
   method: GeneratedDeviceMethod,
@@ -939,7 +978,7 @@ function emitMethod(
         .filter(parameter =>
           isMutableReference(parameter.valueType) &&
           parameter.name !== returnedReference &&
-          assignsIdentifier(method.program.operations, parameter.name))
+          assignsIdentifier(method.program.operations, parameter.name, !isObjectReference(parameter.valueType)))
         .map(parameter => parameter.name),
     ),
     returnedReference,
@@ -2952,6 +2991,11 @@ function emitAddressOf(
       isDeclaredStructType(context.locals.get(expression.name), context.definition)) {
     return emitExpression(expression, context);
   }
+  // A parameter bound to an object by reference: its address is the object.
+  if (expression.kind === 'identifier' && context.locals.has(expression.name) &&
+      isObjectReference(context.locals.get(expression.name)) && !context.wrappedReferences.has(expression.name)) {
+    return emitExpression(expression, context);
+  }
   // A reference parameter's address is its argument's (execute.ts lValue):
   // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }`.
   if (expression.kind === 'identifier' && context.wrappedReferences.has(expression.name)) {
@@ -3093,7 +3137,7 @@ export function codegenWrappedParameters(method: GeneratedDeviceMethod): string[
       isMutableReference(parameter.valueType) &&
       (
         parameter.name === returnedReference ||
-        assignsIdentifier(method.program.operations, parameter.name)
+        assignsIdentifier(method.program.operations, parameter.name, !isObjectReference(parameter.valueType))
       ))
     .map(parameter => parameter.name);
 }
@@ -3174,6 +3218,12 @@ function plainlyAssigned(operations: GeneratedHandlerOperation[], name: string):
 function assignsIdentifier(
   operations: GeneratedHandlerOperation[],
   name: string,
+  /**
+   * Whether taking its address counts. Not for a reference to an object
+   * (`address_space &space`): its address is the object, kept as itself, and
+   * nothing can store through it into the caller's binding.
+   */
+  addressWrites = true,
 ): boolean {
   let assigned = false;
   visitOperations(operations, operation => {
@@ -3197,7 +3247,7 @@ function assignsIdentifier(
       // `set_regop8(uint8_t &reg) { m_reg8 = &reg; }` keeps it, and every
       // `regop8() = ...` writes through. Passed by value, that wrote a dead
       // local and accumulator A never changed.
-      if (expression.kind === 'unary' && expression.operator === '&' &&
+      if (addressWrites && expression.kind === 'unary' && expression.operator === '&' &&
           expression.operand.kind === 'identifier' && expression.operand.name === name) {
         assigned = true;
       }
