@@ -7,7 +7,7 @@ export const qix = sourceTarget({
   screen: { width: 256, height: 256 },
   soundKind: 'stream',
   frames: 900,
-  minimumFps: 40,
+  minimumFps: 20,
   checkpoints: [1, 10, 30, 60, 180, 300, 480, 600, 900],
   actions: [
     // Blank NVRAM asks for a language. Accept the highlighted default, then

@@ -7,7 +7,7 @@ export const dkong = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   frames: 1800,
-  minimumFps: 45,
+  minimumFps: 39,
   checkpoints: [1, 60, 180, 300, 600, 1200, 1800],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

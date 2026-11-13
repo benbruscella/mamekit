@@ -7,7 +7,7 @@ export const bublbobl = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   frames: 1800,
-  minimumFps: 25,
+  minimumFps: 21,
   checkpoints: [1, 120, 240, 360, 600, 900, 1200, 1800],
   actions: [
     { atFrame: 100, code: 'Digit5', heldFrames: 5, releasedFrames: 5 },

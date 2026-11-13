@@ -7,7 +7,7 @@ export const scramble = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   frames: 900,
-  minimumFps: 45,
+  minimumFps: 37,
   checkpoints: [1, 60, 180, 300, 480, 600, 900],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

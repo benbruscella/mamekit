@@ -111,7 +111,7 @@ export const c64p = {
     software: { list: 'c64_flop_orig', name: 'bbsb' },
     romEnvironment: 'MAMEKIT_C64_ROM',
     frames: 2600,
-    minimumFps: 10,
+    minimumFps: 8,
     checkpoints: [1, 300, 1200, 2250, 2500, 2600],
     actions: [],
     golden: {

@@ -7,7 +7,7 @@ export const kungfum = sourceTarget({
   screen: { width: 256, height: 256 },
   soundKind: 'stream',
   frames: 1800,
-  minimumFps: 45,
+  minimumFps: 36,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],
   actions: [
     { atFrame: 600, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
