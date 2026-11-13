@@ -86,7 +86,11 @@ export function runMameBuildTask(mameSrc: string, task: MameBuildTask): string {
   if (existsSync(output)) return output;
 
   mkdirSync(dirname(output), { recursive: true });
-  const partial = `${output}.partial`;
+  // Its own partial file per process: generators run in parallel, and two
+  // that shared one renamed it from under each other (CI: "z80.hxx wrote
+  // nothing"). The rename into place is atomic, so the last writer wins
+  // with the same bytes.
+  const partial = `${output}.${process.pid}.partial`;
   const placeholders = (token: string): string => token
     .replace(/\$\((\d+)\)/g, (_whole, index: string) => join(mameSrc, task.dependencies[Number(index) - 1] ?? ''))
     .replace(/\$\(<\)/g, join(mameSrc, task.input))
