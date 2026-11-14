@@ -216,7 +216,7 @@ const SAVED_BOARD_FIELDS = [
   'cpuSliceCycles', 'cpuStalls', 'cpus', 'currentLine', 'currentLineFraction',
   'declarativeEeprom', 'devices', 'frameRunner', 'generatedBanks', 'generatedResources',
   'heldDeviceSeconds', 'hostState', 'inFrame', 'inputLatchPrevious', 'observedTransportSeconds',
-  'pendingBankEntry', 'pendingExidyCollisions', 'pendingTimers', 'runningSliceCycles',
+  'pendingBankEntry', 'pendingTimers', 'runningSliceCycles',
   'softResetPending', 'soundRuntime', 'state', 'timedHardwareDelivered',
   'timerCpuCarriedCycles', 'video', 'videoPrimitives',
 ];
@@ -295,6 +295,23 @@ const RETIRED_CPU_LAYERS = [
 ];
 for (const retired of RETIRED_CPU_LAYERS) {
   assert.ok(!existsSync(join(src, retired)), `${retired} held a hand CPU layer (#249); compile the core whole instead`);
+}
+
+// Board calls MAME does not have, retired with the hand-written hardware they
+// delivered for. A name here may not appear anywhere in `src` again: Exidy's
+// collisions come from the driver's own check_collision and its timers (#252).
+const RETIRED_BOARD_CALLS = [
+  'schedule_exidy_collision', 'pendingExidyCollisions',
+];
+for (const file of readdirSync(src, { recursive: true, encoding: 'utf8' })) {
+  if (!file.endsWith('.ts') || file.endsWith('architecture.spec.ts')) continue;
+  const source = readFileSync(join(src, file), 'utf8');
+  for (const retired of RETIRED_BOARD_CALLS) {
+    assert.ok(
+      !source.includes(retired),
+      `${file}: ${retired} is a board call MAME does not have; run the driver's own code instead`,
+    );
+  }
 }
 {
   const isString = (node: ts.Node): node is ts.StringLiteral | ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression =>

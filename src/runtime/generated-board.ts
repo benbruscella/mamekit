@@ -669,7 +669,6 @@ class IrBoard implements Board {
   /** A spec's processor stand-in (BoardProcessorFixture); never set in production. */
   private readonly processorFixture: BoardProcessorFixture | undefined;
   private readonly inputLatchPrevious = new Map<string, boolean>();
-  private readonly pendingExidyCollisions = new Map<number, number[]>();
 
   constructor(
     machine: BoardIr,
@@ -1514,21 +1513,6 @@ class IrBoard implements Board {
     // between the two halves of a handshake that a single slice contains.
     calls['machine().scheduler().perfect_quantum'] = (seconds = 0) => {
       this.perfectQuantum(seconds);
-      return 0;
-    };
-    calls['machine().schedule_exidy_collision'] = (position, collision) => {
-      const vtotal = Math.max(1, machine.execution.screen.vtotal);
-      const line = ((Math.floor(position) % vtotal) + vtotal) % vtotal;
-      const collisions = this.pendingExidyCollisions.get(line) ?? [];
-      // MAME allocates 128 collision timers. The generated scheduler is
-      // scanline-granular, so retain their source order at each beam line.
-      if ([...this.pendingExidyCollisions.values()].reduce(
-        (count, values) => count + values.length,
-        0,
-      ) < 128) {
-        collisions.push(collision & 0x1c);
-        this.pendingExidyCollisions.set(line, collisions);
-      }
       return 0;
     };
     // Generated handlers execute normal CPU accesses, never debugger/disassembly
@@ -3488,18 +3472,6 @@ class IrBoard implements Board {
             const state = Number(line === vbstart);
             for (const callback of this.vblankCallbacks.values()) callback(0, state);
           }
-          const collisions = this.pendingExidyCollisions.get(line);
-          if (collisions?.length) {
-            this.pendingExidyCollisions.delete(line);
-            const collisionMask = Number(this.state.m_collision_mask ?? 0);
-            const collisionInvert = Number(this.state.m_collision_invert ?? 0);
-            for (const collision of collisions) {
-              this.state.m_int_condition =
-                (generatedInputs.read('INTSOURCE') & ~0x1c) |
-                ((collision ^ collisionInvert) & collisionMask);
-              this.cpus.get('maincpu')?.setInputLine(0, 1);
-            }
-          }
         }
         // onLine is invoked at both boundaries of the CPU interval. Advance
         // hardware timers once at its leading edge; doing it at both phases
@@ -3963,7 +3935,6 @@ class IrBoard implements Board {
     this.soundRuntime?.reset?.();
     for (const reset of this.peripheralResets) reset();
     this.inputLatchPrevious.clear();
-    this.pendingExidyCollisions.clear();
     this.currentLine = this.frameRunner.originLine;
     this.scheduledWork.length = 0;
     this.timedHardwareDelivered = this.lineSeconds();
@@ -4299,7 +4270,7 @@ class IrBoard implements Board {
       // Driver-armed one-shots due to fire: Missile Command's CPU-speed timer
       // is what puts the clock back at the top of the frame.
       'pendingTimers',
-      'inputLatchPrevious', 'pendingExidyCollisions', 'hostState',
+      'inputLatchPrevious', 'hostState',
     ];
   }
 
