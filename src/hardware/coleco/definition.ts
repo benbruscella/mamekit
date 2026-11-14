@@ -12,9 +12,6 @@ export const COLECO_MAME_TYPES = [
   'COLECO_EXPANSION',
 ] as const;
 
-/** MAME's own name for the region a cartridge PCB allocates for its ROM. */
-export const COLECO_CART_ROM_REGION = 'coleco_cart:rom';
-
 export const COLECO_PORTS: readonly PortDeclaration[] = [
   { name: 'slot', kind: 'bus', note: 'source-selected generated cartridge card' },
   { name: 'registers', kind: 'registers', note: 'cart_r/cart_w through the Z80 program map' },
