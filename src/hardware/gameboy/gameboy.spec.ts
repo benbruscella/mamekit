@@ -13,6 +13,9 @@
 // what a mounted, synthetic cartridge shows here.
 
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { cartSlotFacts } from '../../mame/cart-slot.ts';
 import { indexMameHardware } from '../../mame/hardware.ts';
 import { extractGameboy } from './extract.ts';
 import {
@@ -21,7 +24,7 @@ import {
   registerGeneratedDevice,
 } from '../../runtime/generated-device.ts';
 import { RecordingAddressSpace } from '../../runtime/address-space-install.ts';
-import { GAMEBOY_MAME_TYPES } from './definition.ts';
+import { GAMEBOY_CART_SLOT_TAG, GAMEBOY_MAME_TYPES } from './definition.ts';
 
 const mameSource = process.env.MAME_SRC ??
   new URL('../../../../mame/', import.meta.url).pathname;
@@ -53,8 +56,29 @@ const slot = JSON.parse(slotIr.contents);
 assert.deepEqual(slot.slot.install, { method: 'load', space: 'cart_space' });
 assert.equal(slot.slot.member, 'm_cart');
 assert.equal(slot.slot.selector, 'cart.slot');
-// MAME's own answer for a header that declares no memory controller.
-assert.equal(slot.slot.default, 'rom');
+// The slot's default board and ROM region are the slot device's own facts.
+// The console room reads them through cartSlotFacts; here they are held
+// against the statements in MAME's source that make them.
+const slotFile = definitions.get('GB_CART_SLOT')!.sourceFile;
+const slotSource = readFileSync(join(mameSource, slotFile), 'utf8');
+const facts = cartSlotFacts(mameSource, 'GB_CART_SLOT', GAMEBOY_CART_SLOT_TAG);
+assert.ok(facts?.defaultOption && facts.romRegion, 'the slot must state its default and its region');
+const romRegion = facts.romRegion;
+assert.equal(facts.interface, 'gameboy_cart');
+// MAME's own answer for a cartridge that names no memory controller: the
+// option get_default_card_software falls through to, by its constant.
+assert.equal(slot.slot.default, facts.defaultOption);
+const fallback = /software_get_default_slot\(slotoptions::(\w+)\);\n\}/.exec(slotSource)?.[1];
+assert.ok(fallback, 'get_default_card_software must fall through to a named option');
+assert.ok(
+  new RegExp(`\\b${fallback}\\s*=\\s*"${slot.slot.default}";`)
+    .test(readFileSync(join(mameSource, dirname(slotFile), 'carts.cpp'), 'utf8')),
+  'the default is the string MAME gives that option',
+);
+// The region is the slot's own "rom" sub-region, where call_load allocates it.
+const subregion = romRegion.slice(GAMEBOY_CART_SLOT_TAG.length + 1);
+assert.equal(romRegion, `${GAMEBOY_CART_SLOT_TAG}:${subregion}`);
+assert.ok(slotSource.includes(`region_alloc(subtag("${subregion}")`));
 
 // Every board MAME's `gameboy_cartridges` declares, keyed by the name the
 // software list uses in its `slot` feature. CART_SLOT_SUPPORT.gameboy in
@@ -80,7 +104,7 @@ for (const [option, card] of Object.entries(slot.slot.options) as [string, {
 }][]) {
   assert.equal(
     card.resources?.calls?.cart_rom_region?.name,
-    'cartslot:rom',
+    romRegion,
     `${option} must read the mounted cartridge`,
   );
   assert.ok(
@@ -106,7 +130,7 @@ function mount(option: string, rom: Uint8Array) {
   registerGeneratedDevice(slot);
   const device = createDevice('GB_CART_SLOT', {
     clock: 0,
-    regions: { 'cartslot:rom': rom },
+    regions: { [romRegion]: rom },
     selectors: { 'cart.slot': option },
   });
   const space = new RecordingAddressSpace();
