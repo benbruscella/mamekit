@@ -71,21 +71,6 @@ export function isIndexedScreen(machine: BoardIr): boolean {
   return /\bbitmap_ind16\b/.test(handler?.parameters ?? '');
 }
 
-export interface ExidySpriteState {
-  code: number;
-  x: number;
-  y: number;
-  enabled?: boolean;
-}
-
-export interface ExidySpriteCollision {
-  /** First argument passed by MAME to screen_device::time_until_pos. */
-  position: number;
-  mask: number;
-}
-
-
-
 /**
  * Compose reusable renderer primitives by executing the screen-update method
  * compiled from the selected MAME driver.

@@ -30,6 +30,12 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### The dead Exidy collision delivery is deleted ([#252](https://github.com/benbruscella/mamekit/issues/252))
+
+**For players:** Nothing visible.
+
+**Under the hood:** Item 47 of [#178](https://github.com/benbruscella/mamekit/issues/178). The hand-written Exidy collision detector went out with the direct-screen renderers in #240, and Venture has run MAME's own `check_collision` and collision timers since. What the detector fed was still in `generated-board.ts`: a `machine().schedule_exidy_collision` board call MAME does not have, a queue of up to 128 pending collisions, its per-scanline delivery into `m_int_condition`, and its reset and save-state field. No generated machine calls it, so all of it is deleted, along with two unused interfaces in `generated-video.ts`. A new `RETIRED_BOARD_CALLS` guard in `architecture.spec.ts` fails if either name appears anywhere in `src` again.
+
 ### Node 26.13.0 and TypeScript 6 ([#244](https://github.com/benbruscella/mamekit/issues/244))
 
 **For players:** Nothing visible.
