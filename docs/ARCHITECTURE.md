@@ -728,6 +728,24 @@ as an `rgb_t`, so above the beam the gun sees this frame and below it the
 last one, as in MAME's screen bitmap. A board that composes once a frame
 still draws every line at its end, so what is presented does not change.
 
+A graphics decode table has one of two owners. A driver's
+`GFXDECODE_START` table is named by its `GFXDECODE` device (or by a derived
+config's `set_info`). A `device_gfx_interface` device decodes from a table of
+its own class instead, a `GFXDECODE_MEMBER`, and MAME picks it in two steps
+that `src/kg/device-gfx.ts` reads from the device's source: the constructor's
+`device_gfx_interface(mconfig, *this, gfxinfo)` default, then any machine-config
+setter whose body calls `set_info(...)`. The setter is run rather than matched:
+its body is evaluated with the configuration's argument values, so
+`set_plane_order(K051960_PLANEORDER_MIA)` reaches `gfxinfo_reverse` through the
+K051960's own `switch`, and `set_bpp(8)` reaches the K051316's `gfxinfo8`.
+Tables and layouts keep their class qualifier in the graph
+(`k052109_device::charlayout`), and a `GFXDECODE_DEVICE` entry's region is the
+owning device's (`DEVICE_SELF` is the region tagged as the device), as
+`device_gfx_interface::decode_gfx` resolves it. A selection the configuration
+does not fix (a non-constant argument, a branch into `fatalerror`, an entry
+macro that is not lowered) is recorded on the device and fails the machine's
+video plan; no table is ever assumed.
+
 A sprite engine shared across a hardware family is configured rather than
 written: `atari_motion_objects_device` is one implementation whose behavior on
 a given board comes entirely from the `atari_motion_objects_config` aggregate

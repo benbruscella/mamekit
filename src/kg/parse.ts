@@ -2676,6 +2676,11 @@ function defStr(s: string): string {
 // ---------------------------------------------------------------------------
 
 export interface GfxLayoutDef {
+  /**
+   * As defined: a device class's layout keeps its qualifier
+   * (`k052109_device::charlayout`), so it is never taken for a driver's own
+   * `charlayout`.
+   */
   name: string;
   width: number; height: number;
   /** number of elements, or symbolic "RGN_FRAC(a,b)" */
@@ -2697,7 +2702,9 @@ export function parseGfxLayouts(src: string): GfxLayoutDef[] {
     extendedOffsets.set(array[1]!, parseOffsetList(`{${array[2]}}`));
   }
   // Both `const gfx_layout x` and east-const `gfx_layout const x` (Bomb Jack).
-  const re = /(?:static\s+)?(?:const\s+gfx_layout|gfx_layout\s+const)\s+(\w+)\s*=\s*\{([\s\S]*?)\};/g;
+  // A class's static layout is defined out of line under its qualified name:
+  // `const gfx_layout k051960_device::spritelayout = { ... };`.
+  const re = /(?:static\s+)?(?:const\s+gfx_layout|gfx_layout\s+const)\s+((?:\w+::)*\w+)\s*=\s*\{([\s\S]*?)\};/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const fields = splitArgs(m[2]);
@@ -2763,19 +2770,38 @@ export interface GfxDecodeEntryDef {
   region: string; offset: number; layout: string; colorBase: number; colorCount: number;
   /** The graphics source is a live address-map share rather than ROM. */
   ram?: boolean;
+  /**
+   * GFXENTRY_DEVICE: the region (or share) is the owning device's own, not
+   * its owner's. `DEVICE_SELF` is then the one tagged as the device itself.
+   */
+  device?: boolean;
   /** GFXDECODE_SCALE render scale (galaxian renders 3x wide); 1 for plain entries */
   xscale: number; yscale: number;
 }
-export interface GfxDecodeDef { name: string; entries: GfxDecodeEntryDef[]; }
+export interface GfxDecodeDef {
+  /** A device class's `GFXDECODE_MEMBER` table keeps its qualifier: `k051960_device::gfxinfo`. */
+  name: string;
+  entries: GfxDecodeEntryDef[];
+  /** Entry macros in the table that are not lowered (GFXDECODE_REVERSEBITS, ...). */
+  unsupported?: string[];
+}
 
 export function parseGfxDecodes(src: string, consts: Record<string, number> = {}): GfxDecodeDef[] {
   const out: GfxDecodeDef[] = [];
-  const re = /GFXDECODE_START\(\s*(\w+)\s*\)([\s\S]*?)GFXDECODE_END/g;
+  // `GFXDECODE_MEMBER( k051960_device::gfxinfo )` is the same table as a
+  // static member of a device class (digfx.h); its DECLARE_ form in the
+  // class body is a declaration, not a table.
+  const re = /(?<!DECLARE_)GFXDECODE_(?:START\(|MEMBER\s*\()\s*((?:\w+::)*\w+)\s*\)([\s\S]*?)GFXDECODE_END/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(src)) !== null) {
     const entries: GfxDecodeEntryDef[] = [];
-    const em = m[2].matchAll(/GFXDECODE_(ENTRY|SCALE|RAM)\(\s*([^)]*)\)/g);
+    const unsupported: string[] = [];
+    const em = m[2].matchAll(/GFXDECODE_(\w+)\s*\(\s*([^)]*)\)/g);
     for (const e of em) {
+      if (!['ENTRY', 'SCALE', 'RAM', 'DEVICE', 'DEVICE_RAM'].includes(e[1]!)) {
+        unsupported.push(`GFXDECODE_${e[1]}`);
+        continue;
+      }
       const args = splitArgs(e[2]);
       entries.push({
         region: unquote(args[0]),
@@ -2783,12 +2809,13 @@ export function parseGfxDecodes(src: string, consts: Record<string, number> = {}
         layout: args[2].trim(),
         colorBase: evalExpr(args[3], consts) ?? 0,
         colorCount: evalExpr(args[4], consts) ?? 0,
-        ...(e[1] === 'RAM' ? { ram: true } : {}),
+        ...(e[1] === 'RAM' || e[1] === 'DEVICE_RAM' ? { ram: true } : {}),
+        ...(e[1] === 'DEVICE' || e[1] === 'DEVICE_RAM' ? { device: true } : {}),
         xscale: e[1] === 'SCALE' ? (evalExpr(args[5], consts) ?? 1) : 1,
         yscale: e[1] === 'SCALE' ? (evalExpr(args[6], consts) ?? 1) : 1,
       });
     }
-    out.push({ name: m[1], entries });
+    out.push({ name: m[1], entries, ...(unsupported.length ? { unsupported } : {}) });
   }
   return out;
 }
