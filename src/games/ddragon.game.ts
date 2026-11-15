@@ -23,8 +23,8 @@ export const ddragon = sourceTarget({
       60: { video: 'a0de4703', state: '510570d9' },
       180: { video: '32a9fd8d', state: '2390e980' },
       300: { video: '0781227d', state: '94e22110' },
-      600: { video: 'fb11624c', state: 'bd00e1bd' },
-      900: { video: '92059745', state: '650c41b1' },
+      600: { video: '40d865a6', state: 'bd00e1bd' },
+      900: { video: '2c6e5bf2', state: '650c41b1' },
       1200: { video: 'ce337472', state: 'aa8d6462' },
     },
     audio: {

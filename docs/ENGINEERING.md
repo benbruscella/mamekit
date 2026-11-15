@@ -661,6 +661,7 @@ Choose the layer from evidence, not from the visible symptom.
 | A small emitted method still costs a call per use | its bytecode size (`node --print-bytecode --print-bytecode-filter=<method>`) against V8's 460-byte inlining limit; a cold path spelled inline belongs in a runtime helper |
 | A device method the profile shows interpreted | its codegen decline (`supportsMethod` with `onUnsupported`), or a slot card/child never marked a root |
 | A device reads display memory no CPU map mentions | its own `device_memory_interface` space, not a board share |
+| A screen a device updates line by line shows one line, or last frame's picture | the screen's `updateMode`: a device whose source calls `update_partial` makes it `partial` (`mameDeviceUpdatesPartially`), and a call in VBLANK draws nothing until line 0 |
 | A scanline one-shot fires once per frame | `vpos()` and the device-timer beam disagreeing at a line boundary |
 | A statement lowers with no diagnostic but wrong | a silently mis-parsed form; add the spec before the fix |
 | A device writes and nothing changes | a container method emitted as `?.()` on an array that has no such method (`insert`, `erase`), or an iterator added to as a number; read the drive's own error channel (a 1541's `25, WRITE ERROR`) |

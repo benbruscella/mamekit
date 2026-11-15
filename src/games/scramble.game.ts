@@ -28,13 +28,13 @@ export const scramble = sourceTarget({
       proms: '4e3caeab',
     },
     checkpoints: {
-      1: { video: 'f8cedb79', state: '09192497' },
+      1: { video: '20c59e00', state: '09192497' },
       60: { video: '7b8e7e80', state: 'cdc13d36' },
-      180: { video: '526252b3', state: 'b82fe87c' },
+      180: { video: '77eb032f', state: 'b82fe87c' },
       300: { video: '363a4cad', state: '55acdfa7' },
       480: { video: '2ddf92a3', state: 'b1d97e28' },
-      600: { video: '36593e3b', state: 'f97b0795' },
-      900: { video: '9565486f', state: 'b1d85e79' },
+      600: { video: 'eecbb93c', state: 'f97b0795' },
+      900: { video: 'd1c615ae', state: 'b1d85e79' },
     },
     audio: {
       writes: 712799,

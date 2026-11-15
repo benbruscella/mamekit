@@ -207,10 +207,63 @@ const partialRenderer = new GeneratedVideoRenderer(partialMachine, {
   }),
 });
 const partialFrame = new Uint32Array(4);
-partialRenderer.updatePartial(partialFrame, 2);
-partialRenderer.updatePartial(partialFrame, 3);
+partialRenderer.updatePartial(partialFrame, 2, 0);
+partialRenderer.updatePartial(partialFrame, 3, 0);
 partialRenderer.render(partialFrame);
 assert.equal(partialStarts.length, 1, 'partial clips must retain the full MAME visible area');
+// screen_device::update_partial's m_last_partial_scan rule. Neo Geo's sprite
+// generator asks for line N - 1 from its timer at the start of line N, and
+// its screen update draws only cliprect.min_y, so each call has to deliver
+// the one line it names. The frame's end draws only what is left, and a call
+// from VBLANK, after the frame is presented and before line 0 resets the
+// count, draws nothing.
+const clips: string[] = [];
+const lineMachine: BoardIr = {
+  ...partialMachine,
+  handlers: [{
+    id: 'handler:screen_partial',
+    ownerClass: 'fixture_state',
+    method: 'screen_update_partial',
+    program: compileMameHandler(`
+      clip(cliprect.min_y, cliprect.max_y);
+      return 0;
+    `),
+  }],
+  execution: {
+    ...partialMachine.execution,
+    // Lines 2-5 visible of 8, VBLANK from line 6.
+    screen: { ...partialMachine.execution.screen, yOffset: 2, vbstart: 6, vtotal: 8 },
+  },
+};
+const lineRenderer = new GeneratedVideoRenderer(lineMachine, {
+  width: 2,
+  height: 4,
+  vblank: () => {},
+  render: () => {},
+  generatedVideoBindings: () => ({
+    calls: { clip: (top: number, bottom: number) => clips.push(`${top}-${bottom}`) },
+  }),
+});
+const lineFrame = new Uint32Array(8);
+const drawn = (): string => clips.splice(0).join(' ');
+lineRenderer.updatePartial(lineFrame, 1, 2);
+assert.equal(drawn(), '', 'a line above the visible area draws nothing');
+lineRenderer.updatePartial(lineFrame, 2, 3);
+lineRenderer.updatePartial(lineFrame, 3, 4);
+assert.equal(drawn(), '2-2 3-3', 'a per-line timer gets one-line cliprects');
+lineRenderer.updatePartial(lineFrame, 2, 4);
+assert.equal(drawn(), '', 'a line already drawn is skipped');
+lineRenderer.render(lineFrame);
+assert.equal(drawn(), '4-5', 'the frame end draws only the lines not yet drawn');
+lineRenderer.updatePartial(lineFrame, 5, 6);
+lineRenderer.updatePartial(lineFrame, 6, 7);
+assert.equal(drawn(), '', 'a call in VBLANK finds the frame already rendered');
+lineRenderer.updatePartial(lineFrame, 2, 3);
+assert.equal(drawn(), '2-2', 'line 0 resets the count for the next frame');
+lineRenderer.render(lineFrame);
+assert.equal(drawn(), '3-5');
+lineRenderer.render(lineFrame);
+assert.equal(drawn(), '2-5', 'a frame nobody updated partially is drawn whole');
 const cachedTile = { gfx: 0, code: 0, color: 0, flags: 0, category: 0, group: 0 };
 const tileinfo = createGeneratedTileInfoTarget(cachedTile);
 tileinfo.category = 1;

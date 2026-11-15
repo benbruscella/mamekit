@@ -29,8 +29,8 @@ export const zigzagb = sourceTarget({
       60: { video: '7b64b913', state: '4f983f2f' },
       180: { video: '8609f0f0', state: '667e2a5a' },
       300: { video: '305d32b3', state: 'c90f4590' },
-      480: { video: '3c2f9357', state: 'b453e76d' },
-      600: { video: 'cda1c551', state: 'a8b39b02' },
+      480: { video: 'b25ac089', state: 'b453e76d' },
+      600: { video: 'bbd7e192', state: 'a8b39b02' },
       900: { video: 'c5f19a71', state: 'aef12b3b' },
     },
     audio: {

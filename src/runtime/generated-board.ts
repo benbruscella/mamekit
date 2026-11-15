@@ -432,7 +432,7 @@ class IrBoard implements Board {
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
   private screenUpdateNow?: () => void;
   /** screen_device::update_partial(line), once video is composed. */
-  private screenUpdatePartial?: (line: number) => void;
+  private screenUpdatePartial?: (line: number, beam: number) => void;
   private screenPixel?: (x: number, y: number) => number;
   readonly fbHeight: number;
 
@@ -803,10 +803,7 @@ class IrBoard implements Board {
           // two a whole line apart at a boundary -- exactly where a scanline
           // one-shot re-arms itself -- so `time_until_pos(vpos() + 1)` asks
           // for the line it is already standing on and gets deferred a frame.
-          vpos: () => {
-            const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
-          },
+          vpos: () => this.deviceBeamLine(),
           hpos: () => this.beamHpos(),
           // screen_device::vblank(): the beam is outside the visible lines.
           vblank: () => {
@@ -826,7 +823,7 @@ class IrBoard implements Board {
           // line. The TMS34010 brings it up to its DPYINT line before it
           // raises the display interrupt.
           update_partial: (line: number) => {
-            this.screenUpdatePartial?.(Number(line));
+            this.screenUpdatePartial?.(Number(line), this.deviceBeamLine());
             return 1;
           },
           // screen_device::configure(width, height, visarea, period): a video
@@ -3085,7 +3082,7 @@ class IrBoard implements Board {
         this.state,
         this.bindings,
         line => {
-          if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
+          if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line, this.beamLine());
         },
         address => this.cpuBuses.get(machine.execution.cpus[0]?.tag ?? '')?.read(address) ?? 0,
         this.shares,
@@ -3215,8 +3212,8 @@ class IrBoard implements Board {
       this.screenUpdateNow = () => {
         if (activeFramebuffer) video?.updateNow(activeFramebuffer, this.beamLine(), this.beamHpos());
       };
-      this.screenUpdatePartial = line => {
-        if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
+      this.screenUpdatePartial = (line, beam) => {
+        if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line, beam);
       };
       const screen = machine.execution.screen;
       this.screenPixel = (x, y) => {
@@ -4010,6 +4007,15 @@ class IrBoard implements Board {
   }
 
   /** The beam as a generated device's screen reads it (see powerOnCreditLines). */
+  /**
+   * The line a device's `screen().vpos()` reads, floored the way MAME's
+   * screen_device::vpos() derives it from emulated time.
+   */
+  private deviceBeamLine(): number {
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
+  }
+
   private deviceBeamPosition(): number {
     return this.beamPosition() - this.powerOnCreditLines;
   }
@@ -4040,6 +4046,18 @@ class IrBoard implements Board {
     for (const [member] of due) this.genericTimerFires.get(member)?.();
   }
 
+  /**
+   * How far into its slice the running processor is. The slice total moves
+   * only when execute_run returns, so the cycles the core has spent since
+   * are asked of it: without them every `vpos()` of a round of several lines
+   * read the round's first line, and a tile written on line 239 split the
+   * picture at 237 (Zig Zag).
+   */
+  private runningCycles(): number {
+    const tag = this.runningCpu;
+    return this.runningSliceCycles + (tag ? this.cpus.get(tag)?.elapsedCycles?.() ?? 0 : 0);
+  }
+
   /** Pixel `hpos` of a line as a fraction of that line, for `time_until_pos(vpos, hpos)`. */
   private lineFractionAt(hpos: number): number {
     const screen = this.machine.execution.screen;
@@ -4051,7 +4069,7 @@ class IrBoard implements Board {
     const screen = this.machine.execution.screen;
     const htotal = Math.max(1, screen.htotal ?? screen.width);
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
+      ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
     const beam = (running ?? this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
@@ -4061,7 +4079,7 @@ class IrBoard implements Board {
   private beamLine(): number {
     const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
+      ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
     const line = running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
     return ((line % vtotal) + vtotal) % vtotal;

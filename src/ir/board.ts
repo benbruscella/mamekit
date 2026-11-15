@@ -639,7 +639,11 @@ export interface GeneratedScreen {
   vtotal: number;
   vbstart: number;
   vbend?: number;
-  /** Rendering cadence requested by MAME screen attributes or update_partial calls. */
+  /**
+   * Rendering cadence: `scanline` from MAME's VIDEO_UPDATE_SCANLINE, `partial`
+   * when a driver handler or a device of the machine calls `update_partial`
+   * on the screen, `frame` otherwise.
+   */
   updateMode?: 'frame' | 'scanline' | 'partial';
   rotate: number;
   /** SCREEN, CPU, or video device responsible for producing pixels. */

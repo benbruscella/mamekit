@@ -4,7 +4,7 @@
 // Run with: node src/mame/execute-facts.spec.ts
 
 import assert from 'node:assert/strict';
-import { mameExecuteFacts } from './device-compiler.ts';
+import { mameDeviceUpdatesPartially, mameExecuteFacts } from './device-compiler.ts';
 
 const source = process.env.MAME_SRC ?? '../mame';
 
@@ -46,3 +46,14 @@ assert.equal(cycles('TMS34010', 6_250_000), 781_250);
 assert.equal(cycles('TMS34010', 447_444 * 8 - 7), 447_444);
 
 console.log('execute facts: execute_min_cycles from the device class and diexec.cpp');
+
+// A device that brings the screen up to date itself: a method of its class or
+// of one it derives from calls update_partial. The Neo Geo sprite generator
+// does it from its line timer in the base class; the TMS34010 from its
+// scanline callback. A device that only reads the beam does not.
+assert.equal(mameDeviceUpdatesPartially(source, 'NEOGEO_SPRITE_OPTIMZIED'), true);
+assert.equal(mameDeviceUpdatesPartially(source, 'TMS34010'), true);
+assert.equal(mameDeviceUpdatesPartially(source, 'ATARI_MOTION_OBJECTS'), true);
+assert.equal(mameDeviceUpdatesPartially(source, 'Z80'), false);
+assert.equal(mameDeviceUpdatesPartially(source, 'TMS9928A'), false);
+assert.equal(mameDeviceUpdatesPartially(source, 'NO_SUCH_DEVICE'), false);

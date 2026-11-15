@@ -4235,6 +4235,45 @@ export function mameExecuteFacts(
   };
 }
 
+const partialUpdateFacts = new Map<string, boolean>();
+
+/**
+ * Whether a device's own source brings the screen up to date line by line:
+ * a method of its class, or of a class it derives from, calls
+ * `update_partial` on the screen. MAME gives such a screen no attribute; the
+ * device's timer or register write is the whole declaration. Neo Geo's sprite
+ * generator draws line N - 1 from the timer that parses line N, and the
+ * TMS34010 brings the picture up to its display interrupt's line.
+ */
+export function mameDeviceUpdatesPartially(mameSrc: string, type: string): boolean {
+  const key = `${mameSrc}\0${type}`;
+  const known = partialUpdateFacts.get(key);
+  if (known !== undefined) return known;
+  const definition = indexMameHardware(mameSrc).get(type);
+  let partial = false;
+  if (definition) {
+    const className = /^([\w:]+)\s*</.exec(definition.className)?.[1] ?? definition.className;
+    const files = localSourceFiles(mameSrc, definition.sourceFile)
+      .filter(file => existsSync(join(mameSrc, file)));
+    const sources = files.map(file => ({ file, source: readFileSync(join(mameSrc, file), 'utf8') }));
+    // No file of the hierarchy names the call: nothing to parse.
+    if (sources.some(({ source }) => source.includes('update_partial'))) {
+      const ast = parseMameAst(sources);
+      const classes = new Map(ast.units.flatMap(unit => unit.classes).map(declaration => [declaration.name, declaration]));
+      const hierarchy = new Set(classHierarchy(className, classes));
+      const outOfLine = ast.units.flatMap(unit => unit.functions);
+      partial = [...hierarchy]
+        .flatMap(name => {
+          const declaration = classes.get(name);
+          return (declaration ? inlineMethods(declaration) : []).concat(outOfLine.filter(fn => fn.className === name));
+        })
+        .some(fn => /\bupdate_partial\s*\(/.test(stripCppComments(fn.body ?? '')));
+    }
+  }
+  partialUpdateFacts.set(key, partial);
+  return partial;
+}
+
 function executionClockDivider(source: string): number | undefined {
   const match = /return\s*\(?\s*\w+\s*\*\s*(\d+)\s*\)?\s*;/s
     .exec(source);

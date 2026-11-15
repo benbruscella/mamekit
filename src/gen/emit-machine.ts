@@ -881,10 +881,6 @@ export function lowerGeneratedMachine(
             : {}),
         },
       } : {}),
-      // Neo Geo's LSPC sprite renderer intentionally draws one clipped line at
-      // a time. Keep its screen update in step with the source timer cadence;
-      // a frame-end partial call would render only the first visible line.
-      ...(family === 'neogeo' ? { updateMode: 'scanline' as const } : {}),
       // The device that carries the picture: SCREEN for a raster or LCD
       // panel, VECTOR for a beam display.
       ...(videoOutputDevice?.source ? { source: videoOutputDevice.source } : {}),

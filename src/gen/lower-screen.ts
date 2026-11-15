@@ -7,7 +7,7 @@ import { gfxRenderScale } from '../mame/video-compiler.ts';
 import type { GenerateOptions } from './generate.ts';
 
 import { Graph } from '../kg/query.ts';
-import { screenOwnerUpdatesPartially } from './machine-source.ts';
+import { mameDeviceUpdatesPartially } from '../mame/device-compiler.ts';
 
 export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph: KnowledgeGraph, game: KGNode, opts: GenerateOptions) {
   // --- screen ------------------------------------------------------------------
@@ -152,13 +152,18 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
     vtotal,
     vbstart,
     vbend,
+    // MAME declares only one cadence, VIDEO_UPDATE_SCANLINE. Every other
+    // screen is brought up to date by whoever calls update_partial on it: a
+    // driver handler, or a device of the machine from its own timer or
+    // register write (the TMS34010's display interrupt, Neo Geo's sprite
+    // generator on every line). Either makes the screen partially updated.
     updateMode: (screenDev?.props.screenVideoAttributes as string[] | undefined)
       ?.includes('VIDEO_UPDATE_SCANLINE')
       ? 'scanline' as const
       : graph.nodes.some(node =>
           node.label === 'Handler' &&
           /\bupdate_(?:partial|now)\s*\(/.test(String(node.props.sourceBody ?? '')))
-        || screenOwnerUpdatesPartially(opts.mameSrc, graph)
+        || devices.some(device => mameDeviceUpdatesPartially(opts.mameSrc, String(device.props.type ?? '')))
         ? 'partial' as const
         : 'frame' as const,
     rotate: monitor === 'ROT90' ? 90 : monitor === 'ROT270' ? 270 : monitor === 'ROT180' ? 180 : 0,

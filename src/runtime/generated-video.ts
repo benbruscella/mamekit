@@ -100,7 +100,15 @@ export class GeneratedVideoRenderer implements VideoRenderer {
    * region into the RGBA output frame.
    */
   private readonly penBuffer?: Uint32Array;
+  /**
+   * MAME's `m_last_partial_scan`: the first line this frame has not drawn.
+   * Once the frame is presented it holds `partialFinished` until the beam
+   * passes line 0, where MAME's scanline 0 timer calls
+   * `reset_partial_updates`.
+   */
   private partialNextY: number;
+  /** `partialNextY` between a frame's presentation and the next line 0: past every line. */
+  private readonly partialFinished = 0x7fffffff;
   /** The first line a frame-mode board's update_now() has not yet rendered this frame. */
   private nowNextY: number;
   /**
@@ -153,12 +161,16 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     }
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     if (this.machine.execution.screen.updateMode === 'partial') {
+      // video_manager::finish_screen_updates: `update_partial(max_y)`, so
+      // only the lines no partial update reached are drawn here. A frame in
+      // which nothing asked for one is still standing where the last ended.
+      if (this.partialNextY === this.partialFinished) this.partialNextY = yOffset;
       const finalY = yOffset + this.height - 1;
       this.finishPartialLine(frame);
       if (this.partialNextY <= finalY) {
         this.renderRegion(frame, this.partialNextY, finalY);
       }
-      this.partialNextY = yOffset;
+      this.partialNextY = this.partialFinished;
       this.partialHpos = 0;
       return;
     }
@@ -186,12 +198,42 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     this.nowNextY = through + 1;
   }
 
-  updatePartial(frame: Uint32Array, line: number): void {
+  /**
+   * MAME's `update_partial(scanline)`: the lines from where the last update
+   * stopped up to and including `line`, as one cliprect. `beam` is the line
+   * the caller's beam stands on, which need not be `line`: Neo Geo's sprite
+   * generator asks for line N - 1 from the timer at the start of line N, and
+   * its screen update draws only `cliprect.min_y`, so each call must deliver
+   * exactly the one line it names.
+   */
+  updatePartial(frame: Uint32Array, line: number, beam: number): void {
     // Framebuffer plans render directly from live RAM at frame end. Their
     // configured device screen-update callback is intentionally not a driver
     // handler, so partial-update notifications are bookkeeping only.
     if (this.machine.video?.bitmap) return;
     if (this.machine.execution.screen.updateMode !== 'partial') return;
+    if (!this.partialFrameOpen(beam)) return;
+    this.updateThrough(frame, line);
+  }
+
+  /**
+   * Whether this frame still takes partial updates. MAME presents at the
+   * start of VBLANK and resets `m_last_partial_scan` at line 0, so a call
+   * from the lines between finds every line already drawn ("skipped because
+   * line was already rendered"). The reset is taken here, by the first
+   * caller whose beam has passed line 0, because a processor's round may
+   * span that line and its calls arrive with its own beam.
+   */
+  private partialFrameOpen(beam: number): boolean {
+    if (this.partialNextY !== this.partialFinished) return true;
+    const { vbstart, vtotal } = this.machine.execution.screen;
+    if (vbstart > 0 && vbstart < vtotal && Math.floor(beam) >= vbstart) return false;
+    this.partialNextY = this.machine.execution.screen.yOffset ?? 0;
+    this.partialHpos = 0;
+    return true;
+  }
+
+  private updateThrough(frame: Uint32Array, line: number): void {
     // MAME finishes a line an update_now() left half drawn first.
     if (Math.floor(line) >= this.partialNextY) this.finishPartialLine(frame);
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
@@ -210,13 +252,14 @@ export class GeneratedVideoRenderer implements VideoRenderer {
   updatePartialAt(frame: Uint32Array, vpos: number, hpos: number): void {
     if (this.machine.video?.bitmap) return;
     if (this.machine.execution.screen.updateMode !== 'partial') return;
+    if (!this.partialFrameOpen(vpos)) return;
     const line = Math.floor(vpos);
     const x = Math.floor(hpos);
     if (line < this.partialNextY) return;
     if (line === this.partialNextY && x <= this.partialHpos) return;
     if (line > this.partialNextY) {
       this.finishPartialLine(frame);
-      if (line > this.partialNextY) this.updatePartial(frame, line - 1);
+      if (line > this.partialNextY) this.updateThrough(frame, line - 1);
     }
     if (x > 0) this.renderVisibleLine(frame, line, this.partialHpos, x - 1);
     this.partialHpos = x;
