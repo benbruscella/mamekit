@@ -235,14 +235,21 @@ export function compileMameVideo(
     return fail(`missing video_start and screen update for ${String(machine.props.cls)}`);
   }
 
-  const decodes = effectiveGfxDecodes(graph, machineId);
-  const konamiGfx = konamiDeviceGfx(source, activeDevices);
+  // A device whose own table could not be read from its source decodes
+  // nothing in MAME's place; refuse the machine rather than draw without it.
+  const undecided = [
+    ...activeDevices.map(device => device.props.gfxDecodeUnresolved
+      ? `${String(device.props.tag)}: ${String(device.props.gfxDecodeUnresolved)}` : undefined),
+    ...[...machineIds].map(id => graph.nodes.find(node => node.id === id)?.props.gfxDecodeUnresolved),
+  ].find(Boolean);
+  if (undecided) return fail(`device gfx table not resolved (${String(undecided)})`);
+  const decodes = effectiveGfxDecodeBindings(graph, machineId);
   // A device-drawn screen may have no GFXDECODE at all: the T-Unit blits
   // from ROM into VRAM and its screen update copies VRAM through the palette.
   const deviceDrawnScreen = !start && !screen && Boolean(screenCallback?.props.targetTag);
   // A screen update that draws every pixel itself needs no GFXDECODE: Sega's
   // Vic Dual reads its character RAM straight into the bitmap.
-  if (!decodes.length && !konamiGfx.length && !deviceDrawnScreen && !screen) {
+  if (!decodes.length && !deviceDrawnScreen && !screen) {
     return fail(`missing gfx decode in machine composition`);
   }
   const decodeBindings = compileDecodeBindings(graph, machineIds);
@@ -353,8 +360,8 @@ export function compileMameVideo(
     handler.body.includes('transpen'))
     ? 'scanline' as const
     : undefined;
-  const gfx = [...decodes.flatMap(decode => {
-    const binding = decodeBindings.get(String(decode.props.name));
+  const gfx = decodes.flatMap(({ decode, deviceTag }) => {
+    const binding = decodeBindings.byDevice.get(deviceTag) ?? decodeBindings.byTable.get(String(decode.props.name));
     return graph.edges
       .filter(edge => edge.from === decode.id && edge.rel === 'HAS_ENTRY')
       .map(edge => graph.nodes.find(node => node.id === edge.to))
@@ -363,8 +370,13 @@ export function compileMameVideo(
       const layoutEdge = graph.edges.find(edge => edge.from === entry.id && edge.rel === 'USES_LAYOUT');
       const layout = layoutEdge && graph.nodes.find(node => node.id === layoutEdge.to);
       if (!layout) throw new Error(`${machineId}: gfx entry ${entry.id} has no layout`);
+      // GFXENTRY_DEVICE: the region is the owning device's own, and
+      // DEVICE_SELF the one tagged as the device (digfx.cpp decode_gfx).
+      const region = !entry.props.device
+        ? String(entry.props.region)
+        : entry.props.region === 'DEVICE_SELF' ? deviceTag : `${deviceTag}:${String(entry.props.region)}`;
       return {
-        region: String(entry.props.region),
+        region,
         offset: Number(entry.props.offset),
         ...(entry.props.ram ? { ram: true } : {}),
         ...(binding?.decodeMember ? { decodeMember: binding.decodeMember } : {}),
@@ -385,9 +397,9 @@ export function compileMameVideo(
         },
       };
     });
-  }), ...konamiGfx];
+  });
   const paletteMembers = [...new Set(
-    [...decodeBindings.values()]
+    [...decodeBindings.byTable.values(), ...decodeBindings.byDevice.values()]
       .map(binding => binding.paletteMember)
       .filter((member): member is string => Boolean(member)),
   )];
@@ -521,80 +533,6 @@ function compileRuntimeGfxLayouts(source: string): Record<string, GeneratedGfxLa
     layouts[layout.name] = shape;
   }
   return layouts;
-}
-
-/**
- * Graphics tables owned by Konami's device_gfx_interface customs.
- *
- * These are admitted only while the corresponding declarations are present
- * in the selected MAME source closure. The values are the lowered gfx_layout
- * tables, so a similarly named but source-incompatible device fails closed.
- */
-function konamiDeviceGfx(
-  source: string,
-  devices: readonly KGNode[],
-): GeneratedVideoPlan['gfx'] {
-  const result: GeneratedVideoPlan['gfx'] = [];
-  const device = (type: string): KGNode | undefined =>
-    devices.find(candidate => String(candidate.props.type) === type);
-  const member = (entry: KGNode): string =>
-    String(entry.props.member ?? `m_${String(entry.props.tag)}`);
-  const common = {
-    offset: 0,
-    colorBase: 0,
-    colorCount: 1,
-    xscale: 1,
-    yscale: 1,
-  };
-
-  const tiles = device('K052109');
-  if (
-    tiles &&
-    /k052109_device::charlayout\s*=/.test(source) &&
-    /GFXDECODE_DEVICE\s*\(\s*DEVICE_SELF\s*,\s*0\s*,\s*charlayout/.test(source)
-  ) {
-    result.push({
-      ...common,
-      region: String(tiles.props.tag),
-      decodeMember: member(tiles),
-      layout: {
-        width: 8, height: 8, total: 'RGN_FRAC(1,1)', planes: 4,
-        planeOffsets: [24, 16, 8, 0],
-        xOffsets: [0, 1, 2, 3, 4, 5, 6, 7],
-        yOffsets: [0, 32, 64, 96, 128, 160, 192, 224],
-        charIncrement: 256,
-      },
-    });
-  }
-
-  const oldSprites = device('K051960');
-  if (
-    oldSprites &&
-    /k051960_device::spritelayout_reverse\s*=/.test(source) &&
-    /GFXDECODE_DEVICE\s*\(\s*DEVICE_SELF\s*,\s*0\s*,\s*spritelayout_reverse/.test(source)
-  ) {
-    const reverse = /set_plane_order\s*\(\s*K051960_PLANEORDER_MIA\s*\)/.test(source);
-    result.push({
-      ...common,
-      region: String(oldSprites.props.tag),
-      decodeMember: member(oldSprites),
-      layout: {
-        width: 16, height: 16, total: 'RGN_FRAC(1,1)', planes: 4,
-        planeOffsets: reverse ? [24, 16, 8, 0] : [0, 8, 16, 24],
-        xOffsets: [
-          0, 1, 2, 3, 4, 5, 6, 7,
-          256, 257, 258, 259, 260, 261, 262, 263,
-        ],
-        yOffsets: [
-          0, 32, 64, 96, 128, 160, 192, 224,
-          512, 544, 576, 608, 640, 672, 704, 736,
-        ],
-        charIncrement: 1024,
-      },
-    });
-  }
-
-  return result;
 }
 
 /**
@@ -1545,11 +1483,16 @@ function tilemapScrollDelta(
 function compileDecodeBindings(
   graph: KnowledgeGraph,
   machineIds: Set<string>,
-): Map<string, { decodeMember: string; paletteMember?: string }> {
+): {
+  byTable: Map<string, { decodeMember: string; paletteMember?: string }>;
+  /** By owning device tag: two devices of one class share a table, not a member. */
+  byDevice: Map<string, { decodeMember: string; paletteMember?: string }>;
+} {
   const deviceIds = new Set(graph.edges
     .filter(edge => machineIds.has(edge.from) && edge.rel === 'HAS_DEVICE')
     .map(edge => edge.to));
   const bindings = new Map<string, { decodeMember: string; paletteMember?: string }>();
+  const byDevice = new Map<string, { decodeMember: string; paletteMember?: string }>();
   const bindingsByTag = new Map<string, { decodeMember: string; paletteMember?: string }>();
   for (const device of graph.nodes.filter(node =>
     deviceIds.has(node.id) &&
@@ -1588,11 +1531,21 @@ function compileDecodeBindings(
     const deviceTag = String(edge.props?.deviceTag ?? '');
     const decode = graph.nodes.find(node => node.id === edge.to);
     if (!decode) continue;
+    if (edge.props?.deviceOwned) {
+      // The table is the device class's own, so the device's finder is the
+      // only thing that tells one instance's graphics from another's.
+      const device = graph.nodes.find(node =>
+        deviceIds.has(node.id) && node.label === 'Device' && String(node.props.tag) === deviceTag);
+      if (device && !byDevice.has(deviceTag)) {
+        byDevice.set(deviceTag, { decodeMember: String(device.props.member ?? `m_${deviceTag}`) });
+      }
+      continue;
+    }
     const binding = bindingsByTag.get(deviceTag)
       ?? deviceGfxInterfaceBinding(graph, deviceIds, deviceTag);
     if (binding) bindings.set(String(decode.props.name), binding);
   }
-  return bindings;
+  return { byTable: bindings, byDevice };
 }
 
 /**
@@ -2169,7 +2122,15 @@ export function effectiveGfxDecodes(
   graph: KnowledgeGraph,
   machineId: string,
 ): KGNode[] {
-  const result: KGNode[] = [];
+  return effectiveGfxDecodeBindings(graph, machineId).map(binding => binding.decode);
+}
+
+/** Each effective table with the tag of the device that decodes it. */
+function effectiveGfxDecodeBindings(
+  graph: KnowledgeGraph,
+  machineId: string,
+): { decode: KGNode; deviceTag: string }[] {
+  const result: { decode: KGNode; deviceTag: string }[] = [];
   const seenDevices = new Set<string>();
   for (const id of machineConfigClosure(graph, machineId)) {
     for (const edge of graph.edges.filter(edge =>
@@ -2179,7 +2140,7 @@ export function effectiveGfxDecodes(
       const decode = graph.nodes.find(node => node.id === edge.to);
       if (!decode) continue;
       seenDevices.add(deviceTag);
-      result.push(decode);
+      result.push({ decode, deviceTag });
     }
   }
   return result;

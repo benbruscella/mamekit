@@ -20,6 +20,10 @@ import {
 import { deviceConfiguredScreen } from '../mame/screen-config.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import {
+  classLineage, configuredGfxInfo, constructorGfxInfo, deviceGfxSource, ownsGfxInterface,
+  type DeviceGfxSource, type GfxInfoSelection,
+} from './device-gfx.ts';
+import {
   coreAddressSpaces,
   integerBits,
   constructorInitialValues,
@@ -182,6 +186,8 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // cpu/m6502/rp2a03.h defines NTSC_APU_CLOCK) — defines only, no graph nodes.
   // Externals seed first, the driver family's own defines win.
   const externalSources: string[] = [];
+  /** The file each of `externalSources` was read from, index for index. */
+  const externalFiles: string[] = [];
   // Framework vocabulary every driver reaches through emu.h rather than an
   // include of its own: digfx.h's MAX_GFX_ELEMENTS bounds the free-slot scan a
   // driver runs before building a graphics set at run time (Atari System 1),
@@ -202,6 +208,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       if (!existsSync(cand)) continue;
       const source = readFileSync(cand, 'utf8');
       externalSources.push(source);
+      externalFiles.push(cand);
       // A header's own sibling include is spelled from its directory:
       // konami.h's `#include "m6809.h"`, whose M6809_FIRQ_LINE is what
       // KONAMI_FIRQ_LINE is defined as (The Simpsons' main CPU FIRQ).
@@ -574,6 +581,49 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
 
   // --- machine configs ---
   const gfxDecodes = parseGfxDecodes(combined, consts);
+  // --- device-owned graphics tables ---
+  // A device_gfx_interface device decodes from a table of its own class: the
+  // one its constructor names, or the one a configuration setter switches to
+  // (device-gfx.ts). The device may be one of the family's, already in the
+  // AST, or a framework device (video/k051316.h) the driver only includes;
+  // that one's header and implementation are read when a config adds it.
+  let familyGfxSource: DeviceGfxSource | undefined;
+  const gfxDevices = new Map<string, { className: string; source: DeviceGfxSource } | undefined>();
+  /** Framework device source that defines tables and layouts, for the gfx pass below. */
+  const deviceGfxText: string[] = [];
+  const gfxDevice = (type: string): { className: string; source: DeviceGfxSource } | undefined => {
+    if (gfxDevices.has(type)) return gfxDevices.get(type);
+    let found: { className: string; source: DeviceGfxSource } | undefined;
+    const familyClass = deviceTypes[type];
+    if (familyClass) {
+      if (ownsGfxInterface(ast, familyClass)) {
+        found = { className: familyClass, source: familyGfxSource ??= deviceGfxSource(ast) };
+      }
+    } else {
+      const declares = new RegExp(`\\bDECLARE_DEVICE_TYPE(?:_NS)?\\s*\\(\\s*${type}\\s*,`);
+      const index = externalSources.findIndex(source =>
+        source.includes('device_gfx_interface') && declares.test(source));
+      const className = index < 0 ? undefined : parseDeviceTypeDecls(externalSources[index]!)[type]?.split('::').at(-1);
+      if (className) {
+        const header = externalFiles[index]!;
+        const implementation = header.replace(/\.h$/, '.cpp');
+        const units = [header, ...(implementation !== header && existsSync(implementation) ? [implementation] : [])]
+          .map(file => ({ file: file.slice(mameSrc.length + 1), source: readFileSync(file, 'utf8') }));
+        const deviceAst = new MameAstIndex(parseMameAst(units));
+        if (ownsGfxInterface(deviceAst, className)) {
+          found = { className, source: deviceGfxSource(deviceAst) };
+          deviceGfxText.push(...units.map(unit => resolveLiteralConditionals(stripComments(unit.source))));
+        }
+      }
+    }
+    gfxDevices.set(type, found);
+    return found;
+  };
+  /** Table selections waiting for the decode tables to be in the graph. */
+  const deviceGfxSelections: {
+    cfgId: string; devId?: string; deviceTag: string; lineage: string[];
+    selection: GfxInfoSelection; override: boolean;
+  }[] = [];
   // A slot whose default card runs a program of its own is part of the
   // machine MAME builds: the C64's iec8 holds a 1541, whose 6502 runs the
   // drive's DOS against two VIAs and a GCR gate array. The card's source is
@@ -1222,6 +1272,21 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       });
     }
     for (const patch of cfg.devicePatches) {
+      // A derived config re-configures a device its base added
+      // (`m_k051960->set_plane_order(...)` after `base(config)`): the table
+      // that setter selects replaces the base's, as a set_info patch does.
+      const patchedTypes = new Set(machineConfigs.flatMap(candidate => candidate.devices)
+        .filter(candidate => candidate.tag === patch.tag).map(candidate => candidate.type));
+      const patched = patchedTypes.size === 1 ? gfxDevice([...patchedTypes][0]!) : undefined;
+      const repatched = patched
+        ? configuredGfxInfo(patched.source, patched.className, patch.config, consts, undefined)
+        : undefined;
+      if (patched && repatched) {
+        deviceGfxSelections.push({
+          cfgId, deviceTag: patch.tag, lineage: classLineage(patched.source.ast, patched.className),
+          selection: repatched, override: true,
+        });
+      }
       emitCallbacks(
         g,
         ast,
@@ -1484,6 +1549,19 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       }
       if (dev.gfxDecodeName) {
         g.edge(cfgId, `gfxdecode:${dev.gfxDecodeName}`, 'DECODES', { deviceTag: dev.tag });
+      } else {
+        // No table in the add statement: the device's own class has it.
+        const owner = gfxDevice(dev.type);
+        const selection = owner && configuredGfxInfo(
+          owner.source, owner.className, dev.config, consts,
+          constructorGfxInfo(owner.source, owner.className, consts),
+        );
+        if (owner && selection) {
+          deviceGfxSelections.push({
+            cfgId, devId, deviceTag: dev.tag, lineage: classLineage(owner.source.ast, owner.className),
+            selection, override: false,
+          });
+        }
       }
     }
   }
@@ -1593,10 +1671,15 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // declarations. Include that source-owned table so driver graphs retain
   // the concrete layout instead of an unresolved symbol.
   const genericGfxFile = join(mameSrc, 'src/emu/video/generic.cpp');
-  const gfxLayoutSource = existsSync(genericGfxFile)
-    ? `${combined}\n${stripComments(readFileSync(genericGfxFile, 'utf8'))}`
-    : combined;
-  for (const layout of parseGfxLayouts(gfxLayoutSource)) {
+  const gfxLayoutSource = [
+    combined,
+    ...(existsSync(genericGfxFile) ? [stripComments(readFileSync(genericGfxFile, 'utf8'))] : []),
+    ...deviceGfxText,
+  ].join('\n');
+  const gfxLayouts = parseGfxLayouts(gfxLayoutSource);
+  const gfxLayoutNames = new Set(gfxLayouts.map(layout => layout.name));
+  gfxDecodes.push(...deviceGfxText.flatMap(source => parseGfxDecodes(source, consts)));
+  for (const layout of gfxLayouts) {
     g.node('GfxLayout', `gfxlayout:${layout.name}`, {
       name: layout.name, width: layout.width, height: layout.height,
       total: layout.total, planes: layout.planes,
@@ -1607,8 +1690,13 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   }
   for (const dec of gfxDecodes) {
     const decId = `gfxdecode:${dec.name}`;
-    const source = ast.findMacro('GFXDECODE_START', 0, dec.name)?.span;
-    g.node('GfxDecode', decId, { name: dec.name, ...spanProps(source) });
+    const source = ast.findAnyMacro(['GFXDECODE_START', 'GFXDECODE_MEMBER'], 0, dec.name)?.span;
+    // A class's table names its layouts in the class's scope first.
+    const scope = dec.name.includes('::') ? dec.name.slice(0, dec.name.lastIndexOf('::')) : undefined;
+    g.node('GfxDecode', decId, {
+      name: dec.name, ...spanProps(source),
+      ...(dec.unsupported ? { unsupported: dec.unsupported } : {}),
+    });
     definedIn(decId, source);
     dec.entries.forEach((e, i) => {
       const eid = `${decId}/e${i}`;
@@ -1616,11 +1704,44 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         region: e.region, offset: e.offset, layout: e.layout,
         colorBase: e.colorBase, colorCount: e.colorCount,
         ...(e.ram ? { ram: true } : {}),
+        ...(e.device ? { device: true } : {}),
         xscale: e.xscale, yscale: e.yscale,
       });
       g.edge(decId, eid, 'HAS_ENTRY');
-      g.edge(eid, `gfxlayout:${e.layout}`, 'USES_LAYOUT');
+      const scoped = scope && gfxLayoutNames.has(`${scope}::${e.layout}`) ? `${scope}::${e.layout}` : e.layout;
+      g.edge(eid, `gfxlayout:${scoped}`, 'USES_LAYOUT');
     });
+  }
+  // Each device's selected table, now that the tables are known: the name is
+  // looked up in the scope it was written in, then that class's bases, then
+  // the file's (a constructor may name a file-scope GFXDECODE_START table).
+  const gfxDecodeByName = new Map(gfxDecodes.map(dec => [dec.name, dec]));
+  for (const pending of deviceGfxSelections) {
+    let unresolved: string | undefined;
+    if (pending.selection.kind === 'unresolved') unresolved = pending.selection.reason;
+    else if (pending.selection.table.name !== null) {
+      const { name, scope: written } = pending.selection.table;
+      const from = pending.lineage.indexOf(written);
+      const table = name.includes('::')
+        ? gfxDecodeByName.get(name)
+        : [...(from < 0 ? [] : pending.lineage.slice(from)).map(cls => `${cls}::${name}`), name]
+          .map(candidate => gfxDecodeByName.get(candidate)).find(Boolean);
+      if (!table) unresolved = `no GFXDECODE table named ${name} in ${written || 'the driver'}`;
+      else if (table.unsupported) unresolved = `${table.name} uses ${table.unsupported.join(', ')}`;
+      else {
+        g.edge(pending.cfgId, `gfxdecode:${table.name}`, 'DECODES', {
+          deviceTag: pending.deviceTag,
+          deviceOwned: true,
+          ...(pending.override ? { override: true } : {}),
+        });
+      }
+    }
+    if (unresolved) {
+      // Recorded, not guessed: the video compiler refuses the machine.
+      const device = pending.devId ? g.nodes.get(pending.devId) : undefined;
+      if (device) device.props.gfxDecodeUnresolved = unresolved;
+      else g.node('MachineConfig', pending.cfgId, { gfxDecodeUnresolved: `${pending.deviceTag}: ${unresolved}` });
+    }
   }
 
   for (const handler of g.nodes.values()) {
