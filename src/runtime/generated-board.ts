@@ -4046,6 +4046,18 @@ class IrBoard implements Board {
     for (const [member] of due) this.genericTimerFires.get(member)?.();
   }
 
+  /**
+   * How far into its slice the running processor is. The slice total moves
+   * only when execute_run returns, so the cycles the core has spent since
+   * are asked of it: without them every `vpos()` of a round of several lines
+   * read the round's first line, and a tile written on line 239 split the
+   * picture at 237 (Zig Zag).
+   */
+  private runningCycles(): number {
+    const tag = this.runningCpu;
+    return this.runningSliceCycles + (tag ? this.cpus.get(tag)?.elapsedCycles?.() ?? 0 : 0);
+  }
+
   /** Pixel `hpos` of a line as a fraction of that line, for `time_until_pos(vpos, hpos)`. */
   private lineFractionAt(hpos: number): number {
     const screen = this.machine.execution.screen;
@@ -4057,7 +4069,7 @@ class IrBoard implements Board {
     const screen = this.machine.execution.screen;
     const htotal = Math.max(1, screen.htotal ?? screen.width);
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
+      ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
     const beam = (running ?? this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
@@ -4067,7 +4079,7 @@ class IrBoard implements Board {
   private beamLine(): number {
     const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningSliceCycles)
+      ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
     const line = running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
     return ((line % vtotal) + vtotal) % vtotal;
