@@ -27,9 +27,9 @@ export const frogger = sourceTarget({
       60: { video: '10075d9f', state: '4e2e2274' },
       180: { video: '8f59fe5f', state: 'f813b01d' },
       300: { video: '44890969', state: '30c816d4' },
-      480: { video: 'dde8c3ac', state: '0bfd2c80' },
-      600: { video: '5b60f00b', state: '0d41e1a5' },
-      900: { video: '8e5b4b09', state: '3c3944ed' },
+      480: { video: 'a68ee068', state: '0bfd2c80' },
+      600: { video: '0fd1ce5c', state: '0d41e1a5' },
+      900: { video: 'f2a8b8a4', state: '3c3944ed' },
     },
     audio: {
       writes: 712799,

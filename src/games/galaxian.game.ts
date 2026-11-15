@@ -24,12 +24,12 @@ export const galaxian = sourceTarget({
     },
     checkpoints: {
       1: { video: '0d7b640f', state: '7ffbb98a' },
-      60: { video: 'd3a0a375', state: 'b6dc84da' },
+      60: { video: 'cd2b1b38', state: 'b6dc84da' },
       180: { video: '91227fd8', state: 'c96d8e4d' },
-      300: { video: '6a784218', state: '416eedf3' },
-      480: { video: 'b46cce44', state: 'f5b27db4' },
-      500: { video: '11c5cbc8', state: '13400e0f' },
-      900: { video: '27221b07', state: '39bd1024' },
+      300: { video: 'bc262f14', state: '416eedf3' },
+      480: { video: 'ab051192', state: 'f5b27db4' },
+      500: { video: '07ca9f74', state: '13400e0f' },
+      900: { video: 'f6656e15', state: '39bd1024' },
     },
     audio: {
       writes: 712799,

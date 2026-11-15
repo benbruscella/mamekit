@@ -27,12 +27,12 @@ export const centiped = sourceTarget({
     },
     checkpoints: {
       1: { video: '7fef94f4', state: '029eead8' },
-      60: { video: 'b65d9af6', state: '9c1c25bf' },
-      180: { video: '097e90e6', state: '78c7970a' },
-      300: { video: '41f6b893', state: 'f45437d0' },
-      600: { video: 'e4eddc25', state: '2991cc72' },
-      900: { video: 'e552eca1', state: '82b5d8f1' },
-      1200: { video: '40a4350d', state: 'c5125684' },
+      60: { video: 'd6cb1da4', state: '9c1c25bf' },
+      180: { video: '79d328cc', state: '78c7970a' },
+      300: { video: 'd1f1997c', state: 'f45437d0' },
+      600: { video: '57cffe31', state: '2991cc72' },
+      900: { video: '4d76d988', state: '82b5d8f1' },
+      1200: { video: '5b82b8d7', state: 'c5125684' },
     },
     audio: {
       writes: 959999,

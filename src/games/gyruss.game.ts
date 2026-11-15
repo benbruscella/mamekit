@@ -30,11 +30,11 @@ export const gyruss = sourceTarget({
     checkpoints: {
       1: { video: 'f7e6ac81', state: 'cf09d415' },
       60: { video: '8f81534a', state: 'e453a2c2' },
-      300: { video: 'dcb5f4e5', state: '1f8f9d23' },
-      480: { video: '0a084be4', state: '2c1f1195' },
-      720: { video: '95737fab', state: '99d211a3' },
-      1200: { video: '9a4e450b', state: 'cc0f26f4' },
-      1800: { video: 'd323c100', state: 'a23ffa08' },
+      300: { video: '35fd8ef1', state: '1f8f9d23' },
+      480: { video: '0cf148d4', state: '2c1f1195' },
+      720: { video: 'bbe296d9', state: '99d211a3' },
+      1200: { video: 'b12f288e', state: 'cc0f26f4' },
+      1800: { video: 'e595fce5', state: 'a23ffa08' },
     },
     audio: {
       writes: 1425599,
