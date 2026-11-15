@@ -7,6 +7,9 @@
 // wrong value rather than as a zero.
 
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { cartSlotFacts } from '../../mame/cart-slot.ts';
 import { indexMameHardware } from '../../mame/hardware.ts';
 import { extractColeco } from './extract.ts';
 import {
@@ -50,7 +53,26 @@ assert.deepEqual(Object.keys(slot.slot.options).sort(), [
 ]);
 assert.equal(slot.slot.member, 'm_card');
 assert.equal(slot.slot.selector, 'cart.slot');
-assert.equal(slot.slot.default, 'standard');
+// The slot's default board and ROM region are the slot device's own facts.
+// The console room reads them through cartSlotFacts; here they are held
+// against the statements in MAME's source that make them, so neither the
+// board nor the room can drift from the device it describes.
+const slotSource = readFileSync(
+  join(mameSource, definitions.get('COLECOVISION_CARTRIDGE_SLOT')!.sourceFile), 'utf8');
+const facts = cartSlotFacts(mameSource, 'COLECOVISION_CARTRIDGE_SLOT', 'cartslot');
+assert.ok(facts?.defaultOption && facts.romRegion, 'the slot must state its default and its region');
+const romRegion = facts.romRegion;
+assert.equal(facts.interface, 'coleco_cart');
+assert.equal(slot.slot.default, facts.defaultOption);
+assert.ok(
+  slotSource.trimEnd().includes(`\treturn software_get_default_slot("${slot.slot.default}");\n}`),
+  'the default is what get_default_card_software falls through to',
+);
+assert.ok(
+  slotSource.includes(`region_alloc(":${romRegion}"`),
+  'the region is the one rom_alloc allocates',
+);
+assert.ok(Object.keys(slot.slot.options).includes(facts.defaultOption));
 // Image loading is the console room's job; the live bus is what is kept.
 assert.ok(slot.methods.some((method: { name: string }) => method.name === 'read'));
 assert.ok(slot.methods.some((method: { name: string }) => method.name === 'write'));
@@ -61,7 +83,7 @@ for (const [option, card] of Object.entries(slot.slot.options) as [string, {
 }][]) {
   assert.equal(
     card.resources?.members?.m_rom?.name,
-    'coleco_cart:rom',
+    romRegion,
     `${option} must read the mounted cartridge`,
   );
   assert.equal(card.resources?.members?.m_rom_size?.kind, 'region-length');
@@ -80,7 +102,7 @@ function mount(option: string, rom: Uint8Array) {
   registerGeneratedDevice(slot);
   const device = createDevice('COLECOVISION_CARTRIDGE_SLOT', {
     clock: 0,
-    regions: { 'coleco_cart:rom': rom },
+    regions: { [romRegion]: rom },
     selectors: { 'cart.slot': option },
   });
   assert.ok(device, `the ${option} cartridge must compose`);

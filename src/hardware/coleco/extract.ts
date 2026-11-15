@@ -5,6 +5,7 @@ import {
   type GeneratedDeviceDefinition,
 } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
+import { cartSlotFacts } from '../../mame/cart-slot.ts';
 import {
   indexMameHardware,
   type MameHardwareDefinition,
@@ -65,7 +66,7 @@ export function extractColeco(input: CapabilityInput): CapabilityExtraction | un
       device.summary.diagnostics = 0;
       device.slot = {
         member: slotCardMember(input.mameSource, definition, 'm_card'),
-        default: 'standard',
+        default: slotFacts(input.mameSource).defaultOption,
         // The console room resolves which PCB a cartridge is, the same way the
         // NES room resolves a mapper.
         selector: 'cart.slot',
@@ -112,15 +113,18 @@ export function extractColeco(input: CapabilityInput): CapabilityExtraction | un
 }
 
 /**
- * The region a cartridge PCB allocates for its ROM, named by MAME itself in
- * `device_colecovision_cartridge_interface::rom_alloc`. Read rather than
- * restated so a rename upstream fails loudly instead of silently unbinding
- * every cartridge.
+ * The slot's own default board and ROM region, as MAME states them: the option
+ * `get_default_card_software` falls through to, and the region
+ * `device_colecovision_cartridge_interface::rom_alloc` allocates. Read rather
+ * than restated so a rename upstream fails loudly instead of silently
+ * unbinding every cartridge.
  */
-function cartRomRegion(source: string): string {
-  const name = /region_alloc\s*\(\s*"(:?[\w:]+)"/.exec(source)?.[1];
-  if (!name) throw new Error('MAME no longer names a ColecoVision cartridge ROM region');
-  return name.replace(/^:/, '');
+function slotFacts(mameSource: string): { defaultOption: string; romRegion: string } {
+  // The region name is absolute in source, so the slot's tag does not enter it.
+  const facts = cartSlotFacts(mameSource, 'COLECOVISION_CARTRIDGE_SLOT', '');
+  if (!facts?.defaultOption) throw new Error('MAME no longer names a default ColecoVision cartridge PCB');
+  if (!facts.romRegion) throw new Error('MAME no longer names a ColecoVision cartridge ROM region');
+  return { defaultOption: facts.defaultOption, romRegion: facts.romRegion };
 }
 
 function slotCardMember(
@@ -148,7 +152,7 @@ function cartridgeOptions(
   const body = /void\s+colecovision_cartridges\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/
     .exec(source)?.[1];
   if (!body) throw new Error('MAME no longer declares colecovision_cartridges');
-  const romRegion = cartRomRegion(source);
+  const romRegion = slotFacts(mameSource).romRegion;
   const options: Record<string, GeneratedDeviceDefinition> = {};
   for (const match of body.matchAll(
     /option_add(?:_internal)?\s*\(\s*"([^"]+)"\s*,\s*(\w+)\s*\)/g,

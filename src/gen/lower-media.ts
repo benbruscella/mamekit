@@ -23,7 +23,8 @@ import { inesMapperBySlot, nesCartOptions } from '../hardware/nes/ines-mappers.t
 /** MAME's NES cartridge interface: its slot mounts and selects its own boards. */
 const NES_CART_INTERFACE = 'nes_cart';
 
-import { CART_SLOT_SUPPORT, CART_INTERFACE_BY_FAMILY, CART_DEFAULT_SLOT, CART_ROM_REGION, CART_GAME_SUPPORT, cartFileExtensions, localCartArt, writeCartShelfIndex } from './cartridge-catalog.ts';
+import { CART_SLOT_SUPPORT, CART_GAME_SUPPORT, localCartArt, writeCartShelfIndex } from './cartridge-catalog.ts';
+import { machineCartSlot, type CartSlotFacts } from '../mame/cart-slot.ts';
 
 export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefined, opts: GenerateOptions, devices: KGNode[], softlistNodes: KGNode[], category: "arcade" | "consoles" | "computers", family: string, g?: Graph, switches: readonly ShelfSwitch[] = []) {
   // --- emit ---------------------------------------------------------------------------
@@ -35,10 +36,25 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
   // the 4,500+ cart entries stay out of graph.json (they'd swamp the viewer).
   let cart: Record<string, unknown> | undefined;
   let cartEntries = 0;
-  // Whichever board device is the cartridge image declares what it accepts.
-  const slotExtensions = kind === 'console'
-    ? cartFileExtensions(opts.mameSrc, devices.map(device => String(device.props.type)))
+  // The cartridge slot's own facts, read from its device in MAME's source: the
+  // interface and files it accepts, the board an entry naming none gets, and
+  // the region its ROM loads into. The slot is whichever board device accepts
+  // the software list's interface.
+  const slotDevices = devices.map(device => ({
+    type: String(device.props.type), tag: String(device.props.tag),
+  }));
+  const slotFor = (listInterface?: string): CartSlotFacts | undefined => kind === 'console'
+    ? machineCartSlot(opts.mameSrc, slotDevices, listInterface)
+      ?? machineCartSlot(opts.mameSrc, slotDevices)
     : undefined;
+  // A slot that mounts its own cartridges resolves the board and allocates
+  // the regions itself; the default board and the ROM region are for the host
+  // that replays a board's installer.
+  const slotFacts = (slot: CartSlotFacts | undefined, boards: object) => ({
+    ...('slots' in boards && slot?.defaultOption ? { defaultSlot: slot.defaultOption } : {}),
+    ...('slots' in boards && slot?.romRegion ? { romRegion: slot.romRegion } : {}),
+    ...(slot?.extensions ? { extensions: slot.extensions } : {}),
+  });
   // The boards a console plays. A slot that mounts its own cartridges -- the
   // NES's, whose get_default_card_software and call_load run as generated
   // code -- answers that itself from the cards it was generated with, and is
@@ -89,17 +105,17 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
       const artCount = Object.keys(cartArt).length;
       const shelved = writeCartShelfIndex(
         join(romsDir(projectRoot), category, opts.game), opts.outDir, set);
+      const slot = slotFor(catalog.interface);
+      const boards = cartBoards(catalog.interface);
       cart = {
         interface: catalog.interface,
         list: listName,
         catalogUrl: 'softlist.json',
         ...(shelved ? { cartsUrl: 'carts.json' } : {}),
         ...(artCount ? { cartArt } : {}),
-        ...cartBoards(catalog.interface),
+        ...boards,
         games: CART_GAME_SUPPORT[family] ?? [],
-        ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
-        ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
-        ...(slotExtensions ? { extensions: slotExtensions } : {}),
+        ...slotFacts(slot, boards),
       };
       if (shelved) console.log(`cart shelf index: ${shelved} dumps available for ${set}`);
       if (artCount) console.log(`cart artwork: ${artCount} cartridge(s) with local photography`);
@@ -109,17 +125,17 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
     }
     if (!cart) {
       const listNode = softlistNodes.find(node => node.props.status === 'original');
-      const cartInterface = CART_INTERFACE_BY_FAMILY[family];
-      if (listNode && cartInterface) {
+      // Without the list to read, the slot device still names its interface.
+      const slot = slotFor();
+      if (listNode && slot) {
+        const boards = cartBoards(slot.interface);
         cart = {
-          interface: cartInterface,
+          interface: slot.interface,
           list: String(listNode.props.name),
           catalogUrl: 'softlist.json',
-          ...cartBoards(cartInterface),
+          ...boards,
           games: CART_GAME_SUPPORT[family] ?? [],
-          ...(CART_DEFAULT_SLOT[family] ? { defaultSlot: CART_DEFAULT_SLOT[family] } : {}),
-          ...(CART_ROM_REGION[family] ? { romRegion: CART_ROM_REGION[family] } : {}),
-          ...(slotExtensions ? { extensions: slotExtensions } : {}),
+          ...slotFacts(slot, boards),
         };
       }
     }

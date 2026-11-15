@@ -1,7 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { artworkDir } from '../paths.ts';
-import { indexMameHardware } from '../mame/hardware.ts';
 import { cartArtIndex, type CartArt } from './cart-art.ts';
 
 const projectRoot = resolve(import.meta.dirname, '../..');
@@ -39,60 +38,6 @@ export const CART_SLOT_SUPPORT: Record<string, string[]> = {
   // option list, so the two cannot drift apart silently.
   gameboy: ['rom', 'rom_mbc1', 'rom_mbc2', 'rom_mbc3', 'rom_mbc5',
     'rom_huc1', 'rom_mmm01'],
-};
-
-export const CART_INTERFACE_BY_FAMILY: Record<string, string> = {
-  nes: 'nes_cart',
-  coleco: 'coleco_cart',
-  gameboy: 'gameboy_cart',
-};
-
-// What a cartridge slot does when a software-list entry names no PCB, and
-// where a PCB loads its ROM. Both are the slot device's own facts; the NES
-// resolves its board from the iNES mapper instead and needs neither.
-// src/hardware/coleco/coleco.spec.ts asserts both against MAME source, so
-// this table cannot drift away from the device it describes.
-export const CART_DEFAULT_SLOT: Record<string, string> = {
-  coleco: 'standard',
-  // MAME's own fallback, from `vcs_get_slot`'s final return.
-  a2600: 'a26_2k_4k',
-  // MAME's own answer for a header that declares no memory controller, from
-  // `guess_cart_type`; src/hardware/gameboy/extract.ts reads the same value
-  // out of source for the slot IR.
-  gameboy: 'rom',
-};
-/**
- * The file extensions a console's cartridge slot accepts, as MAME declares them.
- *
- * `device_image_interface::file_extensions()` is a one-line override in the
- * slot's own header -- "bin,a26" for the VCS, "rom,col,bin" for the
- * ColecoVision, "nes,unf,unif" for the NES. The room used to hardcode the
- * ColecoVision set for every console, which left an Atari `.a26` greyed out in
- * the file picker on the one machine whose dumps are usually named that.
- */
-export function cartFileExtensions(
-  mameSrc: string,
-  deviceTypes: readonly string[],
-): string[] | undefined {
-  const definitions = indexMameHardware(mameSrc);
-  for (const type of deviceTypes) {
-    const sourceFile = definitions.get(type)?.sourceFile;
-    if (!sourceFile) continue;
-    const header = join(mameSrc, sourceFile.replace(/\.cpp$/, '.h'));
-    if (!existsSync(header)) continue;
-    const listed = /file_extensions\(\)[^{]*\{\s*return\s*"([^"]+)"/
-      .exec(readFileSync(header, 'utf8'))?.[1];
-    if (listed) return listed.split(',').map(extension => `.${extension.trim()}`);
-  }
-  return undefined;
-}
-
-export const CART_ROM_REGION: Record<string, string> = {
-  coleco: 'coleco_cart:rom',
-  a2600: 'cartslot:cart:rom',
-  // `device_gb_cart_interface::cart_rom_region()` is the slot's own "rom"
-  // sub-region; the capability binds the mounted PCB to this same name.
-  gameboy: 'cartslot:rom',
 };
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones

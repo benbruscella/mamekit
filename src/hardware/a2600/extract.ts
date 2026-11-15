@@ -5,6 +5,7 @@ import {
   type GeneratedDeviceDefinition,
 } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
+import { cartSlotFacts } from '../../mame/cart-slot.ts';
 import type { GeneratedTiaAudio } from '../../mame/tia-audio-compiler.ts';
 import {
   compileTiaAudio,
@@ -270,32 +271,26 @@ function cartAddonPointer(mameSource: string): number | undefined {
   return offset ? Number(offset) : undefined;
 }
 
+/**
+ * The region the mounted cartridge occupies: `device_vcs_cart_interface::
+ * rom_alloc` allocates it under the slot's own tag.
+ */
 export function cartRomRegion(mameSource: string): string {
-  const source = readFileSync(
-    join(mameSource, 'src/devices/bus/vcs/vcs_slot.cpp'),
-    'utf8',
-  );
-  const suffix = /region_alloc\s*\(\s*std::string\s*\(\s*tag\s*(?:\(\s*\))?\s*\)\s*\.append\s*\(\s*"([^"]+)"/
-    .exec(source)?.[1];
-  if (!suffix) throw new Error('MAME no longer names a VCS cartridge ROM region');
-  return `${A2600_CART_SLOT_TAG}${suffix}`;
+  const region = cartSlotFacts(mameSource, 'VCS_CART_SLOT', A2600_CART_SLOT_TAG)?.romRegion;
+  if (!region) throw new Error('MAME no longer names a VCS cartridge ROM region');
+  return region;
 }
 
 /**
- * The PCB a cartridge falls back to, named by MAME itself in `vcs_get_slot`'s
- * final return. Read rather than restated so a rename upstream fails loudly
- * instead of silently mounting every unknown dump on the wrong board.
+ * The PCB a software-list cartridge naming none gets, as the slot's own
+ * `get_default_card_software` falls through to. Read rather than restated so a
+ * rename upstream fails loudly instead of silently mounting every unknown dump
+ * on the wrong board.
  */
 function defaultCartridgeOption(mameSource: string): string {
-  const source = readFileSync(
-    join(mameSource, 'src/devices/bus/vcs/vcs_slot.cpp'),
-    'utf8',
-  );
-  const body = /static const char \*vcs_get_slot\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/
-    .exec(source)?.[1];
-  const fallback = body && [...body.matchAll(/return\s+"([^"]+)"/g)].at(-1)?.[1];
-  if (!fallback) throw new Error('MAME no longer names a default VCS cartridge PCB');
-  return fallback;
+  const option = cartSlotFacts(mameSource, 'VCS_CART_SLOT', A2600_CART_SLOT_TAG)?.defaultOption;
+  if (!option) throw new Error('MAME no longer names a default VCS cartridge PCB');
+  return option;
 }
 
 /**

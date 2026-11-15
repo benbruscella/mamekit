@@ -6,6 +6,7 @@ import {
   type GeneratedDeviceMethod,
 } from '../../mame/device-compiler.ts';
 import { generatedDeviceExecutableSource } from '../../mame/device-codegen.ts';
+import { cartSlotFacts } from '../../mame/cart-slot.ts';
 import {
   indexMameHardware,
   type MameHardwareDefinition,
@@ -425,29 +426,14 @@ export function cartRomRegion(mameSource: string): string {
 }
 
 /**
- * The board MAME mounts a cartridge on when its header declares no memory
- * controller, read from `guess_cart_type`'s plain-ROM case. That is the right
- * fallback for a dump the software list does not name, and reading it rather
- * than restating it means a rename upstream fails loudly.
+ * The plain ROM board: what the slot's own `get_default_card_software` falls
+ * through to for a software-list cartridge naming no board
+ * (`software_get_default_slot(slotoptions::GB_STD)`), and what
+ * `guess_cart_type` answers for a header declaring no memory controller.
+ * Reading it rather than restating it means a rename upstream fails loudly.
  */
 function plainCartridgeOption(mameSource: string): string {
-  const slot = readFileSync(
-    join(mameSource, 'src/devices/bus/gameboy/gbslot.cpp'),
-    'utf8',
-  );
-  // Scoped to `guess_cart_type`: the same `case cartheader::TYPE_ROM:` label
-  // also appears in the human-readable description table and in the M161
-  // probe, and both answer something that is not a slot option at all.
-  const guess = /\bguess_cart_type\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(slot)?.[1];
-  const plain = guess && /case\s+cartheader::TYPE_ROM\s*:([\s\S]*?)\n\s*case\b/.exec(guess)?.[1];
-  // The last return of the case, not the first: the first is behind the
-  // Wisdom Tree probe, which is image identification the room has already done.
-  const constant = plain && [...plain.matchAll(/return\s+slotoptions::(\w+)\s*;/g)].at(-1)?.[1];
-  const names = slotOptionNames(readFileSync(
-    join(mameSource, CARTRIDGE_OPTIONS_FILE),
-    'utf8',
-  ));
-  const option = constant && names[constant];
+  const option = cartSlotFacts(mameSource, 'GB_CART_SLOT', GAMEBOY_CART_SLOT_TAG)?.defaultOption;
   if (!option) {
     throw new Error('MAME no longer names a plain-ROM Game Boy cartridge board');
   }
