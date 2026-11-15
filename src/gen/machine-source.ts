@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
+import type { KGNode } from '../kg/types.ts';
 
 import { indexMameHardware } from '../mame/hardware.ts';
 import { parseAddressMaps, stripComments } from '../kg/parse.ts';
@@ -102,23 +102,6 @@ export function cpuProgramAddressShift(mameSrc: string, type: string): number {
   const config = /m_program_config\s*\(\s*"program"\s*,\s*ENDIANNESS_\w+\s*,\s*[^,]+,\s*[^,]+,\s*(-?\d+)/
     .exec(readFileSync(path, 'utf8'));
   return config ? Number(config[1]) : 0;
-}
-
-/**
- * A screen updated by a device -- `set_screen_update("maincpu",
- * FUNC(tms34010_device::tms340x0_ind16))` -- is partially updated when that
- * device's own source drives `update_partial`, as the TMS34010's scanline
- * timer does on every visible line.
- */
-export function screenOwnerUpdatesPartially(mameSrc: string, graph: KnowledgeGraph): boolean {
-  const callback = graph.nodes.find(node =>
-    node.label === 'Callback' && node.props.signal === 'set_screen_update');
-  const targetClass = String(callback?.props.targetClass ?? '');
-  if (!targetClass) return false;
-  const definition = [...indexMameHardware(mameSrc).values()]
-    .find(candidate => candidate.className === targetClass);
-  const path = definition ? join(mameSrc, definition.sourceFile) : '';
-  return Boolean(path) && existsSync(path) && readFileSync(path, 'utf8').includes('update_partial(');
 }
 
 /**

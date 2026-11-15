@@ -719,6 +719,26 @@ IR. Drivers that call `screen.update_partial` select partial raster composition,
 so mid-frame video RAM changes are rendered at the source-declared boundary
 rather than from a torn end-of-frame snapshot.
 
+MAME declares only one update cadence, `VIDEO_UPDATE_SCANLINE`. Any other
+screen is updated by whoever calls `update_partial` on it, and that may be a
+device rather than the driver. `mameDeviceUpdatesPartially`
+(`src/mame/device-compiler.ts`) reads each device class in the machine, and
+the classes it derives from, for a method that makes the call. The TMS34010
+does it before its display interrupt. Neo Geo's sprite generator does it from
+a timer on every line: at the start of line N it asks for line N - 1, and the
+driver's `screen_update` draws only `cliprect.min_y`. No update mode is chosen
+by a board's name.
+
+The renderer keeps MAME's `m_last_partial_scan`
+(`GeneratedVideoRenderer.updatePartial`). Each call draws from the last line
+drawn through the line it names, as one cliprect, so a per-line caller gets
+one-line cliprects. Presenting the frame is `update_partial(max_y)`: it draws
+only the lines no call reached. After that every line counts as drawn until
+the beam passes line 0, where MAME's scanline 0 timer resets the count, so a
+call made during VBLANK draws nothing. Each caller passes the line its own
+beam stands on, and the first one past line 0 takes the reset, because a
+processor's round may span that line.
+
 A device can read the picture back. MAME's NES Zapper asks the screen for
 `update_now()` and then `pixel(x, y)` to see whether its sensor is pointed at
 light. The device-facing screen answers both: `update_now()` composes the

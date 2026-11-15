@@ -432,7 +432,7 @@ class IrBoard implements Board {
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
   private screenUpdateNow?: () => void;
   /** screen_device::update_partial(line), once video is composed. */
-  private screenUpdatePartial?: (line: number) => void;
+  private screenUpdatePartial?: (line: number, beam: number) => void;
   private screenPixel?: (x: number, y: number) => number;
   readonly fbHeight: number;
 
@@ -803,10 +803,7 @@ class IrBoard implements Board {
           // two a whole line apart at a boundary -- exactly where a scanline
           // one-shot re-arms itself -- so `time_until_pos(vpos() + 1)` asks
           // for the line it is already standing on and gets deferred a frame.
-          vpos: () => {
-            const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
-          },
+          vpos: () => this.deviceBeamLine(),
           hpos: () => this.beamHpos(),
           // screen_device::vblank(): the beam is outside the visible lines.
           vblank: () => {
@@ -826,7 +823,7 @@ class IrBoard implements Board {
           // line. The TMS34010 brings it up to its DPYINT line before it
           // raises the display interrupt.
           update_partial: (line: number) => {
-            this.screenUpdatePartial?.(Number(line));
+            this.screenUpdatePartial?.(Number(line), this.deviceBeamLine());
             return 1;
           },
           // screen_device::configure(width, height, visarea, period): a video
@@ -3085,7 +3082,7 @@ class IrBoard implements Board {
         this.state,
         this.bindings,
         line => {
-          if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
+          if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line, this.beamLine());
         },
         address => this.cpuBuses.get(machine.execution.cpus[0]?.tag ?? '')?.read(address) ?? 0,
         this.shares,
@@ -3215,8 +3212,8 @@ class IrBoard implements Board {
       this.screenUpdateNow = () => {
         if (activeFramebuffer) video?.updateNow(activeFramebuffer, this.beamLine(), this.beamHpos());
       };
-      this.screenUpdatePartial = line => {
-        if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line);
+      this.screenUpdatePartial = (line, beam) => {
+        if (activeFramebuffer) video?.updatePartial(activeFramebuffer, line, beam);
       };
       const screen = machine.execution.screen;
       this.screenPixel = (x, y) => {
@@ -4010,6 +4007,15 @@ class IrBoard implements Board {
   }
 
   /** The beam as a generated device's screen reads it (see powerOnCreditLines). */
+  /**
+   * The line a device's `screen().vpos()` reads, floored the way MAME's
+   * screen_device::vpos() derives it from emulated time.
+   */
+  private deviceBeamLine(): number {
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
+  }
+
   private deviceBeamPosition(): number {
     return this.beamPosition() - this.powerOnCreditLines;
   }
