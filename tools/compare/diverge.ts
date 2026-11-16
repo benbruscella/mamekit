@@ -39,6 +39,7 @@ import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { readAccesses, type IoAccess } from './compare.ts';
 import { compareByCpu, divergeRanges, earliest, type CpuDivergence, type DivergeTap } from './diverge-plan.ts';
 import { projectRoot } from './mame-side.ts';
+import { parseIoTap } from './plan.ts';
 import { cliEntry, reportRoot } from './paths.ts';
 import type { RunReport } from './report.ts';
 
@@ -70,14 +71,14 @@ const config = loadConfig();
 
 const taps: DivergeTap[] = options.has('--io')
   ? options.get('--io')!.map(spec => {
-    const [tag, range] = spec.split(/:(?=[0-9a-f]+(-|$))/i);
-    const [lo, hi] = range!.split('-').map(value => parseInt(value, 16));
-    return { tag: tag!, lo: lo!, hi: hi ?? lo!, why: ['named'] };
+    const { tag, space, lo, hi } = parseIoTap(spec);
+    return { tag, ...(space ? { space } : {}), lo, hi, why: ['named'] };
   })
   : divergeRanges(config);
 const hex = (value: number) => value.toString(16);
 console.log(`${target}: tapping ${taps.length} ranges on ${new Set(taps.map(tap => tap.tag)).size} processors`);
-for (const tap of taps) console.log(`  ${tap.tag.padEnd(10)} ${hex(tap.lo)}-${hex(tap.hi)}  ${tap.why.join(', ')}`);
+const where = (tap: DivergeTap) => `${tap.tag}${tap.space ? `:${tap.space}` : ''}`;
+for (const tap of taps) console.log(`  ${where(tap).padEnd(12)} ${hex(tap.lo)}-${hex(tap.hi)}  ${tap.why.join(', ')}`);
 if (options.has('--show')) process.exit(0);
 if (!taps.length) {
   console.error(`${target}'s maps name no device or control register to tap; name ranges with --io <cpu>:<start>-<end>`);
@@ -144,7 +145,7 @@ if (option('--frames')) {
 // --- tapping -----------------------------------------------------------------
 
 const clocks = Object.fromEntries(config.board.cpus.map(cpu => [cpu.tag, Number((cpu as { clock?: number }).clock ?? 0)]));
-const ioArgs = taps.flatMap(tap => ['--io', `${tap.tag}:${hex(tap.lo)}-${hex(tap.hi)}:rw`]);
+const ioArgs = taps.flatMap(tap => ['--io', `${where(tap)}:${hex(tap.lo)}-${hex(tap.hi)}:rw`]);
 
 async function tapWindow(from: number, to: number, offset: number): Promise<{ result: CpuDivergence[]; mame: IoAccess[]; ours: IoAccess[] }> {
   const run = await against([...ioArgs, '--io-frames', `${from}-${to}`, ...(offset ? ['--io-offset', String(offset)] : []),

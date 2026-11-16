@@ -779,4 +779,6 @@ export class Bus {
    */
   in16be?: (port: number) => number;
   out16be?: (port: number, data: number) => void;
+  in16le?: (port: number) => number;
+  out16le?: (port: number, data: number) => void;
 }

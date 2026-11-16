@@ -80,11 +80,18 @@ export class DeviceCpu implements Cpu {
         const outByte = (port: number, data: number) => bus.out?.(port, data);
         // A 16-bit port space reaches the bus's own word ports (the TMS320C1x's,
         // the Z8002's), so a word handler sees one access.
+        // In the space's own byte order: the V30's port space is little-endian.
         const config = device.spaceConfig?.(space);
+        const littlePorts = config?.endianness === 'little';
         const ports: WideSpaceAccess | undefined = config && config.dataBits > 8 ? {
-          read16: port => bus.in16be?.(port) ?? ((inByte(port) << 8) | inByte(port + 1)),
+          read16: port => littlePorts
+            ? bus.in16le?.(port) ?? (inByte(port) | (inByte(port + 1) << 8))
+            : bus.in16be?.(port) ?? ((inByte(port) << 8) | inByte(port + 1)),
           write16: (port, data) => {
-            if (bus.out16be) bus.out16be(port, data);
+            if (littlePorts) {
+              if (bus.out16le) bus.out16le(port, data);
+              else { outByte(port, data & 0xff); outByte(port + 1, data >>> 8); }
+            } else if (bus.out16be) bus.out16be(port, data);
             else { outByte(port, data >>> 8); outByte(port + 1, data & 0xff); }
           },
         } : undefined;

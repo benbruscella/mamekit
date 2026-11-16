@@ -71,7 +71,7 @@ import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
 import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
 import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
-import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
+import { boardRam, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
@@ -494,11 +494,7 @@ function ioRequest(): OraclePlan['io'] {
   const window = option('--io-frames');
   if (!window) throw new Error('--io needs --io-frames <from>-<to>: a tap logs every access, so keep the window short');
   const [from, to] = window.split('-').map(Number);
-  const taps = specs.map(spec => {
-    const [tag, range, mode = 'rw'] = spec.split(/:(?=[0-9a-f]+-|[rw]+$)/i);
-    const [lo, hi] = range!.split('-').map(value => parseInt(value, 16));
-    return { tag: tag!, lo: lo!, hi: hi ?? lo!, read: mode.includes('r'), write: mode.includes('w') };
-  });
+  const taps = specs.map(parseIoTap);
   const offset = Number(option('--io-offset') ?? 0);
   return { taps, from: from!, to: to ?? from!, ...(offset ? { offset } : {}) };
 }

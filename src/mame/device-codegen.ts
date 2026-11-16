@@ -3,7 +3,7 @@ import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDer
 import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { isNoEffectStatement } from '../ir/framework-calls.ts';
-import { walkExpressions } from '../ir/walk.ts';
+import { childExpressions as childExpressionsOf, walkExpressions } from '../ir/walk.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
@@ -741,10 +741,22 @@ function isLineEntryPoint(method: GeneratedDeviceMethod): boolean {
  * nametable fetch, thirty thousand times a frame. A driver's own handlers are
  * not roots this way: the board selects those by how it wires them.
  */
-function isAccessor(method: GeneratedDeviceMethod, methodsByName: Map<string, GeneratedDeviceMethod>): boolean {
+function isAccessor(
+  method: GeneratedDeviceMethod,
+  methodsByName: Map<string, GeneratedDeviceMethod>,
+  visiting: Set<string> = new Set(),
+): boolean {
   const operations = method.program.operations;
   if (operations.length !== 1 || maximumLoopDepth(operations) !== 0) return false;
-  if ([...calledIdentifiers(operations)].some(name => methodsByName.has(name))) return false;
+  // An accessor may be built from the device's other accessors:
+  // buffered_spriteram's `length()` is `bytes() / sizeof(Type)`, and a
+  // renderer asks it once per loop pass (R-Type's draw_sprites, ~300 times a
+  // frame). Refusing any call to a sibling method left it interpreted (#246).
+  visiting.add(method.name);
+  if ([...calledIdentifiers(operations)].some(name => {
+    const callee = methodsByName.get(name);
+    return callee && (visiting.has(name) || !isAccessor(callee, methodsByName, visiting));
+  })) return false;
   const parameters = tryParseParameters(method.parameters);
   if (!parameters) return false;
   if (parameters.length === 0) return operations[0]!.op === 'return';
@@ -784,7 +796,30 @@ export function supportsMethod(
     visitOperationExpressions(operation, expression => {
       if (expression.kind === 'call' && expression.callee.kind === 'member' &&
           videoFrameworkChainName(expression, definition)) chainReceivers.add(expression.callee.object);
+      // `sizeof(uint16_t)` names a type, which is no value in scope: the
+      // emitter's sizeof answers it from the name (buffered_spriteram's
+      // `length()`, #246), so the operand is never emitted on its own.
+      if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
+          expression.callee.name === 'sizeof' && expression.args[0] && namesType(expression.args[0])) {
+        chainReceivers.add(expression.args[0]);
+      }
     });
+    // A statement that is a no-effect registration chain
+    // (`state_add(NEC_PC, "PC", m_ip).formatstr("%04X")`) is left out of the
+    // emitted code whole, so nothing in it has to be supported.
+    if (operation.op === 'call' && noEffectChainRoot(operation.expression, compiled)) {
+      // Every link and argument: walkExpressions does not descend a callee.
+      const skip = (expression: GeneratedExpression): void => {
+        chainReceivers.add(expression);
+        if (expression.kind === 'call') {
+          skip(expression.callee);
+          expression.args.forEach(skip);
+        } else {
+          for (const child of childExpressionsOf(expression)) skip(child);
+        }
+      };
+      skip(operation.expression);
+    }
   });
   let supported = true;
   visitOperations(method.program.operations, operation => {
@@ -835,6 +870,16 @@ export function supportsMethod(
             expression.operand.kind === 'call' &&
             expression.operand.callee.kind === 'identifier' &&
             compiled.has(expression.operand.callee.name)
+          ) ||
+          // `&space(AS_PROGRAM)`: device_memory_interface::space answers the
+          // address_space by reference, whose address is that space. Declined,
+          // the V30's device_start stayed interpreted, and with it the m_dr8
+          // lambda every opcode fetch calls (#246).
+          (
+            expression.operand.kind === 'call' &&
+            expression.operand.callee.kind === 'identifier' &&
+            expression.operand.callee.name === 'space' &&
+            Boolean(definition.spaces?.length)
           ) ||
           (
             expression.operand.kind === 'identifier' &&
@@ -1197,6 +1242,8 @@ function emitOperation(
         operation.expression.kind === 'call' && operation.expression.args.every(argument => !hasCall(argument))) {
       return `${pad}/* ${callee}: no effect */`;
     }
+    const chained = noEffectChainRoot(operation.expression, context.compiled);
+    if (chained) return `${pad}/* ${chained}(...)...: no effect */`;
     return `${pad}${emitExpression(operation.expression, context)};`;
   }
   if (operation.op === 'return') {
@@ -1710,8 +1757,13 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     }
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
-    const leftType = expressionValueType(expression.left, context);
-    const rightType = expressionValueType(expression.right, context);
+    // A finder that holds memory (`required_shared_ptr<u16> m_spriteram`) is a
+    // pointer in C++ arithmetic: buffered_spriteram's `m_spriteram + srcoffset`
+    // was added as numbers, which turned the Uint16Array into a string and
+    // copied no sprites (#246).
+    const pointerLike = (type: string | undefined) => type && isMemoryFinderType(type) ? `${type}*` : type;
+    const leftType = pointerLike(expressionValueType(expression.left, context));
+    const rightType = pointerLike(expressionValueType(expression.right, context));
     // Less an array, a pointer is a count of elements, as C decays the array:
     // the Z8002 numbers its opcode rows `opc - table`, and offset by the
     // negated table every row was 0.
@@ -2209,7 +2261,12 @@ function emitCall(
     if (name === 'ARRAY') return `[${args.join(', ')}]`;
     if (name === 'sizeof') {
       const operand = expression.args[0];
-      const valueType = operand ? expressionValueType(operand, context) : undefined;
+      // A type name is its own width: `sizeof(uint16_t)` is 2. Read through
+      // expressionValueType it had no type and fell to 1, which doubled
+      // buffered_spriteram16's `length()` (#246).
+      const valueType = operand && namesType(operand) && operand.kind === 'identifier'
+        ? operand.name
+        : operand ? expressionValueType(operand, context) : undefined;
       const bytes = /(?:u?int64_t|[us]64|double)/.test(valueType ?? '') ? 8
         : /(?:u?int32_t|[us]32|float|offs_t|pen_t)/.test(valueType ?? '') ? 4
         : /(?:u?int16_t|[us]16)/.test(valueType ?? '') ? 2
@@ -2382,7 +2439,18 @@ function emitCall(
       }
       return resized;
     }
+    // A device answers these itself: `m_spriteram->length()` on a
+    // `required_device<buffered_spriteram16_device>` is the buffer's word
+    // count, and read as the handle's `.length` it was undefined, so R-Type's
+    // draw_sprites listed no sprite at all (#246). Such a call falls through
+    // to the device's own member call below.
+    const sizedDevice = ['bytes', 'size', 'length'].includes(expression.callee.property) && !args.length &&
+      (isDeviceReceiverType(expressionValueType(expression.callee.object, context)) ||
+        // A board member the machine binds to one of its devices (`m_spriteram`
+        // is the BUFFERED_SPRITERAM16), which board scope carries no type for.
+        (context.boardScope && context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object)) === true));
     if (
+      !sizedDevice &&
       ['bytes', 'size', 'length'].includes(expression.callee.property) &&
       !args.length
     ) {
@@ -2957,6 +3025,12 @@ function emitAddressOf(
     return context.pointerSafeIndex
       ? `runtime.addressOf(${object}, ${index})`
       : `({ generatedPointer: true, source: ${object}, offset: ${index} })`;
+  }
+  // `&space(AS_IO)`: the space a device_memory_interface answers by
+  // reference is an object, whose address is itself.
+  if (expression.kind === 'call' && expression.callee.kind === 'identifier' && expression.callee.name === 'space' &&
+      context.definition.spaces?.length) {
+    return emitExpression(expression, context);
   }
   // A container's element reference -- `&v.emplace_back(...)`, `&v.back()`
   // -- is that element, an object whose address is itself.
@@ -3828,4 +3902,42 @@ function isKnownNumericType(valueType: string | undefined): boolean {
   const declared = valueType.trim();
   if (declared === 'auto' || declared.includes('*') || declared.includes('&')) return false;
   return true;
+}
+
+/**
+ * A receiver declared as a device: a finder (`required_device<T>`,
+ * `optional_device<T>`, `device_finder<T, R>`) or a `*_device` class, by
+ * value, reference or pointer. Its `length()`, `size()` and `bytes()` are
+ * methods of that device, never a container's extent.
+ */
+export function isDeviceReceiverType(type: string | undefined): boolean {
+  if (!type) return false;
+  const bare = type.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+  return /^(?:required|optional)_device\s*</.test(bare) || /^device_finder\s*</.test(bare) ||
+    /^[\w:]*_device$/.test(bare);
+}
+
+/**
+ * The root of a statement that is a chain of calls on a no-effect framework
+ * call -- `state_add(...).formatstr(...)`, `state_add(...).mask(...).noshow()`
+ * -- which MAMEKIT answers by not executing it (framework-calls.ts). A
+ * release build without the debugger has the same effect. Undefined for any
+ * other statement, and for a root the device compiles itself.
+ */
+function noEffectChainRoot(expression: GeneratedExpression, compiled: ReadonlySet<string>): string | undefined {
+  let link: GeneratedExpression = expression;
+  let chained = false;
+  while (link.kind === 'call' && link.callee.kind === 'member') {
+    link = link.callee.object;
+    chained = true;
+  }
+  if (!chained || link.kind !== 'call' || link.callee.kind !== 'identifier') return undefined;
+  const name = link.callee.name;
+  return !compiled.has(name) && isNoEffectStatement(name) ? name : undefined;
+}
+
+/** MAME's memory finders, which C++ arithmetic treats as the pointer they hold. */
+export function isMemoryFinderType(type: string): boolean {
+  const bare = type.replace(/\bconst\b/g, '').replace(/&/g, '').trim();
+  return /^(?:required|optional)_(?:shared|region)_ptr\s*</.test(bare) || /^memory_share_creator\s*</.test(bare);
 }
