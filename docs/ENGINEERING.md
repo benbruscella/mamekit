@@ -1070,7 +1070,7 @@ and `compare` end with how many runs came from the cache and how many ran
 MAME.
 
 The key is a hash of everything MAME is given: its arguments and Lua plan
-(less the run's own work directory), `oracle.lua`, the MAME version, and the
+(less the run's own work directory), `oracle.lua`'s code (not its comments), the MAME version, and the
 size and modification time of every set file the run can read (the machine,
 its `cloneof`/`romof` parents, device sets, sample set, fitted cards, `bios/`
 paths and the software title). Part of MAME's input comes from our run:
