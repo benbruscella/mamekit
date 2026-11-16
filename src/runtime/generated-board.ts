@@ -16,6 +16,8 @@ import {
   withGeneratedTimerExpiry,
   setGeneratedTimerArmed,
   setGeneratedTimerArmBase,
+  setGeneratedTimerArmLead,
+  withGeneratedTimerHeadroom,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
   generatedDeviceKey,
@@ -349,6 +351,12 @@ const HOLD_LINE = 2;
  * expiry measured from the beam.
  */
 const PRESENT_MARGIN_SECONDS = 1e-9;
+/**
+ * How far past a round's end a driver timer may stand and still fire there.
+ * Its expiry is kept in floating-point seconds on the processors' clock, so
+ * the round that ended on it can come out a rounding short of it.
+ */
+const ROUND_TIMER_SLOP_SECONDS = 1e-9;
 
 /** A timer due a rounding error past a whole cycle is due on that cycle. */
 const CYCLE_ROUNDING = 1e-6;
@@ -537,6 +545,25 @@ class IrBoard implements Board {
   /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
   private readonly pendingTimers = new Map<string, { at: number; param: number }>();
   private readonly genericTimerFires = new Map<string, () => void>();
+  /**
+   * The timers a board's rounds end on, as MAME's do on every timer: a
+   * `TIMER` device the driver arms itself, or one it allocates into an array.
+   * Each fires once every processor stands at its expiry (see the frame
+   * runner's nextTimerSeconds); on a board whose rounds do not end at timers
+   * it fires at the next line boundary instead. A driver's own `emu_timer`
+   * keeps the per-line schedule it forces.
+   */
+  private readonly roundTimerMembers = new Set<string>();
+  /** The board's rounds end at the soonest timer (timerRounds). */
+  private roundTimers = false;
+  /** A round timer was armed inside the round for `seconds` from its base. */
+  private roundTimerArmed?: (seconds: number) => void;
+  /** Where the round in progress began, on the clock `machineSeconds` keeps. */
+  private roundBaseSeconds = 0;
+  /** How far the devices stood from the round's base when it began (nextTimerSeconds). */
+  private roundDeviceOffset = 0;
+  /** The processor that posted the synchronized work being run, if one did. */
+  private workPoster?: string;
   private video?: GeneratedVideoRenderer;
   private readonly regions: Regions;
   /**
@@ -576,7 +603,7 @@ class IrBoard implements Board {
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
   /** `scheduler().synchronize()` work, run once the posting CPU has yielded. */
-  private readonly scheduledWork: (() => void)[] = [];
+  private readonly scheduledWork: { at: number; run: () => void }[] = [];
   private currentLineFraction = 0;
   private inFrame = false;
   /**
@@ -1776,6 +1803,7 @@ class IrBoard implements Board {
     // the board spun in its own video timing with a black screen.
     for (const timer of machine.execution.genericTimers ?? []) {
       if (timer.driver && timer.precise) this.preciseTimerMembers.add(timer.member);
+      if (!timer.driver) this.roundTimerMembers.add(timer.member);
       // Resolved once: a scanline timer fires 264 times a frame.
       const handler = machine.handlers?.find(candidate =>
         `${candidate.ownerClass}.${candidate.method}` === timer.handler);
@@ -1790,8 +1818,10 @@ class IrBoard implements Board {
           timer: pending.param,
         });
         // A precise timer fires between instructions, a hair after its
-        // expiry; MAME's callback sees the expiry itself.
-        if (timer.driver) withGeneratedTimerExpiry(pending.at, run);
+        // expiry, and a round's timer once the processors have run to it,
+        // the first of them usually an instruction past; MAME's callback
+        // sees the expiry itself.
+        if (timer.driver || this.roundTimers) withGeneratedTimerExpiry(pending.at, run);
         else run();
       };
       this.genericTimerFires.set(timer.member, fire);
@@ -1802,10 +1832,9 @@ class IrBoard implements Board {
           this.pendingTimers.delete(timer.member);
           return 0;
         }
-        this.pendingTimers.set(timer.member, {
-          at: this.machineSeconds() + seconds,
-          param: Number(param) || 0,
-        });
+        const at = this.machineSeconds() + seconds;
+        this.pendingTimers.set(timer.member, { at, param: Number(param) || 0 });
+        if (!timer.driver) this.roundTimerArmed?.(at - this.roundBaseSeconds);
         // `adjust(attotime::zero, param)` is MAME's synchronize(): due at the
         // current time, once the processors behind this one catch up -- not at
         // the next line. The Williams ADPCM board's sync_command is one; left
@@ -1836,6 +1865,7 @@ class IrBoard implements Board {
     calls['timer_alloc'] = (callback: unknown) => {
       if (typeof callback !== 'string') return undefined as never;
       const key = `${callback}#${this.genericTimerFires.size}`;
+      this.roundTimerMembers.add(key);
       this.genericTimerFires.set(key, () => {
         const pending = this.pendingTimers.get(key);
         if (!pending) return;
@@ -1851,7 +1881,11 @@ class IrBoard implements Board {
         adjust: (when: unknown, param: unknown = 0) => {
           const seconds = Number(when);
           if (!Number.isFinite(seconds) || seconds < 0) this.pendingTimers.delete(key);
-          else this.pendingTimers.set(key, { at: this.machineSeconds() + seconds, param: Number(param) || 0 });
+          else {
+            const at = this.machineSeconds() + seconds;
+            this.pendingTimers.set(key, { at, param: Number(param) || 0 });
+            this.roundTimerArmed?.(at - this.roundBaseSeconds);
+          }
           return 0;
         },
         reset: () => { this.pendingTimers.delete(key); return 0; },
@@ -3251,16 +3285,64 @@ class IrBoard implements Board {
       this.roundTimerBudget = Math.max(0, seconds - 1e-9);
       this.frameRunner?.requestSynchronize();
     };
+    // The same for a timer the driver arms (roundTimerMembers), which is
+    // measured from the round's base: the devices have been given
+    // `roundDelivered` of the round already.
+    const armedRoundTimer = (seconds: number): void => armedTimer(seconds - this.roundDelivered);
+    // Where the round stands on the processors' own clock, the one a driver
+    // timer's expiry is kept on: its base, or its end once every processor
+    // has run to it.
+    const roundSeconds = (atEnd: boolean): number => timerClockCpu
+      ? this.cpuSeconds(timerClockCpu) - this.frameRunner.secondsAhead(timerClockCpu.tag, atEnd)
+      : 0;
+    // MAME's execute_timers for the driver's timers: every one due by `now`
+    // fires, the earliest first, and so does any its callback arms for a
+    // time already reached.
+    const fireRoundTimers = (now: number): void => {
+      for (let fired = 0; fired < 64; fired++) {
+        let due: string | undefined;
+        let earliest = now + ROUND_TIMER_SLOP_SECONDS;
+        for (const [member, pending] of this.pendingTimers) {
+          if (pending.at <= earliest && this.roundTimerMembers.has(member)) {
+            due = member;
+            earliest = pending.at;
+          }
+        }
+        if (due === undefined) return;
+        this.genericTimerFires.get(due)?.();
+      }
+    };
+    const soonestRoundTimer = (now: number): number => {
+      let soonest = Infinity;
+      for (const [member, pending] of this.pendingTimers) {
+        if (pending.at - now < soonest && this.roundTimerMembers.has(member)) soonest = pending.at - now;
+      }
+      return soonest;
+    };
     // A round device arms from the round's base, where MAME's machine time
     // stands through the timeslice (timerArmBase).
     const armBase = (): number =>
       this.runningRoundDevice !== undefined && !this.deliveringDeviceTime ? this.roundDelivered : 0;
+    // A processor other than the one the device clock follows arms from its
+    // own local time (timerArmLead): in its slice, or in the work it posted
+    // with synchronize(), which runs at the time it was posted. The devices
+    // stand at the round's base, plus what they stood off it when it began,
+    // plus what the round has delivered since.
+    const armLead = (): number => {
+      if (this.deliveringDeviceTime || this.runningRoundDevice !== undefined) return 0;
+      const tag = this.runningCpu ?? this.workPoster;
+      if (tag === undefined || tag === timerClockCpu?.tag) return 0;
+      const now = this.runningCpu !== undefined ? this.machineSeconds() : generatedTimerExpiry();
+      if (now === undefined) return 0;
+      return this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - now;
+    };
     const timerRounds = roundQuantum && machine.execution.perfectQuantum !== true;
     // Asked every round, so only the devices that own a timer: the ones the
     // device clock ticks. Walking every device cost Lagrange Point a fifth
     // of its frame.
     const timerDevices = [...timedDevices, ...cardDeviceSet];
     if (timerRounds) this.deviceClockFollowsProcessors = true;
+    this.roundTimers = timerRounds;
     const soonestTimer = (): number => {
       let soonest = Infinity;
       for (let index = 0; index < timerDevices.length; index++) {
@@ -3303,29 +3385,53 @@ class IrBoard implements Board {
           // A timeslice starts by firing every timer due at its base
           // (execute_timers): one a round device armed overdue last round
           // fires, and catches up its missed periods, before anything runs.
-          for (let fired = 0; soonest <= 1e-10 && fired < 64; fired++) {
+          //
+          // The devices stand at the round's base, give or take the rounding
+          // of their floating-point clock; a real difference is a presentation
+          // holding them back, or a round cut short of where the first
+          // processor had already carried them. Ahead of the base, a timer is
+          // due once the base has reached it (timerHeadroomSeconds).
+          const offset = (this.beamPosition() - baseLine) * this.lineSeconds();
+          this.roundDeviceOffset = Math.abs(offset) < 1e-11 ? 0 : offset;
+          const headroom = Math.max(0, this.roundDeviceOffset);
+          for (let fired = 0; soonest + headroom <= 1e-10 && fired < 64; fired++) {
             this.roundTimerBudget = Infinity;
-            advanceTimedHardware(1e-12);
+            if (headroom > 0) withGeneratedTimerHeadroom(headroom, () => advanceTimedHardware(1e-12));
+            else advanceTimedHardware(1e-12);
             soonest = soonestTimer();
           }
           // No timer fires inside the round: the device clock stops short of
-          // the soonest, and the rest waits for the round's end.
-          this.roundTimerBudget = soonest > 1e-9 ? soonest - 1e-9 : Infinity;
+          // the soonest, and the rest waits for the round's end. One the clock
+          // has passed already holds it where it stands.
+          this.roundTimerBudget = soonest > 1e-9 ? soonest - 1e-9 : soonest + headroom > 1e-10 ? 0 : Infinity;
           // A timer armed inside the round that falls due before its end ends
           // the running slice and becomes the round's bound, as MAME's
           // emu_timer::adjust aborts the timeslice for a new soonest timer.
           setGeneratedTimerArmed(armedTimer);
           this.roundDelivered = 0;
           setGeneratedTimerArmBase(armBase);
-          // The devices stand at the round's base, give or take the rounding
-          // of their floating-point clock; a real difference is a presentation
-          // holding them back.
-          const offset = (this.beamPosition() - baseLine) * this.lineSeconds();
-          return Math.abs(offset) < 1e-11 ? soonest : soonest + offset;
+          setGeneratedTimerArmLead(armLead);
+          const untilDevice = soonest + this.roundDeviceOffset;
+          // The driver's own timers end the round too, and one already due
+          // (armed between rounds, by a frame event) fires before it starts.
+          this.roundBaseSeconds = roundSeconds(false);
+          this.roundTimerArmed = armedRoundTimer;
+          // Synchronized work still waiting is a timer at the time it was
+          // posted (drainScheduledWork).
+          let untilWork = Infinity;
+          for (let index = 0; index < this.scheduledWork.length; index++) {
+            untilWork = Math.min(untilWork, this.scheduledWork[index]!.at - this.roundBaseSeconds);
+          }
+          if (!this.pendingTimers.size) return Math.min(untilDevice, untilWork);
+          fireRoundTimers(this.roundBaseSeconds);
+          const untilDriver = soonestRoundTimer(this.roundBaseSeconds);
+          if (untilDriver < this.roundTimerBudget) this.roundTimerBudget = Math.max(0, untilDriver - 1e-9);
+          return Math.min(untilDevice, untilDriver, untilWork);
         },
         onRoundEnd: line => {
           setGeneratedTimerArmed(undefined);
           setGeneratedTimerArmBase(undefined);
+          setGeneratedTimerArmLead(undefined);
           this.roundTimerBudget = Infinity;
           // What the processor that drives the device clock ran past the
           // timer is not delivered here: the round may have ended short of
@@ -3340,6 +3446,10 @@ class IrBoard implements Board {
           // DMA had asked for the bus.
           const behind = (line - this.beamPosition()) * this.lineSeconds();
           if (behind > 1e-12) advanceTimedHardware(behind);
+          // Every processor stands at the round's end: the driver's timers
+          // due there fire, after the devices' own.
+          this.roundTimerArmed = undefined;
+          if (this.pendingTimers.size) fireRoundTimers(roundSeconds(true));
         },
       } : {}),
       processors: [...machine.execution.cpus.map(specification => ({
@@ -3430,8 +3540,14 @@ class IrBoard implements Board {
         .sort((left, right) => left.order - right.order || left.index - right.index)
         .map(entry => entry.processor),
       // `scheduler().synchronize()` work runs once the processor that posted
-      // it has yielded and the ones behind it have caught up.
-      onSynchronize: () => this.drainScheduledWork(),
+      // it has yielded and the ones behind it have caught up. On a board whose
+      // rounds end at timers the work is one of them, due at the time it was
+      // posted: a processor later in the round that ends its own slice sooner
+      // (a POKEY read asks for a resync) must not run work the first
+      // processor posted for a later time. Marble Madness's 6502 took the
+      // NMI of a command the 68010 had not yet sent, 190 us early.
+      onSynchronize: at => this.drainScheduledWork(
+        at !== undefined && timerRounds ? roundSeconds(at === 'target') : Infinity),
       // A device suspended or triggered during a round changes at the next.
       ...(executeDevices.length ? {
         onRound: () => {
@@ -3528,6 +3644,8 @@ class IrBoard implements Board {
             const now = this.machineSeconds();
             for (const [member, pending] of [...this.pendingTimers]) {
               if (pending.at > now) continue;
+              // A round's own timer fires where the round ends.
+              if (this.roundTimers && this.roundTimerMembers.has(member)) continue;
               this.genericTimerFires.get(member)?.();
             }
           }
@@ -3961,7 +4079,19 @@ class IrBoard implements Board {
     // `machine().time()`, and read when the drain ran instead, Galaga's
     // first chip select after a control write came an MCU instruction early.
     const at = this.machineSeconds();
-    this.scheduledWork.push(() => withGeneratedTimerExpiry(at, run));
+    const poster = this.runningCpu;
+    this.scheduledWork.push({
+      at,
+      run: () => {
+        const outer = this.workPoster;
+        this.workPoster = poster;
+        try {
+          withGeneratedTimerExpiry(at, run);
+        } finally {
+          this.workPoster = outer;
+        }
+      },
+    });
     if (this.frameRunner?.requestSynchronize()) return;
     // Outside a slice (a line callback, an event) it is due now; inside a
     // drain the loop below picks it up in order. Posted while the machine is
@@ -3982,13 +4112,19 @@ class IrBoard implements Board {
    * just ended. Draining in order, and re-checking the queue, matches MAME:
    * a synchronized callback may itself synchronize.
    */
-  private drainScheduledWork(): void {
-    if (!this.scheduledWork.length) return;
+  private drainScheduledWork(until = Infinity): void {
+    const work = this.scheduledWork;
+    if (!work.length) return;
     this.drainingScheduledWork = true;
     try {
-      for (let guard = 0; this.scheduledWork.length && guard < 64; guard++) {
-        const run = this.scheduledWork.shift()!;
-        run();
+      for (let guard = 0; work.length && guard < 64; guard++) {
+        // The earliest that has come due, the first posted among equals.
+        let next = -1;
+        for (let index = 0; index < work.length; index++) {
+          if (work[index]!.at <= until + ROUND_TIMER_SLOP_SECONDS && (next < 0 || work[index]!.at < work[next]!.at)) next = index;
+        }
+        if (next < 0) break;
+        work.splice(next, 1)[0]!.run();
       }
     } finally {
       this.drainingScheduledWork = false;
@@ -5451,6 +5587,15 @@ class IrBoard implements Board {
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
       deviceTime: tag => this.roundDeviceSeconds(tag),
+      settledTime: () => {
+        const cpus = machine.execution.cpus;
+        let settled = Infinity;
+        for (let index = 0; index < cpus.length; index++) {
+          const seconds = this.cpuSeconds(cpus[index]!);
+          if (seconds < settled) settled = seconds;
+        }
+        return settled;
+      },
       systemMuted: () => Boolean(this.state.systemSoundMuted),
       bindDeviceCall: (tag, name, callback) => deviceFor(tag)?.bindCall(name, callback),
       callDevice: (tag, method, ...args) => {

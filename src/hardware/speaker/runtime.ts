@@ -168,6 +168,7 @@ export function createStreamMixer(
   const netlistFeeders = new Set(netlist?.feeds.map(feed => feed.tag) ?? []);
   const sources = allSources.filter(source => !netlistFeeders.has(source.tag));
   const driver = context.board.execution.cpus[0]?.tag;
+  const last = context.board.execution.cpus[context.board.execution.cpus.length - 1]?.tag;
   // `outputGain` is the device's set_output_gain, over its routed gain.
   const streams = sources.map(source => ({
     ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
@@ -592,10 +593,14 @@ export function createStreamMixer(
   }
   // A device the round runs after the CPUs has not reached their time yet;
   // what it renders past where it stands would miss the writes still to come.
+  // Nor has a processor that runs after the first: the mix reaches only as
+  // far as every one of them has run. The first runs its whole slice of the
+  // round before the next starts, so a mix up to its time rendered Juno
+  // First's DAC before the i8039 had written the samples for that stretch.
   const reached = () => streams.reduce((target, stream) => {
     const seconds = context.deviceTime?.(stream.tag);
     return seconds === undefined ? target : Math.min(target, Math.floor(seconds * STREAM_AUDIO_RATE));
-  }, now());
+  }, Math.min(now(), Math.floor((context.settledTime?.() ?? Infinity) * STREAM_AUDIO_RATE)));
   const mix = () => {
     const target = reached();
     if (target <= state.emitted) return;
@@ -656,7 +661,9 @@ export function createStreamMixer(
         stream.lofi.history.length = 0;
       }
     },
-    tickCpu: cpu => { if (cpu === driver && reached() - state.emitted >= MIX_BATCH) mix(); },
+    // After the first processor's slice, and after the last one's, which is
+    // where a round of several processors has all of them at its end.
+    tickCpu: cpu => { if ((cpu === driver || cpu === last) && reached() - state.emitted >= MIX_BATCH) mix(); },
     endFrame: mix,
     renderTo: seconds => renderNetlist(Math.floor(seconds * STREAM_AUDIO_RATE)),
   };

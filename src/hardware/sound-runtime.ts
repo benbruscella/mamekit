@@ -74,6 +74,13 @@ export interface SoundRuntimeContext {
    */
   deviceTime?(tag: string): number | undefined;
   /**
+   * The time every processor of the round has run to. MAME mixes from a timer
+   * (`sound_manager::update`), which fires once all of them stand at it; a
+   * mix reaching past this would render a stream before a processor later in
+   * the round has made the writes that fall inside it.
+   */
+  settledTime?(): number;
+  /**
    * Sound devices a board device is built out of that render a routed stream,
    * by MAME tag, with their route gain: an NES cartridge's MMC5, VRC6 or Namco
    * 163, which exist only once a cartridge chose that board. callDevice and

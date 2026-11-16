@@ -858,6 +858,48 @@ let timerArmed: ((seconds: number) => void) | undefined;
  */
 let timerArmBase: (() => number) | undefined;
 
+/**
+ * How far the device clock stands ahead of the processor arming a timer,
+ * when that processor is not the one the clock follows. MAME measures a
+ * timer from `machine().time()`, the arming processor's own local time; the
+ * device clock has followed the board's first processor, which ran its slice
+ * of the round before this one started. Counted down from there, Marble
+ * Madness's YM2151 timer A, armed by the sound 6502, expired as much later
+ * as the 68010 had run ahead: 2.6 ms in a round of 240 lines.
+ */
+let timerArmLead: (() => number) | undefined;
+
+/** Install the arming-lead hook (see timerArmLead); returns the one it replaced. */
+export function setGeneratedTimerArmLead(hook: (() => number) | undefined): (() => number) | undefined {
+  const outer = timerArmLead;
+  timerArmLead = hook;
+  return outer;
+}
+
+/**
+ * How far the device clock stands ahead of the round's base while the round's
+ * due timers are fired at its start (MAME's execute_timers). The first
+ * processor has carried the clock to the end of a round another processor
+ * then cut short, so a timer that processor armed can be due at a time the
+ * clock has passed (see timerArmLead): it is due once the base has reached
+ * it, which is when its time left is this far below zero, and no sooner.
+ * Fired as soon as it went negative, every period of it up to the clock was
+ * replayed at once: the YM2151 timer TMNT's Z80 arms ran a round early each
+ * time, and the title music was cut off.
+ */
+let timerHeadroomSeconds = 0;
+
+/** Run `run` with the device clock `seconds` ahead of the round's base (see timerHeadroomSeconds). */
+export function withGeneratedTimerHeadroom<T>(seconds: number, run: () => T): T {
+  const outer = timerHeadroomSeconds;
+  timerHeadroomSeconds = Math.max(0, seconds);
+  try {
+    return run();
+  } finally {
+    timerHeadroomSeconds = outer;
+  }
+}
+
 /** Install the round-base hook (see timerArmBase); returns the one it replaced. */
 export function setGeneratedTimerArmBase(hook: (() => number) | undefined): (() => number) | undefined {
   const outer = timerArmBase;
@@ -1099,6 +1141,13 @@ class IrTimer {
         this.remainingSeconds -= since;
         this.expiry -= since;
       }
+      // The expiry is already the arming processor's time plus the delay;
+      // only the count of device time left to it moves (see timerArmLead).
+      // A delay shorter than the lead leaves it negative: due at a time the
+      // devices have passed and the arming processor has not reached. The
+      // round ends there and the timer fires then (timerHeadroomSeconds).
+      const lead = Number.isFinite(this.remainingSeconds) ? timerArmLead?.() ?? 0 : 0;
+      if (lead !== 0) this.remainingSeconds -= lead;
     }
     if (Number.isFinite(this.remainingSeconds)) timerArmed?.(this.remainingSeconds);
   }
@@ -1171,7 +1220,7 @@ class IrTimer {
     if (this.creditedDelivery !== timerDelivery) this.remainingSeconds -= seconds;
     // Every armed timer comes through here once per round, and on a board with
     // a per-cycle timer that is tens of thousands of times a frame.
-    if (this.remainingSeconds > TIMER_NOW_TOLERANCE_SECONDS) return;
+    if (this.remainingSeconds > TIMER_NOW_TOLERANCE_SECONDS - timerHeadroomSeconds) return;
     let firings = 0;
     // Due within the clocks' rounding is due: MAME fires a timer whose expiry
     // the processor's slice ends exactly on before the next instruction, and
@@ -1180,7 +1229,7 @@ class IrTimer {
     // A catch-up's delivery ends at the processor's access, and a timer due
     // exactly there fires after it (City Fighter IV's VRC4 IRQ counter ticks
     // on whole cycles and was taken an instruction early, #184).
-    const due = timerDeliveryExclusive ? -TIMER_NOW_TOLERANCE_SECONDS : TIMER_NOW_TOLERANCE_SECONDS;
+    const due = (timerDeliveryExclusive ? -TIMER_NOW_TOLERANCE_SECONDS : TIMER_NOW_TOLERANCE_SECONDS) - timerHeadroomSeconds;
     while (this.remainingSeconds <= due) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
       const overshoot = -this.remainingSeconds;

@@ -146,3 +146,31 @@ console.log('speaker/runtime.spec: speaker-rate and native-rate streams mix at t
   assert.ok(emitted.length >= 2000, 'the frame mixed');
   assert.ok(Math.abs(emitted.at(-1)! - 0.5) < 1e-6, `the filter passes its slow feeder (${emitted.at(-1)})`);
 }
+
+// A processor later in the round has not run the stretch the first one just
+// finished: the mix reaches only as far as every processor has (settledTime),
+// so the writes it still has to make land on streams not yet rendered (#255).
+{
+  let seconds = 0;
+  let settled = 0;
+  const emitted: number[] = [];
+  const hooks = createStreamMixer({
+    board: { execution: { cpus: [{ tag: 'maincpu' }, { tag: 'soundcpu' }] } },
+    calls: {},
+    time: () => seconds,
+    settledTime: () => settled,
+    fraction: () => 0,
+    bindDeviceCall: () => undefined,
+    deviceStreamRate: () => STREAM_AUDIO_RATE,
+    callDevice: (_tag: string, _method: string, surface: Surface) => {
+      for (let index = 0; index < surface.samples(); index++) surface.put(0, index, 1);
+      return 0;
+    },
+  } as unknown as SoundRuntimeContext, [{ tag: 'dac', gain: 1 }], sample => emitted.push(sample));
+  seconds = 600 / STREAM_AUDIO_RATE;
+  hooks.tickCpu!('maincpu', 1);
+  assert.equal(emitted.length, 0, 'the first processor\'s slice mixes nothing the second has not reached');
+  settled = 600 / STREAM_AUDIO_RATE;
+  hooks.tickCpu!('soundcpu', 1);
+  assert.equal(emitted.length, 600, 'the last processor\'s slice mixes the round');
+}

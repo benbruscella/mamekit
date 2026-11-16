@@ -230,19 +230,68 @@ events is atomic as far as the others are concerned. A board's frame events
 are those timers, so the generated frame schedule hands over at their lines
 rather than at every scanline.
 
-Four things bound that interval. A board that schedules per-line work — a
-periodic event, a scanline-updated screen, a driver's own `emu_timer` (below) —
-keeps the per-line cadence. So does a board whose machine configuration calls
+The lines handed to the processors at once run to the next line one of MAME's
+timers falls on. A board that schedules per-line work — a periodic event, a
+scanline-updated screen, a driver's own `emu_timer` (below) — keeps the
+per-line cadence. So does a board whose machine configuration calls
 `set_perfect_quantum`, which is MAME's way of saying its processors share state
 through a handshake nothing coarser survives. A board that declares a scanline
-`TIMER` (`configure_scanline`) is bounded by that timer's increment, and every
-line the timer fires on is a slice boundary whether or not its callback has
-work there, because MAME ends every timeslice on it: MCR's scantimer fires
-every line, Gauntlet's every 32. Every other board is bounded by 250
-microseconds (`MAX_QUANTUM_SECONDS` in `src/runtime/generated-frame.ts`),
-because MAME's own quantum is bounded by all of its device timers and the
-timers modelled here tick once per scanline: claiming a whole frame of
-atomicity would claim more than the model supports.
+`TIMER` (`configure_scanline`) hands over on every line the timer fires on,
+whether or not its callback has work there, because MAME ends every timeslice
+on it: MCR's scantimer fires every line, Gauntlet's every 32. Every board
+hands over at its frame events and at the screen's own three timers: VBLANK
+start, VBLANK end and scanline 0 (`m_vblank_begin_timer`, `m_vblank_end_timer`,
+`m_scanline0_timer`).
+
+Between two of those lines nothing but MAME's own rule bounds a round (#255):
+it ends at the soonest timer of any kind, and is no longer than the quantum,
+which is the machine's `set_maximum_quantum` or MAME's default of a sixtieth
+of a second (`device_scheduler::rebuild_execute_list`). There used to be an
+empirical 250 microsecond bound here instead. It stood in for five things the
+runtime did not do, each of which is now done as MAME does it:
+
+- A driver-armed `TIMER` device (`configure_generic`, armed with `adjust`)
+  ends the round and fires when every processor stands at its expiry. It used
+  to fire at the first line boundary after the first processor had passed it:
+  up to four lines late under the bound, and a whole span of lines without it.
+  Atari System 1's scanline interrupts are three of these.
+- Work posted with `synchronize()` is a timer at the time it was posted, and
+  runs once the round has reached that time. It used to run when any processor
+  next ended its slice. Marble Madness's 6502 ends its slice at every POKEY
+  read, and took the NMI of a command the 68010, running ahead, had not yet
+  sent.
+- A device timer armed by a processor other than the one the device clock
+  follows is measured from that processor's own time, as `emu_timer::adjust`
+  measures from `machine().time()`. The device clock follows the board's first
+  processor, which has run its slice of the round before the others start, so
+  a timer the sound CPU armed expired as much later as the main CPU had run
+  ahead. The lead is taken inside the round (what the round has delivered to
+  the devices, less how far the arming processor stands past the round's
+  base), so the two clocks cannot drift apart. A delay shorter than the lead
+  is due at a time the device clock has passed and the arming processor has
+  not reached: the round ends at that time, and the timer fires at the start
+  of the next, when the base stands on it. Fired as soon as it was overdue,
+  every period up to the device clock was replayed at once, and the YM2151
+  timer TMNT's Z80 arms ran a round early each time.
+- `abort_timeslice` takes the cycles it swallows off the slice, as MAME takes
+  them off `m_cycles_running`. A compiled core zeroed `m_icount` and then
+  reported the whole slice as elapsed, so the rest of the instruction that
+  synchronized read the clock at the slice's end.
+- The stream mix reaches only as far as every processor has run
+  (`settledTime`), as MAME mixes from a timer that fires once all of them
+  stand at it. It used to follow the first processor, which runs its whole
+  slice of the round before the next starts, so a sound CPU's writes for
+  that stretch landed on streams already rendered past them: Juno First's
+  i8039 DAC came out 20 dB off MAME's spectrum in rounds of 240 lines.
+
+Work a processor posts from the instruction that carried it past the end of
+the lines being paid runs there, with every processor standing at that end,
+so nothing is left posted between lines or across a save state.
+
+A timer that falls due at the instant the frame is presented cannot fire
+until the snapshot is taken, so it bounds nothing: Green Beret's K005849 arms
+its scanline timer for that instant, and a round bounded by a timer no
+attoseconds away never ended.
 
 A processor that calls `scheduler().synchronize()` ends its slice after the
 instruction in progress. The processors after it in the round run only up to
@@ -330,16 +379,6 @@ Pole Position's 52xx enables its MB88 serial timer, one tick per MCU cycle,
 partway through its slice, and reads SB nine instructions later. Measured from
 the device clock, no bit had shifted in, and the 52xx took the wrong boot path;
 its speech came out of step with the game.
-
-That bound is squeezed from both sides. Too coarse and a fast processor runs
-thousands of cycles while the one it is handshaking with waits, which is how
-Gyruss lost half of its sound writes and Juno First a third — both boards
-where an 8 MHz i8039 feeds a DAC under a slower CPU's direction. Too fine and
-a driver's own `perfect_quantum` request stops meaning anything, since a boost
-cannot shorten an interval that is already the shortest one available. It is
-an empirical bound; the derived version is to lower the device timers MAME
-clamps its own timeslice against, which would make the cap redundant wherever
-a board schedules real work.
 
 `perfect_quantum` shortens the window for the duration the source asks for. It
 does not run another processor from inside the caller's instruction stream,
