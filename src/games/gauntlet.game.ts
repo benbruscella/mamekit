@@ -23,7 +23,7 @@ export const gauntlet = sourceTarget({
   // that silently stopped producing anything would still pass on the overall
   // RMS, which the music alone is loud enough to carry. The POKEY has no gate:
   // through frames 500-900 of this contract MAME's sound CPU writes it nothing
-  // but AUDCTL and zero AUDC/AUDF (tools/mame-oracle.ts --io, identical on
+  // but AUDCTL and zero AUDC/AUDF (mkt run --io, identical on
   // both sides), so it is silent in MAME too. Its old gate counted register
   // writes, which AUDCTL alone satisfied.
   audioRequirements: [

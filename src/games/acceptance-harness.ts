@@ -123,7 +123,7 @@ export interface GameAcceptanceOptions {
    * Diagnostic hook called once, before the first frame, with the booted board
    * and the configuration it was built from: the slot cards it holds and the
    * media slots it left empty, which a MAME reference run has to be given too
-   * (tools/mame-oracle.ts), and the input model whose ports the board reads.
+   * (mkt run), and the input model whose ports the board reads.
    */
   onBoard?: (booted: { board: Board; boardConfig: ShellConfig['board']; config: ShellConfig; input: KeyboardInput }) => void;
   /**

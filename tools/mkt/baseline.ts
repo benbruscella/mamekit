@@ -64,24 +64,33 @@ export function ramWindow(bytesPerFrame: number, lastFrame: number): number {
   return Math.max(1, Math.min(lastFrame, Math.floor(RAM_BUDGET_BYTES / bytesPerFrame)));
 }
 
-/** An oracle run's arguments, less where it writes, which each run supplies. */
+/**
+ * A run's `mkt` arguments, less where it writes, which each run supplies.
+ * Baselines recorded before mkt start with the old script's path instead of
+ * `run`; `mktArguments` reads both.
+ */
 export interface StepPlan {
   args: string[];
 }
 
+export function mktArguments(plan: StepPlan): string[] {
+  const [first, ...rest] = plan.args;
+  return first === 'tools/mame-oracle.ts' ? ['run', ...rest] : plan.args;
+}
+
 export interface UnitPlan {
   frames: number[];
-  /** `tools/mame-oracle.ts`, no input, with RAM unless the board maps none. */
+  /** `mkt run`, no input, with RAM unless the board maps none. */
   none: StepPlan;
   ramSkipped?: string;
-  /** `tools/mame-oracle.ts`, the contract's own actions. */
+  /** `mkt run`, the contract's own actions. */
   contract: StepPlan;
 }
 
 export function unitPlan(unit: BaselineUnit, ramBytesPerFrame: number): UnitPlan {
   const frames = comparedFrames(unit.frames);
   const oracle = (input: 'none' | 'contract') => [
-    'tools/mame-oracle.ts', unit.target, ...(unit.scenario ? ['--scenario', unit.scenario] : []),
+    'run', unit.target, ...(unit.scenario ? ['--scenario', unit.scenario] : []),
     '--input', input, '--frames', frames.join(','), '--audio', '--timeout', '1800',
   ];
   const ram = ramBytesPerFrame > 0

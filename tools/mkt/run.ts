@@ -1,10 +1,9 @@
-#!/usr/bin/env node
 /**
  * Compare a generated machine with MAME itself: the same machine, the same
  * title and the same input on both sides, its pictures, RAM and bus traffic
  * set side by side and the result reported as a number.
  *
- *   MAME_BIN=/path/to/mame node tools/mame-oracle.ts <target> [<title>] [options]
+ *   mkt run <target> [<title>] [options]
  *
  *   <title>              a console cartridge by software-list name (smb1), or
  *                        any list's title as <list>:<name> (c64_cart:pacman)
@@ -40,7 +39,7 @@
  * is refused. Every process runs at low priority (nice 10), MAME windowed and
  * without video, and a survey runs one title at a time unless told otherwise.
  *
- * The report goes to .cache/oracle/<target>.json, with a side-by-side PNG per
+ * The report goes to .cache/mkt/<target>.json, with a side-by-side PNG per
  * compared frame (MAME | ours | differences in red) beside it. Frames are
  * counted as both sides run them: an input given at frame N is read during
  * frame N + 1, and our frame N is compared with MAME's N + offset, the offset
@@ -52,16 +51,17 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { primaryDisplay, scaledScreen } from '../src/gen/fact-audit.ts';
-import { cachedListXmlMachine } from '../src/gen/listxml.ts';
-import { gameOutputDir } from '../src/gen/output-layout.ts';
-import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../src/gen/oracle-result.ts';
-import { romsDir } from '../src/paths.ts';
-import type { ShellConfig } from '../src/runtime/shell.ts';
-import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './oracle/compare.ts';
-import { mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './oracle/mame-side.ts';
-import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './oracle/plan.ts';
-import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './oracle/report.ts';
+import { primaryDisplay, scaledScreen } from '../../src/gen/fact-audit.ts';
+import { cachedListXmlMachine } from '../../src/gen/listxml.ts';
+import { gameOutputDir } from '../../src/gen/output-layout.ts';
+import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../../src/gen/oracle-result.ts';
+import { mameSourceDir, romsDir } from '../../src/paths.ts';
+import { reportRoot } from './paths.ts';
+import type { ShellConfig } from '../../src/runtime/shell.ts';
+import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
+import { mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './mame-side.ts';
+import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
+import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
 
@@ -72,7 +72,7 @@ const childAt = process.argv.indexOf('--child');
 if (childAt >= 0) {
   const plan = JSON.parse(readFileSync(process.argv[childAt + 1]!, 'utf8')) as OraclePlan;
   try {
-    const { runOurs } = await import('./oracle/ours.ts');
+    const { runOurs } = await import('./ours.ts');
     await runOurs(plan);
     process.exit(0);
   } catch (error) {
@@ -99,12 +99,12 @@ const option = (name: string): string | undefined => options.get(name)?.at(-1);
 const flag = (name: string): boolean => options.has(name);
 const [target, titleArg] = positional;
 if (!target) {
-  console.error('usage: MAME_BIN=... node tools/mame-oracle.ts <target> [<title>] [--frames a,b] [--input none|start|contract] [--ram] [--io cpu:a-b] [--survey]');
+  console.error('usage: mkt run <target> [<title>] [--frames a,b] [--input none|start|contract] [--ram] [--io cpu:a-b] [--survey]');
   process.exit(2);
 }
 
 const dist = resolve(projectRoot, option('--dist') ?? 'dist');
-const mameSrc = resolve(option('--mame-src') ?? process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+const mameSrc = option('--mame-src') ? resolve(option('--mame-src')!) : mameSourceDir(projectRoot);
 const politeness: Politeness = { background: flag('--background'), watch: flag('--watch') };
 const timeoutMs = Number(option('--timeout') ?? 900) * 1000;
 const search = Number(option('--search') ?? 2);
@@ -112,7 +112,6 @@ const offsets = option('--offset') !== undefined
   ? [Number(option('--offset'))]
   : Array.from({ length: search * 2 + 1 }, (_, index) => index - search);
 const comparedFrames = (option('--frames') ?? '600').split(',').map(Number).filter(frame => frame > 0).sort((a, b) => a - b);
-const reportRoot = join(projectRoot, '.cache/oracle');
 
 const mame = resolveMame(mameSrc, option('--mame'));
 const outputDir = locateTarget(target);

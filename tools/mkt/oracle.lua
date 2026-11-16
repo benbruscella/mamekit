@@ -1,4 +1,4 @@
--- The MAME side of tools/mame-oracle.ts: one script for every comparison.
+-- The MAME side of `mkt run` (tools/mkt/run.ts): one script for every comparison.
 --
 -- It runs as MAME's -autoboot_script and reads its plan, a Lua table written
 -- by tools/oracle/mame-side.ts, from the file named by MAMEKIT_ORACLE_PLAN.

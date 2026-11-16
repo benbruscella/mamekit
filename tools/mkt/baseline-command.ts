@@ -1,12 +1,11 @@
-#!/usr/bin/env node
 /**
  * A baseline against MAME for every contract scenario, and the comparison a
  * change is judged by: better, the same or worse than before, measure by
  * measure.
  *
- *   MAME_BIN=/path/to/mame node tools/mame-baseline.ts record [<target>|<target>/<scenario> ...]
- *   MAME_BIN=... node tools/mame-baseline.ts compare <target> ... [--measures pixels,ram,audio]
- *   node tools/mame-baseline.ts show [<target> ...] [--markdown]
+ *   mkt record [<target>|<target>/<scenario> ...]
+ *   mkt compare [<target> ...] [--measures pixels,ram,audio]
+ *   mkt show [<target> ...] [--markdown]
  *
  *   --jobs N             targets at once (default 1; one target's scenarios always run in turn)
  *   --baseline <commit>  the baseline to compare with or show (default: the newest recorded);
@@ -22,7 +21,7 @@
  *
  * The set is every acceptance contract scenario (src/games/contracts.ts),
  * accepted and candidate, so nothing is listed by hand. Each is run twice
- * through tools/mame-oracle.ts, which gives both sides the same input:
+ * through `mkt run`, which gives both sides the same input:
  *
  *   * with no input (--input none --ram --audio): pixels, RAM and audio;
  *   * with the contract's own input (--input contract --audio): pixels and audio.
@@ -36,7 +35,7 @@
  * out once (tools/oracle/baseline.ts) and stored with the baseline, so a
  * comparison re-runs exactly what was recorded, whatever the rules become.
  *
- * `record` writes .oracle/baseline/<commit>/<target>.json. It is kept out of
+ * `record` writes .mkt/baseline/<commit>/<target>.json. It is kept out of
  * .cache, which `npm run clean:all` deletes: a baseline is evidence that takes
  * hours of MAME to record, not a cache. Nothing else writes there: an oracle
  * run rewrites .cache/oracle/<target>.json and its
@@ -46,27 +45,28 @@
  * that fails is run once more before the failure is believed (#190).
  *
  * `compare` re-runs the stored plans on the current tree, writes the runs to
- * .oracle/compare/<target>.json and prints a verdict per measure. It
+ * .mkt/compare/<target>.json and prints a verdict per measure. It
  * exits 1 when any measure is worse.
  */
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { loadGenerationGameContracts } from '../src/games/contracts.ts';
-import { gameOutputDir } from '../src/gen/output-layout.ts';
-import type { ShellConfig } from '../src/runtime/shell.ts';
+import { loadGenerationGameContracts } from '../../src/games/contracts.ts';
+import { gameOutputDir } from '../../src/gen/output-layout.ts';
+import type { ShellConfig } from '../../src/runtime/shell.ts';
 import {
-  audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
+  mktArguments, audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
   type AudioResult, type BaselineUnit, type Measure, type MeasureName, type MeasureVerdict, type PixelsResult, type RamSummary,
   type StepPlan, type UnitRecord,
-} from './oracle/baseline.ts';
-import { mamekitIdentity, projectRoot, resolveMame } from './oracle/mame-side.ts';
-import { boardRam, ramBytesPerFrame } from './oracle/plan.ts';
-import type { RunReport } from './oracle/report.ts';
+} from './baseline.ts';
+import { mamekitIdentity, projectRoot, resolveMame } from './mame-side.ts';
+import { baselineRoot, compareRoot, mktEntry } from './paths.ts';
+import { mameSourceDir } from '../../src/paths.ts';
+import { boardRam, ramBytesPerFrame } from './plan.ts';
+import type { RunReport } from './report.ts';
 
-const thisFile = relative(projectRoot, fileURLToPath(import.meta.url));
+const thisFile = 'mkt';
 
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -80,7 +80,7 @@ for (let index = 0; index < argv.length; index++) {
 }
 const [command, ...names] = positional;
 if (command !== 'record' && command !== 'compare' && command !== 'show') {
-  console.error(`usage: MAME_BIN=... node ${thisFile} record|compare|show [<target>|<target>/<scenario> ...] ` +
+  console.error(`usage: ${thisFile} record|compare|show [<target>|<target>/<scenario> ...] ` +
     '[--jobs N] [--baseline <commit>] [--measures pixels,ram,audio] [--markdown]');
   process.exit(2);
 }
@@ -88,8 +88,6 @@ if (command !== 'record' && command !== 'compare' && command !== 'show') {
 if (options.get('--mame-src')) process.env.MAME_SRC = resolve(options.get('--mame-src')!);
 if (options.get('--mame')) process.env.MAME_BIN = resolve(options.get('--mame')!);
 const jobs = Math.max(1, Number(options.get('--jobs') ?? 1));
-const baselineRoot = join(projectRoot, '.oracle/baseline');
-const compareRoot = join(projectRoot, '.oracle/compare');
 const dist = join(projectRoot, 'dist');
 
 // --- identity --------------------------------------------------------------
@@ -140,7 +138,7 @@ function currentIdentity(mame: string): BaselineIdentity {
 function requirePinnedNode(): void {
   const pinned = `v${readFileSync(join(projectRoot, '.nvmrc'), 'utf8').trim()}`;
   if (process.version !== pinned) {
-    console.error(`${thisFile} runs on Node ${pinned} (.nvmrc), not ${process.version}: fnm exec --using=${pinned.slice(1)} node ${thisFile} ...`);
+    console.error(`${thisFile} runs on Node ${pinned} (.nvmrc), not ${process.version}: fnm exec --using=${pinned.slice(1)} npm run mkt -- ...`);
     process.exit(2);
   }
 }
@@ -217,7 +215,7 @@ async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunRe
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = `${scratch}.json`;
     rmSync(out, { force: true });
-    const ran = await runTool([...plan.args, '--out', out], `${scratch}.log`);
+    const ran = await runTool([mktEntry, ...mktArguments(plan), '--out', out], `${scratch}.log`);
     const runs = existsSync(out) ? Object.values(readJson<Record<string, RunReport>>(out)) : [];
     outcome = runs[0]
       ? { run: runs[0], ...(runFailure(runs[0]) ? { failure: runFailure(runs[0]) } : {}) }
@@ -310,7 +308,7 @@ function progress(unit: BaselineUnit, step: string, ...measures: (Measure<unknow
 
 async function record(): Promise<void> {
   requirePinnedNode();
-  const mame = resolveMame(options.get('--mame-src') ?? join(projectRoot, '../mame'), options.get('--mame'));
+  const mame = resolveMame(mameSourceDir(projectRoot), options.get('--mame'));
   const identity = currentIdentity(mame.version);
   if (identity.dirty && !options.has('--allow-dirty')) {
     console.error('src, tools or bin have local changes: a baseline is recorded from a commit (--allow-dirty to try it anyway)');
@@ -382,7 +380,7 @@ function baselineDir(): string {
     .filter(name => existsSync(join(baselineRoot, name, 'baseline.json')))
     .map(name => ({ dir: join(baselineRoot, name), startedAt: readJson<BaselineIdentity>(join(baselineRoot, name, 'baseline.json')).startedAt }))
     .sort((left, right) => right.startedAt.localeCompare(left.startedAt)) : [];
-  if (!recorded.length) throw new Error(`no baseline recorded yet: MAME_BIN=... node ${thisFile} record`);
+  if (!recorded.length) throw new Error(`no baseline recorded yet in ${relative(projectRoot, baselineRoot)}: mkt record`);
   return recorded[0]!.dir;
 }
 
@@ -398,7 +396,7 @@ const MARK: Record<string, string> = { better: 'better', same: 'same', worse: 'W
 
 async function compare(): Promise<void> {
   requirePinnedNode();
-  const mame = resolveMame(options.get('--mame-src') ?? join(projectRoot, '../mame'), options.get('--mame'));
+  const mame = resolveMame(mameSourceDir(projectRoot), options.get('--mame'));
   const dir = baselineDir();
   const baseline = readJson<BaselineIdentity>(join(dir, 'baseline.json'));
   const identity = currentIdentity(mame.version);

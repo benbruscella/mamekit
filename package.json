@@ -4,7 +4,8 @@
   "description": "Knowledge-graph-first transpiler: MAME driver source -> runnable browser (canvas) emulator app",
   "type": "module",
   "bin": {
-    "mamekit": "bin/mamekit.js"
+    "mamekit": "bin/mamekit.js",
+    "mkt": "bin/mkt.js"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -43,7 +44,7 @@
     "test:e2e:record": "playwright test --config e2e/playwright.config.ts --update-snapshots",
     "test:games:record": "for game in $(node src/games/acceptance.ts --list); do node src/games/record-goldens.ts \"$game\" || exit 1; sleep 5; done",
     "audio:compare": "node tools/compare-game-audio.ts",
-    "oracle:baseline": "node tools/mame-baseline.ts"
+    "mkt": "node tools/mkt.ts"
   },
   "engines": {
     "node": ">=23.6"

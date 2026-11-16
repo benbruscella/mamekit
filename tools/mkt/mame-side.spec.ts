@@ -42,7 +42,7 @@ assert.equal(value(args, '-video'), 'none');
 assert.equal(value(args, '-sound'), 'none');
 // The screen alone, without a layout's artwork around it.
 assert.equal(value(args, '-snapview'), 'native');
-assert.ok(value(args, '-autoboot_script')!.endsWith('/tools/oracle/oracle.lua'));
+assert.ok(value(args, '-autoboot_script')!.endsWith('/tools/mkt/oracle.lua'));
 // --watch shows MAME's picture in an ordinary window.
 const watched = mameArguments(config, 'arcade', boot, undefined, '/mame', '/work', { background: false, watch: true });
 assert.ok(watched.includes('-window') && !watched.includes('-video') && !watched.includes('-nomaximize'));

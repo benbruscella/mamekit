@@ -2,7 +2,7 @@
 //
 // A board we generate can leave a device's firmware out (our Q*bert never
 // loads the Votrax's sc01a.bin), but MAME refuses to start the machine
-// without it, and the oracle (tools/mame-oracle.ts) runs MAME from these same
+// without it, and the oracle (mkt run) runs MAME from these same
 // shelves. So tidying keeps what MAME's run needs as well as what ours does.
 // MAME states it in -listxml: every `device_ref` whose device entry carries
 // dumped ROMs (src/gen/listxml.ts `deviceSets`).
