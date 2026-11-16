@@ -120,7 +120,7 @@ any third-octave band from 50 Hz to 16 kHz is more than 1.5 dB off. Ours runs
 through the solver API the worklet uses, at each input's own sample time, so
 it checks the browser's scheduling, not a test-only path. Run it after `gen:all`
 whenever the netlist compiler, the solver or a board's netlist routing changes.
-Comparing whole machines against MAME (`oracle:baseline compare`) can't do this
+Comparing whole machines against MAME (`mamekit compare`) can't do this
 job: the runs diverge and its level is one RMS figure, so a missing snare reads
 as a fraction of a dB.
 
@@ -244,6 +244,31 @@ Generated device code must additionally pass a compiled-versus-interpreted
 differential spec. Compare emitted writes, framebuffer effects and every device
 member after identical calls. A relative performance assertion belongs with a
 proven hot loop; absolute real-time acceptance remains in the game token.
+
+### BEHAVIOR AGAINST MAME
+
+A golden says a machine still does what it did. Whether that is what MAME
+does is checked locally, against a MAME binary of the source checkout's
+release, by `mamekit` commands:
+
+```sh
+cp .env.example .env                          # once: set MAME_SRC and MAME_BIN
+npm run mamekit -- against dkong --ram        # one machine: pictures, RAM, bus, audio
+npm run mamekit -- compare dkong dkongjr      # better / same / worse against a baseline
+npm run mamekit -- show --markdown            # the baseline, for an issue
+npm run mamekit -- help against               # every option of a command
+```
+
+`mamekit record` takes a baseline of every contract scenario, with no input
+and with the contract's input. It runs MAME for each one, so ask before
+starting a full recording. `mamekit compare` re-runs the baseline's stored
+plans on the current tree and exits 1 when any measure is worse. MAME's side of
+every run is cached under `.mamekit/mame/`, keyed by everything MAME is given,
+so a comparison after a fix starts no MAME process unless our side changed
+what MAME is given (an analog value, a typed command's frame). CI does not run
+these commands: it has no MAME binary, so its gates stay the goldens.
+[ENGINEERING](ENGINEERING.md) section 7 has the measures, the verdict rules,
+the cache flags and where every report is written.
 
 ### BROWSER PRESENTATION
 

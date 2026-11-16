@@ -55,6 +55,11 @@ documentation set.
     binary moves to the matching release too.
   - `MAMEKIT_ROMS`, `MAMEKIT_SAMPLES`: ROM and sample sets, when not the
     default `.data/roms` and `.data/samples`.
+- Compare a machine with MAME through the `mamekit` comparison commands,
+  never scratch scripts: `npm run mamekit -- against <target>` (one machine),
+  `record` / `compare` / `show` (baselines), `help <command>` (options).
+  MAME's side is cached in `.mamekit/mame/`. A full `record`, or any run of
+  many MAME processes, needs the user's OK first. See ENGINEERING.md section 7.
 - Node.js 23.6+ runs repository TypeScript directly. `.nvmrc` pins the version
   development and CI both use; `nvm use` / `fnm use` picks it up, and the CI
   workflow reads the same file so the two cannot drift.
