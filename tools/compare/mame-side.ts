@@ -175,7 +175,7 @@ export function writeLuaPlan(
 ): void {
   const io: IoPlan = plan.io ?? { taps: [], from: 0, to: -1 };
   const last = Math.max(1, ...frames.snapshots, ...frames.ram,
-    ...(plan.io ? [plan.io.to] : []), ...plan.offsets.map(offset => plan.last + offset));
+    ...(plan.io ? [plan.io.to + (plan.io.offset ?? 0)] : []), ...plan.offsets.map(offset => plan.last + offset));
   writeFileSync(path, `return ${lua({
     out: dir,
     last,
@@ -185,8 +185,9 @@ export function writeLuaPlan(
     ram: plan.ram?.cpus ?? [],
     ram_frames: Object.fromEntries(frames.ram.map(frame => [frame, true])),
     io: io.taps,
-    io_from: io.from,
-    io_to: io.to,
+    // MAME's frames are ours + offset, where a board boots out of step.
+    io_from: io.from + (io.offset ?? 0),
+    io_to: io.to + (io.offset ?? 0),
   })}\n`);
 }
 

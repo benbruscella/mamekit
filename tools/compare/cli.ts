@@ -7,6 +7,7 @@
  *   mamekit record [<target> ...]        record a baseline for every contract scenario
  *   mamekit compare [<target> ...]       better / same / worse per measure against a baseline
  *   mamekit show [<target> ...]          print a baseline (--markdown for an issue)
+ *   mamekit diverge <target> [<title>]   the first bus access that differs from MAME, per processor
  *
  * `mamekit help <command>` prints a command's options. MAME_SRC and MAME_BIN
  * come from the repository's .env (see .env.example), or the environment.
@@ -21,6 +22,7 @@ export const COMPARISON_COMMANDS: Record<string, { module: string; summary: stri
   record: { module: './baseline-command.ts', summary: 'record a baseline for every contract scenario' },
   compare: { module: './baseline-command.ts', summary: 'better / same / worse per measure against a baseline' },
   show: { module: './baseline-command.ts', summary: 'print a baseline (--markdown for an issue)' },
+  diverge: { module: './diverge.ts', summary: 'the first bus access that differs from MAME, per processor, ranges from the board\'s maps' },
 };
 
 /** A command's doc comment, printed for `mamekit help <command>`. */

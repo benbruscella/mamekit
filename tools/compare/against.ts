@@ -22,6 +22,7 @@
  *   --ram-frames a-b[/n] which frames to dump (default 1 to the last compared frame)
  *   --io cpu:a-b[:r|w|rw]  tap bus accesses in a range on both sides (repeatable, hex)
  *   --io-frames a-b      the frames to tap (required with --io)
+ *   --io-offset K        tap MAME's frames a+K..b+K (a board that boots out of step)
  *   --audio              record MAME's sound too (-wavwrite) and compare it with
  *                        ours over the run, as tools/compare-audio.mjs does
  *   --refresh-mame       run MAME and replace what the cache kept (tools/compare/mame-cache.ts)
@@ -89,7 +90,7 @@ if (childAt >= 0) {
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
 const valued = new Set(['--titles', '--frames', '--search', '--offset', '--input', '--scenario', '--ram-frames',
-  '--io', '--io-frames', '--jobs', '--limit', '--dist', '--mame', '--mame-src', '--timeout', '--out']);
+  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--mame', '--mame-src', '--timeout', '--out']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -287,6 +288,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
       offset: pictures.offset,
       ...(pictureScale !== 1 ? { scale: pictureScale } : {}),
       tied: pictures.tied,
+      byOffset: pictures.byOffset,
       frames: pictures.results,
       exact,
       ...(diverged ? { firstDivergence: diverged.frame } : {}),
@@ -304,6 +306,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   }
   if (!quiet) printRun(key, report);
   if (flag('--keep')) {
+    report.workDir = dir;
     if (!quiet) console.log(`  captures kept in ${relative(projectRoot, dir)}`);
   } else {
     rmSync(dir, { recursive: true, force: true });
@@ -478,7 +481,8 @@ function ioRequest(): OraclePlan['io'] {
     const [lo, hi] = range!.split('-').map(value => parseInt(value, 16));
     return { tag: tag!, lo: lo!, hi: hi ?? lo!, read: mode.includes('r'), write: mode.includes('w') };
   });
-  return { taps, from: from!, to: to ?? from! };
+  const offset = Number(option('--io-offset') ?? 0);
+  return { taps, from: from!, to: to ?? from!, ...(offset ? { offset } : {}) };
 }
 
 // --- survey ----------------------------------------------------------------
