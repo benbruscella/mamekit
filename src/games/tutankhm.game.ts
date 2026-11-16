@@ -21,7 +21,7 @@ export const tutankhm = sourceTarget({
       'timeplt_audio:tpsound': 'c196904d',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '21724e05' },
+      1: { video: 'f7e6ac81', state: '0fa81356' },
       60: { video: 'f7e6ac81', state: '6ea6d1f9' },
       180: { video: '0d63df78', state: '51036291' },
       300: { video: '356f8336', state: '180cf2cc' },
@@ -32,9 +32,9 @@ export const tutankhm = sourceTarget({
     audio: {
       writes: 950400,
       nonzeroWrites: 950399,
-      writeHash: 'd30e72b5',
-      pcmHash: '67b2fbf1',
-      rms: 0.426052,
+      writeHash: 'a005df9a',
+      pcmHash: 'e97077c5',
+      rms: 0.425995,
     },
   },
 });

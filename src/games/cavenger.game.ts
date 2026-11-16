@@ -24,9 +24,9 @@ export const cavenger = sourceTarget({
     },
     audio: {
       writes: 958171,
-      nonzeroWrites: 523568,
-      writeHash: '695843bc',
-      pcmHash: '3e01560e',
+      nonzeroWrites: 523571,
+      writeHash: '98a7c6e1',
+      pcmHash: 'dec0751c',
       rms: 0.11077,
     },
   },

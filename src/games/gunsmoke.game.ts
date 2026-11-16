@@ -33,7 +33,7 @@ export const gunsmoke = sourceTarget({
       tiles: 'a2091ec3',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '07b76464' },
+      1: { video: 'f7e6ac81', state: '02f3937d' },
       60: { video: 'fd2f269d', state: '5fede71a' },
       180: { video: 'fc37c1b8', state: '22184f8d' },
       300: { video: 'e2af8d1e', state: 'e47d7e4e' },
@@ -48,9 +48,9 @@ export const gunsmoke = sourceTarget({
     audio: {
       writes: 1609727,
       nonzeroWrites: 1160263,
-      writeHash: 'f8419fa0',
-      pcmHash: 'b0f156f9',
-      rms: 0.084104,
+      writeHash: '29a7b4f3',
+      pcmHash: '62644769',
+      rms: 0.084827,
     },
   },
 });

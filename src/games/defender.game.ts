@@ -72,10 +72,10 @@ export const defender = sourceTarget({
     },
     audio: {
       writes: 3354624,
-      nonzeroWrites: 3350876,
-      writeHash: '37e26acc',
-      pcmHash: '91f3e5d4',
-      rms: 0.190793,
+      nonzeroWrites: 3350884,
+      writeHash: '5064c18d',
+      pcmHash: '9fecc4e7',
+      rms: 0.190791,
     },
   },
 });

@@ -21,7 +21,7 @@ export const invaders = sourceTarget({
       maincpu: 'eaf1bbdb',
     },
     checkpoints: {
-      1: { video: 'e8273a79', state: 'ce75c747' },
+      1: { video: 'e8273a79', state: '331cf221' },
       60: { video: '7f097af0', state: '6ca5ee95' },
       180: { video: '0f631559', state: '7b4a4e8d' },
       300: { video: '64709a0d', state: '04e055ee' },
@@ -30,9 +30,9 @@ export const invaders = sourceTarget({
     },
     audio: {
       writes: 483692,
-      nonzeroWrites: 64230,
-      writeHash: '46d86a71',
-      pcmHash: '5d787b85',
+      nonzeroWrites: 64080,
+      writeHash: '2a5aeea5',
+      pcmHash: 'bc8053e1',
       rms: 0.033734,
     },
   },

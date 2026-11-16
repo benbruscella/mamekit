@@ -26,10 +26,10 @@ export const simpsons = sourceTarget({
     },
     audio: {
       writes: 1946418,
-      nonzeroWrites: 935954,
-      writeHash: 'e0f7fd94',
-      pcmHash: '25327be4',
-      rms: 0.028199,
+      nonzeroWrites: 935992,
+      writeHash: 'a8570cb4',
+      pcmHash: 'a58db247',
+      rms: 0.028122,
     },
   },
   actions: [

@@ -29,10 +29,10 @@ export const congo = sourceTarget({
     },
     audio: {
       writes: 960009,
-      nonzeroWrites: 214115,
-      writeHash: '2cf89698',
-      pcmHash: '3c75f87c',
-      rms: 0.071706,
+      nonzeroWrites: 214092,
+      writeHash: 'eb3ddd73',
+      pcmHash: '10d3085d',
+      rms: 0.071685,
     },
   },
 });

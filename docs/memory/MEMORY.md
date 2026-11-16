@@ -166,3 +166,4 @@
 - [CPU cores #249](cpu-cores-249.md) — one PR, ALL hand CPU layers in scope (rows 41a–i), Musashi first then ask about m68000_device, baseline ff52ccd9
 - [Device clock lead #254](device-clock-lead-254.md) — mslug's device clock leads the CPU 0.2-0.7 line; held present + precise driver timer re-arm drifts the VBLANK IRQ; three fixes failed
 - [In-slice cycles #254](in-slice-cycles-254.md) — compiled cores report cycles only at slice end; beam reads must add elapsedCycles()
+- [Scheduler bound #255](scheduler-bound-255.md) — 250 us fallback deleted; seven gaps it hid (cross-CPU timers, synchronize order, mixer, abort clock); marble was a `u32&` setter bug; open leftovers

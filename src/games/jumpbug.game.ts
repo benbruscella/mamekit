@@ -22,7 +22,7 @@ export const jumpbug = sourceTarget({
       proms: '6a0c7d87',
     },
     checkpoints: {
-      1: { video: 'b2afb37a', state: '56803b9b' },
+      1: { video: 'b2afb37a', state: 'ec0468f5' },
       60: { video: 'f7e6ac81', state: 'ac46d730' },
       180: { video: '027e01a0', state: 'c28a0e3d' },
       300: { video: '69c4ea9c', state: '6e9e5d50' },
@@ -33,8 +33,8 @@ export const jumpbug = sourceTarget({
     audio: {
       writes: 950399,
       nonzeroWrites: 950397,
-      writeHash: '2352a80f',
-      pcmHash: 'a06ed765',
+      writeHash: '1ada67e4',
+      pcmHash: 'bb8c4047',
       rms: 0.183315,
     },
   },

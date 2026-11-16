@@ -25,7 +25,7 @@ export const zigzagb = sourceTarget({
       proms: 'aa486dd0',
     },
     checkpoints: {
-      1: { video: '4ce372b8', state: '73eaaa66' },
+      1: { video: '4ce372b8', state: '0df6eea3' },
       60: { video: '7b64b913', state: '4f983f2f' },
       180: { video: '8609f0f0', state: '667e2a5a' },
       300: { video: '305d32b3', state: 'c90f4590' },
@@ -36,8 +36,8 @@ export const zigzagb = sourceTarget({
     audio: {
       writes: 712799,
       nonzeroWrites: 712797,
-      writeHash: '45fd4180',
-      pcmHash: '3aca7522',
+      writeHash: 'dc636fea',
+      pcmHash: 'd283d337',
       rms: 0.164021,
     },
   },

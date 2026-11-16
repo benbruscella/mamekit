@@ -30,7 +30,7 @@ export const trackfld = sourceTarget({
       vlm: 'f546a56b',
     },
     checkpoints: {
-      1: { video: '7dfcdedc', state: 'cfe96064' },
+      1: { video: '7dfcdedc', state: '62e2c390' },
       60: { video: '1b2d0eec', state: '21d4ea03' },
       180: { video: '6f6992d8', state: 'ebfea0ac' },
       300: { video: '0dc8abd3', state: 'cc9ea3e7' },
@@ -41,9 +41,9 @@ export const trackfld = sourceTarget({
     audio: {
       writes: 950399,
       nonzeroWrites: 950397,
-      writeHash: 'bcc2ba20',
-      pcmHash: 'bb16edb8',
-      rms: 0.372796,
+      writeHash: '6c045a45',
+      pcmHash: 'f7f1bd37',
+      rms: 0.372798,
     },
   },
 });

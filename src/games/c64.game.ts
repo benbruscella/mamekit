@@ -60,7 +60,7 @@ export const c64 = {
       audio: {
         writes: 962790,
         nonzeroWrites: 962790,
-        writeHash: '86f8f53b',
+        writeHash: 'b016f7ec',
         pcmHash: 'aad35cb7',
         rms: 0.463693,
       },
@@ -129,7 +129,7 @@ export const c64 = {
       audio: {
         writes: 2567441,
         nonzeroWrites: 2567441,
-        writeHash: '94b76439',
+        writeHash: '4a9640b6',
         pcmHash: 'ebbfa1b9',
         rms: 0.49341,
       },

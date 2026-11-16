@@ -41,8 +41,8 @@ export const elevator = sourceTarget({
     audio: {
       writes: 729907,
       nonzeroWrites: 728268,
-      writeHash: 'a29602a8',
-      pcmHash: 'f2df3b0b',
+      writeHash: '2cdce64b',
+      pcmHash: 'ef1e18bf',
       rms: 0.27441,
     },
   },

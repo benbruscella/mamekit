@@ -23,7 +23,7 @@ export const pengo = sourceTarget({
       proms: 'a2cb43ba',
     },
     checkpoints: {
-      1: { video: '1556d338', state: 'f22988e2' },
+      1: { video: '1556d338', state: '3e8711e1' },
       60: { video: '68c04acf', state: 'e8cc6f29' },
       180: { video: '03392f1f', state: '417f51bf' },
       300: { video: 'e61ef7b4', state: '7efc8a76' },
@@ -33,9 +33,9 @@ export const pengo = sourceTarget({
     },
     audio: {
       writes: 950399,
-      nonzeroWrites: 625131,
-      writeHash: 'c10871ec',
-      pcmHash: 'f498338a',
+      nonzeroWrites: 625142,
+      writeHash: 'fe19259b',
+      pcmHash: 'e09f598c',
       rms: 0.110106,
     },
   },

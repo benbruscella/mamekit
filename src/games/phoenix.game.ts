@@ -22,9 +22,9 @@ export const phoenix = sourceTarget({
     },
     checkpoints: {
       1: { video: 'eda81a59', state: '27924cc1' },
-      60: { video: 'aa75f3a2', state: '97afb4a7' },
-      180: { video: 'd2e02c87', state: '49bd8936' },
-      300: { video: 'ddd2a658', state: '71becd7a' },
+      60: { video: 'aa75f3a2', state: 'f04e4b0a' },
+      180: { video: 'd2e02c87', state: 'b5555f5b' },
+      300: { video: 'ddd2a658', state: 'aff6b18c' },
       600: { video: '94c1f3f4', state: '8d7c12bb' },
       900: { video: 'be2b9f58', state: '5b6781b1' },
       1200: { video: 'c331d61c', state: '662653f5' },
@@ -32,9 +32,9 @@ export const phoenix = sourceTarget({
     audio: {
       writes: 943718,
       nonzeroWrites: 943718,
-      writeHash: '5eb6fdd1',
-      pcmHash: 'f48a1e52',
-      rms: 0.094137,
+      writeHash: '9ed0af64',
+      pcmHash: 'c2f31fbc',
+      rms: 0.094133,
     },
   },
 });

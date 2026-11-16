@@ -56,11 +56,11 @@ export const spyhunt = sourceTarget({
       1200: { video: '2ec82f9c', state: '0e21fa8c' },
     },
     audio: {
-      writes: 1920000,
-      nonzeroWrites: 1919998,
-      writeHash: 'b6c38b0a',
-      pcmHash: '7b4b3d8e',
-      rms: 0.740709,
+      writes: 1919999,
+      nonzeroWrites: 1919997,
+      writeHash: '9801da77',
+      pcmHash: 'bc495670',
+      rms: 0.740766,
     },
   },
 });

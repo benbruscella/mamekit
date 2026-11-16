@@ -29,18 +29,18 @@ export const dkongjr = sourceTarget({
     checkpoints: {
       1: { video: 'e12763c8', state: '7c86dd83' },
       60: { video: 'd22e74dd', state: '8910a306' },
-      180: { video: 'd22e74dd', state: '0f4655dc' },
+      180: { video: 'd22e74dd', state: 'c0edda7a' },
       300: { video: 'd22e74dd', state: 'e8963a48' },
       600: { video: 'ca5432b5', state: '71ed6b88' },
       1200: { video: 'f7286a9e', state: '637d9b37' },
-      1800: { video: '09522b05', state: '7a0820b0' },
+      1800: { video: '20431d6c', state: '61190005' },
     },
     audio: {
       writes: 1425599,
       nonzeroWrites: 1425599,
-      writeHash: '7519fd19',
-      pcmHash: '9dbd1684',
-      rms: 0.053905,
+      writeHash: '34427761',
+      pcmHash: '2caf2f75',
+      rms: 0.053916,
     },
   },
 });

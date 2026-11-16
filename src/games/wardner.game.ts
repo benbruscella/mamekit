@@ -70,10 +70,10 @@ export const wardner = sourceTarget({
     },
     audio: {
       writes: 3148810,
-      nonzeroWrites: 616586,
-      writeHash: '9acff091',
-      pcmHash: '37638b5b',
-      rms: 0.015532,
+      nonzeroWrites: 616589,
+      writeHash: '55d42d7d',
+      pcmHash: '7f69e1ad',
+      rms: 0.015534,
     },
   },
 });

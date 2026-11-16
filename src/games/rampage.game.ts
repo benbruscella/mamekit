@@ -30,11 +30,11 @@ export const rampage = sourceTarget({
       1200: { video: 'ea262b08', state: '8bbfe7d6' },
     },
     audio: {
-      writes: 1920000,
-      nonzeroWrites: 1920000,
-      writeHash: 'a1e1ee94',
-      pcmHash: '4f34b3ef',
-      rms: 0.455211,
+      writes: 1919999,
+      nonzeroWrites: 1919999,
+      writeHash: '38fc6b27',
+      pcmHash: '6c78b72a',
+      rms: 0.455215,
     },
   },
 });
