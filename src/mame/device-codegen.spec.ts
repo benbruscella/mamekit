@@ -1011,3 +1011,30 @@ assert.ok(branchEmitted.methods.includes('debug_guarded'), 'a dead debug branch 
 assert.ok(branchEmitted.methods.includes('calls_value_helper'), 'an interpreted callee taking values is reached through the fallback');
 assert.match(branchEmitted.source, /runtime\.invoke\("dump_png"/);
 assert.ok(!branchEmitted.methods.includes('calls_reference_helper'), 'a callee writing through a reference keeps its caller interpreted');
+
+// A memory finder is the pointer it holds: buffered_spriteram's
+// `m_spriteram + srcoffset` (`required_shared_ptr<Type> m_spriteram`) was
+// emitted as numeric `+`, which turned the Uint16Array into a string and
+// copied no sprites into R-Type's buffer (#246).
+{
+  const finderDefinition: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['from_offset'],
+    members: [
+      ...definition.members,
+      { name: 'm_spriteram', valueType: 'required_shared_ptr<uint16_t>' },
+    ],
+    methods: [{
+      name: 'from_offset',
+      parameters: 'uint32_t srcoffset',
+      source: { file: 'src/devices/video/bufsprite.h', line: 49 },
+      program: compileMameHandler('return m_spriteram + srcoffset;'),
+    }],
+  };
+  const emitted = generatedDeviceMethodsSource(finderDefinition);
+  assert.match(
+    emitted.source,
+    /(?:runtime\.addressOf\(|__addr_\w+\(runtime, )\w*m_spriteram\w*, srcoffset\)/,
+    'a required_shared_ptr in arithmetic is a pointer, not a number',
+  );
+}

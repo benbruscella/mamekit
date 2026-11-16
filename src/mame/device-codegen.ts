@@ -1757,8 +1757,13 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     }
     const left = emitExpression(expression.left, context);
     const right = emitExpression(expression.right, context);
-    const leftType = expressionValueType(expression.left, context);
-    const rightType = expressionValueType(expression.right, context);
+    // A finder that holds memory (`required_shared_ptr<u16> m_spriteram`) is a
+    // pointer in C++ arithmetic: buffered_spriteram's `m_spriteram + srcoffset`
+    // was added as numbers, which turned the Uint16Array into a string and
+    // copied no sprites (#246).
+    const pointerLike = (type: string | undefined) => type && isMemoryFinderType(type) ? `${type}*` : type;
+    const leftType = pointerLike(expressionValueType(expression.left, context));
+    const rightType = pointerLike(expressionValueType(expression.right, context));
     // Less an array, a pointer is a count of elements, as C decays the array:
     // the Z8002 numbers its opcode rows `opc - table`, and offset by the
     // negated table every row was 0.
@@ -3929,4 +3934,10 @@ function noEffectChainRoot(expression: GeneratedExpression, compiled: ReadonlySe
   if (!chained || link.kind !== 'call' || link.callee.kind !== 'identifier') return undefined;
   const name = link.callee.name;
   return !compiled.has(name) && isNoEffectStatement(name) ? name : undefined;
+}
+
+/** MAME's memory finders, which C++ arithmetic treats as the pointer they hold. */
+export function isMemoryFinderType(type: string): boolean {
+  const bare = type.replace(/\bconst\b/g, '').replace(/&/g, '').trim();
+  return /^(?:required|optional)_(?:shared|region)_ptr\s*</.test(bare) || /^memory_share_creator\s*</.test(bare);
 }
