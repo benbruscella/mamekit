@@ -33,6 +33,7 @@ import {
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cachingDisabled } from './gen-cache.ts';
+import { localVariableProblem } from '../local-env.ts';
 
 export interface ListXmlRom {
   name: string;
@@ -262,16 +263,16 @@ export interface ListXmlOracle {
 export function listXmlOracle(mameSrc: string, explicitBinary?: string): ListXmlOracle {
   const binary = resolveMameBinary(explicitBinary);
   if (!binary) {
-    return { reason: 'no MAME binary found (set MAME_BIN to one matching the source checkout)' };
+    const named = explicitBinary ?? process.env.MAME_BIN;
+    return { reason: localVariableProblem('MAME_BIN', named ? `no MAME binary at ${named}` : 'no MAME binary found') };
   }
   const version = mameBinaryVersion(binary);
-  if (!version) return { reason: `${binary} did not report a version` };
+  if (!version) return { reason: localVariableProblem('MAME_BIN', `${binary} did not report a version`) };
   const source = mameSourceVersion(mameSrc);
-  if (!source) return { reason: `no BARE_BUILD_VERSION in ${join(mameSrc, 'makefile')}` };
+  if (!source) return { reason: localVariableProblem('MAME_SRC', `no BARE_BUILD_VERSION in ${join(mameSrc, 'makefile')}`) };
   if (version !== source) {
     return {
-      reason: `MAME binary is ${version} but the source checkout is ${source}; `
-        + 'point MAME_BIN at a binary of the same release',
+      reason: localVariableProblem('MAME_BIN', `the MAME binary is ${version} but the source checkout is ${source}`),
     };
   }
   return { binary, version };

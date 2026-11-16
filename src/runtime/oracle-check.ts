@@ -1,6 +1,6 @@
 /**
  * A machine's latest comparison with MAME (oracle.json, written by
- * src/gen/oracle-result.ts from tools/mame-oracle.ts's report), put into
+ * src/gen/oracle-result.ts from mamekit against's report), put into
  * words for its page. Only what the report says: frames, titles, a count.
  */
 

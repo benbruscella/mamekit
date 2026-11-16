@@ -36,8 +36,11 @@ export interface RamPlan {
 
 export interface IoPlan {
   taps: { tag: string; lo: number; hi: number; read: boolean; write: boolean }[];
+  /** Our frames tapped. */
   from: number;
   to: number;
+  /** MAME's tapped frames are ours + offset (a board that boots out of step); 0 when absent. */
+  offset?: number;
 }
 
 /** Everything our side needs; the MAME side is derived from it plus what our boot reports. */
@@ -64,6 +67,8 @@ export interface OraclePlan {
   io?: IoPlan;
   /** Grade the run for a survey: drawing and animating, every 30 frames. */
   grade?: boolean;
+  /** Each sound chip's RMS per this many frames (`mamekit levels`), written as ours-levels.json. */
+  levels?: number;
   /** Frames our side runs. */
   last: number;
   /** Work directory both sides write into. */

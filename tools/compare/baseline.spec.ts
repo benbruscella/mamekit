@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {
-  audioLevelDb, audioMeasure, audioVerdict, baselineUnits, comparedFrames, compareUnit, pixelsMeasure, pixelsVerdict, ramMeasure, ramVerdict, ramWindow,
-  RAM_BUDGET_BYTES, selectUnits, unitPlan,
+  cliArguments, audioLevelDb, audioMeasure, audioVerdict, baselineUnits, comparedFrames, compareUnit, pixelsMeasure, pixelsVerdict, ramMeasure, ramVerdict, ramWindow,
+  RAM_BUDGET_BYTES, selectUnits, TOLERANCE, unitPlan,
   type AudioResult, type Measure, type PixelsResult, type RamSummary,
 } from './baseline.ts';
 import type { RunReport } from './report.ts';
@@ -33,7 +33,10 @@ assert.equal(ramWindow(264192, 3600), Math.floor(RAM_BUDGET_BYTES / 264192));
 // The plan: the oracle twice, with no input and with the contract's, both with audio.
 const pacman = unitPlan(units[0]!, 3088);
 assert.deepEqual(pacman.none.args,
-  ['tools/mame-oracle.ts', 'pacman', '--input', 'none', '--frames', '300,600', '--audio', '--timeout', '1800', '--ram', '--ram-frames', '1-600']);
+  ['against', 'pacman', '--input', 'none', '--frames', '300,600', '--audio', '--timeout', '1800', '--ram', '--ram-frames', '1-600']);
+// A baseline recorded before the mamekit commands names the old script; it runs as `mamekit against`.
+assert.deepEqual(cliArguments({ args: ['tools/mame-oracle.ts', 'pacman', '--input', 'none'] }), ['against', 'pacman', '--input', 'none']);
+assert.deepEqual(cliArguments(pacman.none), pacman.none.args);
 assert.deepEqual(pacman.contract.args.slice(2, 4), ['--input', 'contract']);
 assert.ok(pacman.contract.args.includes('--audio') && !pacman.contract.args.includes('--ram'));
 const smb1 = unitPlan(units[1]!, 2048);
@@ -83,8 +86,31 @@ assert.equal(pixelsVerdict(pixels([300], [0, 40]), pixels([300], [0, 40])).verdi
 assert.equal(pixelsVerdict(pixels([300], [0, 40]), pixels([300, 600], [0, 0])).verdict, 'better');
 assert.deepEqual(pixelsVerdict(pixels([300], [0, 40]), pixels([600], [5, 0])),
   { verdict: 'worse', detail: 'no longer exact at 300, exact at 600' }, 'losing an exact frame is worse, whatever is gained');
-assert.equal(pixelsVerdict(pixels([300], [0, 40, 900]), pixels([300], [0, 39, 5000])).verdict, 'better', 'the first differing frame decides');
-assert.equal(pixelsVerdict(pixels([300], [0, 40, 900]), pixels([300], [0, 40, 800])).verdict, 'better', 'then the total');
+assert.deepEqual(pixelsVerdict(pixels([300], [0, 40, 900]), pixels([300], [0, 39, 5000])),
+  { verdict: 'moved', detail: 'pixels at 600 40 -> 39' }, 'counts at an unchanged first divergence only move');
+assert.equal(pixelsVerdict(pixels([300], [0, 40, 900]), pixels([300], [0, 40, 800])).verdict, 'moved', 'then the total, moved too');
+assert.deepEqual(pixelsVerdict(pixels([300, 600], [0, 0, 40]), pixels([300, 600, 900], [0, 0, 0, 60])),
+  { verdict: 'better', detail: 'exact at 900' });
+const firstAt = (first: number, exact: number[]): Measure<PixelsResult> => ({ status: 'ok', result: {
+  offset: 0, exact, firstDivergence: first,
+  frames: [300, 600, 900].map(frame => ({ frame, mame: frame, pixels: exact.includes(frame) ? 0 : 50 })) } });
+assert.equal(pixelsVerdict(firstAt(900, [300, 600]), firstAt(900, [300, 600])).verdict, 'same');
+assert.equal(pixelsVerdict(pixels([300], [0, 4063]), pixels([300], [0, 101171])).verdict, 'worse',
+  'mk (#255): the whole screen wrong at an unchanged first divergence is material');
+assert.equal(pixelsVerdict(pixels([300], [0, 133]), pixels([300], [0, 33])).verdict, 'moved', 'a diverged demo\'s swing is not');
+// The baseline's offset first (#240's gauntlet): a still screen the search fits
+// at -1, with a frame off there, is read at offset 0, where it is still exact.
+const still: Measure<PixelsResult> = { status: 'ok', result: { offset: 0, exact: [300, 600],
+  frames: [{ frame: 300, mame: 300, pixels: 0 }, { frame: 600, mame: 600, pixels: 0 }] } };
+const flipped: Measure<PixelsResult> = { status: 'ok', result: {
+  offset: -1, exact: [300], firstDivergence: 600,
+  frames: [{ frame: 300, mame: 299, pixels: 0 }, { frame: 600, mame: 599, pixels: 12 }],
+  byOffset: { [-1]: [{ frame: 300, pixels: 0 }, { frame: 600, pixels: 12 }], 0: [{ frame: 300, pixels: 0 }, { frame: 600, pixels: 0 }] },
+} };
+assert.deepEqual(pixelsVerdict(still, flipped), { verdict: 'same' }, 'a run is read at the baseline\'s offset before its own search');
+const drifted: Measure<PixelsResult> = { status: 'ok', result: { ...flipped.result!, byOffset: {
+  [-1]: flipped.result!.byOffset![-1]!, 0: [{ frame: 300, pixels: 0 }, { frame: 600, pixels: 30 }] } } };
+assert.equal(pixelsVerdict(still, drifted).verdict, 'worse', 'when the baseline\'s offset no longer holds, the search stands');
 assert.equal(pixelsVerdict(pixels([], [10]), { status: 'ok', result: { offset: 0, frames: [{ frame: 300, mame: 300, size: '256x240 vs 256x224' }], exact: [], firstDivergence: 300 } }).verdict,
   'worse', 'a picture of the wrong size is worse than any count');
 assert.equal(pixelsVerdict(pixels([300], [0, 40]), pixels([300], [0, 40], { inputsDiffering: 3 })).verdict, 'worse',
@@ -113,8 +139,13 @@ assert.equal(ramVerdict(ramAt(13), ramAt(40)).verdict, 'better');
 assert.equal(ramVerdict(ramAt(13), ramAt(2)).verdict, 'worse');
 assert.equal(ramVerdict(ramAt(13), ramAt(undefined, 0, 0)).verdict, 'better');
 assert.equal(ramVerdict(ramAt(undefined, 0, 0), ramAt(500)).verdict, 'worse');
-assert.equal(ramVerdict(ramAt(13, 4), ramAt(13, 2)).verdict, 'better');
-assert.equal(ramVerdict(ramAt(13, 4, 100), ramAt(13, 4, 120)).verdict, 'worse');
+assert.equal(ramVerdict(ramAt(13), ramAt(12)).verdict, 'moved', `within ${TOLERANCE.ramFrames} frames the first divergence only moves`);
+assert.equal(ramVerdict(ramAt(13), ramAt(11)).verdict, 'moved');
+assert.equal(ramVerdict(ramAt(13), ramAt(10)).verdict, 'worse');
+assert.equal(ramVerdict(ramAt(13, 4), ramAt(13, 2)).verdict, 'moved', 'bytes at the first divergence only move');
+assert.equal(ramVerdict(ramAt(13, 4, 100), ramAt(13, 4, 120)).verdict, 'moved');
+assert.equal(ramVerdict(ramAt(4, 3), ramAt(4, 22)).verdict, 'worse', 'bublbobl (#255): 3 -> 22 bytes at frame 4 is material');
+assert.equal(ramVerdict(ramAt(4, 3), ramAt(4, 12)).verdict, 'moved', 'four times over but under the floor');
 assert.equal(ramVerdict(ramAt(13), ramAt(13, 4, 100, 300)).verdict, 'worse', 'fewer frames compared is a shorter run');
 
 const audio = (ratioDb: number, bands: number[], onsets: number, ref = 0.1): Measure<AudioResult> => ({
@@ -122,10 +153,14 @@ const audio = (ratioDb: number, bands: number[], onsets: number, ref = 0.1): Mea
   result: { seconds: 30, rms: { ours: ref * 10 ** (ratioDb / 20), ref, ratioDb }, bands: bands.map((diffDb, index) => ({ hz: 125 << index, diffDb })), onsets: { ours: onsets, ref: 2 } },
 });
 assert.deepEqual(audioVerdict(audio(-1.2, [1, -2], 2.5), audio(-1.2, [1, -2], 2.5)), { verdict: 'same' });
-assert.equal(audioVerdict(audio(-1.2, [1, -2], 2.5), audio(0.5, [1, -2], 2.5)).verdict, 'better', '+0.5 dB is nearer MAME than -1.2 dB');
-const mixed = audioVerdict(audio(-1.2, [1, -2], 2.5), audio(0.5, [3, -2], 2.1));
+assert.equal(audioVerdict(audio(-2.5, [1, -2], 2.5), audio(0.5, [1, -2], 2.5)).verdict, 'better', '+0.5 dB is nearer MAME than -2.5 dB');
+assert.equal(audioVerdict(audio(-1.2, [1, -2], 2.5), audio(0.5, [1, -2], 2.5)).verdict, 'moved', `within ${TOLERANCE.levelDb} dB the level only moves`);
+const mixed = audioVerdict(audio(-2.5, [1, -2], 2.5), audio(0.5, [5, -2], 2.1));
 assert.equal(mixed.verdict, 'worse', 'a nearer level cannot buy back a wider spectrum');
-assert.match(mixed.detail ?? '', /level \|dB\| 1\.20 -> 0\.50 \(better\); bands \|dB\| 3 -> 5 \(worse\); onsets\/s off MAME 0\.50 -> 0\.10 \(better\)/);
+assert.match(mixed.detail ?? '', /level \|dB\| 2\.50 -> 0\.50 \(better\); bands \|dB\| 3 -> 7 \(worse\); onsets\/s off MAME 0\.50 -> 0\.10 \(better\)/);
+// #255's false alarms: an onset rate moving 0.03 a second, a band sum moving 2 dB.
+assert.equal(audioVerdict(audio(-1, [1], 3.5), audio(-1, [1], 3.53)).verdict, 'moved');
+assert.equal(audioVerdict(audio(-1, [1, 1], 2), audio(-1, [2, 2], 2)).verdict, 'moved');
 assert.equal(audioVerdict(audio(-1.2, [1], 2), audio(-1.23, [1.05], 2.01)).verdict, 'same', 'rounding is not a change');
 assert.match(audioVerdict(audio(-1, [1], 2), audio(-1, [1], 2, 0.2)).detail ?? '', /MAME's recording differs/);
 

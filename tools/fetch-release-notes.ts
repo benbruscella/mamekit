@@ -28,7 +28,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mameSourceVersion } from '../src/gen/listxml.ts';
-import { releaseNotesDir } from '../src/paths.ts';
+import { mameSourceDir, releaseNotesDir } from '../src/paths.ts';
 import {
   buildReleaseNoteIndex,
   parseReleaseNotes,
@@ -117,7 +117,7 @@ function digest(): { credits: number; releases: number; drivers: number } {
 async function main(): Promise<void> {
   mkdirSync(rawRoot, { recursive: true });
   if (!process.argv.includes('--digest-only')) {
-    const source = mameSourceVersion(resolve(process.env.MAME_SRC ?? '../mame'));
+    const source = mameSourceVersion(mameSourceDir(projectRoot));
     const newest = minor(flag('--to') ?? source ?? '0.289');
     const oldest = minor(flag('--from') ?? label(OLDEST_USABLE));
     // The checkout's own release is not on oldrel.html until it is superseded.

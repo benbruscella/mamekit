@@ -175,6 +175,8 @@ export function comparePictures(
   /** Every offset as good as the one kept: a still picture fits several. */
   tied: number[];
   results: FrameResult[];
+  /** Every offset tried and its frames, so a later run can be read at a baseline's offset. */
+  byOffset: Record<number, FrameResult[]>;
   pictures: Map<number, { mame?: Picture; ours?: Picture }>;
 } {
   const sizeText = join(dir, 'mame-size.txt');
@@ -211,7 +213,8 @@ export function comparePictures(
   const tied = ranked.filter(candidate => total(candidate.results) === total(best.results))
     .map(candidate => candidate.offset).sort((a, b) => a - b);
   const pictures = new Map(frames.map(frame => [frame, { mame: mameFor(frame + best.offset), ours: oursFor.get(frame) }]));
-  return { offset: best.offset, tied, results: best.results, pictures };
+  const byOffset = Object.fromEntries(ranked.map(candidate => [candidate.offset, candidate.results]));
+  return { offset: best.offset, tied, results: best.results, byOffset, pictures };
 }
 
 export interface RamDifference {
@@ -339,7 +342,7 @@ export interface IoResult {
   firstDivergence?: { index: number; mame?: IoAccess; ours?: IoAccess; before: IoAccess[] };
 }
 
-function readAccesses(path: string): IoAccess[] {
+export function readAccesses(path: string): IoAccess[] {
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf8').split('\n').filter(Boolean).map(line => {
     const [frame, kind, tap, address, data, time] = line.split(' ');

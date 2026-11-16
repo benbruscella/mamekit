@@ -5,7 +5,7 @@
  *
  * Pure: the units, their plans and the verdicts are worked out from contracts
  * and reports already written, so they are tested without MAME or ROMs
- * (baseline.spec.ts). tools/mame-baseline.ts runs them.
+ * (baseline.spec.ts). baseline-command.ts (mamekit record, compare, show) runs them.
  */
 
 import type { FrameResult, RamResult } from './compare.ts';
@@ -64,24 +64,33 @@ export function ramWindow(bytesPerFrame: number, lastFrame: number): number {
   return Math.max(1, Math.min(lastFrame, Math.floor(RAM_BUDGET_BYTES / bytesPerFrame)));
 }
 
-/** An oracle run's arguments, less where it writes, which each run supplies. */
+/**
+ * A run's `mamekit` arguments, less where it writes, which each run supplies.
+ * Baselines recorded before the mamekit commands start with the old script's
+ * path instead of `against`; `cliArguments` reads both.
+ */
 export interface StepPlan {
   args: string[];
 }
 
+export function cliArguments(plan: StepPlan): string[] {
+  const [first, ...rest] = plan.args;
+  return first === 'tools/mame-oracle.ts' ? ['against', ...rest] : plan.args;
+}
+
 export interface UnitPlan {
   frames: number[];
-  /** `tools/mame-oracle.ts`, no input, with RAM unless the board maps none. */
+  /** `mamekit against`, no input, with RAM unless the board maps none. */
   none: StepPlan;
   ramSkipped?: string;
-  /** `tools/mame-oracle.ts`, the contract's own actions. */
+  /** `mamekit against`, the contract's own actions. */
   contract: StepPlan;
 }
 
 export function unitPlan(unit: BaselineUnit, ramBytesPerFrame: number): UnitPlan {
   const frames = comparedFrames(unit.frames);
   const oracle = (input: 'none' | 'contract') => [
-    'tools/mame-oracle.ts', unit.target, ...(unit.scenario ? ['--scenario', unit.scenario] : []),
+    'against', unit.target, ...(unit.scenario ? ['--scenario', unit.scenario] : []),
     '--input', input, '--frames', frames.join(','), '--audio', '--timeout', '1800',
   ];
   const ram = ramBytesPerFrame > 0
@@ -106,6 +115,8 @@ export interface PixelsResult {
   firstDivergence?: number;
   /** Frames on which MAME read a driven input differently; the pictures mean nothing if any. */
   inputsDiffering?: number;
+  /** Every offset tried and its frames: a later run is read at the baseline's offset first. */
+  byOffset?: Record<number, { frame: number; pixels?: number; size?: string }[]>;
 }
 
 export interface RamSummary {
@@ -164,6 +175,10 @@ export function pixelsMeasure(run: RunReport): Measure<PixelsResult> {
     exact: run.pixels.exact,
     ...(run.pixels.firstDivergence !== undefined ? { firstDivergence: run.pixels.firstDivergence } : {}),
     ...(run.inputs ? { inputsDiffering: run.inputs.differing } : {}),
+    ...(run.pixels.byOffset ? {
+      byOffset: Object.fromEntries(Object.entries(run.pixels.byOffset).map(([offset, frames]) => [offset,
+        frames.map(frame => ({ frame: frame.frame, ...(frame.pixels !== undefined ? { pixels: frame.pixels } : {}), ...(frame.size ? { size: frame.size } : {}) }))])),
+    } : {}),
   } : undefined;
   return {
     status: failure ? 'failed' : 'ok',
@@ -235,12 +250,42 @@ export function audioSpectrumDb(result: AudioResult): number {
 
 // --- verdicts --------------------------------------------------------------
 
-export type Verdict = 'better' | 'same' | 'worse' | 'n/a';
+/**
+ * `worse` and `better` are material: past the measure's tolerance. A change
+ * within it is `moved`, printed but never failing a comparison, so an onset
+ * rate shifting 0.03 a second does not read like a 20 dB band error.
+ */
+export type Verdict = 'better' | 'same' | 'moved' | 'worse' | 'n/a';
 
 export interface MeasureVerdict {
   verdict: Verdict;
   detail?: string;
 }
+
+/** How far each measure may move before the move is material. */
+export const TOLERANCE = {
+  /** Frames the first RAM divergence may move earlier or later. */
+  ramFrames: 2,
+  /** dB the level may move away from MAME's (ours over MAME, above silence). */
+  levelDb: 1,
+  /** dB the octave bands' summed difference from MAME may grow. */
+  bandsDb: 3,
+  /** Onsets a second the tempo may move off MAME's: this, or a tenth of MAME's rate if more. */
+  onsetsPerSecond: 0.25,
+  onsetsShare: 0.1,
+  /**
+   * A count of differing pixels or bytes at an unchanged first divergence is
+   * material only when it grows or shrinks this many times over, and by at
+   * least the floor: Mortal Kombat's frame 2100 going from 4063 to 101171
+   * pixels (#255) is a regression, a diverged demo's 133 -> 33 is not news.
+   */
+  countFactor: 4,
+  pixelsFloor: 2000,
+  bytesFloor: 16,
+} as const;
+
+/** Rounding: below these a measure has not moved at all. */
+const NOISE = { levelDb: 0.05, bandsDb: 0.1, onsetsPerSecond: 0.02 } as const;
 
 /**
  * Compares a measure whose runs may have failed: a measure that ran is better
@@ -261,16 +306,33 @@ function ranOrFailed<T>(
   return compare(before.result!, after.result!);
 }
 
-/** Lower is better; `same` within the tolerance. */
-function lower(before: number, after: number, tolerance: number, what: string): MeasureVerdict {
+/**
+ * Lower is better. Within `noise` it is the same; past `material` it is
+ * better or worse; between the two it moved.
+ */
+function lower(before: number, after: number, noise: number, material: number, what: string): MeasureVerdict {
   // Two pictures of the wrong size are both Infinity, and Infinity - Infinity
   // is NaN, which compares as no tolerance: Battlezone's unchanged vector
   // screen read as worse on every run.
-  if (after === before || Math.abs(after - before) <= tolerance) return { verdict: 'same' };
-  return { verdict: after < before ? 'better' : 'worse', detail: `${what} ${round(before)} -> ${round(after)}` };
+  if (after === before || Math.abs(after - before) <= noise) return { verdict: 'same' };
+  const detail = `${what} ${round(before)} -> ${round(after)}`;
+  // A picture of the wrong size becoming comparable, or the reverse, is always material.
+  const finite = Number.isFinite(before) && Number.isFinite(after);
+  if (finite && Math.abs(after - before) <= material) return { verdict: 'moved', detail };
+  return { verdict: after < before ? 'better' : 'worse', detail };
 }
 
 const round = (value: number) => Number.isInteger(value) ? String(value) : value.toFixed(2);
+
+/** A count (pixels, bytes) where lower is better: material past TOLERANCE.countFactor and the floor. */
+function count(before: number, after: number, floor: number, what: string): MeasureVerdict {
+  if (after === before) return { verdict: 'same' };
+  const detail = `${what} ${round(before)} -> ${round(after)}`;
+  if (!Number.isFinite(before) || !Number.isFinite(after)) return { verdict: after < before ? 'better' : 'worse', detail };
+  const [low, high] = after < before ? [after, before] : [before, after];
+  const material = high >= TOLERANCE.countFactor * low && high - low >= floor;
+  return { verdict: material ? (after < before ? 'better' : 'worse') : 'moved', detail };
+}
 
 /** Differing pixels at a frame; a frame whose pictures differ in size counts as worse than any count. */
 const framePixels = (result: PixelsResult, frame: number) => {
@@ -282,14 +344,38 @@ const pixelTotal = (result: PixelsResult) => result.frames.reduce((sum, entry) =
   sum + (entry.pixels ?? Number.POSITIVE_INFINITY), 0);
 
 /**
- * Pictures, in order: a frame that was exact and is not is worse, whatever
- * else changed; a frame that becomes exact is better. With the same exact
- * frames, the first frame that differs decides by its pixel count, and then
- * the count over every frame. Counts after the first difference are mostly a
- * diverged demo, so they only break a tie.
+ * A later run as read at `offset`, when it was compared there: its exact
+ * frames and first divergence worked out from that offset's frames alone.
+ */
+export function pixelsAtOffset(result: PixelsResult, offset: number): PixelsResult | undefined {
+  const frames = result.byOffset?.[offset];
+  if (!frames) return undefined;
+  const exact = frames.filter(frame => frame.pixels === 0).map(frame => frame.frame);
+  const first = frames.find(frame => frame.pixels !== 0)?.frame;
+  return {
+    ...result,
+    offset,
+    frames: frames.map(frame => ({ ...frame, mame: frame.frame + offset })),
+    exact,
+    ...(first !== undefined ? { firstDivergence: first } : { firstDivergence: undefined }),
+  };
+}
+
+/**
+ * Pictures. The run is read at the baseline's offset first: when every frame
+ * the baseline had exact is still exact there, that reading stands, so a
+ * still attract screen that also fits offset -1 cannot flip the run's offset
+ * and read as "no longer exact" (gauntlet, #240). Then, in order: a frame
+ * that was exact and is not is worse, whatever else changed; a frame that
+ * becomes exact is better; the first frame that differs moving earlier is
+ * worse, later better. Pixel counts at an unchanged first divergence are
+ * material only past TOLERANCE.countFactor and pixelsFloor: past the first
+ * divergence the demo has diverged, and small swings in its counts say little.
  */
 export function pixelsVerdict(before: Measure<PixelsResult> | undefined, after: Measure<PixelsResult> | undefined): MeasureVerdict {
-  return ranOrFailed(before, after, (was, now) => {
+  return ranOrFailed(before, after, (was, searched) => {
+    const atBaseline = pixelsAtOffset(searched, was.offset);
+    const now = atBaseline && was.exact.every(frame => atBaseline.exact.includes(frame)) ? atBaseline : searched;
     const notes: string[] = [];
     if (was.offset !== now.offset) notes.push(`offset ${was.offset} -> ${now.offset}`);
     if ((was.scale ?? 1) !== (now.scale ?? 1)) notes.push(`compared at ${was.scale ?? 1}x -> ${now.scale ?? 1}x`);
@@ -304,18 +390,24 @@ export function pixelsVerdict(before: Measure<PixelsResult> | undefined, after: 
       return join({ verdict: 'worse', detail: `no longer exact at ${lost.join(', ')}${gained.length ? `, exact at ${gained.join(', ')}` : ''}` });
     }
     if (gained.length) return join({ verdict: 'better', detail: `exact at ${gained.join(', ')}` });
+    const wasFirst = was.firstDivergence;
     const first = now.firstDivergence;
     if (first === undefined) return join({ verdict: 'same' });
-    const atFirst = lower(framePixels(was, first), framePixels(now, first), 0, `pixels at ${first}`);
+    if (wasFirst !== undefined && first !== wasFirst) {
+      return join({ verdict: first < wasFirst ? 'worse' : 'better', detail: `first differs at ${wasFirst} -> ${first}` });
+    }
+    const atFirst = count(framePixels(was, first), framePixels(now, first), TOLERANCE.pixelsFloor, `pixels at ${first}`);
     if (atFirst.verdict !== 'same') return join(atFirst);
-    return join(lower(pixelTotal(was), pixelTotal(now), 0, 'pixels over all frames'));
+    return join(count(pixelTotal(was), pixelTotal(now), TOLERANCE.pixelsFloor, 'pixels over all frames'));
   });
 }
 
 /**
- * RAM, in order: the first frame that differs from MAME's (later is better,
- * none is best), the bytes that differ on it, then the bytes that differ over
- * every compared frame.
+ * RAM: the first frame that differs from MAME's decides. Never differing and
+ * starting to is worse, and the reverse better; moving earlier or later by
+ * more than TOLERANCE.ramFrames is worse or better, and by less, moved. The
+ * bytes that differ (on that frame, then over the run) are material only past
+ * TOLERANCE.countFactor and bytesFloor.
  */
 export function ramVerdict(before: Measure<RamSummary> | undefined, after: Measure<RamSummary> | undefined): MeasureVerdict {
   return ranOrFailed(before, after, (was, now) => {
@@ -326,10 +418,12 @@ export function ramVerdict(before: Measure<RamSummary> | undefined, after: Measu
     if (!nowFirst) return { verdict: 'better', detail: `identical at every frame (baseline differed from ${wasFirst!.frame})` };
     if (!wasFirst) return { verdict: 'worse', detail: `differs from frame ${nowFirst.frame} (baseline identical)` };
     if (nowFirst.frame !== wasFirst.frame) {
-      return { verdict: nowFirst.frame > wasFirst.frame ? 'better' : 'worse', detail: `first differs at ${wasFirst.frame} -> ${nowFirst.frame}` };
+      const detail = `first differs at ${wasFirst.frame} -> ${nowFirst.frame}`;
+      if (Math.abs(nowFirst.frame - wasFirst.frame) <= TOLERANCE.ramFrames) return { verdict: 'moved', detail };
+      return { verdict: nowFirst.frame > wasFirst.frame ? 'better' : 'worse', detail };
     }
-    const atFirst = lower(wasFirst.bytes, nowFirst.bytes, 0, `bytes at ${nowFirst.frame}`);
-    return atFirst.verdict !== 'same' ? atFirst : lower(was.total, now.total, 0, 'bytes over all frames');
+    const atFirst = count(wasFirst.bytes, nowFirst.bytes, TOLERANCE.bytesFloor, `bytes at ${nowFirst.frame}`);
+    return atFirst.verdict !== 'same' ? atFirst : count(was.total, now.total, TOLERANCE.bytesFloor, 'bytes over all frames');
   });
 }
 
@@ -337,19 +431,22 @@ export function ramVerdict(before: Measure<RamSummary> | undefined, after: Measu
  * Audio, judged three ways: the level (ours over MAME above silence, nearer
  * 0 dB is better), the spectrum (the octave bands' differences from MAME,
  * summed in dB) and the tempo (onsets a second, nearer MAME's is better). Any
- * of the three getting worse is worse, so a louder mix cannot buy back a
- * wrong one; otherwise any getting better is better. Both runs are
- * deterministic; the tolerances only absorb rounding.
+ * of the three getting materially worse is worse, so a louder mix cannot buy
+ * back a wrong one; otherwise any getting materially better is better, and a
+ * move within the tolerances (TOLERANCE) is moved.
  */
 export function audioVerdict(before: Measure<AudioResult> | undefined, after: Measure<AudioResult> | undefined): MeasureVerdict {
   return ranOrFailed(before, after, (was, now) => {
+    const onsetsMaterial = Math.max(TOLERANCE.onsetsPerSecond, TOLERANCE.onsetsShare * was.onsets.ref);
     const parts = [
-      lower(Math.abs(audioLevelDb(was)), Math.abs(audioLevelDb(now)), 0.05, 'level |dB|'),
-      lower(audioSpectrumDb(was), audioSpectrumDb(now), 0.1, 'bands |dB|'),
-      lower(Math.abs(was.onsets.ours - was.onsets.ref), Math.abs(now.onsets.ours - now.onsets.ref), 0.02, 'onsets/s off MAME'),
+      lower(Math.abs(audioLevelDb(was)), Math.abs(audioLevelDb(now)), NOISE.levelDb, TOLERANCE.levelDb, 'level |dB|'),
+      lower(audioSpectrumDb(was), audioSpectrumDb(now), NOISE.bandsDb, TOLERANCE.bandsDb, 'bands |dB|'),
+      lower(Math.abs(was.onsets.ours - was.onsets.ref), Math.abs(now.onsets.ours - now.onsets.ref), NOISE.onsetsPerSecond,
+        onsetsMaterial, 'onsets/s off MAME'),
     ];
-    const verdict = parts.some(part => part.verdict === 'worse') ? 'worse'
-      : parts.some(part => part.verdict === 'better') ? 'better' : 'same';
+    const verdict: Verdict = parts.some(part => part.verdict === 'worse') ? 'worse'
+      : parts.some(part => part.verdict === 'better') ? 'better'
+      : parts.some(part => part.verdict === 'moved') ? 'moved' : 'same';
     const details = parts.flatMap(part => part.detail ? [`${part.detail} (${part.verdict})`] : []);
     // MAME's recording should not move between runs; if it did, so did MAME or the set.
     if (Math.abs(was.rms.ref - now.rms.ref) > 1e-6 * Math.max(1, was.rms.ref)) details.push("MAME's recording differs from the baseline's");

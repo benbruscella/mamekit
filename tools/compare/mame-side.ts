@@ -20,13 +20,15 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { listXmlOracle } from '../../src/gen/listxml.ts';
 import { CONTRACT_BASE_TIME } from '../../src/ir/host-config.ts';
-import { samplesDir as samplesRoot } from '../../src/paths.ts';
+import { romsDir, samplesDir as samplesRoot } from '../../src/paths.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { IoPlan, OraclePlan, OursBoot, Timeline, TimelineEvent } from './plan.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const projectRoot = resolve(here, '../..');
-const luaScript = join(here, 'oracle.lua');
+/** The Lua script MAME runs every comparison with; its text is part of the MAME cache key. */
+export const luaScriptPath = join(here, 'oracle.lua');
+const luaScript = luaScriptPath;
 
 export interface Politeness {
   /** Run on the efficiency cores (macOS taskpolicy -b): ~6x slower, never in the way. */
@@ -78,7 +80,7 @@ export const samplesDir = samplesRoot(projectRoot);
 
 /** Where MAME finds a machine's sets and a title's software, for each category. */
 export function romPaths(config: ShellConfig, category: string): string[] {
-  const roms = join(projectRoot, '.data/roms');
+  const roms = romsDir(projectRoot);
   if (category === 'arcade') return [join(roms, 'arcade')];
   // A software list's sets sit in <dumps>/<list>/<name>.zip, which is where
   // MAME looks for list software on a rompath of <dumps>; firmware is in bios/.
@@ -173,7 +175,7 @@ export function writeLuaPlan(
 ): void {
   const io: IoPlan = plan.io ?? { taps: [], from: 0, to: -1 };
   const last = Math.max(1, ...frames.snapshots, ...frames.ram,
-    ...(plan.io ? [plan.io.to] : []), ...plan.offsets.map(offset => plan.last + offset));
+    ...(plan.io ? [plan.io.to + (plan.io.offset ?? 0)] : []), ...plan.offsets.map(offset => plan.last + offset));
   writeFileSync(path, `return ${lua({
     out: dir,
     last,
@@ -183,8 +185,9 @@ export function writeLuaPlan(
     ram: plan.ram?.cpus ?? [],
     ram_frames: Object.fromEntries(frames.ram.map(frame => [frame, true])),
     io: io.taps,
-    io_from: io.from,
-    io_to: io.to,
+    // MAME's frames are ours + offset, where a board boots out of step.
+    io_from: io.from + (io.offset ?? 0),
+    io_to: io.to + (io.offset ?? 0),
   })}\n`);
 }
 

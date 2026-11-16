@@ -1,3 +1,4 @@
+import { mameSourceDir } from '../paths.ts';
 import { spawn } from 'node:child_process';
 import { existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -68,7 +69,7 @@ const jobs = Number.isInteger(requestedJobs) && requestedJobs > 0
 // Most specs build a graph or compile a device, and each, in a process of its
 // own, would index MAME's devices for itself: twenty seconds a spec, before it
 // tests anything. Index once here and hand it to them all.
-const mameSource = resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+const mameSource = mameSourceDir(projectRoot);
 if (existsSync(join(mameSource, 'src/devices'))) {
   const indexFile = join(tmpdir(), `mamekit-spec-hardware-index-${process.pid}.json`);
   shareHardwareIndex(mameSource, indexFile);

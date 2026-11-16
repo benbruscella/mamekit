@@ -6,10 +6,10 @@ import { spawnSync } from 'node:child_process';
 import { requiresPlayableGeneration, auditGenerated } from './audit-generated.ts';
 import { REQUIRED_TARGETS } from './targets.ts';
 import { gamesManifest } from '../serve.ts';
-import { artworkDir } from '../paths.ts';
+import { artworkDir, mameSourceDir } from '../paths.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const mameSource = resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+const mameSource = mameSourceDir(projectRoot);
 const outRoot = join(projectRoot, 'dist');
 const cli = join(projectRoot, 'bin/mamekit.js');
 

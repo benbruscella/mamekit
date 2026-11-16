@@ -101,6 +101,18 @@ export interface GameAcceptanceOptions {
   }[];
   /** Return current fingerprints without comparing them to recorded goldens. */
   recording?: boolean;
+  /**
+   * Measure throughput but do not fail on the contract's fps floor, and hand
+   * the figures here: `mamekit sweep` runs several contracts at once, where a
+   * floor would fail for load rather than for behaviour.
+   */
+  throughput?: (measured: { emulatedFps: number; minimumFps: number }) => void;
+  /**
+   * Every sound write as the board makes it, read-only: `mamekit levels`
+   * sums each chip's observed stream (`<tag>.stream`, with
+   * MAMEKIT_OBSERVE_STREAMS=1) per window of frames.
+   */
+  onSoundWrite?: (write: { method?: string; data: number }) => void;
   /** Read-only per-frame diagnostic hook for long-state-transition captures. */
   inspectFrame?: (frame: {
     number: number;
@@ -123,7 +135,7 @@ export interface GameAcceptanceOptions {
    * Diagnostic hook called once, before the first frame, with the booted board
    * and the configuration it was built from: the slot cards it holds and the
    * media slots it left empty, which a MAME reference run has to be given too
-   * (tools/mame-oracle.ts), and the input model whose ports the board reads.
+   * (mamekit against), and the input model whose ports the board reads.
    */
   onBoard?: (booted: { board: Board; boardConfig: ShellConfig['board']; config: ShellConfig; input: KeyboardInput }) => void;
   /**
@@ -336,6 +348,7 @@ export async function runGameAcceptance(
       soundWrite: (offset, data, frac, method) => {
         const write = { offset, data, frac, method };
         if (replayWrites) { replayWrites.push(write); return; }
+        options.onSoundWrite?.({ ...(method ? { method } : {}), data: Number(data) || 0 });
         // MAMEKIT_STREAM_WAV=<dir>: each observed chip's own stream, as it
         // reaches the speaker, kept for a WAV of its own (see below).
         if (streamWavDir && method?.endsWith('.stream')) (streamPcm[method] ??= []).push(Number(data) || 0);
@@ -1001,6 +1014,10 @@ export async function runGameAcceptance(
   } else {
     assert.ok(contract.golden, `${contract.game}: no acceptance golden is recorded`);
     assert.deepEqual(result, contract.golden, `${contract.game}: generated behavior changed`);
+  }
+  if (options.throughput) {
+    options.throughput({ emulatedFps, minimumFps: contract.minimumFps });
+    return result;
   }
   assert.ok(
     emulatedFps >= contract.minimumFps,

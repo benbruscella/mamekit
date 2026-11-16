@@ -36,7 +36,7 @@ import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync, readF
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { crc32 } from 'node:zlib';
 import { checkRomSet, missingRomSets } from '../src/runtime/shell.ts';
-import { romsDir as romsRoot, samplesDir as samplesRoot } from '../src/paths.ts';
+import { mameSourceDir, romsDir as romsRoot, samplesDir as samplesRoot } from '../src/paths.ts';
 import { walkFile, readZipBytes, type Blob } from './rom-library/archives.ts';
 import { identifyBlob, type Piece, type Variant } from './rom-library/identify.ts';
 import { hex8, Library, writeZip, type Outcome, type SetChip, type Verdict } from './rom-library/library.ts';
@@ -60,7 +60,7 @@ const datOut = argv.includes('--dat');
 
 const romsDir = resolve(flag('--roms') ?? romsRoot(projectRoot));
 const inbox = resolve(flag('--inbox') ?? join(romsDir, '_new'));
-const mameSrc = resolve(flag('--mame') ?? process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+const mameSrc = flag('--mame') ? resolve(flag('--mame')!) : mameSourceDir(projectRoot);
 const distDir = resolve(flag('--dist') ?? join(projectRoot, 'dist'));
 const samplesDir = resolve(flag('--samples') ?? samplesRoot(projectRoot));
 const samplesInbox = join(samplesDir, '_new');

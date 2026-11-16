@@ -1,14 +1,20 @@
-#!/usr/bin/env node
 /**
  * A baseline against MAME for every contract scenario, and the comparison a
  * change is judged by: better, the same or worse than before, measure by
  * measure.
  *
- *   MAME_BIN=/path/to/mame node tools/mame-baseline.ts record [<target>|<target>/<scenario> ...]
- *   MAME_BIN=... node tools/mame-baseline.ts compare <target> ... [--measures pixels,ram,audio]
- *   node tools/mame-baseline.ts show [<target> ...] [--markdown]
+ *   mamekit record [<target>|<target>/<scenario> ...]
+ *   mamekit compare [<target> ...] [--measures pixels,ram,audio]
+ *   mamekit show [<target> ...] [--markdown]
  *
- *   --jobs N             targets at once (default 1; one target's scenarios always run in turn)
+ *   --against <commit>   no baseline: run that commit's runtime (built into an overlay of dist,
+ *                        tools/compare/overlay.ts) and this tree's, now, and compare the two
+ *   --refresh-mame       run MAME for every step and replace what the cache kept
+ *   --verify-mame        run MAME for every step and check it against the cache: a
+ *                        machine whose two runs differ is listed as uncacheable
+ *   --no-mame-cache      neither read nor write the MAME cache
+ *   --jobs N             targets at once (default: 1 for record, half the cores for compare;
+ *                        one target's scenarios always run in turn)
  *   --baseline <commit>  the baseline to compare with or show (default: the newest recorded);
  *                        with record, a baseline to finish from a later commit of the same src
  *   --measures list      compare only these: pixels, ram, audio, or any of
@@ -22,7 +28,7 @@
  *
  * The set is every acceptance contract scenario (src/games/contracts.ts),
  * accepted and candidate, so nothing is listed by hand. Each is run twice
- * through tools/mame-oracle.ts, which gives both sides the same input:
+ * through `mamekit against`, which gives both sides the same input:
  *
  *   * with no input (--input none --ram --audio): pixels, RAM and audio;
  *   * with the contract's own input (--input contract --audio): pixels and audio.
@@ -33,44 +39,49 @@
  * a silent attract mode (Pac-Man's) never is.
  *
  * The compared frames, the RAM window and every step's arguments are worked
- * out once (tools/oracle/baseline.ts) and stored with the baseline, so a
+ * out once (tools/compare/baseline.ts) and stored with the baseline, so a
  * comparison re-runs exactly what was recorded, whatever the rules become.
  *
- * `record` writes .oracle/baseline/<commit>/<target>.json. It is kept out of
+ * `record` writes .mamekit/baseline/<commit>/<target>.json. It is kept out of
  * .cache, which `npm run clean:all` deletes: a baseline is evidence that takes
  * hours of MAME to record, not a cache. Nothing else writes there: an oracle
- * run rewrites .cache/oracle/<target>.json and its
+ * run rewrites .cache/compare/<target>.json and its
  * exhibit's oracle.json, and generation rewrites oracle.json, but neither
  * touches a baseline. A measure once recorded is never run again; a failed
  * one is retried by the next `record`, so a stopped run resumes. Every step
  * that fails is run once more before the failure is believed (#190).
  *
  * `compare` re-runs the stored plans on the current tree, writes the runs to
- * .oracle/compare/<target>.json and prints a verdict per measure. It
+ * .mamekit/compare/<target>.json and prints a verdict per measure: better,
+ * same, moved (within the measure's tolerance, tools/compare/baseline.ts
+ * TOLERANCE) or worse (past it). Material regressions are listed first. It
  * exits 1 when any measure is worse.
  */
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { loadGenerationGameContracts } from '../src/games/contracts.ts';
-import { gameOutputDir } from '../src/gen/output-layout.ts';
-import type { ShellConfig } from '../src/runtime/shell.ts';
+import { loadGenerationGameContracts } from '../../src/games/contracts.ts';
+import { gameOutputDir } from '../../src/gen/output-layout.ts';
+import type { ShellConfig } from '../../src/runtime/shell.ts';
 import {
-  audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
+  cliArguments, audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
   type AudioResult, type BaselineUnit, type Measure, type MeasureName, type MeasureVerdict, type PixelsResult, type RamSummary,
-  type StepPlan, type UnitRecord,
-} from './oracle/baseline.ts';
-import { mamekitIdentity, projectRoot, resolveMame } from './oracle/mame-side.ts';
-import { boardRam, ramBytesPerFrame } from './oracle/plan.ts';
-import type { RunReport } from './oracle/report.ts';
+  type StepPlan, type UnitPlan, type UnitRecord, type Verdict,
+} from './baseline.ts';
+import { mamekitIdentity, projectRoot, resolveMame } from './mame-side.ts';
+import { baselineRoot, compareRoot, cliEntry } from './paths.ts';
+import { describeOverlay, runtimeOverlay } from './overlay.ts';
+import { mameSourceDir } from '../../src/paths.ts';
+import { boardRam, ramBytesPerFrame } from './plan.ts';
+import type { RunReport } from './report.ts';
 
-const thisFile = relative(projectRoot, fileURLToPath(import.meta.url));
+const thisFile = 'mamekit';
 
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
-const valued = new Set(['--jobs', '--baseline', '--measures', '--redo', '--mame', '--mame-src']);
+const valued = new Set(['--jobs', '--baseline', '--measures', '--redo', '--mame', '--mame-src', '--against']);
 const positional: string[] = [];
 const options = new Map<string, string>();
 for (let index = 0; index < argv.length; index++) {
@@ -80,16 +91,16 @@ for (let index = 0; index < argv.length; index++) {
 }
 const [command, ...names] = positional;
 if (command !== 'record' && command !== 'compare' && command !== 'show') {
-  console.error(`usage: MAME_BIN=... node ${thisFile} record|compare|show [<target>|<target>/<scenario> ...] ` +
+  console.error(`usage: ${thisFile} record|compare|show [<target>|<target>/<scenario> ...] ` +
     '[--jobs N] [--baseline <commit>] [--measures pixels,ram,audio] [--markdown]');
   process.exit(2);
 }
 // Each oracle run is a child that resolves MAME for itself, through the environment.
 if (options.get('--mame-src')) process.env.MAME_SRC = resolve(options.get('--mame-src')!);
 if (options.get('--mame')) process.env.MAME_BIN = resolve(options.get('--mame')!);
-const jobs = Math.max(1, Number(options.get('--jobs') ?? 1));
-const baselineRoot = join(projectRoot, '.oracle/baseline');
-const compareRoot = join(projectRoot, '.oracle/compare');
+// A comparison mostly runs our side alone (MAME's comes from the cache), so it
+// takes half the cores unless told otherwise; recording runs MAME, one target at a time.
+const jobs = Math.max(1, Number(options.get('--jobs') ?? (command === 'compare' ? Math.floor(availableParallelism() / 2) : 1)));
 const dist = join(projectRoot, 'dist');
 
 // --- identity --------------------------------------------------------------
@@ -140,7 +151,7 @@ function currentIdentity(mame: string): BaselineIdentity {
 function requirePinnedNode(): void {
   const pinned = `v${readFileSync(join(projectRoot, '.nvmrc'), 'utf8').trim()}`;
   if (process.version !== pinned) {
-    console.error(`${thisFile} runs on Node ${pinned} (.nvmrc), not ${process.version}: fnm exec --using=${pinned.slice(1)} node ${thisFile} ...`);
+    console.error(`${thisFile} runs on Node ${pinned} (.nvmrc), not ${process.version}: fnm exec --using=${pinned.slice(1)} npm run mamekit -- ...`);
     process.exit(2);
   }
 }
@@ -205,20 +216,30 @@ function runTool(args: string[], log: string): Promise<{ status: number | null; 
   });
 }
 
+/** How each run is to treat the MAME cache, handed on to `mamekit against`. */
+const cacheFlags = ['--refresh-mame', '--verify-mame', '--no-mame-cache'].filter(name => options.has(name));
+/** Runs whose MAME side came from the cache, and runs that started MAME. */
+const mameTally = { cached: 0, ran: 0 };
+const mameSummary = () => `MAME's side: ${mameTally.cached} from the cache, ${mameTally.ran} run`;
+
 const lastLines = (text: string) => text.trim().split('\n').filter(Boolean).slice(-2).join(' | ').slice(0, 300);
 
 /**
  * One oracle run, run once more if it fails: a native crash or a stray
  * divergence on this host is not believed until it happens twice (#190).
  */
-async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunReport; failure?: string; retried?: string }> {
+async function oracleRun(plan: StepPlan, scratch: string, extra: readonly string[] = []): Promise<{ run?: RunReport; failure?: string; retried?: string }> {
   let first: string | undefined;
   let outcome: { run?: RunReport; failure?: string } = {};
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = `${scratch}.json`;
     rmSync(out, { force: true });
-    const ran = await runTool([...plan.args, '--out', out], `${scratch}.log`);
+    const ran = await runTool([cliEntry, ...cliArguments(plan), ...extra, ...cacheFlags, '--out', out], `${scratch}.log`);
     const runs = existsSync(out) ? Object.values(readJson<Record<string, RunReport>>(out)) : [];
+    if (runs[0]) {
+      if (runs[0].mameCached) mameTally.cached++;
+      else mameTally.ran++;
+    }
     outcome = runs[0]
       ? { run: runs[0], ...(runFailure(runs[0]) ? { failure: runFailure(runs[0]) } : {}) }
       : { failure: `the oracle exited ${ran.status ?? 'on a signal'}: ${lastLines(ran.tail)}` };
@@ -243,11 +264,11 @@ const pending = (measure: Measure<unknown> | undefined) => !measure || measure.s
  * measures asked for.
  */
 async function measureUnit(unit: BaselineUnit, record: UnitRecord, scratch: string,
-  want: (measure: MeasureName) => boolean, save: () => void): Promise<void> {
+  want: (measure: MeasureName) => boolean, save: () => void, extra: readonly string[] = []): Promise<void> {
   const { plan } = record;
   const due = (measure: MeasureName, kept: Measure<unknown> | undefined) => want(measure) && pending(kept);
   if (due('pixels:none', record.pixelsNone) || due('ram', record.ram) || due('audio:none', record.audioNone)) {
-    const { run, failure, retried } = await oracleRun(plan.none, `${scratch}-none`);
+    const { run, failure, retried } = await oracleRun(plan.none, `${scratch}-none`, extra);
     const from = <T>(measure: (run: RunReport) => Measure<T>): Measure<T> => {
       const kept = run ? measure(run) : { status: 'failed' as const, reason: failure! };
       return { ...kept, ...(retried ? { retried } : {}), measuredOn: toolsCommit };
@@ -261,7 +282,7 @@ async function measureUnit(unit: BaselineUnit, record: UnitRecord, scratch: stri
     progress(unit, 'no input', record.pixelsNone, record.ram, record.audioNone);
   }
   if (due('pixels:contract', record.pixelsContract) || due('audio:contract', record.audioContract)) {
-    const { run, failure, retried } = await oracleRun(plan.contract, `${scratch}-contract`);
+    const { run, failure, retried } = await oracleRun(plan.contract, `${scratch}-contract`, extra);
     const from = <T>(measure: (run: RunReport) => Measure<T>): Measure<T> => {
       const kept = run ? measure(run) : { status: 'failed' as const, reason: failure! };
       return { ...kept, ...(retried ? { retried } : {}), measuredOn: toolsCommit };
@@ -310,7 +331,7 @@ function progress(unit: BaselineUnit, step: string, ...measures: (Measure<unknow
 
 async function record(): Promise<void> {
   requirePinnedNode();
-  const mame = resolveMame(options.get('--mame-src') ?? join(projectRoot, '../mame'), options.get('--mame'));
+  const mame = resolveMame(mameSourceDir(projectRoot), options.get('--mame'));
   const identity = currentIdentity(mame.version);
   if (identity.dirty && !options.has('--allow-dirty')) {
     console.error('src, tools or bin have local changes: a baseline is recorded from a commit (--allow-dirty to try it anyway)');
@@ -367,6 +388,7 @@ async function record(): Promise<void> {
     }
   });
   show(dir);
+  console.log(mameSummary());
 }
 
 // --- compare ---------------------------------------------------------------
@@ -382,7 +404,7 @@ function baselineDir(): string {
     .filter(name => existsSync(join(baselineRoot, name, 'baseline.json')))
     .map(name => ({ dir: join(baselineRoot, name), startedAt: readJson<BaselineIdentity>(join(baselineRoot, name, 'baseline.json')).startedAt }))
     .sort((left, right) => right.startedAt.localeCompare(left.startedAt)) : [];
-  if (!recorded.length) throw new Error(`no baseline recorded yet: MAME_BIN=... node ${thisFile} record`);
+  if (!recorded.length) throw new Error(`no baseline recorded yet in ${relative(projectRoot, baselineRoot)}: mamekit record`);
   return recorded[0]!.dir;
 }
 
@@ -394,11 +416,11 @@ function measuresWanted(option = '--measures'): MeasureName[] {
   return wanted;
 }
 
-const MARK: Record<string, string> = { better: 'better', same: 'same', worse: 'WORSE', 'n/a': 'n/a' };
+const MARK: Record<string, string> = { better: 'better', same: 'same', moved: 'moved', worse: 'WORSE', 'n/a': 'n/a' };
 
 async function compare(): Promise<void> {
   requirePinnedNode();
-  const mame = resolveMame(options.get('--mame-src') ?? join(projectRoot, '../mame'), options.get('--mame'));
+  const mame = resolveMame(mameSourceDir(projectRoot), options.get('--mame'));
   const dir = baselineDir();
   const baseline = readJson<BaselineIdentity>(join(dir, 'baseline.json'));
   const identity = currentIdentity(mame.version);
@@ -431,21 +453,79 @@ async function compare(): Promise<void> {
       writeJson(join(compareRoot, `${target}.json`), out);
     }
   });
+  printVerdicts(rows, measures, relative(projectRoot, compareRoot));
+}
+
+type VerdictRow = { key: string; verdicts: Partial<Record<MeasureName, MeasureVerdict>> };
+
+/** The table, the notes (material regressions first) and the summary; exit 1 on any worse. */
+function printVerdicts(rows: VerdictRow[], measures: readonly MeasureName[], where: string): void {
   rows.sort((left, right) => units.findIndex(unit => unit.key === left.key) - units.findIndex(unit => unit.key === right.key));
   const width = Math.max(10, ...rows.map(row => row.key.length));
   console.log(`\n${'scenario'.padEnd(width)}  ${measures.map(measure => measure.padEnd(15)).join(' ')}`);
   for (const row of rows) {
     console.log(`${row.key.padEnd(width)}  ${measures.map(measure => MARK[row.verdicts[measure]?.verdict ?? 'n/a']!.padEnd(15)).join(' ')}`);
   }
-  const notes = rows.flatMap(row => measures.flatMap(measure => {
-    const verdict = row.verdicts[measure];
-    return verdict?.detail && verdict.verdict !== 'same' ? [`  ${row.key} ${measure}: ${MARK[verdict.verdict]}, ${verdict.detail}`] : [];
-  }));
-  if (notes.length) console.log(`\n${notes.join('\n')}`);
-  const worse = rows.filter(row => Object.values(row.verdicts).some(verdict => verdict?.verdict === 'worse'));
-  console.log(`\n${rows.length} scenarios: ${worse.length ? `${worse.length} worse on some measure (${worse.map(row => row.key).join(', ')})` : 'none worse'}; ` +
-    `runs in ${relative(projectRoot, compareRoot)}`);
+  // Material regressions first, then improvements, then moves within tolerance.
+  const order: Verdict[] = ['worse', 'better', 'moved'];
+  const heading: Record<string, string> = { worse: 'Worse (past tolerance):', better: 'Better:', moved: 'Moved, within tolerance:' };
+  for (const kind of order) {
+    const notes = rows.flatMap(row => measures.flatMap(measure => {
+      const verdict = row.verdicts[measure];
+      return verdict?.verdict === kind ? [`  ${row.key} ${measure}${verdict.detail ? `: ${verdict.detail}` : ''}`] : [];
+    }));
+    if (notes.length) console.log(`\n${heading[kind]}\n${notes.join('\n')}`);
+  }
+  const having = (kind: Verdict) => rows.filter(row => Object.values(row.verdicts).some(verdict => verdict?.verdict === kind));
+  const worse = having('worse');
+  console.log(`\n${rows.length} scenarios: ${worse.length ? `${worse.length} worse on some measure (${worse.map(row => row.key).join(', ')})` : 'none worse'}, ` +
+    `${having('better').length} better, ${having('moved').length} moved within tolerance; ` +
+    `runs in ${where}; ${mameSummary()}`);
   if (worse.length) process.exitCode = 1;
+}
+
+/**
+ * `compare --against <commit>`: that commit's runtime and this tree's, both
+ * run now, from one dist (that commit's runtime in an overlay of it,
+ * tools/compare/overlay.ts), measure by measure. No baseline, no checkout:
+ * "is it already broken on main?" is one command. Each scenario's plan is
+ * worked out afresh, as `record` would; MAME's side is cached, so it serves
+ * both runs.
+ */
+async function compareAgainst(commitish: string): Promise<void> {
+  requirePinnedNode();
+  resolveMame(mameSourceDir(projectRoot), options.get('--mame'));
+  // Built once here, so the runs (several at a time) all find it made.
+  const overlay = runtimeOverlay(commitish);
+  const measures = measuresWanted();
+  const want = (measure: MeasureName) => measures.includes(measure);
+  const identity = mamekitIdentity();
+  console.log(`comparing ${units.length} scenarios: ${describeOverlay(overlay)}, against this tree ` +
+    `(${identity.commit}${identity.dirty ? ', dirty' : ''}): ${measures.join(', ')}`);
+  const root = join(compareRoot, `against-${overlay.short}`);
+  const rows: VerdictRow[] = [];
+  await eachTarget(async (target, list) => {
+    const out: { against: string; identity: object; units: Record<string, { before: UnitRecord; after: UnitRecord; verdicts: object }> } =
+      { against: overlay.commit, identity, units: {} };
+    for (const unit of list) {
+      let plan: UnitPlan;
+      try {
+        plan = unitPlan(unit, ramBytes(unit));
+      } catch (error) {
+        console.log(`[-] ${unit.key}: ${(error as Error).message}`);
+        continue;
+      }
+      const before: UnitRecord = { plan };
+      const after: UnitRecord = { plan };
+      await measureUnit(unit, before, join(root, 'logs', `${safe(unit.key)}-before`), want, () => {}, ['--runtime', overlay.commit]);
+      await measureUnit(unit, after, join(root, 'logs', safe(unit.key)), want, () => {});
+      const verdicts = compareUnit(before, after, measures);
+      out.units[unit.key] = { before, after, verdicts };
+      rows.push({ key: unit.key, verdicts });
+      writeJson(join(root, `${target}.json`), out);
+    }
+  });
+  printVerdicts(rows, measures, relative(projectRoot, root));
 }
 
 // --- show ------------------------------------------------------------------
@@ -491,5 +571,6 @@ function show(dir: string): void {
 }
 
 if (command === 'record') await record();
+else if (command === 'compare' && options.has('--against')) await compareAgainst(options.get('--against')!);
 else if (command === 'compare') await compare();
 else show(baselineDir());

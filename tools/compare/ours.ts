@@ -17,7 +17,9 @@ import type { GameInputAction, GameTestContract } from '../../src/games/types.ts
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { Board } from '../../src/runtime/types.ts';
-import { bootFrame, InputRecorder, inputTimeline, MEDIA_SWITCH, moveBootEvent, ramFrames, startSchedule, type OraclePlan, type OursBoot } from './plan.ts';
+import { bootFrame, InputRecorder, inputTimeline, MEDIA_SWITCH, moveBootEvent, ramFrames, startSchedule, type IoPlan, type OraclePlan, type OursBoot } from './plan.ts';
+
+type IoTap = IoPlan['taps'][number];
 import { projectRoot } from './mame-side.ts';
 
 /** The machine's contract to borrow: the scenario named, else one of the title's kind, else its first. */
@@ -43,6 +45,8 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   if (plan.ram) writeFileSync(ramFile, '');
   if (plan.io) writeFileSync(ioFile, '');
   let framesRun = 0;
+  /** Per chip, per window of `plan.levels` frames: the sum of its stream's squared samples and their count. */
+  const levelSums: Record<string, { squares: number; count: number }[]> = {};
   let dumping = false;
   const grade = { samples: 0, drawn: 0, changes: 0, colours: 0 };
   let lastHash = -1;
@@ -71,27 +75,82 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     : config.software?.shelves.find(shelf => shelf.list === contract.software?.list)?.kind;
   const media = kind ? MEDIA_SWITCH[kind] : undefined;
 
+  // Bus traffic in the tapped ranges, buffered and written in blocks: a
+  // shared RAM tap logs hundreds of thousands of accesses.
+  const ioLines: string[] = [];
+  const flushIo = () => {
+    if (!ioLines.length) return;
+    appendFileSync(ioFile, ioLines.join(''));
+    ioLines.length = 0;
+  };
+
+  /**
+   * Each tapped processor's bus wrapped once, every tap on it checked per
+   * access. A word access is logged once, as the word the CPU moved: MAME's
+   * tap sees it so (oracle.lua turns one byte lane of a word back into the
+   * byte), and it counts when either of its bytes is in a range, since a
+   * `move.w` to $f80000 writes the latch at $f80001. A word whose handler is
+   * two byte handlers reaches them through bus.read/bus.write, and those
+   * inner halves are not logged again. Until #260 only bus.read/bus.write
+   * were wrapped, so a 68000's word writes to a word handler never appeared
+   * (half of Marble Madness's traffic).
+   */
   const tapBuses = (board: Board) => {
     const cpus = (board as unknown as { cpus?: Map<string, { bus?: object }> }).cpus;
     const buses = (board as unknown as { cpuBuses?: Map<string, object> }).cpuBuses;
-    plan.io!.taps.forEach((tap, index) => {
-      const bus = (cpus?.get(tap.tag)?.bus ?? buses?.get(tap.tag)) as
-        { read(address: number, ...rest: unknown[]): number; write(address: number, data: number, ...rest: unknown[]): void } | undefined;
-      if (!bus) throw new Error(`the board has no CPU bus ${tap.tag}`);
+    const generated = board as unknown as { cpuSeconds?(cpu: unknown): number; machine?: { execution: { cpus: { tag: string }[] } } };
+    const byTag = new Map<string, { tap: IoTap; index: number }[]>();
+    plan.io!.taps.forEach((tap, index) => byTag.set(tap.tag, [...byTag.get(tap.tag) ?? [], { tap, index }]));
+    for (const [tag, taps] of byTag) {
+      const bus = (cpus?.get(tag)?.bus ?? buses?.get(tag)) as Record<string, unknown> | undefined;
+      if (!bus) throw new Error(`the board has no CPU bus ${tag}`);
       // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
-      const generated = board as unknown as { cpuSeconds?(cpu: unknown): number; machine?: { execution: { cpus: { tag: string }[] } } };
-      const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tap.tag);
+      const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tag);
       const seconds = () => cpu && generated.cpuSeconds ? generated.cpuSeconds(cpu) : 0;
-      const log = (kind: 'R' | 'W', address: number, data: number) => {
+      const log = (kind: 'R' | 'W', address: number, data: number, bytes: number) => {
         const frame = framesRun + 1;
-        if (dumping || address < tap.lo || address > tap.hi || frame < plan.io!.from || frame > plan.io!.to) return;
-        appendFileSync(ioFile, `${frame} ${kind} ${index} ${address.toString(16)} ${(Number(data) >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+        if (dumping || frame < plan.io!.from || frame > plan.io!.to) return;
+        for (const { tap, index } of taps) {
+          if (!(kind === 'R' ? tap.read : tap.write) || address + bytes - 1 < tap.lo || address > tap.hi) continue;
+          ioLines.push(`${frame} ${kind} ${index} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+          if (ioLines.length >= 4096) flushIo();
+          return;
+        }
       };
-      const read = bus.read.bind(bus);
-      const write = bus.write.bind(bus);
-      if (tap.read) bus.read = (address, ...rest) => { const value = read(address, ...rest); log('R', address, value); return value; };
-      if (tap.write) bus.write = (address, data, ...rest) => { log('W', address, data); write(address, data, ...rest); };
-    });
+      let inWord = 0;
+      for (const name of ['read', 'read16be', 'read16le']) {
+        const method = bus[name] as ((address: number, ...rest: unknown[]) => number) | undefined;
+        if (typeof method !== 'function') continue;
+        const original = method.bind(bus);
+        const word = name !== 'read';
+        bus[name] = (address: number, ...rest: unknown[]) => {
+          if (word) inWord++;
+          let value: number;
+          try {
+            value = original(address, ...rest);
+          } finally {
+            if (word) inWord--;
+          }
+          if (word || inWord === 0) log('R', address, Number(value) & (word ? 0xffff : 0xff), word ? 2 : 1);
+          return value;
+        };
+      }
+      for (const name of ['write', 'write16be', 'write16le']) {
+        const method = bus[name] as ((address: number, data: number, ...rest: unknown[]) => void) | undefined;
+        if (typeof method !== 'function') continue;
+        const original = method.bind(bus);
+        const word = name !== 'write';
+        bus[name] = (address: number, data: number, ...rest: unknown[]) => {
+          if (word || inWord === 0) log('W', address, Number(data) & (word ? 0xffff : 0xff), word ? 2 : 1);
+          if (word) inWord++;
+          try {
+            original(address, data, ...rest);
+          } finally {
+            if (word) inWord--;
+          }
+        };
+      }
+    }
   };
 
   const readRam = (buses: ReadonlyMap<string, { read(address: number): number }>): Uint8Array => {
@@ -136,6 +195,19 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     await runGameAcceptance(contract, projectRoot, {
       outRoot: plan.dist,
       captureAudio: join(plan.dir, 'ours.pcm'),
+      // Each chip's observed stream, summed per window of frames: a sample
+      // written during frame N + 1 belongs to the window holding it.
+      ...(plan.levels ? {
+        onSoundWrite: (write: { method?: string; data: number }) => {
+          if (!write.method?.endsWith('.stream')) return;
+          const chip = write.method.slice(0, -'.stream'.length);
+          const window = Math.floor(framesRun / plan.levels!);
+          const sums = (levelSums[chip] ??= []);
+          const entry = (sums[window] ??= { squares: 0, count: 0 });
+          entry.squares += write.data * write.data;
+          entry.count++;
+        },
+      } : {}),
       captureActions: true,
       frames: plan.last,
       // What MAME must be given to boot the same machine: the cards in its
@@ -214,6 +286,16 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     if (booted && recorder) {
       writeFileSync(join(plan.dir, 'ours-boot.json'), `${JSON.stringify(booted)}\n`);
       writeFileSync(join(plan.dir, 'ours-inputs.txt'), recorder.readings());
+    }
+    if (plan.io) flushIo();
+    if (plan.levels) {
+      const windows = Math.ceil(framesRun / plan.levels);
+      const chips = Object.fromEntries(Object.entries(levelSums).map(([chip, sums]) => [chip,
+        Array.from({ length: windows }, (_, index) => {
+          const entry = sums[index];
+          return entry && entry.count ? Math.sqrt(entry.squares / entry.count) : 0;
+        })]));
+      writeFileSync(join(plan.dir, 'ours-levels.json'), `${JSON.stringify({ window: plan.levels, frames: framesRun, chips })}\n`);
     }
     // How far it got, whether or not it finished: a failure's frame is part of the result.
     writeFileSync(join(plan.dir, 'ours-done.json'),

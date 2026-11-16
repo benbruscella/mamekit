@@ -1,7 +1,7 @@
--- The MAME side of tools/mame-oracle.ts: one script for every comparison.
+-- The MAME side of `mamekit against` (tools/compare/against.ts): one script for every comparison.
 --
 -- It runs as MAME's -autoboot_script and reads its plan, a Lua table written
--- by tools/oracle/mame-side.ts, from the file named by MAMEKIT_ORACLE_PLAN.
+-- by tools/compare/mame-side.ts, from the file named by MAMEKIT_ORACLE_PLAN.
 -- Frames are counted by the frame notifier, which fires once a frame has
 -- finished: the count is the number of frames run, and an input set at count
 -- N is read during frame N + 1 -- the harness's own `atFrame: N`.
@@ -174,6 +174,25 @@ end
 if #plan.io > 0 then
   oracle.files.io = io.open(plan.out .. "/mame-io.txt", "w")
 end
+-- A tap on a space wider than a byte sees every access as the bus's own width:
+-- a 68000's byte write to an odd address arrives as the even address, the
+-- byte in the word's low half and mem_mask 0x00ff. Ours logs the access the
+-- CPU made, so one byte lane is turned back into that byte, at its address;
+-- a full-width access stays one word.
+local function as_issued(space, offset, data, mask)
+  local width = space.data_width
+  if width == 8 or mask == nil then return offset, data end
+  local lanes = width // 8
+  local active, lane = 0, 0
+  for index = 0, lanes - 1 do
+    if (mask >> (index * 8)) & 0xff ~= 0 then active = active + 1; lane = index end
+  end
+  if active ~= 1 then return offset, data & mask, lanes end
+  local byte = (data >> (lane * 8)) & 0xff
+  if space.endianness == "big" then return offset + (lanes - 1 - lane), byte, 1 end
+  return offset + lane, byte, 1
+end
+
 for index, tap in ipairs(plan.io) do
   local space = cpu_space(tap.tag)
   if not space then return fail("MAME has no CPU :" .. tap.tag) end
@@ -181,16 +200,26 @@ for index, tap in ipairs(plan.io) do
     return function(offset, data, mask)
       local frame = oracle.count + 1
       if not oracle.dumping and frame >= plan.io_from and frame <= plan.io_to then
-        oracle.files.io:write(string.format("%d %s %d %x %x %.10f\n", frame, kind, index - 1, offset, data,
-          machine.time:as_double()))
+        local address, value, bytes = as_issued(space, offset, data, mask)
+        -- The tap is installed on whole bus words; only an access that touches
+        -- the bytes asked for is logged, as ours logs it.
+        if address + (bytes or 1) - 1 >= tap.lo and address <= tap.hi then
+          oracle.files.io:write(string.format("%d %s %d %x %x %.10f\n", frame, kind, index - 1, address, value,
+            machine.time:as_double()))
+        end
       end
     end
   end
+  -- MAME taps whole bus words: a range is widened to the word boundaries
+  -- (a 68000's $860001 is installed as $860000-$860001).
+  local granule = space.data_width // 8
+  local lo = tap.lo - (tap.lo % granule)
+  local hi = tap.hi - (tap.hi % granule) + granule - 1
   if tap.read then
-    oracle.taps[#oracle.taps + 1] = space:install_read_tap(tap.lo, tap.hi, "oracle-r" .. index, record("R"))
+    oracle.taps[#oracle.taps + 1] = space:install_read_tap(lo, hi, "oracle-r" .. index, record("R"))
   end
   if tap.write then
-    oracle.taps[#oracle.taps + 1] = space:install_write_tap(tap.lo, tap.hi, "oracle-w" .. index, record("W"))
+    oracle.taps[#oracle.taps + 1] = space:install_write_tap(lo, hi, "oracle-w" .. index, record("W"))
   end
 end
 

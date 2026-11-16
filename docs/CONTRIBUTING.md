@@ -48,12 +48,15 @@ Required:
 - a MAME checkout, normally at `../mame`;
 - legally obtained local ROMs for acceptance and browser testing only.
 
-Override MAME discovery with either:
+Name this machine's paths in a git-ignored `.env` at the repository root;
+`.env.example` lists every variable (`MAME_SRC`, `MAME_BIN`, `MAMEKIT_ROMS`,
+`MAMEKIT_SAMPLES`):
 
 ```sh
-export MAME_SRC=/path/to/mame
-node bin/mamekit.js <target> --mame-src /path/to/mame
+cp .env.example .env    # then fill in the paths
 ```
+
+A variable set in the shell wins over `.env`, and `--mame-src` wins over both.
 
 Start from a valid repository and compiler baseline:
 
@@ -189,9 +192,10 @@ MAMEKIT_E2E_GAMES=<shortname> npm run test:e2e
 
 The full QA rationale lives in [Testing](TESTING.md); the debugging checklist
 and presentation requirements are the steps below. To compare a candidate's
-pictures, RAM and bus traffic with MAME itself, run `tools/mame-oracle.ts` (it
-loads candidate contracts too); [Engineering](ENGINEERING.md) section 7
-documents it.
+pictures, RAM and bus traffic with MAME itself, run
+`npm run mamekit -- against <target>` (it loads candidate contracts too);
+[Engineering](ENGINEERING.md) section 7 documents it and the rest of the
+comparison commands.
 
 ### QUICK PATH
 
@@ -429,15 +433,19 @@ UI spinners that guess. The stable user feedback is the board's real output;
 the stable test is an observed title/attract checkpoint followed by accepted
 coin and start inputs.
 
-For a reference timeline, compare frames against MAME itself with the oracle,
-which boots MAME cold (fresh NVRAM and cfg directories, since MAME writes NVRAM
-back on exit), windowed, from the source checkout's release:
+For a reference timeline, compare frames against MAME itself with
+`mamekit against`. It boots MAME cold (fresh NVRAM and cfg directories, since
+MAME writes NVRAM back on exit), windowed, from the binary `MAME_BIN` names in
+`.env`, which must be the source checkout's release:
 
 ```sh
-MAME_BIN=/path/to/matching/mame node tools/mame-oracle.ts <target> --frames 300,600,900 --ram
+npm run mamekit -- against <target> --frames 300,600,900 --ram
+npm run mamekit -- help against      # every option
 ```
 
-[ENGINEERING](ENGINEERING.md) section 7 documents its options.
+MAME's side is cached by what MAME was given, so running it again after a fix
+only re-runs ours. [ENGINEERING](ENGINEERING.md) section 7 documents the
+options, the cache and the baseline commands.
 
 #### 2. Never test new source against stale or mixed `dist`
 
@@ -661,14 +669,14 @@ Keep the game token declarative and resist emergency game-name branches. A
 branch that appears to fix one of forty games usually documents a missing IR
 fact that will fail again on the forty-first.
 
-For an audio A/B, give the comparison command an actual MAME executable through
-`MAME_BIN` (or `--mame`). MAMEKIT captures the emitted worklet from a clean
+For an audio A/B, the comparison command runs the MAME executable `MAME_BIN`
+names in `.env` (or `--mame`). MAMEKIT captures the emitted worklet from a clean
 power-on, MAME records its own run with `-wavwrite` (cold, windowed and from the
-source checkout's release, as the oracle runs it), and the tool writes both WAVs
-plus a spectrogram:
+source checkout's release, as `mamekit against` runs it), and the tool writes
+both WAVs plus a spectrogram:
 
 ```sh
-MAME_BIN=/path/to/mame npm run audio:compare -- <target> \
+npm run audio:compare -- <target> \
   --seconds 30 \
   --out .files/audio/<target>
 ```
@@ -677,7 +685,7 @@ This is optional when the machine has no audio. The tool loads accepted and
 candidate contracts. `--scenario <id>` picks one of a machine's scenarios, and
 a console scenario's cartridge is given to MAME too. A scenario that boots
 other list software, such as a tape or a disk, is refused. For those, and to
-hear a contract's play rather than its power-on, use the oracle's `--audio`.
+hear a contract's play rather than its power-on, use `mamekit against --audio`.
 The numbers it prints are also written to `compare.json`. Use it before
 deciding that a write hash or merely audible output is correct.
 

@@ -35,6 +35,8 @@ export interface RunReport {
     scale?: number;
     /** Every offset that fits as well (a still screen fits several). */
     tied: number[];
+    /** Every offset tried, and its frames: a comparison reads a later run at the baseline's offset first. */
+    byOffset?: Record<number, FrameResult[]>;
     frames: FrameResult[];
     /** Our frames that are pixel-for-pixel MAME's. */
     exact: number[];
@@ -53,6 +55,12 @@ export interface RunReport {
   /** How far our side ran; `retried` is a first failure the second run did not repeat. */
   ours?: { frames: number; error?: string; retried?: string };
   mameError?: string;
+  /** When MAME's side was restored from the cache: the time it was recorded. */
+  mameCached?: string;
+  /** With --keep: the work directory holding both sides' raw captures. */
+  workDir?: string;
+  /** With --runtime: the commit whose runtime ran (from an overlay of dist). */
+  runtime?: string;
 }
 
 export interface SurveyEntry {

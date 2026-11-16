@@ -20,6 +20,7 @@
  * test-only path. A netlist fails when its level or any third-octave band from
  * 50 Hz to 16 kHz that carries MAME's sound is further off than --limit dB.
  */
+import { mameSourceDir } from '../src/paths.ts';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { cpus } from 'node:os';
@@ -35,7 +36,7 @@ const option = (name: string): string | undefined => {
   return index >= 0 ? args[index + 1] : undefined;
 };
 const named = args.filter((arg, index) => !arg.startsWith('--') && !args[index - 1]?.startsWith('--'));
-const mameSrc = resolve(option('--mame-src') ?? process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+const mameSrc = option('--mame-src') ? resolve(option('--mame-src')!) : mameSourceDir(projectRoot);
 const dist = resolve(option('--dist') ?? join(projectRoot, 'dist'));
 const seconds = Number(option('--seconds') ?? 2);
 const limit = Number(option('--limit') ?? 1.5);

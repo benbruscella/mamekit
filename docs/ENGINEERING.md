@@ -11,20 +11,26 @@ boundaries.
 - Node.js 23.6 or newer;
 - npm dependencies installed with `npm ci`;
 - this repository at any path;
-- a MAME checkout, normally at sibling path `../mame`, at a release tag
+- a MAME checkout at a release tag, named by `MAME_SRC`
   (`mame0289`). The compiler only reads its source, so nothing needs to be
   built there;
 - local ROMs only for acceptance and manual browser validation;
 - optionally a MAME **binary** of the same release as that checkout, named by
-  `MAME_BIN`, for `npm run audit:facts`, `npm run oracle:baseline`,
-  `tools/mame-oracle.ts` and reference captures. A prebuilt release binary kept
-  outside the checkout is the usual setup.
+  `MAME_BIN`, for `npm run audit:facts`, the MAME comparison tools and
+  reference captures. A prebuilt release binary kept outside the checkout is
+  the usual setup.
+
+Both paths belong to one machine, so they live in a git-ignored `.env` at the
+repository root (`src/local-env.ts`), never in the repository: copy
+`.env.example` and fill it in. `MAMEKIT_ROMS` and `MAMEKIT_SAMPLES` move the
+ROM and sample sets away from `.data/roms` and `.data/samples`. A variable set
+in the shell wins over `.env`; a missing or wrong one is reported by name.
 
 The binary must be the same release as the source checkout. A dump from another
 release describes a different MAME, so every difference it reports is noise;
 `src/gen/listxml.ts` compares the binary's `-version` against the checkout's
 `BARE_BUILD_VERSION` and refuses rather than guessing. Read the source version
-from `../mame/makefile` — `build/generated/version.cpp` is a build artifact and
+from the checkout's `makefile` — `build/generated/version.cpp` is a build artifact and
 goes stale. A package-manager `mame` on `PATH` is usually a different release
 than your checkout, which is exactly the case the refusal exists for.
 
@@ -39,7 +45,7 @@ hidden, gitignored tree:
 .data/roms/computers/<family>/<list>/ software per software list, BIOS in <family>/bios/
 .data/roms/_new/                      the ROM library's inbox (make roms-import)
 .data/roms/_quarantine/               what no supported machine uses, with the reason logged
-.data/samples/<set>.zip               MAME's sample sets, played by the contracts and the MAME oracle
+.data/samples/<set>.zip               MAME's sample sets, played by the contracts and `mamekit against`
 .data/samples/_new/                   the sample inbox (make samples-import)
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
 .data/release-notes/raw/              MAMEDEV's published whatsnew/messnew notes
@@ -116,9 +122,9 @@ siblings, and every run writes `_new/_reports/`.
 
 Tidying also keeps an arcade zip that only MAME's own run of a supported
 machine loads. Our Q*bert never reads the Votrax's `votrsc01a.zip`, but MAME
-refuses to start without it, and the oracle runs MAME from these shelves.
+refuses to start without it, and `mamekit against` runs MAME from these shelves.
 MAME's `-listxml` says which device sets those are (a `device_ref` whose
-device has ROMs), so this needs `MAME_BIN=` set to a binary of the checkout's
+device has ROMs), so this needs `MAME_BIN` (in `.env`) set to a binary of the checkout's
 release, or a `.cache/listxml` that an earlier run warmed. Without either,
 tidy leaves those zips where they are and says why.
 
@@ -140,7 +146,7 @@ discovery with:
 node bin/mamekit.js <target> --mame-src /path/to/mame
 ```
 
-or set `MAME_SRC`.
+or set `MAME_SRC` in `.env`.
 
 Node runs repository TypeScript directly. The browser distribution is compiled
 with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
@@ -157,11 +163,16 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run test:current` | clean-generate and audit the currently supported games |
 | `npm run audit:generated` | audit the games currently present in `dist` |
 | `npm run audit:facts` | diff generated machine facts against MAME's own `-listxml` |
-| `node tools/mame-oracle.ts <target> [<title>]` | run a machine beside MAME and compare pictures, RAM, bus traffic and audio |
-| `npm run oracle:baseline -- record\|compare\|show [<target>]` | record every contract scenario against MAME, and judge a change against that record |
+| `npm run mamekit -- against <target> [<title>]` | run a machine beside MAME and compare pictures, RAM, bus traffic and audio (section 7) |
+| `npm run mamekit -- record\|compare\|show [<target>]` | record every contract scenario against MAME, and judge a change against that record (section 7) |
+| `npm run mamekit -- diverge <target> [<title>]` | the first bus access that differs from MAME, per processor (section 7) |
+| `npm run mamekit -- sweep [<target> ...]` | run the acceptance contracts and classify what moved in each (section 7) |
+| `npm run mamekit -- levels <target> [<title>]` | each sound chip's level over time, beside another commit's (section 7) |
+| `npm run mamekit -- help <command>` | a comparison command's options |
+| `npm run mamekit -- build [--check]` | recompile only `dist/runtime` from `src`, in about two seconds (section 4) |
 | `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
 | `npm run audit:game-package -- <target>` | validate local artwork, history and dossier completeness |
-| `npm run audio:compare -- <target> --mame /path/to/mame` | compare MAMEKIT and MAME power-on WAVs |
+| `npm run audio:compare -- <target>` | compare MAMEKIT and MAME power-on WAVs (`MAME_BIN` from `.env`) |
 | `npm run test:generation` | clean-generate every required target and audit all output |
 | `npm run test:games` | deterministic real-ROM contracts for supported games |
 | `npm run test:candidates` | the same for candidate contracts, which no gate requires |
@@ -228,8 +239,8 @@ PAL machines, and a quickload and an Ultimax cartridge on the PAL one.
 catalogue, including the Computers tab. Candidates are labelled experimental;
 menu visibility does not grant gameplay acceptance.
 For an isolated build, `node bin/mamekit.js dev-game c64p`. A title is checked
-against MAME 0.289 with the oracle (section 7):
-`node tools/mame-oracle.ts c64p c64_cass:<name> --frames <n>` boots it as the
+against MAME 0.289 with `mamekit against` (section 7):
+`npm run mamekit -- against c64p c64_cass:<name> --frames <n>` boots it as the
 room's Play does on both sides, types the shelf's command and presses PLAY.
 
 In the app, open the Commodore 64 under **Computers**: the NTSC and PAL
@@ -321,7 +332,7 @@ both other slots empty, and starts itself; nothing is typed. The port's 54
 cards are compiled from MAME's own `c64_expansion_cards`, limited to the ones
 `c64_cart` and `vic10` name (`src/hardware/c64/extract.ts`), and a title whose
 list names none takes `standard`. To check one against MAME,
-`node tools/mame-oracle.ts c64p c64_cart:<set> --input none` runs MAME with
+`npm run mamekit -- against c64p c64_cart:<set> --input none` runs MAME with
 `-iec8 "" -tape ""` and the set mounted, and compares the frames: Pac-Man, Kung-Fu Master, Robocop 2, Narco Police, the C64GS
 cartridge and three VIC-10 carts are pixel-identical to MAME 0.289. A bare
 `.crt`, `.80`, `.a0` or `.e0` dropped in the room goes in as a file: the port's
@@ -386,7 +397,7 @@ loader restores the Z80 through MAME's `set_state_int`, which the generated
 core answers from its own `state_add` table and `state_import`. MAME runs
 `-snapshot <file>`; a homemade 48K `.sna` is pixel-identical at frame 100.
 
-**Checking frames against MAME.** `tools/mame-oracle.ts` (section 7) does this
+**Checking frames against MAME.** `mamekit against` (section 7) does this
 with the alignment below built in. MAME's frame notifier fires at the end of a
 frame and the harness hook before one, so an input MAME posts on frame N is
 this side's frame N + 1; MAME's snapshot of frame N is this side's frame N.
@@ -487,6 +498,24 @@ node bin/mamekit.js <target> --skip-app
 node bin/mamekit.js --build-runtime --build-app --targets <target>
 npm run audit:generated
 ```
+
+**Changing only the runtime.** A change confined to `src/runtime`, `src/ir` or a
+hardware package's runtime-facing files doesn't need the 12-minute
+`--build-app`:
+
+```sh
+npm run mamekit -- build            # dist/runtime/{core,ir,hardware} from src, ~2 s
+npm run mamekit -- build --check    # write nothing; list modules that differ from dist
+```
+
+`mamekit build` (`src/gen/runtime-build.ts`) stages the same three trees the
+app build stages, at the same paths, and runs the app's own tsc over them
+alone. That gives the same bytes, type-checked: after a full `--build-app`,
+`build --check` reports all 100 modules identical. A module whose JavaScript
+didn't change keeps its time, and one whose source is gone is removed. It
+doesn't touch the generated closure, the boards or the app, so a change to a
+compiler, an emitter or a generated artifact still needs `--build-app` or
+`gen:all`.
 
 `--targets` accepts registered targets from `src/gen/targets.ts`, which derives
 from the acceptance contracts. A `--targets` build produces a partial
@@ -600,7 +629,7 @@ For a sound-capable game, compare the generated power-on sequence with a real
 MAME recording before accepting its audio golden:
 
 ```sh
-npm run audio:compare -- <target> --mame /path/to/mame
+npm run audio:compare -- <target>      # MAME_BIN from .env
 ```
 
 The command runs MAME with `-wavwrite`, captures the actual emitted MAMEKIT
@@ -781,7 +810,7 @@ checks:
 ### FACT AUDIT AGAINST MAME
 
 ```sh
-MAME_BIN=/path/to/matching/mame npm run audit:facts
+npm run audit:facts      # MAME_BIN from .env (section 1)
 ```
 
 The generated audit checks that output is well formed; this one checks that it
@@ -810,20 +839,62 @@ one case, MAME's integer horizontal scaling of the Galaxian family.
 Without a matching MAME binary the audit skips with a message and passes, which
 is what CI does; `--require` turns that skip into a failure.
 
-### BEHAVIOUR AGAINST MAME: THE ORACLE
+### BEHAVIOUR AGAINST MAME: `mamekit against`, `record`, `compare`
+
+The `mamekit` CLI compares a generated machine with MAME itself. These
+commands are the only way to do it: there is no separate tool, and no scratch
+Lua (until #260 they were `tools/mame-oracle.ts` and `tools/mame-baseline.ts`,
+together "the oracle").
+
+**Setup, once.** Copy `.env.example` to `.env` and set `MAME_SRC` (the source
+checkout, at the release tag) and `MAME_BIN` (a binary of the *same* release).
+No command takes a path on the command line. A binary of another release is
+refused, and a missing or wrong variable is named in the error with what it
+should point at. The target must be generated in `dist` (`npm run gen:all`).
+
+**Running them.** `bin/mamekit.js` hands these commands to `tools/compare/`;
+everything else goes to the compiler (`src/cli.ts`), which imports nothing
+from `tools/`. Run them as `npm run mamekit -- <command>` or
+`node bin/mamekit.js <command>`. `mamekit help <command>` prints a command's
+options.
+
+| Command | Does |
+|---|---|
+| `mamekit against <target> [<title>]` | one machine against MAME: pictures, `--ram`, `--io`, `--audio`, `--input none\|start\|contract`, `--survey` |
+| `mamekit record [<target> ...]` | record a baseline of every contract scenario (runs MAME: ask before a full one) |
+| `mamekit compare [<target> ...]` | better / same / moved / worse per measure against the newest baseline, or `--against <commit>` |
+| `mamekit show [<target> ...]` | print a baseline; `--markdown` for an issue |
+| `mamekit diverge <target> [<title>]` | the first bus access that differs from MAME, per processor, with no ranges given |
+| `mamekit sweep [<target> ...]` | run the acceptance contracts and classify what moved in each (no MAME) |
+| `mamekit levels <target> [<title>]` | each sound chip's level per 300 frames, beside another commit's and MAME's mix |
 
 ```sh
-MAME_BIN=/path/to/matching/mame node tools/mame-oracle.ts pacman --frames 300,600,900 --ram
-MAME_BIN=... node tools/mame-oracle.ts nes cvania3u --frames 120,300,1500
-MAME_BIN=... node tools/mame-oracle.ts c64p c64_cart:pacman --input none
-MAME_BIN=... node tools/mame-oracle.ts nes --survey
+npm run mamekit -- against pacman --frames 300,600,900 --ram
+npm run mamekit -- against nes cvania3u --frames 120,300,1500
+npm run mamekit -- against c64p c64_cart:pacman --input none
+npm run mamekit -- against nes --survey
+npm run mamekit -- compare dkong dkongjr
+npm run mamekit -- show --markdown
+npm run mamekit -- diverge marble
 ```
 
-Goldens say a machine still does what it did; the oracle says whether that is
-what MAME does. It runs one machine, or one of its titles, on both sides with
+**Where things go.**
+
+| Path | Holds | Survives `npm run clean:all` |
+|---|---|---|
+| `.cache/compare/<target>.json` | the latest `against` report per target | no |
+| `.cache/compare/<target>/<title>/` | side-by-side PNGs and the audio spectrogram | no |
+| `.mamekit/baseline/<commit>/` | baselines (`record`) | yes |
+| `.mamekit/compare/` | the latest comparison (`compare`) and its logs | yes |
+| `.mamekit/mame/<version>/` | MAME's side of every run (the MAME cache, below) | yes |
+
+All of them are gitignored.
+
+Goldens say a machine still does what it did; `mamekit against` says whether
+that is what MAME does. It runs one machine, or one of its titles, on both sides with
 the same input: ours through the acceptance harness exactly as a contract boots
 it (a title without a contract borrows its machine's), MAME through one Lua
-script, `tools/oracle/oracle.lua`, which every comparison shares. It then
+script, `tools/compare/oracle.lua`, which every comparison shares. It then
 reports the result as a number: differing pixels per frame, differing RAM bytes
 and the first frame they differ on, the first bus access that differs. Most of
 the silent faults #167 fixed — a character literal compiled as a string, every
@@ -834,7 +905,7 @@ zeroed — were found this way, not by a golden.
 
 - *Pictures* at `--frames` (default 600). Each side writes a side-by-side PNG
   (MAME | ours | ours dimmed with every differing pixel red) under
-  `.cache/oracle/<target>/<title>/`. Where MAME draws the screen an integer
+  `.cache/compare/<target>/<title>/`. Where MAME draws the screen an integer
   times wider than the board's own pixels (`scaledScreen`: the Galaxian family,
   Tutankham and Juno First, 3x), each of our pixels is repeated that many times
   along the board's horizontal axis and the pictures are compared, and shown,
@@ -848,7 +919,7 @@ zeroed — were found this way, not by a golden.
   when a C64 tape leaves the drive slot empty; one named is refused. The report gives
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
-  is the figure the earlier RAM-only oracle reported (Green Beret: 16, 25 and 19
+  is the figure the earlier RAM-only comparison reported (Green Beret: 16, 25 and 19
   bytes at frames 600, 900 and 1200; 9, 18 and 6 since #184). Both sides read
   RAM at the start of VBLANK, ours as the frame is presented, which since the
   frame runner starts where MAME's beam does (#184) is the same instant. A
@@ -902,15 +973,15 @@ ends.
 An analog control (pedal, paddle, analog stick, dial, trackball, light gun) is
 given to MAME as a *value*, not a gesture. Our input model works out what the
 port reads every frame: key travel, `PORT_KEYDELTA` ramp, centring, a dial's
-wrapped counter, an aim. The oracle records it and calls `set_value` with it
-whenever it changes (`InputRecorder` in `tools/oracle/plan.ts`). In MAME 0.289,
+wrapped counter, an aim. `against` records it and calls `set_value` with it
+whenever it changes (`InputRecorder` in `tools/compare/plan.ts`). In MAME 0.289,
 `analog_field::read` returns that override as it stands, with no sensitivity,
 key delta, reverse, wrap or interpolation, so both sides read the same port
 and only the emulation differs. Two consequences:
 
 - Our side hands a frame's dial or trackball travel out against the beam
-  (MAME's `frame_interpolate`), but the override has no interpolation. The
-  oracle therefore turns ours off (`frameFraction`), and both sides read one
+  (MAME's `frame_interpolate`), but the override has no interpolation.
+  `against` therefore turns ours off (`frameFraction`), and both sides read one
   value per frame.
 - The override is the *whole* port, unshifted and unmasked: `read()` assigns
   `result = m_adjoverride` and returns. Every other field on that port is
@@ -931,7 +1002,7 @@ A `signal` action has no port value and is refused (the harness refuses both).
 next, and a frame's input takes effect at its start. An input given at frame N
 is read during frame N + 1: the harness's `atFrame`. A digital control set from
 Lua takes effect at MAME's next ioport frame update, which is itself a frame
-notifier and runs before the script's, so the oracle gives MAME a press or
+notifier and runs before the script's, so `against` gives MAME a press or
 release one notifier early (`luaEvents`). An analog value is read straight from
 its override, so it keeps its frame, as typed text, PLAY and resets do. Until
 #198 a light gun's aim was shifted like a press and reached MAME a frame early.
@@ -956,7 +1027,8 @@ notifier returns the frame before.
 
 **MAME the same way every time.** The tool refuses a binary of another release
 (`src/gen/listxml.ts`). Sets come from the library alone (`-rompath`), and so do
-sample sets (`-samplepath .data/samples`), never from a `mame.ini`. Without
+sample sets (`-samplepath`, `MAMEKIT_SAMPLES` or `.data/samples`), never
+from a `mame.ini`. Without
 Zaxxon's, Space Panic's, Congo Bongo's, Carnival's or Q*bert's samples, MAME
 plays silence where they belong. Every run gets a fresh `-nvram_directory` and
 `-cfg_directory`, because MAME writes NVRAM back on exit and a reused
@@ -989,21 +1061,50 @@ and the next survey resumes, skipping titles already graded on the same commit
 fails is run once more and recorded as `retried`, because one or two titles in
 a sweep fail once and pass the next run.
 
-**The report** is `.cache/oracle/<target>.json`: per run, every compared frame
+**The MAME cache.** MAME is deterministic for a given release, machine and
+input, so its side of a run (pictures, RAM dumps, bus taps, input read-back
+and `-wavwrite`) is recorded once and kept in `.mamekit/mame/<version>/`,
+gzipped (`tools/compare/mame-cache.ts`). A run whose MAME side is already
+kept starts no MAME process and prints `MAME's side from the cache`; `record`
+and `compare` end with how many runs came from the cache and how many ran
+MAME.
+
+The key is a hash of everything MAME is given: its arguments and Lua plan
+(less the run's own work directory), `oracle.lua`'s code (not its comments), the MAME version, and the
+size and modification time of every set file the run can read (the machine,
+its `cloneof`/`romof` parents, device sets, sample set, fitted cards, `bios/`
+paths and the software title). Part of MAME's input comes from our run:
+analog values our side recorded, and the frame a quickload typed on. When our
+side changes those, the key changes and MAME runs again; nothing else does.
+Replacing a set the run reads also re-runs it, and adding a set for another
+machine doesn't. Only runs MAME finished are kept.
+
+| Flag (`against`, `record`, `compare`) | Does |
+|---|---|
+| `--refresh-mame` | run MAME and replace what was kept |
+| `--verify-mame` | run MAME and check it byte for byte against what was kept; a machine whose two runs differ is listed in `.mamekit/mame/<version>/uncacheable.json` and from then on always runs |
+| `--no-mame-cache` | neither read nor write the cache |
+
+A MAME run can only depend on the host through its clock chips, and `-rtc`
+pins those to `CONTRACT_BASE_TIME`, the date the harness boots at. Since then
+no machine has needed to be marked uncacheable by hand. `--verify-mame` is how
+to check one, Metal Slug's RTC for example.
+
+**The report** is `.cache/compare/<target>.json`: per run, every compared frame
 with the MAME frame it was set against and its differing pixels, the offset
 used, the first RAM divergence, the I/O result, the exact MAME command, the
 date and the mamekit commit (marked `dirty` with local changes). The #167
 comparisons are one command:
 
 ```sh
-MAME_BIN=... node tools/mame-oracle.ts nes \
+npm run mamekit -- against nes \
   --titles gimmick,gemfire,erika,smw,esperdr2,abadox,cvania3u,biomirac --frames 1500
 ```
 
 **Shown with the exhibit.** Generation turns each report into the machine's
 `oracle.json` (`src/gen/oracle-result.ts`), keeping only runs from the source
 checkout's MAME release. This happens outside the per-target cache, beside the
-runtime reports, and the tool refreshes the file after every run. The machine's
+runtime reports, and `mamekit against` refreshes the file after every run. The machine's
 page says what it found ("pixel-exact against MAME 0.289 at frames 300, 600,
 900 (no input)", "6 of 8 titles pixel-exact at frame 1500"), and the archive's
 *Checked against MAME* facet lists machines by it. A machine nobody has checked
@@ -1011,22 +1112,25 @@ says nothing. Running MAME stays local: CI keeps the goldens.
 
 **The baseline.** The report keeps only the latest run of each title, and
 generation turns it into `oracle.json`, so a change's "before" is gone as soon
-as the oracle is run on the "after". A baseline is kept apart:
+as `against` is run on the "after". A baseline is kept apart:
 
 ```sh
-MAME_BIN=... npm run oracle:baseline -- record --jobs 4     # every contract scenario
-MAME_BIN=... npm run oracle:baseline -- compare dkong dkongjr
-npm run oracle:baseline -- show --markdown
+npm run mamekit -- record --jobs 4     # every contract scenario: runs MAME, ask first
+npm run mamekit -- compare dkong dkongjr
+npm run mamekit -- show --markdown
 ```
 
 `record` runs every contract scenario (accepted and candidate; nothing is listed
-by hand) through the oracle twice. The first run has no input, with `--ram` and
+by hand) through `mamekit against` twice. The first run has no input, with `--ram` and
 `--audio`. The second has the contract's own input, with `--audio`. The frames
 compared are every 300 (a wider step past 2400 frames, so there are at most
 eight) and the contract's last frame. RAM is compared every frame, up to 256 MB
-a side. It writes `.oracle/baseline/<commit>/<target>.json`, outside `.cache`,
+a side. It writes `.mamekit/baseline/<commit>/<target>.json`, outside `.cache`,
 which `npm run clean:all` deletes. Nothing else writes there, so neither a
-later oracle run, a generation nor a clean can change it.
+later `against` run, a generation nor a clean can change it. It also fills the
+MAME cache, so a later `compare` runs only our side. Baselines recorded before
+#260 store `tools/mame-oracle.ts` as each step's first argument; they are run
+as `against`, and still compare.
 Each file holds:
 
 - each step's exact arguments;
@@ -1046,26 +1150,174 @@ it is believed (#190). A scenario either side cannot run is kept as `failed`
 with the reason. One that cannot be measured, such as a board that maps no
 RAM, is kept as `skipped` with the reason. `show` lists both.
 
-`compare` re-runs the stored arguments on the current tree. It prints better,
-same or worse for five measures: pixels with no input, pixels with the
-contract's input, RAM, audio with no input, and audio with the contract's
-input. It exits 1 if any measure is worse. The rules are in
-`tools/oracle/baseline.ts`:
+`compare` re-runs the stored arguments on the current tree. MAME's side comes
+from the cache, so it runs our side alone, half the cores' worth of targets at
+a time (`--jobs` overrides; `record` runs one at a time). Its time is our
+side's: dkong's two runs take about 47 s, almost all of it emulation. It
+prints a verdict for each of five measures: pixels with no input, pixels with
+the contract's input, RAM, audio with no input, and audio with the contract's
+input. It exits 1 if any measure is worse.
 
-- *Pixels:* losing an exact frame is worse, whatever else improves.
-- *RAM:* a later first divergence is better.
-- *Ties:* both then go to the count at the first divergence, and then the
-  total.
-- *Audio:* worse if the level (measured above a -80 dBFS silence floor), the
-  summed band differences or the onset rate moves away from MAME.
+**Verdicts.** `worse` and `better` are *material*: the measure moved past its
+tolerance. A move within the tolerance prints as `moved` and never fails a
+comparison. The summary lists the material regressions first, then the
+improvements, then the moves. The rules and the numbers are in
+`tools/compare/baseline.ts` (`TOLERANCE`):
 
-Both sides are deterministic, so a change that touches nothing measured reads
-`same` everywhere.
+| Measure | Worse when | Within tolerance (`moved`) |
+|---|---|---|
+| Pixels | a frame that was exact no longer is; the first differing frame comes earlier | the count at an unchanged first divergence changes by less than 4x or 2000 px |
+| RAM | it starts to differ, or the first differing frame comes more than 2 frames earlier | the first divergence moves 2 frames or fewer; bytes change by less than 4x or 16 B |
+| Audio | the level moves more than 1 dB further from MAME's, the summed band differences grow by more than 3 dB, or the onset rate moves more than max(0.25/s, 10% of MAME's) further off | smaller moves; rounding (0.05 dB, 0.1 dB, 0.02/s) is `same` |
+| Any | the run fails where the baseline ran, or MAME read different input | — |
+
+Pixels are read at the baseline's frame offset first. When every frame the
+baseline had exact is still exact there, that reading stands, so a still
+attract screen that also fits offset −1 can't flip the run's offset and read
+as "no longer exact" (gauntlet, #240). Only when the baseline's offset no
+longer holds does the run's own offset search count.
+
+The tolerances were set against #255's final comparison. Under the old
+any-move rules 32 scenarios read worse; under these, 6 do. Five of the six
+are #255's own list of real regressions (bublbobl, friskyt, galaxian, gng,
+mk), and the sixth is sf2ce's RAM at frame 2. Both sides are deterministic, so
+a change that touches nothing measured reads `same` everywhere.
+
+**Against another commit, with nothing checked out.** A baseline answers "is
+this better than when it was recorded". Two flags answer "is this better than
+that commit" directly, with no checkout, no stash and no second worktree:
+
+```sh
+npm run mamekit -- compare dkong marble --against main     # both runtimes run now, verdicts as above
+npm run mamekit -- against marble --runtime main --ram     # one run on main's runtime
+```
+
+`tools/compare/overlay.ts` takes the commit's `src` with `git archive`, clones
+`dist` into `.cache/compare/overlay/<commit>/` (an APFS clone, so it takes
+seconds and no space), and builds the commit's runtime into the clone with
+`mamekit build`'s compiler. The overlay is reused while the commit and dist's
+build id are unchanged. It is made of copies, not links: Node resolves a
+symlinked module to its real path, so a board loaded through a link would
+import dist's runtime instead.
+
+The overlay keeps this tree's generated boards and closure, so it measures the
+*runtime* only. That is the right question for a scheduler or runtime change
+(#255), and the run says so when the two commits' compiler trees (`src/mame`,
+`src/gen`, `src/kg`, `src/games`) differ too. MAME's side is the same for both
+runs, so its cache serves both. An `against --runtime` run is an experiment:
+it is never saved as the target's report, so it never reaches the exhibit's
+`oracle.json`. `compare --against` writes to
+`.mamekit/compare/against-<commit>/`.
+
+**The first divergence: `mamekit diverge`.** A comparison says a machine left
+MAME. `diverge` says where, as one bus access, with no address ranges given:
+
+```sh
+npm run mamekit -- diverge marble                 # find the frame, tap it, print the access
+npm run mamekit -- diverge marble --show          # only the ranges it would tap
+npm run mamekit -- diverge nes smb1 --frames 120-125
+```
+
+- *Ranges* come from the generated board's address maps
+  (`tools/compare/diverge-plan.ts`). On a board of several processors it taps
+  every device more than one of them reaches (latches, sound chips on a shared
+  bus, shared RAM devices), every share more than one maps, and every control
+  register (a handler whose method names a bank, latch, reset, halt, IRQ, NMI,
+  acknowledge, sound command or watchdog). On a board of one processor it taps
+  every device handler and control register. RAM and ROM are never tapped, and
+  a mirrored range is tapped across its mirrors. `--io <cpu>:<a>-<b>` names
+  ranges instead.
+- *Frames* come from one `against --ram` run: the first frame whose RAM
+  differs. The frames up to it are tapped on both sides. If the first
+  differing access lands in the window's first frame, the cause may be
+  earlier, so the window is widened back, doubling, up to three times.
+  `--frames a-b` skips the search, and `--until N` (default 1800) bounds it.
+- *The result* is, per processor, the first access that differs in kind,
+  address or value, or in time by more than two of its cycles. MAME stamps an
+  access with the cycles before it and ours with the access itself, a constant
+  one apart. It shows the accesses before it that both sides agree on, and
+  which processor left MAME first. On Marble Madness, unprompted: the 6502
+  reads `$1820` (`switch_6502_r`) as `97` in MAME and `87` in ours at frame 384.
+
+Both sides log an access the way the CPU issued it. A 68000's word access is
+one word, in ours (the tap wraps the bus's `read16be`/`write16be`/`read16le`/
+`write16le` as well as its byte calls) and in MAME, where `oracle.lua` turns a
+tap that covers one byte lane of a word back into that byte at its address.
+MAME taps whole bus words, so a range is installed word-aligned and only
+accesses that touch the bytes asked for are kept, the same rule ours applies.
+Until #260, our side logged no word accesses at all, which hid half of Marble
+Madness's traffic.
+
+**Sound over time: `mamekit levels`.** The comparison's audio is one figure for
+the whole run, so a sound that stops early reads as a fraction of a dB.
+`levels` prints each sound chip's RMS per window of frames (default 300), our
+run beside another commit's runtime (default: the newest baseline's commit,
+through the overlay above; `--against <commit>`, or `--alone`), with the
+whole mix and MAME's mix underneath:
+
+```sh
+npm run mamekit -- levels tmnt --input contract
+npm run mamekit -- levels gauntlet --against main --window 600
+```
+
+```
+levels in dBFS per 300 frames (5.1 s); * = more than 3 dB from ours
+frames              1-    301-    601-    901-   1201-   1501-
+samples         -80.0   -80.0   -26.5   -23.4   -25.4   -80.0
+  ec3a74f3      -80.0   -80.0   -26.5   -23.4   -25.4   -80.0
+ymsnd           -80.0   -80.0   -80.0   -80.0   -80.0   -29.3
+  ec3a74f3      -80.0   -80.0   -80.0   -80.0   -80.0   -29.0
+mix             -80.0   -80.0   -26.5   -23.4   -25.4   -29.3
+  MAME          -80.0   -80.0   -26.5   -23.4   -25.4   -29.3
+```
+
+Each chip's figure is its stream as it reaches the speaker: `against
+--levels N` sets `MAMEKIT_OBSERVE_STREAMS=1` and sums every `<tag>.stream`
+sample per window (the harness's `onSoundWrite` hook) into `ours-levels.json`.
+The mixes are windows of our capture and MAME's `-wavwrite`, DC removed per
+window, with MAME's side cached. MAME can't say what each chip played, but its
+mix says when ours departs from it. A window more than 3 dB from ours is
+marked `*`. That is how #255 saw TMNT's 3 dB drop as the title-music sample
+stopping early, not as a quieter mix.
+
+**A sweep of the contracts: `mamekit sweep`.** `test:games` stops at the first
+failure, and `test:games:matrix` says PASS or FAIL, so a golden that moved and
+a board that went silent read the same. `sweep` runs the acceptance contracts
+(the accepted ones; `--candidates` adds the rest), several at a time
+(`--jobs`, default 4), and says what moved in each:
+
+| Class | Means |
+|---|---|
+| `failed` | the contract didn't run to its end: an exception, a crash, a timeout |
+| `video` | a checkpoint's picture changed |
+| `state` | a checkpoint's machine state changed, its picture didn't |
+| `audio` | the sound's write count changed, or its level moved past 0.05 dB |
+| `stamps` | the same writes at the same level, landing at other times: what a scheduler change does |
+| `regions` | a ROM region's hash changed |
+| `unchanged` | every fingerprint is the golden's |
+
+Each line carries the checkpoints that changed, the write-count swing and the
+level swing in dB. Each contract runs in its own process through the harness
+in recording mode (`tools/compare/sweep-child.ts`), so a golden mismatch is a
+result, not an exception. It reports fps but never fails on a floor, because
+the contracts share the machine (the harness's `throughput` option). A
+contract that dies on a signal or a timeout runs once more. Progress goes to
+`.mamekit/sweep/<started>/progress.txt`, one line per contract. The command
+prints a ready-to-paste loop that watches it, and writes `results.json` at the
+end. It exits 1 when any contract isn't `unchanged`.
+
+```sh
+npm run mamekit -- sweep                      # every accepted contract
+npm run mamekit -- sweep dkong galaga --jobs 2
+```
+
+For an fps-honest run, use `test:games:matrix`, which runs one contract at a
+time and asserts the floors.
 
 **What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
 tool with the rest of the tree (`tsconfig.json` includes all of `tools/`), so a
 harness hook it uses cannot be renamed under it.
-`tools/oracle/*.spec.ts` cover:
+`tools/compare/*.spec.ts` cover:
 
 - the input timeline against the harness's own frame rules;
 - every kind of control a contract drives (pedal, paddle, analog stick, dial,
@@ -1077,7 +1329,12 @@ harness hook it uses cannot be renamed under it.
   cold-boot directories, and the out-of-the-way flags;
 - the pixel, RAM and I/O comparisons, and the PNG writer;
 - survey grading and grouping;
-- the baseline's units, plans and verdicts (`baseline.spec.ts`).
+- the baseline's units, plans and verdicts (`baseline.spec.ts`);
+- the MAME cache's key, set fingerprint and captures (`mame-cache.spec.ts`);
+- the ranges `diverge` picks from a board's maps, and its per-processor
+  comparison by value and time (`diverge-plan.spec.ts`);
+- a sweep's classification of a run against its golden (`sweep-plan.spec.ts`);
+- the level windows, the WAV reader and the levels table (`levels-plan.spec.ts`).
 
 With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
 to one vocabulary: every plan field read is written, every timeline event kind

@@ -1,10 +1,9 @@
-#!/usr/bin/env node
 /**
  * Compare a generated machine with MAME itself: the same machine, the same
  * title and the same input on both sides, its pictures, RAM and bus traffic
  * set side by side and the result reported as a number.
  *
- *   MAME_BIN=/path/to/mame node tools/mame-oracle.ts <target> [<title>] [options]
+ *   mamekit against <target> [<title>] [options]
  *
  *   <title>              a console cartridge by software-list name (smb1), or
  *                        any list's title as <list>:<name> (c64_cart:pacman)
@@ -23,8 +22,13 @@
  *   --ram-frames a-b[/n] which frames to dump (default 1 to the last compared frame)
  *   --io cpu:a-b[:r|w|rw]  tap bus accesses in a range on both sides (repeatable, hex)
  *   --io-frames a-b      the frames to tap (required with --io)
+ *   --io-offset K        tap MAME's frames a+K..b+K (a board that boots out of step)
  *   --audio              record MAME's sound too (-wavwrite) and compare it with
  *                        ours over the run, as tools/compare-audio.mjs does
+ *   --refresh-mame       run MAME and replace what the cache kept (tools/compare/mame-cache.ts)
+ *   --verify-mame        run MAME and check it against the cache; a machine whose two
+ *                        runs differ is listed as uncacheable and always runs
+ *   --no-mame-cache      neither read nor write the MAME cache
  *   --jobs N             titles at once in a survey (default 1)
  *   --limit N            survey at most N boards
  *   --fresh              re-run survey titles already graded on this commit
@@ -34,13 +38,17 @@
  *   --out file           also write this invocation's runs, by title, to a file
  *                        of their own (the report's runs are keyed by title
  *                        alone, so a later run with other input replaces one)
+ *   --levels N           each sound chip's RMS per N frames, written as ours-levels.json in
+ *                        the work directory (keep it with --keep): what `mamekit levels` reads
+ *   --runtime <commit>   run that commit's runtime against this tree's dist, built into a
+ *                        scratch overlay (tools/compare/overlay.ts); nothing in the tree moves
  *   --dist dir, --mame bin, --mame-src dir, --timeout seconds
  *
  * MAME_BIN must be the same release as the MAME source checkout; anything else
  * is refused. Every process runs at low priority (nice 10), MAME windowed and
  * without video, and a survey runs one title at a time unless told otherwise.
  *
- * The report goes to .cache/oracle/<target>.json, with a side-by-side PNG per
+ * The report goes to .cache/compare/<target>.json, with a side-by-side PNG per
  * compared frame (MAME | ours | differences in red) beside it. Frames are
  * counted as both sides run them: an input given at frame N is read during
  * frame N + 1, and our frame N is compared with MAME's N + offset, the offset
@@ -52,16 +60,19 @@ import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { primaryDisplay, scaledScreen } from '../src/gen/fact-audit.ts';
-import { cachedListXmlMachine } from '../src/gen/listxml.ts';
-import { gameOutputDir } from '../src/gen/output-layout.ts';
-import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../src/gen/oracle-result.ts';
-import { romsDir } from '../src/paths.ts';
-import type { ShellConfig } from '../src/runtime/shell.ts';
-import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './oracle/compare.ts';
-import { mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './oracle/mame-side.ts';
-import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './oracle/plan.ts';
-import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './oracle/report.ts';
+import { primaryDisplay, scaledScreen } from '../../src/gen/fact-audit.ts';
+import { cachedListXmlMachine } from '../../src/gen/listxml.ts';
+import { gameOutputDir } from '../../src/gen/output-layout.ts';
+import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../../src/gen/oracle-result.ts';
+import { mameSourceDir, romsDir } from '../../src/paths.ts';
+import { reportRoot } from './paths.ts';
+import { describeOverlay, runtimeOverlay } from './overlay.ts';
+import type { ShellConfig } from '../../src/runtime/shell.ts';
+import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
+import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
+import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
+import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
+import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
 
@@ -72,7 +83,7 @@ const childAt = process.argv.indexOf('--child');
 if (childAt >= 0) {
   const plan = JSON.parse(readFileSync(process.argv[childAt + 1]!, 'utf8')) as OraclePlan;
   try {
-    const { runOurs } = await import('./oracle/ours.ts');
+    const { runOurs } = await import('./ours.ts');
     await runOurs(plan);
     process.exit(0);
   } catch (error) {
@@ -84,7 +95,7 @@ if (childAt >= 0) {
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
 const valued = new Set(['--titles', '--frames', '--search', '--offset', '--input', '--scenario', '--ram-frames',
-  '--io', '--io-frames', '--jobs', '--limit', '--dist', '--mame', '--mame-src', '--timeout', '--out']);
+  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--runtime', '--levels', '--mame', '--mame-src', '--timeout', '--out']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -99,12 +110,20 @@ const option = (name: string): string | undefined => options.get(name)?.at(-1);
 const flag = (name: string): boolean => options.has(name);
 const [target, titleArg] = positional;
 if (!target) {
-  console.error('usage: MAME_BIN=... node tools/mame-oracle.ts <target> [<title>] [--frames a,b] [--input none|start|contract] [--ram] [--io cpu:a-b] [--survey]');
+  console.error('usage: mamekit against <target> [<title>] [--frames a,b] [--input none|start|contract] [--ram] [--io cpu:a-b] [--survey]');
   process.exit(2);
 }
 
-const dist = resolve(projectRoot, option('--dist') ?? 'dist');
-const mameSrc = resolve(option('--mame-src') ?? process.env.MAME_SRC ?? join(projectRoot, '../mame'));
+// Each chip's stream reaches the harness only when it is observed.
+if (option('--levels')) process.env.MAMEKIT_OBSERVE_STREAMS = '1';
+// Another commit's runtime runs from an overlay of this tree's dist; MAME's
+// side is the same either way, so its cache serves both.
+const overlay = option('--runtime') && !process.argv.includes('--child')
+  ? runtimeOverlay(option('--runtime')!, resolve(projectRoot, option('--dist') ?? 'dist'))
+  : undefined;
+if (overlay) console.log(`runtime: ${describeOverlay(overlay)}`);
+const dist = overlay?.dist ?? resolve(projectRoot, option('--dist') ?? 'dist');
+const mameSrc = option('--mame-src') ? resolve(option('--mame-src')!) : mameSourceDir(projectRoot);
 const politeness: Politeness = { background: flag('--background'), watch: flag('--watch') };
 const timeoutMs = Number(option('--timeout') ?? 900) * 1000;
 const search = Number(option('--search') ?? 2);
@@ -112,7 +131,6 @@ const offsets = option('--offset') !== undefined
   ? [Number(option('--offset'))]
   : Array.from({ length: search * 2 + 1 }, (_, index) => index - search);
 const comparedFrames = (option('--frames') ?? '600').split(',').map(Number).filter(frame => frame > 0).sort((a, b) => a - b);
-const reportRoot = join(projectRoot, '.cache/oracle');
 
 const mame = resolveMame(mameSrc, option('--mame'));
 const outputDir = locateTarget(target);
@@ -195,6 +213,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     ...(request.ram ? { ram: request.ram } : {}),
     ...(request.io ? { io: request.io } : {}),
     ...(request.grade ? { grade: true } : {}),
+    ...(option('--levels') ? { levels: Number(option('--levels')) } : {}),
     last,
     dir,
     dist,
@@ -209,6 +228,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     mame: mame.version,
     mamekit: identity,
     mameCommand: '',
+    ...(overlay ? { runtime: overlay.short } : {}),
   };
 
   // Ours first: it says which cards and empty slots MAME must be given. A
@@ -259,7 +279,8 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     shown.push(args[index] === '' ? '""' : /[\s;]/.test(args[index]!) ? `'${args[index]}'` : args[index]!);
   }
   report.mameCommand = `$MAME_BIN ${shown.join(' ')}`;
-  const ran = await runMame(mame.binary, args, dir, politeness, timeoutMs);
+  const ran = await mameSide(args, dir, boot);
+  if (ran.cached) report.mameCached = ran.cached;
   const mameError = readText(join(dir, 'mame-error.txt')) ??
     (existsSync(join(dir, 'mame-done.txt')) ? undefined : `MAME exited ${ran.status}: ${ran.output.trim().split('\n').slice(-2).join(' | ')}`);
   if (mameError) report.mameError = mameError.slice(0, 400);
@@ -282,6 +303,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
       offset: pictures.offset,
       ...(pictureScale !== 1 ? { scale: pictureScale } : {}),
       tied: pictures.tied,
+      byOffset: pictures.byOffset,
       frames: pictures.results,
       exact,
       ...(diverged ? { firstDivergence: diverged.frame } : {}),
@@ -299,12 +321,54 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   }
   if (!quiet) printRun(key, report);
   if (flag('--keep')) {
+    report.workDir = dir;
     if (!quiet) console.log(`  captures kept in ${relative(projectRoot, dir)}`);
   } else {
     rmSync(dir, { recursive: true, force: true });
   }
   return report;
 }
+
+/**
+ * MAME's side of the run: restored from the cache when MAME was given exactly
+ * this before (tools/compare/mame-cache.ts), run and recorded otherwise.
+ * `--refresh-mame` runs it and replaces what was kept; `--verify-mame` runs it
+ * and checks it against what was kept, listing the machine as uncacheable
+ * when the two differ; `--no-mame-cache` neither reads nor writes the cache.
+ */
+async function mameSide(args: string[], dir: string, boot: OursBoot): Promise<{ status: number | null; output: string; cached?: string }> {
+  const planText = readFileSync(join(dir, 'mame-plan.lua'), 'utf8');
+  const parents = [listed?.cloneof, listed?.romof, listed?.romof ? cachedListXmlMachine(mame, listed.romof)?.romof : undefined];
+  const names = [config.game, ...parents, ...(listed?.deviceSets ?? []), listed?.sampleof, ...Object.values(boot.slotCards)]
+    .filter((name): name is string => Boolean(name));
+  const searchPaths = [...romPaths(config, outputDir.category), samplesDir];
+  const key = mameCacheKey({
+    version: mame.version, target: target!, args, plan: planText, dir,
+    script: readFileSync(luaScriptPath, 'utf8'), sets: setFiles(searchPaths, names, boot.software),
+  });
+  const skipped = uncacheable(mame.version)[target!];
+  const useCache = !flag('--no-mame-cache') && !skipped;
+  if (useCache && !flag('--refresh-mame') && !flag('--verify-mame')) {
+    const kept = restoreMame(mame.version, target!, key, dir);
+    if (kept) return { ...kept, cached: kept.recordedAt };
+  }
+  const ran = await runMame(mame.binary, args, dir, politeness, timeoutMs);
+  mameRuns++;
+  const finished = existsSync(join(dir, 'mame-done.txt')) && !existsSync(join(dir, 'mame-error.txt'));
+  if (finished && flag('--verify-mame')) {
+    const differs = differingCapture(mame.version, target!, key, dir);
+    if (differs) {
+      markUncacheable(mame.version, target!, `${differs} between two runs of one plan (${new Date().toISOString().slice(0, 10)})`);
+      console.log(`  MAME's run of ${target} is not repeatable (${differs}): listed as uncacheable`);
+      return ran;
+    }
+  }
+  if (finished && useCache) storeMame(mame.version, target!, key, dir, ran);
+  return ran;
+}
+
+/** MAME processes this invocation started; a cached run starts none. */
+let mameRuns = 0;
 
 /**
  * Ours against MAME's -wavwrite with tools/compare-audio.mjs, the measure the
@@ -331,6 +395,7 @@ function printRun(key: string, report: RunReport): void {
   if (report.ours?.error) console.log(`  ours: ${report.ours.error} (after ${report.ours.frames} frames)`);
   if (report.ours?.retried) console.log(`  ours failed once and passed on a retry: ${report.ours.retried}`);
   if (report.mameError) console.log(`  MAME: ${report.mameError}`);
+  if (report.mameCached) console.log(`  MAME's side from the cache (recorded ${report.mameCached.slice(0, 16).replace('T', ' ')})`);
   if (report.pixels) {
     const frames = report.pixels.frames.map(result =>
       `${result.frame}: ${result.size ? `size ${result.size}` : result.pixels === undefined ? '-' : result.pixels}`).join('  ');
@@ -400,6 +465,9 @@ function loadReport(): OracleReport {
 
 /** Written whole through a rename, so a stopped survey never leaves half a file. */
 function saveReport(report: OracleReport): void {
+  // Another commit's runtime is an experiment, not this tree's result: the
+  // report and the exhibit it feeds keep this tree's own runs.
+  if (overlay) return;
   mkdirSync(reportRoot, { recursive: true });
   writeFileSync(`${reportPath}.tmp`, `${JSON.stringify(report, null, 2)}\n`);
   renameSync(`${reportPath}.tmp`, reportPath);
@@ -431,7 +499,8 @@ function ioRequest(): OraclePlan['io'] {
     const [lo, hi] = range!.split('-').map(value => parseInt(value, 16));
     return { tag: tag!, lo: lo!, hi: hi ?? lo!, read: mode.includes('r'), write: mode.includes('w') };
   });
-  return { taps, from: from!, to: to ?? from! };
+  const offset = Number(option('--io-offset') ?? 0);
+  return { taps, from: from!, to: to ?? from!, ...(offset ? { offset } : {}) };
 }
 
 // --- survey ----------------------------------------------------------------
@@ -518,5 +587,8 @@ if (flag('--survey')) {
     saveReport(report);
   }
   if (option('--out')) writeFileSync(resolve(option('--out')!), `${JSON.stringify(runs, null, 2)}\n`);
-  console.log(`report: ${relative(projectRoot, reportPath)}`);
+  const mameNote = mameRuns ? `${mameRuns} MAME run${mameRuns > 1 ? 's' : ''}` : "MAME's side from the cache";
+  console.log(overlay
+    ? `not saved to ${relative(projectRoot, reportPath)}: ${overlay.short}'s runtime is an experiment (${mameNote})`
+    : `report: ${relative(projectRoot, reportPath)} (${mameNote})`);
 }

@@ -128,7 +128,7 @@
 - [Issue progress comments](issue-progress-comments.md) — post findings/milestones to the GitHub issue as work progresses
 - [SNES long-term goal](snes-long-term-goal.md) — user really wants SNES (#174)
 - [MAME window and cursor](mame-window-flag.md) — SDL_VIDEO_DRIVER=dummy + -window -nomaximize -video none, or MAME takes the screen or cursor
-- [MAME oracle tool](mame-oracle-tool.md) — #170 tools/mame-oracle.ts: snapshot_pixels not screen:pixels, slot opts…
+- [MAME oracle tool](mame-oracle-tool.md) — (now `mamekit against`, see mamekit-compare-commands) #170 tools/mame-oracle.ts: snapshot_pixels not screen:pixels, slot opts…
 - [68705 generated (#176)](m68705-generated-176.md) — const noexcept parse lost the /4 clock
 - [Unresolved-call census (#178)](unresolved-call-census-178.md) — tools/unresolved-calls.ts + framework-calls.ts
 - [Node version pin](node-version-pin.md) — .nvmrc 26.13.0 + TS 6 since #244; check `node -v` vs .nvmrc before trusting a sweep
@@ -167,3 +167,4 @@
 - [Device clock lead #254](device-clock-lead-254.md) — mslug's device clock leads the CPU 0.2-0.7 line; held present + precise driver timer re-arm drifts the VBLANK IRQ; three fixes failed
 - [In-slice cycles #254](in-slice-cycles-254.md) — compiled cores report cycles only at slice end; beam reads must add elapsedCycles()
 - [Scheduler bound #255](scheduler-bound-255.md) — 250 us fallback deleted; seven gaps it hid (cross-CPU timers, synchronize order, mixer, abort clock); marble was a `u32&` setter bug; open leftovers
+- [mamekit compare commands](mamekit-compare-commands.md) — #260: `mamekit against|record|compare|show`, no separate mkt, .env paths, MAME cache in .mamekit/mame

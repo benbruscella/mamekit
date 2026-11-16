@@ -6,6 +6,7 @@
 // a failure. `--require` turns a skip into an error for the one place that
 // must not silently pass: a release check on a machine that has the binary.
 
+import { mameSourceDir } from '../paths.ts';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -65,7 +66,7 @@ function main(): void {
   const args = process.argv.slice(2);
   const required = args.includes('--require');
   const outRoot = args.find(arg => !arg.startsWith('--')) ?? 'dist';
-  const mameSrc = resolve(process.env.MAME_SRC ?? '../mame');
+  const mameSrc = mameSourceDir(resolve(import.meta.dirname, '../..'));
 
   const oracle = listXmlOracle(mameSrc);
   if (!oracle.binary || !oracle.version) {

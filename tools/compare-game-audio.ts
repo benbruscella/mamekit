@@ -21,7 +21,7 @@
  * from its frame, on both sides: Lagrange Point plays its VRC7 music only once
  * its intro has been started and stepped through.
  *
- * MAME runs the way tools/mame-oracle.ts runs it: refused unless it is the
+ * MAME runs the way mamekit against runs it: refused unless it is the
  * source checkout's release, booted cold from fresh nvram and cfg
  * directories (MAME writes NVRAM back on exit, so a reused one boots warm),
  * windowed so it cannot take over the screen, and at low priority.
@@ -37,9 +37,10 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runGameAcceptance } from '../src/games/acceptance-harness.ts';
 import { loadGenerationGameContracts } from '../src/games/contracts.ts';
-import { mamekitIdentity, politeCommand, resolveMame, romPaths, samplesDir } from './oracle/mame-side.ts';
-import { startSchedule } from './oracle/plan.ts';
+import { mamekitIdentity, politeCommand, resolveMame, romPaths, samplesDir } from './compare/mame-side.ts';
+import { startSchedule } from './compare/plan.ts';
 import { gameOutputDir } from '../src/gen/output-layout.ts';
+import { mameSourceDir } from '../src/paths.ts';
 import type { ShellConfig } from '../src/runtime/shell.ts';
 import { bindingsForCards } from '../src/runtime/input.ts';
 
@@ -51,7 +52,7 @@ const option = (name: string): string | undefined => {
   const index = args.indexOf(name);
   return index < 0 ? undefined : args[index + 1];
 };
-const mameFound = resolveMame(resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame')), option('--mame'));
+const mameFound = resolveMame(mameSourceDir(projectRoot), option('--mame'));
 const mame = mameFound.binary;
 const seconds = Number(option('--seconds') ?? 30);
 if (!Number.isFinite(seconds) || seconds <= 0) usage('--seconds must be positive');
@@ -102,7 +103,7 @@ await runGameAcceptance(contract, projectRoot, {
 
 const cartridgeList = (): string => (JSON.parse(readFileSync(join(gameOutputDir(join(projectRoot, 'dist'),
   contract.category, game), config.cart?.catalogUrl ?? 'softlist.json'), 'utf8')) as { list: string }).list;
-const title = cartridge ? ['-cart', `${cartridgeList()}:${cartridge}`, '-hashpath', join(resolve(process.env.MAME_SRC ?? join(projectRoot, '../mame')), 'hash')] : [];
+const title = cartridge ? ['-cart', `${cartridgeList()}:${cartridge}`, '-hashpath', join(mameSourceDir(projectRoot), 'hash')] : [];
 
 const mameState = join(outDir, 'mame-state');
 rmSync(mameState, { recursive: true, force: true });

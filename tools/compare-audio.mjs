@@ -7,7 +7,7 @@
 // per-octave-band energy, RMS, and a coarse onset-rate (tempo proxy), so an
 // agent without ears can see EXACTLY how the mix differs from hardware. The
 // same numbers go to compare.json beside the spectrogram, for a later run to
-// be set against (tools/mame-baseline.ts).
+// be set against (mamekit compare).
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';

@@ -1,4 +1,5 @@
-// mamekit CLI
+// mamekit CLI (the compiler; bin/mamekit.js hands the MAME comparison
+// commands -- against, record, compare, show, help -- to tools/compare)
 //   mamekit <game>            full pipeline: graph -> generate -> build web app
 //   mamekit graph <game>      knowledge graph only (graph.json + graph.cypher)
 //   mamekit from-graph <game> rebuild from a graph snapshot (no MAME required)
@@ -7,6 +8,7 @@
 //   --out <dir>         output root (default: <mamekit>/out)
 //   --targets <games>   comma-separated runtime closure targets
 
+import './local-env.ts';
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename } from 'node:path';
@@ -55,6 +57,18 @@ function usage(): never {
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   console.error('                  [--no-build]   serve dist exactly as it is, without recompiling the app');
+  console.error('');
+  console.error('comparing with MAME (tools/compare; needs MAME_BIN, see .env.example):');
+  console.error('       mamekit against <target> [<title>]   one machine against MAME: pictures, RAM, bus, audio');
+  console.error('       mamekit record [<target> ...]        record a baseline for every contract scenario');
+  console.error('       mamekit compare [<target> ...]       better / same / worse per measure against a baseline');
+  console.error('       mamekit show [<target> ...]          print a baseline (--markdown for an issue)');
+  console.error('       mamekit diverge <target> [<title>]   the first bus access that differs from MAME, per processor');
+  console.error('       mamekit sweep [<target> ...]         run the acceptance contracts; classify what moved in each');
+  console.error('       mamekit levels <target> [<title>]    each sound chip\'s level over time, beside another commit\'s');
+  console.error('');
+  console.error('       mamekit build [--check]              recompile only dist/runtime from src, in seconds');
+  console.error('       mamekit help <command>               a command\'s options');
   process.exit(2);
 }
 
@@ -81,6 +95,34 @@ for (let i = 0; i < argv.length; i++) {
   } else {
     opts[key] = next && !next.startsWith('--') ? argv[++i] : '';
   }
+}
+
+// `mamekit build [--check] [--out <dir>]`: only the runtime (src/runtime, src/ir
+// and src/hardware's runtime-facing files) recompiled into dist, in seconds,
+// with the app's own compiler settings (src/gen/runtime-build.ts). `--check`
+// writes nothing and lists the modules that differ from dist's.
+if (positional[0] === 'build') {
+  const { buildRuntime } = await import('./gen/runtime-build.ts');
+  const root = resolve(opts.out ?? join(projectRoot, 'dist'));
+  if (!existsSync(join(root, 'runtime/core'))) {
+    console.error(`error: no runtime in ${root}; generate it first (npm run gen:all)`);
+    process.exit(1);
+  }
+  const check = 'check' in opts;
+  const built = buildRuntime(root, { check });
+  if (!built.ok) {
+    console.error('mamekit build: tsc failed; dist was not touched');
+    process.exit(1);
+  }
+  const listed = [...built.changed.map(path => `  ${check ? 'differs' : 'written'} ${path}`),
+    ...built.removed.map(path => `  ${check ? 'stale  ' : 'removed'} ${path}`)];
+  if (listed.length) console.log(listed.join('\n'));
+  console.log(`mamekit build: ${built.modules} runtime modules in ${(built.ms / 1000).toFixed(1)} s; ` +
+    (check
+      ? (listed.length ? `${listed.length} differ from ${root}` : `identical to ${root}`)
+      : `${built.changed.length} written, ${built.removed.length} removed`));
+  if (check && listed.length) process.exitCode = 1;
+  process.exit();
 }
 
 const namedCommands = new Set([
