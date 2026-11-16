@@ -3414,7 +3414,12 @@ class IrBoard implements Board {
           const untilDevice = soonest + this.roundDeviceOffset;
           // The driver's own timers end the round too, and one already due
           // (armed between rounds, by a frame event) fires before it starts.
-          this.roundBaseSeconds = roundSeconds(false);
+          // Read only by a driver timer, by another processor's arming lead
+          // and by posted work: a one-processor board with none of them (the
+          // NES, a cycle to the round) is not asked for it every round.
+          const baseWanted = this.roundTimerMembers.size > 0 || machine.execution.cpus.length > 1
+            || this.scheduledWork.length > 0 || this.pendingTimers.size > 0;
+          if (baseWanted) this.roundBaseSeconds = roundSeconds(false);
           this.roundTimerArmed = armedRoundTimer;
           // Synchronized work still waiting is a timer at the time it was
           // posted (drainScheduledWork).
@@ -3462,6 +3467,7 @@ class IrBoard implements Board {
         // mixer, so none rendered at its own time.
         eat: (cycles: number) => {
           this.cpuCycles.set(specification.tag, (this.cpuCycles.get(specification.tag) ?? 0) + cycles);
+          this.soundRuntime?.cpuTimeMoved?.(specification.tag);
         },
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
         // A core MAME stops between bus cycles stands, mid-instruction, at
@@ -3546,8 +3552,12 @@ class IrBoard implements Board {
       // (a POKEY read asks for a resync) must not run work the first
       // processor posted for a later time. Marble Madness's 6502 took the
       // NMI of a command the 68010 had not yet sent, 190 us early.
-      onSynchronize: at => this.drainScheduledWork(
-        at !== undefined && timerRounds ? roundSeconds(at === 'target') : Infinity),
+      onSynchronize: at => {
+        // Asked every round; where the round stands is only worked out when
+        // something is posted.
+        if (!this.scheduledWork.length) return;
+        this.drainScheduledWork(at !== undefined && timerRounds ? roundSeconds(at === 'target') : Infinity);
+      },
       // A device suspended or triggered during a round changes at the next.
       ...(executeDevices.length ? {
         onRound: () => {
@@ -4817,6 +4827,7 @@ class IrBoard implements Board {
     if (!(cycleClock > 0) || cycleClock === this.cycleClockOf(cpu)) return;
     this.cpuClocks.epochs[cpu.tag] = { cycles: this.totalCycles(cpu.tag), seconds: this.cpuSeconds(cpu) };
     this.cpuClocks.rates[cpu.tag] = cycleClock;
+    this.soundRuntime?.cpuTimeMoved?.(cpu.tag);
     this.frameRunner?.setClock(cpu.tag, cycleClock);
   }
 

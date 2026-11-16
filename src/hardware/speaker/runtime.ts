@@ -169,6 +169,15 @@ export function createStreamMixer(
   const sources = allSources.filter(source => !netlistFeeders.has(source.tag));
   const driver = context.board.execution.cpus[0]?.tag;
   const last = context.board.execution.cpus[context.board.execution.cpus.length - 1]?.tag;
+  // Per ticking processor: the cycles it must still run before a batch can
+  // be due, and the mix position that count was taken against (a reset or a
+  // loaded state moves it, and the count is then void).
+  const tickState = (tag: string | undefined) => {
+    const cpu = context.board.execution.cpus.find(candidate => candidate.tag === tag);
+    return { clock: Math.max(1, cpu?.cycleClock ?? cpu?.clock ?? 1), cycles: 0, emitted: -1 };
+  };
+  const driverTick = tickState(driver);
+  const lastTick = last === driver ? driverTick : tickState(last);
   // `outputGain` is the device's set_output_gain, over its routed gain.
   const streams = sources.map(source => ({
     ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
@@ -639,6 +648,7 @@ export function createStreamMixer(
     state,
     reset: () => {
       state.emitted = 0;
+      driverTick.emitted = lastTick.emitted = -1;
       if (netlistNode) {
         netlistNode.pending.length = 0;
         netlistNode.rendered = 0;
@@ -663,7 +673,27 @@ export function createStreamMixer(
     },
     // After the first processor's slice, and after the last one's, which is
     // where a round of several processors has all of them at its end.
-    tickCpu: cpu => { if ((cpu === driver || cpu === last) && reached() - state.emitted >= MIX_BATCH) mix(); },
+    tickCpu: (cpu, cycles) => {
+      const tick = cpu === driver ? driverTick : cpu === last ? lastTick : undefined;
+      if (!tick) return;
+      // A perfect-quantum board ticks here once an instruction. The mix
+      // reaches no further than this processor has run, so until it has run
+      // the cycles a batch takes there is nothing to ask: asking anyway, the
+      // question (every processor's time, every stream's) was a tenth of
+      // Qix's frame and a fifth of the NES's.
+      if (tick.emitted === state.emitted && (tick.cycles -= cycles) > 0) return;
+      if (reached() - state.emitted >= MIX_BATCH) mix();
+      tick.emitted = state.emitted;
+      // `now` counts this slice only as far as its core reported (a
+      // perfect-quantum slice reports its one-cycle target, whatever the
+      // instruction took), so the slice's own cycles come off the count:
+      // the next ask is never later than the tick the batch falls due on.
+      tick.cycles = Math.floor(((state.emitted + MIX_BATCH) / STREAM_AUDIO_RATE - time()) * tick.clock) - cycles - 1;
+    },
+    cpuTimeMoved: cpu => {
+      if (cpu === driver) driverTick.emitted = -1;
+      if (cpu === last) lastTick.emitted = -1;
+    },
     endFrame: mix,
     renderTo: seconds => renderNetlist(Math.floor(seconds * STREAM_AUDIO_RATE)),
   };

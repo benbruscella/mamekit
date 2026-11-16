@@ -125,6 +125,12 @@ export interface SoundRuntimeHooks {
    * only what this one has not already seen.
    */
   tickInstruction?(cpuTag: string, cycles: number): void;
+  /**
+   * A processor's time moved without it running: cycles booked to it while
+   * held in RESET, or its clock changed. A hook that counts tickCpu's cycles
+   * toward a deadline starts its count again.
+   */
+  cpuTimeMoved?(cpuTag: string): void;
   instructionCpus?: ReadonlySet<string>;
   /** The board finished a frame: anything still to render for it renders now. */
   endFrame?(): void;
