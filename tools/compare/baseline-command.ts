@@ -7,6 +7,8 @@
  *   mamekit compare [<target> ...] [--measures pixels,ram,audio]
  *   mamekit show [<target> ...] [--markdown]
  *
+ *   --against <commit>   no baseline: run that commit's runtime (built into an overlay of dist,
+ *                        tools/compare/overlay.ts) and this tree's, now, and compare the two
  *   --refresh-mame       run MAME for every step and replace what the cache kept
  *   --verify-mame        run MAME for every step and check it against the cache: a
  *                        machine whose two runs differ is listed as uncacheable
@@ -66,10 +68,11 @@ import type { ShellConfig } from '../../src/runtime/shell.ts';
 import {
   cliArguments, audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
   type AudioResult, type BaselineUnit, type Measure, type MeasureName, type MeasureVerdict, type PixelsResult, type RamSummary,
-  type StepPlan, type UnitRecord, type Verdict,
+  type StepPlan, type UnitPlan, type UnitRecord, type Verdict,
 } from './baseline.ts';
 import { mamekitIdentity, projectRoot, resolveMame } from './mame-side.ts';
 import { baselineRoot, compareRoot, cliEntry } from './paths.ts';
+import { describeOverlay, runtimeOverlay } from './overlay.ts';
 import { mameSourceDir } from '../../src/paths.ts';
 import { boardRam, ramBytesPerFrame } from './plan.ts';
 import type { RunReport } from './report.ts';
@@ -78,7 +81,7 @@ const thisFile = 'mamekit';
 
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
-const valued = new Set(['--jobs', '--baseline', '--measures', '--redo', '--mame', '--mame-src']);
+const valued = new Set(['--jobs', '--baseline', '--measures', '--redo', '--mame', '--mame-src', '--against']);
 const positional: string[] = [];
 const options = new Map<string, string>();
 for (let index = 0; index < argv.length; index++) {
@@ -225,13 +228,13 @@ const lastLines = (text: string) => text.trim().split('\n').filter(Boolean).slic
  * One oracle run, run once more if it fails: a native crash or a stray
  * divergence on this host is not believed until it happens twice (#190).
  */
-async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunReport; failure?: string; retried?: string }> {
+async function oracleRun(plan: StepPlan, scratch: string, extra: readonly string[] = []): Promise<{ run?: RunReport; failure?: string; retried?: string }> {
   let first: string | undefined;
   let outcome: { run?: RunReport; failure?: string } = {};
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = `${scratch}.json`;
     rmSync(out, { force: true });
-    const ran = await runTool([cliEntry, ...cliArguments(plan), ...cacheFlags, '--out', out], `${scratch}.log`);
+    const ran = await runTool([cliEntry, ...cliArguments(plan), ...extra, ...cacheFlags, '--out', out], `${scratch}.log`);
     const runs = existsSync(out) ? Object.values(readJson<Record<string, RunReport>>(out)) : [];
     if (runs[0]) {
       if (runs[0].mameCached) mameTally.cached++;
@@ -261,11 +264,11 @@ const pending = (measure: Measure<unknown> | undefined) => !measure || measure.s
  * measures asked for.
  */
 async function measureUnit(unit: BaselineUnit, record: UnitRecord, scratch: string,
-  want: (measure: MeasureName) => boolean, save: () => void): Promise<void> {
+  want: (measure: MeasureName) => boolean, save: () => void, extra: readonly string[] = []): Promise<void> {
   const { plan } = record;
   const due = (measure: MeasureName, kept: Measure<unknown> | undefined) => want(measure) && pending(kept);
   if (due('pixels:none', record.pixelsNone) || due('ram', record.ram) || due('audio:none', record.audioNone)) {
-    const { run, failure, retried } = await oracleRun(plan.none, `${scratch}-none`);
+    const { run, failure, retried } = await oracleRun(plan.none, `${scratch}-none`, extra);
     const from = <T>(measure: (run: RunReport) => Measure<T>): Measure<T> => {
       const kept = run ? measure(run) : { status: 'failed' as const, reason: failure! };
       return { ...kept, ...(retried ? { retried } : {}), measuredOn: toolsCommit };
@@ -279,7 +282,7 @@ async function measureUnit(unit: BaselineUnit, record: UnitRecord, scratch: stri
     progress(unit, 'no input', record.pixelsNone, record.ram, record.audioNone);
   }
   if (due('pixels:contract', record.pixelsContract) || due('audio:contract', record.audioContract)) {
-    const { run, failure, retried } = await oracleRun(plan.contract, `${scratch}-contract`);
+    const { run, failure, retried } = await oracleRun(plan.contract, `${scratch}-contract`, extra);
     const from = <T>(measure: (run: RunReport) => Measure<T>): Measure<T> => {
       const kept = run ? measure(run) : { status: 'failed' as const, reason: failure! };
       return { ...kept, ...(retried ? { retried } : {}), measuredOn: toolsCommit };
@@ -450,6 +453,13 @@ async function compare(): Promise<void> {
       writeJson(join(compareRoot, `${target}.json`), out);
     }
   });
+  printVerdicts(rows, measures, relative(projectRoot, compareRoot));
+}
+
+type VerdictRow = { key: string; verdicts: Partial<Record<MeasureName, MeasureVerdict>> };
+
+/** The table, the notes (material regressions first) and the summary; exit 1 on any worse. */
+function printVerdicts(rows: VerdictRow[], measures: readonly MeasureName[], where: string): void {
   rows.sort((left, right) => units.findIndex(unit => unit.key === left.key) - units.findIndex(unit => unit.key === right.key));
   const width = Math.max(10, ...rows.map(row => row.key.length));
   console.log(`\n${'scenario'.padEnd(width)}  ${measures.map(measure => measure.padEnd(15)).join(' ')}`);
@@ -470,8 +480,52 @@ async function compare(): Promise<void> {
   const worse = having('worse');
   console.log(`\n${rows.length} scenarios: ${worse.length ? `${worse.length} worse on some measure (${worse.map(row => row.key).join(', ')})` : 'none worse'}, ` +
     `${having('better').length} better, ${having('moved').length} moved within tolerance; ` +
-    `runs in ${relative(projectRoot, compareRoot)}; ${mameSummary()}`);
+    `runs in ${where}; ${mameSummary()}`);
   if (worse.length) process.exitCode = 1;
+}
+
+/**
+ * `compare --against <commit>`: that commit's runtime and this tree's, both
+ * run now, from one dist (that commit's runtime in an overlay of it,
+ * tools/compare/overlay.ts), measure by measure. No baseline, no checkout:
+ * "is it already broken on main?" is one command. Each scenario's plan is
+ * worked out afresh, as `record` would; MAME's side is cached, so it serves
+ * both runs.
+ */
+async function compareAgainst(commitish: string): Promise<void> {
+  requirePinnedNode();
+  resolveMame(mameSourceDir(projectRoot), options.get('--mame'));
+  // Built once here, so the runs (several at a time) all find it made.
+  const overlay = runtimeOverlay(commitish);
+  const measures = measuresWanted();
+  const want = (measure: MeasureName) => measures.includes(measure);
+  const identity = mamekitIdentity();
+  console.log(`comparing ${units.length} scenarios: ${describeOverlay(overlay)}, against this tree ` +
+    `(${identity.commit}${identity.dirty ? ', dirty' : ''}): ${measures.join(', ')}`);
+  const root = join(compareRoot, `against-${overlay.short}`);
+  const rows: VerdictRow[] = [];
+  await eachTarget(async (target, list) => {
+    const out: { against: string; identity: object; units: Record<string, { before: UnitRecord; after: UnitRecord; verdicts: object }> } =
+      { against: overlay.commit, identity, units: {} };
+    for (const unit of list) {
+      let plan: UnitPlan;
+      try {
+        plan = unitPlan(unit, ramBytes(unit));
+      } catch (error) {
+        console.log(`[-] ${unit.key}: ${(error as Error).message}`);
+        continue;
+      }
+      const before: UnitRecord = { plan };
+      const after: UnitRecord = { plan };
+      await measureUnit(unit, before, join(root, 'logs', `${safe(unit.key)}-before`), want, () => {}, ['--runtime', overlay.commit]);
+      await measureUnit(unit, after, join(root, 'logs', safe(unit.key)), want, () => {});
+      const verdicts = compareUnit(before, after, measures);
+      out.units[unit.key] = { before, after, verdicts };
+      rows.push({ key: unit.key, verdicts });
+      writeJson(join(root, `${target}.json`), out);
+    }
+  });
+  printVerdicts(rows, measures, relative(projectRoot, root));
 }
 
 // --- show ------------------------------------------------------------------
@@ -517,5 +571,6 @@ function show(dir: string): void {
 }
 
 if (command === 'record') await record();
+else if (command === 'compare' && options.has('--against')) await compareAgainst(options.get('--against')!);
 else if (command === 'compare') await compare();
 else show(baselineDir());

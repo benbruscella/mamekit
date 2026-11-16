@@ -860,7 +860,7 @@ options.
 |---|---|
 | `mamekit against <target> [<title>]` | one machine against MAME: pictures, `--ram`, `--io`, `--audio`, `--input none\|start\|contract`, `--survey` |
 | `mamekit record [<target> ...]` | record a baseline of every contract scenario (runs MAME: ask before a full one) |
-| `mamekit compare [<target> ...]` | better / same / worse per measure against the newest baseline |
+| `mamekit compare [<target> ...]` | better / same / moved / worse per measure against the newest baseline, or `--against <commit>` |
 | `mamekit show [<target> ...]` | print a baseline; `--markdown` for an issue |
 | `mamekit diverge <target> [<title>]` | the first bus access that differs from MAME, per processor, with no ranges given |
 
@@ -1178,6 +1178,32 @@ any-move rules 32 scenarios read worse; under these, 6 do. Five of the six
 are #255's own list of real regressions (bublbobl, friskyt, galaxian, gng,
 mk), and the sixth is sf2ce's RAM at frame 2. Both sides are deterministic, so
 a change that touches nothing measured reads `same` everywhere.
+
+**Against another commit, with nothing checked out.** A baseline answers "is
+this better than when it was recorded". Two flags answer "is this better than
+that commit" directly, with no checkout, no stash and no second worktree:
+
+```sh
+npm run mamekit -- compare dkong marble --against main     # both runtimes run now, verdicts as above
+npm run mamekit -- against marble --runtime main --ram     # one run on main's runtime
+```
+
+`tools/compare/overlay.ts` takes the commit's `src` with `git archive`, clones
+`dist` into `.cache/compare/overlay/<commit>/` (an APFS clone, so it takes
+seconds and no space), and builds the commit's runtime into the clone with
+`mamekit build`'s compiler. The overlay is reused while the commit and dist's
+build id are unchanged. It is made of copies, not links: Node resolves a
+symlinked module to its real path, so a board loaded through a link would
+import dist's runtime instead.
+
+The overlay keeps this tree's generated boards and closure, so it measures the
+*runtime* only. That is the right question for a scheduler or runtime change
+(#255), and the run says so when the two commits' compiler trees (`src/mame`,
+`src/gen`, `src/kg`, `src/games`) differ too. MAME's side is the same for both
+runs, so its cache serves both. An `against --runtime` run is an experiment:
+it is never saved as the target's report, so it never reaches the exhibit's
+`oracle.json`. `compare --against` writes to
+`.mamekit/compare/against-<commit>/`.
 
 **The first divergence: `mamekit diverge`.** A comparison says a machine left
 MAME. `diverge` says where, as one bus access, with no address ranges given:

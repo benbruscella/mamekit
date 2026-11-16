@@ -255,6 +255,7 @@ release, by `mamekit` commands:
 cp .env.example .env                          # once: set MAME_SRC and MAME_BIN
 npm run mamekit -- against dkong --ram        # one machine: pictures, RAM, bus, audio
 npm run mamekit -- compare dkong dkongjr      # better / same / worse against a baseline
+npm run mamekit -- compare dkong --against main   # against another commit's runtime, nothing checked out
 npm run mamekit -- show --markdown            # the baseline, for an issue
 npm run mamekit -- diverge marble             # the first bus access that leaves MAME
 npm run mamekit -- help against               # every option of a command

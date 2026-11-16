@@ -38,6 +38,8 @@
  *   --out file           also write this invocation's runs, by title, to a file
  *                        of their own (the report's runs are keyed by title
  *                        alone, so a later run with other input replaces one)
+ *   --runtime <commit>   run that commit's runtime against this tree's dist, built into a
+ *                        scratch overlay (tools/compare/overlay.ts); nothing in the tree moves
  *   --dist dir, --mame bin, --mame-src dir, --timeout seconds
  *
  * MAME_BIN must be the same release as the MAME source checkout; anything else
@@ -62,6 +64,7 @@ import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import { oracleReportPath, refreshOracleResult, type OracleReportFile } from '../../src/gen/oracle-result.ts';
 import { mameSourceDir, romsDir } from '../../src/paths.ts';
 import { reportRoot } from './paths.ts';
+import { describeOverlay, runtimeOverlay } from './overlay.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
 import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
@@ -90,7 +93,7 @@ if (childAt >= 0) {
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
 const valued = new Set(['--titles', '--frames', '--search', '--offset', '--input', '--scenario', '--ram-frames',
-  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--mame', '--mame-src', '--timeout', '--out']);
+  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--runtime', '--mame', '--mame-src', '--timeout', '--out']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -109,7 +112,13 @@ if (!target) {
   process.exit(2);
 }
 
-const dist = resolve(projectRoot, option('--dist') ?? 'dist');
+// Another commit's runtime runs from an overlay of this tree's dist; MAME's
+// side is the same either way, so its cache serves both.
+const overlay = option('--runtime') && !process.argv.includes('--child')
+  ? runtimeOverlay(option('--runtime')!, resolve(projectRoot, option('--dist') ?? 'dist'))
+  : undefined;
+if (overlay) console.log(`runtime: ${describeOverlay(overlay)}`);
+const dist = overlay?.dist ?? resolve(projectRoot, option('--dist') ?? 'dist');
 const mameSrc = option('--mame-src') ? resolve(option('--mame-src')!) : mameSourceDir(projectRoot);
 const politeness: Politeness = { background: flag('--background'), watch: flag('--watch') };
 const timeoutMs = Number(option('--timeout') ?? 900) * 1000;
@@ -214,6 +223,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     mame: mame.version,
     mamekit: identity,
     mameCommand: '',
+    ...(overlay ? { runtime: overlay.short } : {}),
   };
 
   // Ours first: it says which cards and empty slots MAME must be given. A
@@ -450,6 +460,9 @@ function loadReport(): OracleReport {
 
 /** Written whole through a rename, so a stopped survey never leaves half a file. */
 function saveReport(report: OracleReport): void {
+  // Another commit's runtime is an experiment, not this tree's result: the
+  // report and the exhibit it feeds keep this tree's own runs.
+  if (overlay) return;
   mkdirSync(reportRoot, { recursive: true });
   writeFileSync(`${reportPath}.tmp`, `${JSON.stringify(report, null, 2)}\n`);
   renameSync(`${reportPath}.tmp`, reportPath);
@@ -569,5 +582,8 @@ if (flag('--survey')) {
     saveReport(report);
   }
   if (option('--out')) writeFileSync(resolve(option('--out')!), `${JSON.stringify(runs, null, 2)}\n`);
-  console.log(`report: ${relative(projectRoot, reportPath)} (${mameRuns ? `${mameRuns} MAME run${mameRuns > 1 ? 's' : ''}` : "MAME's side from the cache"})`);
+  const mameNote = mameRuns ? `${mameRuns} MAME run${mameRuns > 1 ? 's' : ''}` : "MAME's side from the cache";
+  console.log(overlay
+    ? `not saved to ${relative(projectRoot, reportPath)}: ${overlay.short}'s runtime is an experiment (${mameNote})`
+    : `report: ${relative(projectRoot, reportPath)} (${mameNote})`);
 }

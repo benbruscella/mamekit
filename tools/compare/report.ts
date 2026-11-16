@@ -59,6 +59,8 @@ export interface RunReport {
   mameCached?: string;
   /** With --keep: the work directory holding both sides' raw captures. */
   workDir?: string;
+  /** With --runtime: the commit whose runtime ran (from an overlay of dist). */
+  runtime?: string;
 }
 
 export interface SurveyEntry {
