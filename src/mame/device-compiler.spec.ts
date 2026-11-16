@@ -420,3 +420,16 @@ assert.deepEqual(counters.map(counter => [counter.m_index, counter.m_clockin]),
   'each counter takes its index and clock in device_resolve_objects');
 
 console.log('device-compiler.spec: source-derived latch, ER2055, MB8844, TMS9928A and AY-3-8910 devices passed');
+
+// A method returning a reference is assigned through, and what is stored is
+// converted to the reference's type: the 6809's `uint8_t &regop8()`, and
+// Musashi's `u32 &DX()`, whose `DX() |= ...` otherwise kept JavaScript's
+// signed result of `|` (Marble Madness, #255).
+{
+  const cpu = compileMameDevice(mameSrc, hardware.get('MC6809E')!, 'MC6809E');
+  const setter = cpu.methods.find(method => method.name.endsWith('regop8='));
+  assert.ok(setter, 'the 6809 has an assigning form of regop8()');
+  const stored = JSON.stringify(setter.program.operations);
+  assert.match(stored, /"kind":"cast","valueType":"uint8_t","operand":\{"kind":"identifier","name":"__assigned"\}/,
+    'the stored value is cast to the reference\'s type');
+}

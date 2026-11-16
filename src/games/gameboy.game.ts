@@ -52,9 +52,9 @@ export const gameboy = {
       },
       audio: {
         writes: 1446569,
-        nonzeroWrites: 1244809,
-        writeHash: '5475ec7d',
-        pcmHash: '2ea9a0d3',
+        nonzeroWrites: 1244810,
+        writeHash: '2971a629',
+        pcmHash: '4ed7622b',
         rms: 0.259653,
       },
     },

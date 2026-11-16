@@ -16,8 +16,8 @@ const machine: BoardIr = {
     operation: 'set',
   }],
   execution: {
-    cpus: [{ tag: 'maincpu', type: 'z80', clock: 600, region: 'maincpu' }],
-    screen: { width: 1, height: 1, refresh: 10, vtotal: 3, vbstart: 2, rotate: 0 },
+    cpus: [{ tag: 'maincpu', type: 'z80', clock: 3600, region: 'maincpu' }],
+    screen: { width: 1, height: 1, refresh: 60, vtotal: 3, vbstart: 2, rotate: 0 },
     frameEvents: [{
       callbackId: 'callback:vblank',
       ownerTag: 'screen',
@@ -109,7 +109,7 @@ const periodicMachine: BoardIr = {
       signal: 'vck_callback',
       line: 0,
       state: 1,
-      frequency: 25,
+      frequency: 150,
     }],
   },
 };
@@ -166,8 +166,8 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     execution: {
       ...machine.execution,
       cpus: [
-        { tag: 'maincpu', type: 'z80', clock: 60_000, region: 'maincpu' },
-        { tag: 'sound', type: 'z80', clock: 60_000, region: 'sound' },
+        { tag: 'maincpu', type: 'z80', clock: 360_000, region: 'maincpu' },
+        { tag: 'sound', type: 'z80', clock: 360_000, region: 'sound' },
       ],
       frameEvents: [],
     },
@@ -225,10 +225,10 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     execution: {
       ...machine.execution,
       cpus: [
-        { tag: 'maincpu', type: 'z80', clock: 60_000, region: 'maincpu' },
-        { tag: 'sound', type: 'z80', clock: 60_000, region: 'sound' },
+        { tag: 'maincpu', type: 'z80', clock: 360_000, region: 'maincpu' },
+        { tag: 'sound', type: 'z80', clock: 360_000, region: 'sound' },
       ],
-      screen: { width: 1, height: 1, refresh: 10, vtotal: 6, vbstart: 5, rotate: 0 },
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 6, vbstart: 5, rotate: 0 },
       frameEvents: [0, 2, 4].map(line => ({
         callbackId: 'callback:scan',
         ownerTag: 'scantimer',
@@ -286,13 +286,13 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   });
   runner.frame(new Uint32Array(1));
   // 1,584,000 Hz over 264 lines at 60 Hz is 100 cycles a line, and a line is
-  // 63 us. This board reports no timer at all, so the schedule keeps the
-  // empirical 250 us bound (UNTIMED_QUANTUM_SECONDS) rather than running to
-  // the next event a whole frame away.
+  // 63 us. This board reports no timer of its own, so a round runs to the
+  // screen's next one, as MAME's does: VBLANK end (line 0), VBLANK start
+  // (line 240) and scanline 0 again, which the frame's last line closes.
   assert.deepEqual(
-    slices.slice(0, 2),
-    [300, 300],
-    'a board with no timers keeps the untimed bound',
+    slices,
+    [100, 23_900, 100, 2200, 100],
+    'a board with no timers runs from one of the screen\'s timers to the next',
   );
   assert.equal(
     slices.reduce((total, slice) => total + slice, 0),
@@ -339,9 +339,9 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     onRound: () => order.push('round'),
   });
   runner.frame(new Uint32Array(1));
-  // 300 truncated cycles stop 39 attoseconds short of the lines, which ends
+  // 100 truncated cycles stop a few attoseconds short of the line, which ends
   // the round there, and the next is under a cycle long: nothing runs in it.
-  assert.deepEqual(order.slice(0, 5), ['round', 'run 300', 'round', 'round', 'run 300'], 'a round starts each slice');
+  assert.deepEqual(order.slice(0, 5), ['round', 'run 100', 'round', 'round', 'run 23900'], 'a round starts each slice');
   order.length = 0;
   runner.quantumWindow(0.0001);
   runner.frame(new Uint32Array(1));
@@ -421,8 +421,8 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     execution: {
       ...machine.execution,
       participants: [
-        { tag: 'maincpu', kind: 'cpu', clock: 600 },
-        { tag: 'vic', kind: 'device', clock: 300, stallTargets: ['maincpu'], arbitration: 'source-callback' },
+        { tag: 'maincpu', kind: 'cpu', clock: 3600 },
+        { tag: 'vic', kind: 'device', clock: 1800, stallTargets: ['maincpu'], arbitration: 'source-callback' },
       ],
     },
   };
@@ -566,4 +566,63 @@ console.log('generated-frame.spec: 21 passed');
   }).frame(new Uint32Array(1));
   assert.equal(ran, 0, 'a held processor does not run');
   assert.equal(eaten, 60, 'a held processor eats every cycle of its slices');
+}
+
+// MAME's quantum where the machine configures none is a sixtieth of a second
+// (device_scheduler::rebuild_execute_list), and nothing else bounds a round
+// between two of the screen's timers (#255).
+{
+  const slow: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [{ tag: 'maincpu', type: 'z80', clock: 1_200_000, region: 'maincpu' }],
+      // 30 Hz: VBLANK start to the frame's last line is 0.9 of 33 ms.
+      screen: { width: 1, height: 1, refresh: 30, vtotal: 100, vbstart: 10, vbend: 9, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const slices: number[] = [];
+  const at: (string | undefined)[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine: slow,
+    processors: [{ tag: 'maincpu', run: (budget: number) => { slices.push(budget); return budget; } }],
+    onSynchronize: where => { at.push(where); },
+  });
+  runner.frame(new Uint32Array(1));
+  assert.equal(slices.reduce((total, slice) => total + slice, 0), 40_000, 'a 30 Hz frame of a 1.2 MHz processor');
+  assert.ok(Math.max(...slices) <= 20_000, `no round is longer than a sixtieth of a second: ${slices}`);
+  assert.ok(slices.includes(20_000), `and one with no timer in it is exactly that long: ${slices}`);
+  assert.equal(at[0], 'base', 'work posted between rounds is due at the round\'s base');
+  assert.ok(at.includes('target'), 'and work posted in a round once every processor has run to its target');
+  assert.ok(Math.abs(runner.secondsAhead('maincpu')) < 1e-9, 'the processor stands on the round\'s base between frames');
+}
+
+// A timer standing on the round's base bounds nothing: it is due at the
+// instant the frame is presented, where the devices' time is held, and a
+// bound of no attoseconds would never end the round (Green Beret, #255).
+{
+  const idle: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [{ tag: 'maincpu', type: 'z80', clock: 1_584_000, region: 'maincpu' }],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 264, vbstart: 240, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  let total = 0;
+  let asked = 0;
+  const runner = new GeneratedFrameRunner({
+    machine: idle,
+    processors: [{ tag: 'maincpu', run: (budget: number) => { total += budget; return budget; } }],
+    nextTimerSeconds: () => {
+      if (++asked > 10_000) throw new Error('the round never ended');
+      return 6.6e-19;
+    },
+  });
+  runner.frame(new Uint32Array(1));
+  assert.equal(total, 26_400, 'the frame runs whole past a timer the devices cannot fire yet');
 }

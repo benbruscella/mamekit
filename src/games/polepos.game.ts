@@ -76,9 +76,9 @@ export const polepos = sourceTarget({
     audio: {
       writes: 1900798,
       nonzeroWrites: 1078395,
-      writeHash: 'c11e1445',
-      pcmHash: 'a9b7bec5',
-      rms: 0.118493,
+      writeHash: '907d480c',
+      pcmHash: '8f9e43ad',
+      rms: 0.118542,
     },
   },
 });

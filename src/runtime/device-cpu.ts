@@ -161,6 +161,17 @@ export class DeviceCpu implements Cpu {
   /** MAME abort_timeslice: execute_run returns after the instruction in progress. */
   abortTimeslice(): void {
     this.aborted = true;
+    // The cycles swallowed were never run, so they come off the piece's
+    // target with m_icount, as MAME takes them off m_cycles_running: the
+    // instruction in progress still stands where it stood. Left on, the rest
+    // of that instruction read the clock at the slice's end. Marble Madness's
+    // 6502 writes the YM2151's timer control, which synchronizes, and the
+    // chip then stamped its busy flag from that clock: 2.6 ms ahead in a
+    // round of 240 lines, so the 6502 waited that long on a chip that was idle.
+    if (this.target !== undefined) {
+      const left = this.device.get('m_icount');
+      if (left > 0) this.target -= left;
+    }
     this.device.abortTimeslice?.();
   }
 

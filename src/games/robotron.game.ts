@@ -62,11 +62,11 @@ export const robotron = sourceTarget({
       2100: { video: '4fb523f8', state: '5eacb6a0' },
     },
     audio: {
-      writes: 4345036,
-      nonzeroWrites: 4344018,
-      writeHash: '4c721e21',
-      pcmHash: '80bae3cc',
-      rms: 0.211928,
+      writes: 4345034,
+      nonzeroWrites: 4344024,
+      writeHash: '1b81bc12',
+      pcmHash: 'ee7ed426',
+      rms: 0.211933,
     },
   },
 });

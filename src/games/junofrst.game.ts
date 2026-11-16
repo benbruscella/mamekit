@@ -32,7 +32,7 @@ export const junofrst = sourceTarget({
       mcu: 'd0fa5d5f',
     },
     checkpoints: {
-      1: { video: 'f7e6ac81', state: '290f7680' },
+      1: { video: 'f7e6ac81', state: '5d2e7932' },
       60: { video: 'f8a0d088', state: '4f43f319' },
       300: { video: 'ddad08c3', state: '7e6200bc' },
       480: { video: 'e5b26a75', state: '4904cb63' },
@@ -40,11 +40,11 @@ export const junofrst = sourceTarget({
       1200: { video: '29686572', state: '4b6c4577' },
     },
     audio: {
-      writes: 1900800,
-      nonzeroWrites: 1900798,
-      writeHash: 'c98174f3',
-      pcmHash: '37ce9505',
-      rms: 0.324439,
+      writes: 1900798,
+      nonzeroWrites: 1900796,
+      writeHash: '4b9a240b',
+      pcmHash: 'a3cc0f23',
+      rms: 0.324457,
     },
   },
 });

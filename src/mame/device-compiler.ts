@@ -2705,21 +2705,27 @@ function compileMameDeviceSource(
     ['identifier', 'member', 'index'].includes(expression.kind) ||
     (expression.kind === 'unary' && expression.operator === '*');
   const assigned = '__assigned';
-  const storing = (operations: GeneratedHandlerOperation[]): GeneratedHandlerOperation[] | undefined => {
+  // What is stored is converted to the reference's own type, as assigning
+  // through a `u32 &` converts: Musashi's OR.W is `DX() |= ...`, and the
+  // JavaScript `|` of a register with bit 31 set is negative. Stored so,
+  // the SWAP that followed shifted it arithmetically and Marble Madness
+  // wrote ffff for every playfield word built that way (its software
+  // watchdog then tripped at frame 320).
+  const storing = (operations: GeneratedHandlerOperation[], stored: GeneratedExpression): GeneratedHandlerOperation[] | undefined => {
     const mapped: GeneratedHandlerOperation[] = [];
     for (const operation of operations) {
       if (operation.op === 'return') {
         if (!operation.value || !isLvalue(operation.value)) return undefined;
         // And answers what it stored, as the assignment's value is.
-        mapped.push({ op: 'assign', target: operation.value, operator: '=', value: { kind: 'identifier', name: assigned } },
+        mapped.push({ op: 'assign', target: operation.value, operator: '=', value: stored },
           { op: 'return', value: operation.value });
       } else if (operation.op === 'if') {
-        const then = storing(operation.then);
-        const otherwise = operation.else ? storing(operation.else) : [];
+        const then = storing(operation.then, stored);
+        const otherwise = operation.else ? storing(operation.else, stored) : [];
         if (!then || !otherwise) return undefined;
         mapped.push({ ...operation, then, ...(operation.else ? { else: otherwise } : {}) });
       } else if (operation.op === 'switch') {
-        const cases = operation.cases.map(entry => ({ ...entry, body: storing(entry.body) }));
+        const cases = operation.cases.map(entry => ({ ...entry, body: storing(entry.body, stored) }));
         if (cases.some(entry => !entry.body)) return undefined;
         mapped.push({ ...operation, cases: cases as typeof operation.cases });
       } else if (operation.op === 'for' || operation.op === 'while' || operation.op === 'do-while') {
@@ -2733,11 +2739,13 @@ function compileMameDeviceSource(
   for (const method of [...methods]) {
     const bare = method.name.split('::').at(-1)!;
     if (!method.program.operations.length || method.program.diagnostics.length) continue;
-    const returnsReference = [...hierarchy].reverse().some(className =>
-      new RegExp(`(?:^|[;{}:])\\s*(?:(?:virtual|static|inline)\\s+)*(?!const\\b)[\\w:<>]+\\s*&\\s*${bare}\\s*\\(`, 'm')
-        .test(stripCppComments(classes.get(className)?.body ?? '')));
-    if (!returnsReference || methods.some(candidate => candidate.name === `${method.name}=`)) continue;
-    const operations = storing(method.program.operations);
+    const referenceType = [...hierarchy].reverse().map(className =>
+      new RegExp(`(?:^|[;{}:])\\s*(?:(?:virtual|static|inline)\\s+)*(?!const\\b)([\\w:<>]+)\\s*&\\s*${bare}\\s*\\(`, 'm')
+        .exec(stripCppComments(classes.get(className)?.body ?? ''))?.[1]).find(type => type !== undefined);
+    if (referenceType === undefined || methods.some(candidate => candidate.name === `${method.name}=`)) continue;
+    const value: GeneratedExpression = { kind: 'identifier', name: assigned };
+    const operations = storing(method.program.operations,
+      RETURN_WIDTHS[referenceType] ? { kind: 'cast', valueType: referenceType, operand: value } : value);
     if (!operations) continue;
     methods.push({
       ...method,

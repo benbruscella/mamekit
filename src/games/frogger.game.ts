@@ -23,7 +23,7 @@ export const frogger = sourceTarget({
       proms: '413703bf',
     },
     checkpoints: {
-      1: { video: 'e1e3eb19', state: '1055b399' },
+      1: { video: 'e1e3eb19', state: '12da13df' },
       60: { video: '10075d9f', state: '4e2e2274' },
       180: { video: '8f59fe5f', state: 'f813b01d' },
       300: { video: '44890969', state: '30c816d4' },
@@ -34,9 +34,9 @@ export const frogger = sourceTarget({
     audio: {
       writes: 712799,
       nonzeroWrites: 712799,
-      writeHash: 'db2723f6',
-      pcmHash: '78e74ecc',
-      rms: 0.067505,
+      writeHash: '4ee3cc1f',
+      pcmHash: '4265b63c',
+      rms: 0.067502,
     },
   },
 });

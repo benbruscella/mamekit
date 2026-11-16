@@ -26,7 +26,7 @@ export const galaxian = sourceTarget({
       proms: 'c3ac9467',
     },
     checkpoints: {
-      1: { video: '0d7b640f', state: '7ffbb98a' },
+      1: { video: '0d7b640f', state: '3bf3bcf9' },
       60: { video: 'cd2b1b38', state: 'b6dc84da' },
       180: { video: '91227fd8', state: 'c96d8e4d' },
       300: { video: 'bc262f14', state: '416eedf3' },
@@ -37,7 +37,7 @@ export const galaxian = sourceTarget({
     audio: {
       writes: 712799,
       nonzeroWrites: 712799,
-      writeHash: 'e25a3cf9',
+      writeHash: 'c8c96b7c',
       pcmHash: '60737b14',
       rms: 0.075846,
     },

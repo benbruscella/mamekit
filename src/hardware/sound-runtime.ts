@@ -74,6 +74,18 @@ export interface SoundRuntimeContext {
    */
   deviceTime?(tag: string): number | undefined;
   /**
+   * The time every processor of the round has run to. MAME mixes from a timer
+   * (`sound_manager::update`), which fires once all of them stand at it; a
+   * mix reaching past this would render a stream before a processor later in
+   * the round has made the writes that fall inside it.
+   */
+  settledTime?(): number;
+  /**
+   * The rate of a processor's cycles as it stands now: `set_unscaled_clock`
+   * moves it, and a loaded state restores it.
+   */
+  cpuCycleClock?(cpuTag: string): number;
+  /**
    * Sound devices a board device is built out of that render a routed stream,
    * by MAME tag, with their route gain: an NES cartridge's MMC5, VRC6 or Namco
    * 163, which exist only once a cartridge chose that board. callDevice and
@@ -118,6 +130,12 @@ export interface SoundRuntimeHooks {
    * only what this one has not already seen.
    */
   tickInstruction?(cpuTag: string, cycles: number): void;
+  /**
+   * A processor's time moved without it running: cycles booked to it while
+   * held in RESET, or its clock changed. A hook that counts tickCpu's cycles
+   * toward a deadline starts its count again.
+   */
+  cpuTimeMoved?(cpuTag: string): void;
   instructionCpus?: ReadonlySet<string>;
   /** The board finished a frame: anything still to render for it renders now. */
   endFrame?(): void;

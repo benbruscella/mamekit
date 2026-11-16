@@ -34,18 +34,12 @@ export interface GeneratedFrameProcessor {
 }
 
 /**
- * The longest any processor may run ahead of the others where the board
- * declares no timer cadence of its own.
- *
- * What bounds a timeslice in MAME is the soonest timer. Here a scanline
- * TIMER's own period bounds a round; device timers do not, because ending
- * rounds at every one of them desynchronised the MCUs Xevious and TMNT host on
- * device time. A board with no declared cadence keeps the empirical bound the
- * schedule used before timers were modelled at all: Galaga's 54xx boot boom
- * is knife-edge sensitive to it, and a five-line round silences a boom that
- * is already far quieter than MAME's.
+ * MAME's scheduling quantum where the machine configures none:
+ * `machine().config().maximum_quantum(attotime::from_hz(60))` in
+ * `device_scheduler::rebuild_execute_list` (emu/schedule.cpp). A configured
+ * `set_maximum_quantum` can only be shorter.
  */
-const MAX_QUANTUM_SECONDS = 250e-6;
+const DEFAULT_QUANTUM_SECONDS = 1 / 60;
 
 /**
  * Attoseconds a device timer's expiry may stand off the time MAME has for it.
@@ -72,8 +66,14 @@ export interface GeneratedFrameRunnerOptions {
   video?: VideoRenderer;
   eventPhase?: 'before-processors' | 'after-processors';
   onEvent?: (event: GeneratedFrameEvent) => void;
-  /** Run the `scheduler().synchronize()` work posted since the last call. */
-  onSynchronize?: () => void;
+  /**
+   * Run the `scheduler().synchronize()` work that has come due. MAME posts it
+   * as a timer at the time of the call, so it runs once the round has
+   * reached that time: `at` says where the round stands, its base (before a
+   * round) or its target (every processor has run to it). Undefined inside a
+   * perfect-quantum window, whose every instruction is a round.
+   */
+  onSynchronize?: (at?: 'base' | 'target') => void;
   /**
    * A round is starting: MAME's `apply_suspend_changes`, which puts into
    * force the suspensions and triggers asked for during the round before.
@@ -87,12 +87,13 @@ export interface GeneratedFrameRunnerOptions {
   perfectInterleave?: () => number | undefined;
   /**
    * MAME `set_maximum_quantum` in seconds, where the board runs MAME's rounds
-   * (see the board's roundQuantum); no round is longer.
+   * (see the board's roundQuantum); no round is longer. Without one a round
+   * is at most MAME's default, a sixtieth of a second.
    */
   maximumQuantum?: number;
   /**
    * Seconds from the round's base, which stands on line `baseLine`, to the
-   * soonest device timer: MAME ends the round there.
+   * soonest timer, a device's or the driver's: MAME ends the round there.
    */
   nextTimerSeconds?: (baseLine: number) => number;
   /** Every processor has run the round to `line`: MAME executes its timers now. */
@@ -134,7 +135,7 @@ export class GeneratedFrameRunner {
   private readonly eventPhase: 'before-processors' | 'after-processors';
   private readonly onEvent?: (event: GeneratedFrameEvent) => void;
   private readonly onLine?: GeneratedFrameRunnerOptions['onLine'];
-  private readonly onSynchronize?: () => void;
+  private readonly onSynchronize?: GeneratedFrameRunnerOptions['onSynchronize'];
   private readonly onRound?: () => void;
   private readonly perfectInterleave?: () => number | undefined;
   private readonly nextTimerSeconds?: (baseLine: number) => number;
@@ -159,6 +160,8 @@ export class GeneratedFrameRunner {
   private readonly scratch = new Attotime();
   /** The processor whose slice is executing, if any. */
   private running?: GeneratedFrameRunner['processors'][number];
+  /** The processor last asked after by tag (secondsAhead). */
+  private clockProcessor?: GeneratedFrameRunner['processors'][number];
   /** True while a perfect-quantum window runs processors one instruction at a time. */
   lockstepping = false;
   /** Work was synchronized during the running slice. */
@@ -191,18 +194,15 @@ export class GeneratedFrameRunner {
   private readonly boundaryLines: Set<number>;
   /** Every line is a boundary when the board schedules work on every line. */
   private readonly perLineSchedule: boolean;
-  /** Scanlines a processor may run in one slice, from MAX_QUANTUM_SECONDS. */
-  private readonly maximumQuantumLines: number;
   /**
-   * The machine's own `set_maximum_quantum`, in attoseconds: no MAME round is
-   * longer, so a round of lines is several of them (see runProcessors).
+   * MAME's scheduling quantum in attoseconds, the machine's own
+   * `set_maximum_quantum` or the default: no MAME round is longer, so a round
+   * of lines is several of them (see runProcessors).
    */
-  private readonly machineQuantum?: number;
+  private readonly machineQuantum: number;
   /** The processors in the order a round runs them (see roundOrder). */
   private readonly order: Int32Array;
   private readonly suspendable: boolean;
-  /** A scanline TIMER's own period in lines; it is what MAME ends slices on. */
-  private readonly scanlineTimerLinesApart: number;
   /**
    * Scanlines (fractional) left in a `perfect_quantum` window, during which
    * the processors run in lockstep.
@@ -304,33 +304,33 @@ export class GeneratedFrameRunner {
     // added back as boundaries: MCR's scantimer fires every line (a round of
     // 116 lines starved Rampage's sound board), Gauntlet's every 32.
     const scanlineTimerLines: number[] = [];
-    let scanlineIncrementLines = Infinity;
     const vtotal = options.machine.execution.screen.vtotal;
     for (const callback of options.machine.callbacks ?? []) {
       if (callback.signal !== 'configure_scanline') continue;
       const increment = Number(callback.scanlineIncrement ?? 0);
       const start = Number(callback.scanlineStart ?? 0);
       if (!(increment > 0)) continue;
-      scanlineIncrementLines = Math.min(scanlineIncrementLines, increment);
       for (let line = ((start % increment) + increment) % increment; line < vtotal; line += increment) {
         scanlineTimerLines.push(line);
       }
     }
-    this.scanlineTimerLinesApart = scanlineIncrementLines;
-    // A declared scanline TIMER is the board's own cadence and MAME ends every
-    // timeslice on it: Gauntlet's 32 lines keep its sound board's reply burst
-    // whole, MCR's single line keeps Rampage's handshake alive. With none
-    // declared the empirical bound stands in for the timers this runtime does
-    // not model.
-    this.maximumQuantumLines = Number.isFinite(scanlineIncrementLines)
-      ? scanlineIncrementLines
-      : Math.max(1, Math.floor(MAX_QUANTUM_SECONDS * denominator));
     const machineQuantum = options.maximumQuantum;
-    if (machineQuantum !== undefined && machineQuantum > 0) this.machineQuantum = secondsToAttoseconds(machineQuantum);
+    this.machineQuantum = secondsToAttoseconds(machineQuantum !== undefined && machineQuantum > 0
+      ? Math.min(machineQuantum, DEFAULT_QUANTUM_SECONDS)
+      : DEFAULT_QUANTUM_SECONDS);
+    // The lines MAME's own timers fall on, where the lines since the last one
+    // are handed to the processors. A declared scanline TIMER's cadence
+    // (Gauntlet's 32 lines keep its sound board's reply burst whole, MCR's
+    // single line keeps Rampage's handshake alive), the frame events, and the
+    // screen's three timers: VBLANK start, VBLANK end and scanline 0
+    // (screen_device's m_vblank_begin_timer, m_vblank_end_timer and
+    // m_scanline0_timer). Between two of them a round is as long as MAME's:
+    // to the soonest timer, and no longer than the quantum (runProcessors).
     this.boundaryLines = new Set([
       ...this.eventsByLine.keys(),
       ...scanlineTimerLines,
       options.machine.execution.screen.vbstart,
+      (options.machine.execution.screen.vbend ?? 0) % Math.max(1, vtotal),
       options.machine.execution.screen.vtotal - 1,
     ]);
   }
@@ -411,6 +411,19 @@ export class GeneratedFrameRunner {
     const scheduled = this.processors.find(entry => entry.processor.tag === tag);
     if (!scheduled) return this.pendingLines;
     return this.pendingLines + this.base.since(scheduled.local) / this.linePeriod.total;
+  }
+
+  /**
+   * How far a processor stands past the round's base, in seconds, or past
+   * the round's target once every processor has run to it (onRoundEnd).
+   * The board keeps time by its processors' cycle counts, so this is where
+   * the round stands on that clock.
+   */
+  secondsAhead(tag: string, ofTarget = false): number {
+    const scheduled = this.clockProcessor?.processor.tag === tag
+      ? this.clockProcessor
+      : this.clockProcessor = this.processors.find(entry => entry.processor.tag === tag);
+    return scheduled ? scheduled.local.since(ofTarget ? this.target : this.base) / 1e18 : 0;
   }
 
   /** How far a processor stands past the round's base, in its own cycles. */
@@ -529,8 +542,7 @@ export class GeneratedFrameRunner {
 
     this.pendingLines++;
     const inQuantumWindow = this.fineLines > 0;
-    if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line) ||
-      this.pendingLines >= this.maximumQuantumLines) {
+    if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line)) {
       this.runProcessors(this.pendingLines, line);
       this.pendingLines = 0;
     }
@@ -577,7 +589,7 @@ export class GeneratedFrameRunner {
     this.roundFirstLine = lastLine - lines + 1;
     this.roundLines = lines;
     // Work posted outside any slice (a line callback, an event) is due now.
-    this.onSynchronize?.();
+    this.onSynchronize?.('base');
     while (base.before(end)) {
       this.onRound?.();
       if (this.permanentLockstep) {
@@ -592,14 +604,21 @@ export class GeneratedFrameRunner {
         continue;
       }
       target.set(end);
-      const quantum = windowed ? this.windowQuantum : this.machineQuantum;
-      if (quantum !== undefined) this.lowerTarget(quantum);
+      this.lowerTarget(windowed ? this.windowQuantum! : this.machineQuantum);
       // MAME's round ends at the soonest timer, so every processor stands
       // at its expiry when it fires.
       let slop = 0;
       if (this.nextTimerSeconds) {
         const seconds = this.nextTimerSeconds(this.linesAt(base));
-        if (seconds > 0 && Number.isFinite(seconds) && this.lowerTarget(secondsToAttoseconds(seconds))) slop = TIMER_SLOP;
+        // A timer standing on the base itself, give or take that slop, is one
+        // the devices could not fire there: it is due at the instant the frame
+        // is presented, and their time is held short of it for the snapshot.
+        // It bounds nothing: Green Beret's K005849 arms its scanline timer for
+        // that instant, and a bound of no attoseconds never ended the round.
+        if (seconds > 0 && Number.isFinite(seconds)) {
+          const attos = secondsToAttoseconds(seconds);
+          if (attos > TIMER_SLOP && this.lowerTarget(attos)) slop = TIMER_SLOP;
+        }
       }
       const order = this.roundOrder();
       for (let position = 0; position < order.length; position++) {
@@ -641,7 +660,7 @@ export class GeneratedFrameRunner {
         this.synchronizeRequested = false;
         this.synchronizedAt = undefined;
       }
-      this.onSynchronize?.();
+      this.onSynchronize?.('target');
       this.onRoundEnd?.(this.linesAt(target));
       if (windowed) {
         this.fineLines -= target.since(base) / this.linePeriod.total;
@@ -649,6 +668,12 @@ export class GeneratedFrameRunner {
       }
       base.set(target);
     }
+    // Every processor stands at the end of the lines being paid, give or take
+    // the instruction that carried it past. Work one posted from that last
+    // instruction is due a few cycles on; it runs here, not at the first
+    // round of the next lines, so nothing is left posted between lines: a
+    // line event, or a save state taken between frames, finds none.
+    this.onSynchronize?.();
   }
 
   /** Bring the target down to `attos` past the base; answers whether it moved. */

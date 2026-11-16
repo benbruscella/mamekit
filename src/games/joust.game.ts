@@ -61,11 +61,11 @@ export const joust = sourceTarget({
       2100: { video: '5aa31b15', state: '430fadf8' },
     },
     audio: {
-      writes: 4345036,
-      nonzeroWrites: 4340280,
-      writeHash: '3c992b02',
-      pcmHash: '6cd9f61a',
-      rms: 0.215263,
+      writes: 4345034,
+      nonzeroWrites: 4340276,
+      writeHash: '306e967c',
+      pcmHash: '3220bc14',
+      rms: 0.215264,
     },
   },
 });

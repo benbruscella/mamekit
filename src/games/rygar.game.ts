@@ -43,10 +43,10 @@ export const rygar = sourceTarget({
     },
     audio: {
       writes: 1622016,
-      nonzeroWrites: 1164546,
-      writeHash: 'daf7b888',
-      pcmHash: '09277718',
-      rms: 0.068565,
+      nonzeroWrites: 1164251,
+      writeHash: '139908b0',
+      pcmHash: 'be1e3e05',
+      rms: 0.068743,
     },
   },
 });

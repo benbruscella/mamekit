@@ -168,6 +168,16 @@ export function createStreamMixer(
   const netlistFeeders = new Set(netlist?.feeds.map(feed => feed.tag) ?? []);
   const sources = allSources.filter(source => !netlistFeeders.has(source.tag));
   const driver = context.board.execution.cpus[0]?.tag;
+  const last = context.board.execution.cpus[context.board.execution.cpus.length - 1]?.tag;
+  // Per ticking processor: the cycles it must still run before a batch can
+  // be due, and the mix position that count was taken against (a reset or a
+  // loaded state moves it, and the count is then void).
+  const tickState = (tag: string | undefined) => {
+    const cpu = context.board.execution.cpus.find(candidate => candidate.tag === tag);
+    return { clock: Math.max(1, cpu?.cycleClock ?? cpu?.clock ?? 1), cycles: 0, emitted: -1 };
+  };
+  const driverTick = tickState(driver);
+  const lastTick = last === driver ? driverTick : tickState(last);
   // `outputGain` is the device's set_output_gain, over its routed gain.
   const streams = sources.map(source => ({
     ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
@@ -592,10 +602,14 @@ export function createStreamMixer(
   }
   // A device the round runs after the CPUs has not reached their time yet;
   // what it renders past where it stands would miss the writes still to come.
+  // Nor has a processor that runs after the first: the mix reaches only as
+  // far as every one of them has run. The first runs its whole slice of the
+  // round before the next starts, so a mix up to its time rendered Juno
+  // First's DAC before the i8039 had written the samples for that stretch.
   const reached = () => streams.reduce((target, stream) => {
     const seconds = context.deviceTime?.(stream.tag);
     return seconds === undefined ? target : Math.min(target, Math.floor(seconds * STREAM_AUDIO_RATE));
-  }, now());
+  }, Math.min(now(), Math.floor((context.settledTime?.() ?? Infinity) * STREAM_AUDIO_RATE)));
   const mix = () => {
     const target = reached();
     if (target <= state.emitted) return;
@@ -634,6 +648,7 @@ export function createStreamMixer(
     state,
     reset: () => {
       state.emitted = 0;
+      driverTick.emitted = lastTick.emitted = -1;
       if (netlistNode) {
         netlistNode.pending.length = 0;
         netlistNode.rendered = 0;
@@ -656,7 +671,33 @@ export function createStreamMixer(
         stream.lofi.history.length = 0;
       }
     },
-    tickCpu: cpu => { if (cpu === driver && reached() - state.emitted >= MIX_BATCH) mix(); },
+    // After the first processor's slice, and after the last one's, which is
+    // where a round of several processors has all of them at its end.
+    tickCpu: (cpu, cycles) => {
+      const tick = cpu === driver ? driverTick : cpu === last ? lastTick : undefined;
+      if (!tick) return;
+      // A perfect-quantum board ticks here once an instruction. The mix
+      // reaches no further than this processor has run, so until it has run
+      // the cycles a batch takes there is nothing to ask: asking anyway, the
+      // question (every processor's time, every stream's) was a tenth of
+      // Qix's frame and a fifth of the NES's.
+      if (tick.emitted === state.emitted && (tick.cycles -= cycles) > 0) return;
+      if (reached() - state.emitted >= MIX_BATCH) mix();
+      tick.emitted = state.emitted;
+      // `now` counts this slice only as far as its core reported (a
+      // perfect-quantum slice reports its one-cycle target, whatever the
+      // instruction took), so the slice's own cycles come off the count:
+      // the next ask is never later than the tick the batch falls due on.
+      // At the rate its cycles run now: Missile Command stretches its 6502's
+      // clock line by line, and counted at the configured rate the slower
+      // cycles ran past the batch.
+      const clock = Math.max(1, context.cpuCycleClock?.(cpu) ?? tick.clock);
+      tick.cycles = Math.floor(((state.emitted + MIX_BATCH) / STREAM_AUDIO_RATE - time()) * clock) - cycles - 1;
+    },
+    cpuTimeMoved: cpu => {
+      if (cpu === driver) driverTick.emitted = -1;
+      if (cpu === last) lastTick.emitted = -1;
+    },
     endFrame: mix,
     renderTo: seconds => renderNetlist(Math.floor(seconds * STREAM_AUDIO_RATE)),
   };

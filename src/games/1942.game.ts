@@ -46,8 +46,8 @@ export const _1942 = sourceTarget({
     audio: {
       writes: 965836,
       nonzeroWrites: 965836,
-      writeHash: '87dc73b2',
-      pcmHash: '9b43be32',
+      writeHash: '25c2c74e',
+      pcmHash: 'be4dd579',
       rms: 0.054172,
     },
   },
