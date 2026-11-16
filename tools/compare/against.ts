@@ -38,6 +38,8 @@
  *   --out file           also write this invocation's runs, by title, to a file
  *                        of their own (the report's runs are keyed by title
  *                        alone, so a later run with other input replaces one)
+ *   --levels N           each sound chip's RMS per N frames, written as ours-levels.json in
+ *                        the work directory (keep it with --keep): what `mamekit levels` reads
  *   --runtime <commit>   run that commit's runtime against this tree's dist, built into a
  *                        scratch overlay (tools/compare/overlay.ts); nothing in the tree moves
  *   --dist dir, --mame bin, --mame-src dir, --timeout seconds
@@ -93,7 +95,7 @@ if (childAt >= 0) {
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
 const valued = new Set(['--titles', '--frames', '--search', '--offset', '--input', '--scenario', '--ram-frames',
-  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--runtime', '--mame', '--mame-src', '--timeout', '--out']);
+  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--runtime', '--levels', '--mame', '--mame-src', '--timeout', '--out']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -112,6 +114,8 @@ if (!target) {
   process.exit(2);
 }
 
+// Each chip's stream reaches the harness only when it is observed.
+if (option('--levels')) process.env.MAMEKIT_OBSERVE_STREAMS = '1';
 // Another commit's runtime runs from an overlay of this tree's dist; MAME's
 // side is the same either way, so its cache serves both.
 const overlay = option('--runtime') && !process.argv.includes('--child')
@@ -209,6 +213,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     ...(request.ram ? { ram: request.ram } : {}),
     ...(request.io ? { io: request.io } : {}),
     ...(request.grade ? { grade: true } : {}),
+    ...(option('--levels') ? { levels: Number(option('--levels')) } : {}),
     last,
     dir,
     dist,

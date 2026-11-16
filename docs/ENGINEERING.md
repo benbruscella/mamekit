@@ -167,6 +167,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run mamekit -- record\|compare\|show [<target>]` | record every contract scenario against MAME, and judge a change against that record (section 7) |
 | `npm run mamekit -- diverge <target> [<title>]` | the first bus access that differs from MAME, per processor (section 7) |
 | `npm run mamekit -- sweep [<target> ...]` | run the acceptance contracts and classify what moved in each (section 7) |
+| `npm run mamekit -- levels <target> [<title>]` | each sound chip's level over time, beside another commit's (section 7) |
 | `npm run mamekit -- help <command>` | a comparison command's options |
 | `npm run mamekit -- build [--check]` | recompile only `dist/runtime` from `src`, in about two seconds (section 4) |
 | `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
@@ -865,6 +866,7 @@ options.
 | `mamekit show [<target> ...]` | print a baseline; `--markdown` for an issue |
 | `mamekit diverge <target> [<title>]` | the first bus access that differs from MAME, per processor, with no ranges given |
 | `mamekit sweep [<target> ...]` | run the acceptance contracts and classify what moved in each (no MAME) |
+| `mamekit levels <target> [<title>]` | each sound chip's level per 300 frames, beside another commit's and MAME's mix |
 
 ```sh
 npm run mamekit -- against pacman --frames 300,600,900 --ram
@@ -1246,6 +1248,38 @@ accesses that touch the bytes asked for are kept, the same rule ours applies.
 Until #260, our side logged no word accesses at all, which hid half of Marble
 Madness's traffic.
 
+**Sound over time: `mamekit levels`.** The comparison's audio is one figure for
+the whole run, so a sound that stops early reads as a fraction of a dB.
+`levels` prints each sound chip's RMS per window of frames (default 300), our
+run beside another commit's runtime (default: the newest baseline's commit,
+through the overlay above; `--against <commit>`, or `--alone`), with the
+whole mix and MAME's mix underneath:
+
+```sh
+npm run mamekit -- levels tmnt --input contract
+npm run mamekit -- levels gauntlet --against main --window 600
+```
+
+```
+levels in dBFS per 300 frames (5.1 s); * = more than 3 dB from ours
+frames              1-    301-    601-    901-   1201-   1501-
+samples         -80.0   -80.0   -26.5   -23.4   -25.4   -80.0
+  ec3a74f3      -80.0   -80.0   -26.5   -23.4   -25.4   -80.0
+ymsnd           -80.0   -80.0   -80.0   -80.0   -80.0   -29.3
+  ec3a74f3      -80.0   -80.0   -80.0   -80.0   -80.0   -29.0
+mix             -80.0   -80.0   -26.5   -23.4   -25.4   -29.3
+  MAME          -80.0   -80.0   -26.5   -23.4   -25.4   -29.3
+```
+
+Each chip's figure is its stream as it reaches the speaker: `against
+--levels N` sets `MAMEKIT_OBSERVE_STREAMS=1` and sums every `<tag>.stream`
+sample per window (the harness's `onSoundWrite` hook) into `ours-levels.json`.
+The mixes are windows of our capture and MAME's `-wavwrite`, DC removed per
+window, with MAME's side cached. MAME can't say what each chip played, but its
+mix says when ours departs from it. A window more than 3 dB from ours is
+marked `*`. That is how #255 saw TMNT's 3 dB drop as the title-music sample
+stopping early, not as a quieter mix.
+
 **A sweep of the contracts: `mamekit sweep`.** `test:games` stops at the first
 failure, and `test:games:matrix` says PASS or FAIL, so a golden that moved and
 a board that went silent read the same. `sweep` runs the acceptance contracts
@@ -1299,7 +1333,8 @@ harness hook it uses cannot be renamed under it.
 - the MAME cache's key, set fingerprint and captures (`mame-cache.spec.ts`);
 - the ranges `diverge` picks from a board's maps, and its per-processor
   comparison by value and time (`diverge-plan.spec.ts`);
-- a sweep's classification of a run against its golden (`sweep-plan.spec.ts`).
+- a sweep's classification of a run against its golden (`sweep-plan.spec.ts`);
+- the level windows, the WAV reader and the levels table (`levels-plan.spec.ts`).
 
 With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
 to one vocabulary: every plan field read is written, every timeline event kind

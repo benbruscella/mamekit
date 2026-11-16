@@ -45,6 +45,8 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   if (plan.ram) writeFileSync(ramFile, '');
   if (plan.io) writeFileSync(ioFile, '');
   let framesRun = 0;
+  /** Per chip, per window of `plan.levels` frames: the sum of its stream's squared samples and their count. */
+  const levelSums: Record<string, { squares: number; count: number }[]> = {};
   let dumping = false;
   const grade = { samples: 0, drawn: 0, changes: 0, colours: 0 };
   let lastHash = -1;
@@ -193,6 +195,19 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     await runGameAcceptance(contract, projectRoot, {
       outRoot: plan.dist,
       captureAudio: join(plan.dir, 'ours.pcm'),
+      // Each chip's observed stream, summed per window of frames: a sample
+      // written during frame N + 1 belongs to the window holding it.
+      ...(plan.levels ? {
+        onSoundWrite: (write: { method?: string; data: number }) => {
+          if (!write.method?.endsWith('.stream')) return;
+          const chip = write.method.slice(0, -'.stream'.length);
+          const window = Math.floor(framesRun / plan.levels!);
+          const sums = (levelSums[chip] ??= []);
+          const entry = (sums[window] ??= { squares: 0, count: 0 });
+          entry.squares += write.data * write.data;
+          entry.count++;
+        },
+      } : {}),
       captureActions: true,
       frames: plan.last,
       // What MAME must be given to boot the same machine: the cards in its
@@ -273,6 +288,15 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       writeFileSync(join(plan.dir, 'ours-inputs.txt'), recorder.readings());
     }
     if (plan.io) flushIo();
+    if (plan.levels) {
+      const windows = Math.ceil(framesRun / plan.levels);
+      const chips = Object.fromEntries(Object.entries(levelSums).map(([chip, sums]) => [chip,
+        Array.from({ length: windows }, (_, index) => {
+          const entry = sums[index];
+          return entry && entry.count ? Math.sqrt(entry.squares / entry.count) : 0;
+        })]));
+      writeFileSync(join(plan.dir, 'ours-levels.json'), `${JSON.stringify({ window: plan.levels, frames: framesRun, chips })}\n`);
+    }
     // How far it got, whether or not it finished: a failure's frame is part of the result.
     writeFileSync(join(plan.dir, 'ours-done.json'),
       `${JSON.stringify({ frames: framesRun, completed, ...(plan.grade ? { grade } : {}) })}\n`);

@@ -59,6 +59,7 @@ documentation set.
   never scratch scripts: `npm run mamekit -- against <target>` (one machine),
   `record` / `compare` / `show` (baselines), `diverge <target>` (the first
   differing bus access), `sweep` (every contract, classified by what moved),
+  `levels <target>` (each sound chip's level over time),
   `help <command>` (options). `compare` says `worse`
   only past a measure's tolerance; `moved` is within it.
   MAME's side is cached in `.mamekit/mame/`. A full `record`, or any run of

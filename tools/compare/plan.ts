@@ -67,6 +67,8 @@ export interface OraclePlan {
   io?: IoPlan;
   /** Grade the run for a survey: drawing and animating, every 30 frames. */
   grade?: boolean;
+  /** Each sound chip's RMS per this many frames (`mamekit levels`), written as ours-levels.json. */
+  levels?: number;
   /** Frames our side runs. */
   last: number;
   /** Work directory both sides write into. */

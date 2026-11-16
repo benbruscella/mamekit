@@ -9,6 +9,7 @@
  *   mamekit show [<target> ...]          print a baseline (--markdown for an issue)
  *   mamekit diverge <target> [<title>]   the first bus access that differs from MAME, per processor
  *   mamekit sweep [<target> ...]         run the acceptance contracts and classify what moved
+ *   mamekit levels <target> [<title>]    each sound chip's level over time, beside another commit's
  *
  * `mamekit help <command>` prints a command's options. MAME_SRC and MAME_BIN
  * come from the repository's .env (see .env.example), or the environment.
@@ -23,6 +24,7 @@ export const COMPARISON_COMMANDS: Record<string, { module: string; summary: stri
   record: { module: './baseline-command.ts', summary: 'record a baseline for every contract scenario' },
   compare: { module: './baseline-command.ts', summary: 'better / same / worse per measure against a baseline' },
   show: { module: './baseline-command.ts', summary: 'print a baseline (--markdown for an issue)' },
+  levels: { module: './levels.ts', summary: 'each sound chip\'s level per 300 frames: ours, another commit\'s, and MAME\'s mix' },
   sweep: { module: './sweep.ts', summary: 'run the acceptance contracts and classify what moved in each (video, state, audio, stamps, failed)' },
   diverge: { module: './diverge.ts', summary: 'the first bus access that differs from MAME, per processor, ranges from the board\'s maps' },
 };

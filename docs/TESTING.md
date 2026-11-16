@@ -259,6 +259,7 @@ npm run mamekit -- compare dkong --against main   # against another commit's run
 npm run mamekit -- show --markdown            # the baseline, for an issue
 npm run mamekit -- diverge marble             # the first bus access that leaves MAME
 npm run mamekit -- sweep                      # every contract, classified: video, state, audio, stamps, failed
+npm run mamekit -- levels tmnt                # each sound chip's level over time, beside another commit's
 npm run mamekit -- help against               # every option of a command
 ```
 

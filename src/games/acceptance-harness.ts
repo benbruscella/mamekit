@@ -107,6 +107,12 @@ export interface GameAcceptanceOptions {
    * floor would fail for load rather than for behaviour.
    */
   throughput?: (measured: { emulatedFps: number; minimumFps: number }) => void;
+  /**
+   * Every sound write as the board makes it, read-only: `mamekit levels`
+   * sums each chip's observed stream (`<tag>.stream`, with
+   * MAMEKIT_OBSERVE_STREAMS=1) per window of frames.
+   */
+  onSoundWrite?: (write: { method?: string; data: number }) => void;
   /** Read-only per-frame diagnostic hook for long-state-transition captures. */
   inspectFrame?: (frame: {
     number: number;
@@ -342,6 +348,7 @@ export async function runGameAcceptance(
       soundWrite: (offset, data, frac, method) => {
         const write = { offset, data, frac, method };
         if (replayWrites) { replayWrites.push(write); return; }
+        options.onSoundWrite?.({ ...(method ? { method } : {}), data: Number(data) || 0 });
         // MAMEKIT_STREAM_WAV=<dir>: each observed chip's own stream, as it
         // reaches the speaker, kept for a WAV of its own (see below).
         if (streamWavDir && method?.endsWith('.stream')) (streamPcm[method] ??= []).push(Number(data) || 0);
