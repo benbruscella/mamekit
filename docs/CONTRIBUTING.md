@@ -48,12 +48,15 @@ Required:
 - a MAME checkout, normally at `../mame`;
 - legally obtained local ROMs for acceptance and browser testing only.
 
-Override MAME discovery with either:
+Name this machine's paths in a git-ignored `.env` at the repository root;
+`.env.example` lists every variable (`MAME_SRC`, `MAME_BIN`, `MAMEKIT_ROMS`,
+`MAMEKIT_SAMPLES`):
 
 ```sh
-export MAME_SRC=/path/to/mame
-node bin/mamekit.js <target> --mame-src /path/to/mame
+cp .env.example .env    # then fill in the paths
 ```
+
+A variable set in the shell wins over `.env`, and `--mame-src` wins over both.
 
 Start from a valid repository and compiler baseline:
 

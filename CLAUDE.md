@@ -43,16 +43,18 @@ documentation set.
 
 ## ENVIRONMENT AND GATES
 
-- MAME source is at `../mame` (`/Users/benbruscella/Projects/Github/mame`),
-  checked out at the release tag (`mame0289`). It is source only: no binary
-  is built there.
-- The MAME binary is the prebuilt release of the same version, kept apart from
-  the source:
-  `/Users/benbruscella/Google Drive/My Drive/Emulators/mame/mame0289-arm64/mame`.
-  Pass it as `MAME_BIN` for `audit:facts`, `oracle:baseline` and
-  `tools/mame-oracle.ts`. No other MAME is installed (none on `PATH`, no
-  Homebrew), and when the source moves to a new release, the binary moves to
-  the matching `mame0*-arm64` directory beside it.
+- Machine-local paths come from a git-ignored `.env` at the repository root
+  (`src/local-env.ts`); `.env.example` lists every variable. A variable set in
+  the shell wins over `.env`. Never write an absolute path to MAME into the
+  repository.
+  - `MAME_SRC`: the MAME source checkout, at the release tag (`mame0289`).
+    Source only: no binary is built there. Unset, `../mame` is tried.
+  - `MAME_BIN`: the prebuilt MAME binary of the same release, kept apart from
+    the source. `audit:facts` and the MAME comparison tools read it; a binary
+    of another release is refused. When the source moves to a new release, the
+    binary moves to the matching release too.
+  - `MAMEKIT_ROMS`, `MAMEKIT_SAMPLES`: ROM and sample sets, when not the
+    default `.data/roms` and `.data/samples`.
 - Node.js 23.6+ runs repository TypeScript directly. `.nvmrc` pins the version
   development and CI both use; `nvm use` / `fnm use` picks it up, and the CI
   workflow reads the same file so the two cannot drift.

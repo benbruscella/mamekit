@@ -1,5 +1,6 @@
 // Compare generated SID execution with the same unmodified MAME C++ sources.
 // The C++ shim supplies only device/stream services and test register writes.
+import { mameSourceDir } from '../src/paths.ts';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -11,7 +12,7 @@ import { createDevice, registerGeneratedDevice } from '../src/runtime/generated-
 
 const fixtureUrl = new URL('../src/mame/fixtures/sid-native.json', import.meta.url);
 const fixture = JSON.parse(readFileSync(fixtureUrl, 'utf8'));
-const source = resolve(process.env.MAME_SRC ?? '../mame');
+const source = mameSourceDir(resolve(import.meta.dirname, '..'));
 const device = compileSid(source, { type: 'MOS6581', className: 'mos6581_device',
   sourceFile: 'src/devices/sound/mos6581.cpp', sourceLine: 1, sourceColumn: 1, macro: 'DEFINE_DEVICE_TYPE' });
 const methods = generatedDeviceMethodsSource(device);

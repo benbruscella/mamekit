@@ -88,8 +88,8 @@ Requirements:
 
 - Node.js 23.6 or newer;
 - this repository;
-- a MAME source checkout at `../mame`, or an explicit `--mame-src` /
-  `MAME_SRC` path;
+- a MAME source checkout, named by `MAME_SRC` in a git-ignored `.env`
+  (copy `.env.example`; a sibling `../mame` is tried when it is unset);
 - local ROMs only for acceptance or browser testing.
 
 ```sh

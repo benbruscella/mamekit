@@ -11,20 +11,26 @@ boundaries.
 - Node.js 23.6 or newer;
 - npm dependencies installed with `npm ci`;
 - this repository at any path;
-- a MAME checkout, normally at sibling path `../mame`, at a release tag
+- a MAME checkout at a release tag, named by `MAME_SRC`
   (`mame0289`). The compiler only reads its source, so nothing needs to be
   built there;
 - local ROMs only for acceptance and manual browser validation;
 - optionally a MAME **binary** of the same release as that checkout, named by
-  `MAME_BIN`, for `npm run audit:facts`, `npm run oracle:baseline`,
-  `tools/mame-oracle.ts` and reference captures. A prebuilt release binary kept
-  outside the checkout is the usual setup.
+  `MAME_BIN`, for `npm run audit:facts`, the MAME comparison tools and
+  reference captures. A prebuilt release binary kept outside the checkout is
+  the usual setup.
+
+Both paths belong to one machine, so they live in a git-ignored `.env` at the
+repository root (`src/local-env.ts`), never in the repository: copy
+`.env.example` and fill it in. `MAMEKIT_ROMS` and `MAMEKIT_SAMPLES` move the
+ROM and sample sets away from `.data/roms` and `.data/samples`. A variable set
+in the shell wins over `.env`; a missing or wrong one is reported by name.
 
 The binary must be the same release as the source checkout. A dump from another
 release describes a different MAME, so every difference it reports is noise;
 `src/gen/listxml.ts` compares the binary's `-version` against the checkout's
 `BARE_BUILD_VERSION` and refuses rather than guessing. Read the source version
-from `../mame/makefile` — `build/generated/version.cpp` is a build artifact and
+from the checkout's `makefile` — `build/generated/version.cpp` is a build artifact and
 goes stale. A package-manager `mame` on `PATH` is usually a different release
 than your checkout, which is exactly the case the refusal exists for.
 
@@ -140,7 +146,7 @@ discovery with:
 node bin/mamekit.js <target> --mame-src /path/to/mame
 ```
 
-or set `MAME_SRC`.
+or set `MAME_SRC` in `.env`.
 
 Node runs repository TypeScript directly. The browser distribution is compiled
 with the local TypeScript dependency using `rewriteRelativeImportExtensions`.

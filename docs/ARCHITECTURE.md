@@ -99,8 +99,10 @@ are not an accepted stage.
 ## 4. SOURCE DISCOVERY AND PARSING
 
 The CLI finds the MAME source declaration for a target and caches driver
-discovery in `dist/.driver-cache.json`. MAME is normally a sibling checkout at
-`../mame`; callers can override it with `--mame-src` or `MAME_SRC`.
+discovery in `dist/.driver-cache.json`. The MAME checkout is named by
+`MAME_SRC`, read from the git-ignored `.env` (`src/local-env.ts`) or the
+environment; unset, a sibling `../mame` is tried, and `--mame-src` overrides
+both.
 
 `src/mame/ast.ts` builds a small source-preserving AST for the MAME C++ dialect.
 It records classes, inheritance, methods, member macros, statements, macro

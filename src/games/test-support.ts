@@ -1,3 +1,4 @@
+import { mameSourceDir } from '../paths.ts';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -8,7 +9,7 @@ import type { GameTestContract, MachineTargetDefinition } from './types.ts';
 import { validateGameContract } from './contract-validation.ts';
 
 export function mameSourceRoot(): string {
-  return resolve(process.env.MAME_SRC ?? '../mame');
+  return mameSourceDir(resolve(import.meta.dirname, '../..'));
 }
 
 export function gameSourceGraph(
