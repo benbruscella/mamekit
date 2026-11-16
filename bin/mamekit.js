@@ -3,9 +3,9 @@
 // (native type stripping), so there is no build step for the CLI itself.
 //
 // The commands that compare a generated machine with MAME (against, record,
-// compare, show, diverge, help) live in tools/compare; everything else is the
+// compare, show, diverge, sweep, help) live in tools/compare; everything else is the
 // compiler, src/cli.ts, which imports nothing from tools/.
-const COMPARISON = new Set(['against', 'record', 'compare', 'show', 'diverge']);
+const COMPARISON = new Set(['against', 'record', 'compare', 'show', 'diverge', 'sweep']);
 const [command, ...rest] = process.argv.slice(2);
 if (COMPARISON.has(command) || command === 'help') {
   const { runComparisonCommand, commandHelp, COMPARISON_COMMANDS } = await import(new URL('../tools/compare/cli.ts', import.meta.url));

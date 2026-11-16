@@ -58,7 +58,8 @@ documentation set.
 - Compare a machine with MAME through the `mamekit` comparison commands,
   never scratch scripts: `npm run mamekit -- against <target>` (one machine),
   `record` / `compare` / `show` (baselines), `diverge <target>` (the first
-  differing bus access), `help <command>` (options). `compare` says `worse`
+  differing bus access), `sweep` (every contract, classified by what moved),
+  `help <command>` (options). `compare` says `worse`
   only past a measure's tolerance; `moved` is within it.
   MAME's side is cached in `.mamekit/mame/`. A full `record`, or any run of
   many MAME processes, needs the user's OK first. See ENGINEERING.md section 7.

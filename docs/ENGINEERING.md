@@ -166,6 +166,7 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run mamekit -- against <target> [<title>]` | run a machine beside MAME and compare pictures, RAM, bus traffic and audio (section 7) |
 | `npm run mamekit -- record\|compare\|show [<target>]` | record every contract scenario against MAME, and judge a change against that record (section 7) |
 | `npm run mamekit -- diverge <target> [<title>]` | the first bus access that differs from MAME, per processor (section 7) |
+| `npm run mamekit -- sweep [<target> ...]` | run the acceptance contracts and classify what moved in each (section 7) |
 | `npm run mamekit -- help <command>` | a comparison command's options |
 | `npm run mamekit -- build [--check]` | recompile only `dist/runtime` from `src`, in about two seconds (section 4) |
 | `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
@@ -863,6 +864,7 @@ options.
 | `mamekit compare [<target> ...]` | better / same / moved / worse per measure against the newest baseline, or `--against <commit>` |
 | `mamekit show [<target> ...]` | print a baseline; `--markdown` for an issue |
 | `mamekit diverge <target> [<title>]` | the first bus access that differs from MAME, per processor, with no ranges given |
+| `mamekit sweep [<target> ...]` | run the acceptance contracts and classify what moved in each (no MAME) |
 
 ```sh
 npm run mamekit -- against pacman --frames 300,600,900 --ram
@@ -1244,6 +1246,40 @@ accesses that touch the bytes asked for are kept, the same rule ours applies.
 Until #260, our side logged no word accesses at all, which hid half of Marble
 Madness's traffic.
 
+**A sweep of the contracts: `mamekit sweep`.** `test:games` stops at the first
+failure, and `test:games:matrix` says PASS or FAIL, so a golden that moved and
+a board that went silent read the same. `sweep` runs the acceptance contracts
+(the accepted ones; `--candidates` adds the rest), several at a time
+(`--jobs`, default 4), and says what moved in each:
+
+| Class | Means |
+|---|---|
+| `failed` | the contract didn't run to its end: an exception, a crash, a timeout |
+| `video` | a checkpoint's picture changed |
+| `state` | a checkpoint's machine state changed, its picture didn't |
+| `audio` | the sound's write count changed, or its level moved past 0.05 dB |
+| `stamps` | the same writes at the same level, landing at other times: what a scheduler change does |
+| `regions` | a ROM region's hash changed |
+| `unchanged` | every fingerprint is the golden's |
+
+Each line carries the checkpoints that changed, the write-count swing and the
+level swing in dB. Each contract runs in its own process through the harness
+in recording mode (`tools/compare/sweep-child.ts`), so a golden mismatch is a
+result, not an exception. It reports fps but never fails on a floor, because
+the contracts share the machine (the harness's `throughput` option). A
+contract that dies on a signal or a timeout runs once more. Progress goes to
+`.mamekit/sweep/<started>/progress.txt`, one line per contract. The command
+prints a ready-to-paste loop that watches it, and writes `results.json` at the
+end. It exits 1 when any contract isn't `unchanged`.
+
+```sh
+npm run mamekit -- sweep                      # every accepted contract
+npm run mamekit -- sweep dkong galaga --jobs 2
+```
+
+For an fps-honest run, use `test:games:matrix`, which runs one contract at a
+time and asserts the floors.
+
 **What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
 tool with the rest of the tree (`tsconfig.json` includes all of `tools/`), so a
 harness hook it uses cannot be renamed under it.
@@ -1262,7 +1298,8 @@ harness hook it uses cannot be renamed under it.
 - the baseline's units, plans and verdicts (`baseline.spec.ts`);
 - the MAME cache's key, set fingerprint and captures (`mame-cache.spec.ts`);
 - the ranges `diverge` picks from a board's maps, and its per-processor
-  comparison by value and time (`diverge-plan.spec.ts`).
+  comparison by value and time (`diverge-plan.spec.ts`);
+- a sweep's classification of a run against its golden (`sweep-plan.spec.ts`).
 
 With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
 to one vocabulary: every plan field read is written, every timeline event kind

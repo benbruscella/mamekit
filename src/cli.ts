@@ -64,6 +64,7 @@ function usage(): never {
   console.error('       mamekit compare [<target> ...]       better / same / worse per measure against a baseline');
   console.error('       mamekit show [<target> ...]          print a baseline (--markdown for an issue)');
   console.error('       mamekit diverge <target> [<title>]   the first bus access that differs from MAME, per processor');
+  console.error('       mamekit sweep [<target> ...]         run the acceptance contracts; classify what moved in each');
   console.error('');
   console.error('       mamekit build [--check]              recompile only dist/runtime from src, in seconds');
   console.error('       mamekit help <command>               a command\'s options');

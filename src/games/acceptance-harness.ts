@@ -101,6 +101,12 @@ export interface GameAcceptanceOptions {
   }[];
   /** Return current fingerprints without comparing them to recorded goldens. */
   recording?: boolean;
+  /**
+   * Measure throughput but do not fail on the contract's fps floor, and hand
+   * the figures here: `mamekit sweep` runs several contracts at once, where a
+   * floor would fail for load rather than for behaviour.
+   */
+  throughput?: (measured: { emulatedFps: number; minimumFps: number }) => void;
   /** Read-only per-frame diagnostic hook for long-state-transition captures. */
   inspectFrame?: (frame: {
     number: number;
@@ -1001,6 +1007,10 @@ export async function runGameAcceptance(
   } else {
     assert.ok(contract.golden, `${contract.game}: no acceptance golden is recorded`);
     assert.deepEqual(result, contract.golden, `${contract.game}: generated behavior changed`);
+  }
+  if (options.throughput) {
+    options.throughput({ emulatedFps, minimumFps: contract.minimumFps });
+    return result;
   }
   assert.ok(
     emulatedFps >= contract.minimumFps,
