@@ -5,7 +5,7 @@
  * run captured (pictures, RAM dumps, bus taps, input read-back, -wavwrite) is
  * the same every time it is given the same thing. The cache is keyed by
  * exactly that: MAME's command line and Lua plan (less this run's private
- * directories), oracle.lua, the MAME version, and the size and time of every
+ * directories), oracle.lua's code (its comments left out), the MAME version, and the size and time of every
  * set file the run can read. Whatever our side changes that MAME is given
  * (an analog value recorded from our run, the frame a quickload typed on)
  * changes the key, and MAME runs again; nothing else does.
@@ -45,12 +45,17 @@ export interface MameCacheInputs {
   sets: string[];
 }
 
+/** oracle.lua without its whole-line comments: rewording a comment is not a different run. */
+export function scriptCode(script: string): string {
+  return script.split('\n').filter(line => !/^\s*--/.test(line)).join('\n');
+}
+
 /** The key: a hash of everything MAME is given, the work directory replaced by a placeholder. */
 export function mameCacheKey(inputs: MameCacheInputs): string {
   const hash = createHash('sha256');
   const neutral = (text: string) => text.split(inputs.dir).join('$RUN');
   hash.update(`mame ${inputs.version}\n`);
-  hash.update(`script ${createHash('sha256').update(inputs.script).digest('hex')}\n`);
+  hash.update(`script ${createHash('sha256').update(scriptCode(inputs.script)).digest('hex')}\n`);
   for (const arg of inputs.args) hash.update(`arg ${neutral(arg)}\n`);
   hash.update(`plan ${neutral(inputs.plan)}\n`);
   for (const file of inputs.sets) hash.update(`set ${file}\n`);

@@ -1,7 +1,7 @@
 -- The MAME side of `mamekit against` (tools/compare/against.ts): one script for every comparison.
 --
 -- It runs as MAME's -autoboot_script and reads its plan, a Lua table written
--- by tools/oracle/mame-side.ts, from the file named by MAMEKIT_ORACLE_PLAN.
+-- by tools/compare/mame-side.ts, from the file named by MAMEKIT_ORACLE_PLAN.
 -- Frames are counted by the frame notifier, which fires once a frame has
 -- finished: the count is the number of frames run, and an input set at count
 -- N is read during frame N + 1 -- the harness's own `atFrame: N`.

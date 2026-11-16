@@ -39,13 +39,13 @@
  * a silent attract mode (Pac-Man's) never is.
  *
  * The compared frames, the RAM window and every step's arguments are worked
- * out once (tools/oracle/baseline.ts) and stored with the baseline, so a
+ * out once (tools/compare/baseline.ts) and stored with the baseline, so a
  * comparison re-runs exactly what was recorded, whatever the rules become.
  *
  * `record` writes .mamekit/baseline/<commit>/<target>.json. It is kept out of
  * .cache, which `npm run clean:all` deletes: a baseline is evidence that takes
  * hours of MAME to record, not a cache. Nothing else writes there: an oracle
- * run rewrites .cache/oracle/<target>.json and its
+ * run rewrites .cache/compare/<target>.json and its
  * exhibit's oracle.json, and generation rewrites oracle.json, but neither
  * touches a baseline. A measure once recorded is never run again; a failed
  * one is retried by the next `record`, so a stopped run resumes. Every step

@@ -5,7 +5,7 @@
  *
  * Pure: the units, their plans and the verdicts are worked out from contracts
  * and reports already written, so they are tested without MAME or ROMs
- * (baseline.spec.ts). tools/mame-baseline.ts runs them.
+ * (baseline.spec.ts). baseline-command.ts (mamekit record, compare, show) runs them.
  */
 
 import type { FrameResult, RamResult } from './compare.ts';

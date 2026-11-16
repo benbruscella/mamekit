@@ -19,7 +19,9 @@ try {
   assert.notEqual(key, mameCacheKey(inputs('/work/a', { plan: 'return {out="/work/a",last=1800,events={[299]={{kind="set",input=1,value=3}}}}' })),
     'an analog value our side recorded is part of what MAME is given');
   assert.notEqual(key, mameCacheKey(inputs('/work/a', { version: '0.290' })));
-  assert.notEqual(key, mameCacheKey(inputs('/work/a', { script: '-- oracle.lua, changed' })));
+  assert.notEqual(key, mameCacheKey(inputs('/work/a', { script: '-- oracle.lua\nlocal plan = 1' })), 'a change to the script\'s code');
+  assert.equal(key, mameCacheKey(inputs('/work/a', { script: '-- oracle.lua, reworded\n-- another comment' })),
+    'a reworded comment is the same run');
   assert.notEqual(key, mameCacheKey(inputs('/work/a', { sets: ['/roms/arcade/dkong.zip 1234 1700000099999'] })), 'a replaced set re-runs MAME');
   assert.notEqual(key, mameCacheKey(inputs('/work/a', { args: ['dkong', '-rompath', '/roms/arcade'] })), 'audio or not is part of the run');
 
