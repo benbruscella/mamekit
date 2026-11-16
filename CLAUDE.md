@@ -57,7 +57,9 @@ documentation set.
     default `.data/roms` and `.data/samples`.
 - Compare a machine with MAME through the `mamekit` comparison commands,
   never scratch scripts: `npm run mamekit -- against <target>` (one machine),
-  `record` / `compare` / `show` (baselines), `help <command>` (options).
+  `record` / `compare` / `show` (baselines), `diverge <target>` (the first
+  differing bus access), `help <command>` (options). `compare` says `worse`
+  only past a measure's tolerance; `moved` is within it.
   MAME's side is cached in `.mamekit/mame/`. A full `record`, or any run of
   many MAME processes, needs the user's OK first. See ENGINEERING.md section 7.
 - Node.js 23.6+ runs repository TypeScript directly. `.nvmrc` pins the version
@@ -67,5 +69,9 @@ documentation set.
   derives from `src/games/contracts.ts`; no target list is written by hand.
 - Run `npm run test:unit`, `npm run audit:generated`, and relevant real-ROM
   acceptance after changes.
+- After a change confined to `src/runtime`, `src/ir` or a hardware package's
+  runtime files, `npm run mamekit -- build` refreshes `dist/runtime` in
+  seconds (identical to `--build-app`'s output). Compiler or emitter changes
+  still need `--build-app` or `gen:all`.
 - Use `npm run test:generation` for broad parser, graph, IR, runtime or output
   topology changes; it clean-generates every required target.

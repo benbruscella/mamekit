@@ -165,7 +165,9 @@ with the local TypeScript dependency using `rewriteRelativeImportExtensions`.
 | `npm run audit:facts` | diff generated machine facts against MAME's own `-listxml` |
 | `npm run mamekit -- against <target> [<title>]` | run a machine beside MAME and compare pictures, RAM, bus traffic and audio (section 7) |
 | `npm run mamekit -- record\|compare\|show [<target>]` | record every contract scenario against MAME, and judge a change against that record (section 7) |
+| `npm run mamekit -- diverge <target> [<title>]` | the first bus access that differs from MAME, per processor (section 7) |
 | `npm run mamekit -- help <command>` | a comparison command's options |
+| `npm run mamekit -- build [--check]` | recompile only `dist/runtime` from `src`, in about two seconds (section 4) |
 | `node tools/fetch-release-notes.ts` | fetch MAMEDEV release notes for driver credits |
 | `npm run audit:game-package -- <target>` | validate local artwork, history and dossier completeness |
 | `npm run audio:compare -- <target>` | compare MAMEKIT and MAME power-on WAVs (`MAME_BIN` from `.env`) |
@@ -494,6 +496,24 @@ node bin/mamekit.js <target> --skip-app
 node bin/mamekit.js --build-runtime --build-app --targets <target>
 npm run audit:generated
 ```
+
+**Changing only the runtime.** A change confined to `src/runtime`, `src/ir` or a
+hardware package's runtime-facing files doesn't need the 12-minute
+`--build-app`:
+
+```sh
+npm run mamekit -- build            # dist/runtime/{core,ir,hardware} from src, ~2 s
+npm run mamekit -- build --check    # write nothing; list modules that differ from dist
+```
+
+`mamekit build` (`src/gen/runtime-build.ts`) stages the same three trees the
+app build stages, at the same paths, and runs the app's own tsc over them
+alone. That gives the same bytes, type-checked: after a full `--build-app`,
+`build --check` reports all 100 modules identical. A module whose JavaScript
+didn't change keeps its time, and one whose source is gone is removed. It
+doesn't touch the generated closure, the boards or the app, so a change to a
+compiler, an emitter or a generated artifact still needs `--build-app` or
+`gen:all`.
 
 `--targets` accepts registered targets from `src/gen/targets.ts`, which derives
 from the acceptance contracts. A `--targets` build produces a partial
@@ -842,6 +862,7 @@ options.
 | `mamekit record [<target> ...]` | record a baseline of every contract scenario (runs MAME: ask before a full one) |
 | `mamekit compare [<target> ...]` | better / same / worse per measure against the newest baseline |
 | `mamekit show [<target> ...]` | print a baseline; `--markdown` for an issue |
+| `mamekit diverge <target> [<title>]` | the first bus access that differs from MAME, per processor, with no ranges given |
 
 ```sh
 npm run mamekit -- against pacman --frames 300,600,900 --ram
@@ -850,6 +871,7 @@ npm run mamekit -- against c64p c64_cart:pacman --input none
 npm run mamekit -- against nes --survey
 npm run mamekit -- compare dkong dkongjr
 npm run mamekit -- show --markdown
+npm run mamekit -- diverge marble
 ```
 
 **Where things go.**
@@ -1128,20 +1150,73 @@ RAM, is kept as `skipped` with the reason. `show` lists both.
 from the cache, so it runs our side alone, half the cores' worth of targets at
 a time (`--jobs` overrides; `record` runs one at a time). Its time is our
 side's: dkong's two runs take about 47 s, almost all of it emulation. It
-prints better, same or worse for five measures: pixels with no input, pixels
-with the contract's input, RAM, audio with no input, and audio with the
-contract's input. It exits 1 if any measure is worse. The rules are in
-`tools/compare/baseline.ts`:
+prints a verdict for each of five measures: pixels with no input, pixels with
+the contract's input, RAM, audio with no input, and audio with the contract's
+input. It exits 1 if any measure is worse.
 
-- *Pixels:* losing an exact frame is worse, whatever else improves.
-- *RAM:* a later first divergence is better.
-- *Ties:* both then go to the count at the first divergence, and then the
-  total.
-- *Audio:* worse if the level (measured above a -80 dBFS silence floor), the
-  summed band differences or the onset rate moves away from MAME.
+**Verdicts.** `worse` and `better` are *material*: the measure moved past its
+tolerance. A move within the tolerance prints as `moved` and never fails a
+comparison. The summary lists the material regressions first, then the
+improvements, then the moves. The rules and the numbers are in
+`tools/compare/baseline.ts` (`TOLERANCE`):
 
-Both sides are deterministic, so a change that touches nothing measured reads
-`same` everywhere.
+| Measure | Worse when | Within tolerance (`moved`) |
+|---|---|---|
+| Pixels | a frame that was exact no longer is; the first differing frame comes earlier | the count at an unchanged first divergence changes by less than 4x or 2000 px |
+| RAM | it starts to differ, or the first differing frame comes more than 2 frames earlier | the first divergence moves 2 frames or fewer; bytes change by less than 4x or 16 B |
+| Audio | the level moves more than 1 dB further from MAME's, the summed band differences grow by more than 3 dB, or the onset rate moves more than max(0.25/s, 10% of MAME's) further off | smaller moves; rounding (0.05 dB, 0.1 dB, 0.02/s) is `same` |
+| Any | the run fails where the baseline ran, or MAME read different input | — |
+
+Pixels are read at the baseline's frame offset first. When every frame the
+baseline had exact is still exact there, that reading stands, so a still
+attract screen that also fits offset −1 can't flip the run's offset and read
+as "no longer exact" (gauntlet, #240). Only when the baseline's offset no
+longer holds does the run's own offset search count.
+
+The tolerances were set against #255's final comparison. Under the old
+any-move rules 32 scenarios read worse; under these, 6 do. Five of the six
+are #255's own list of real regressions (bublbobl, friskyt, galaxian, gng,
+mk), and the sixth is sf2ce's RAM at frame 2. Both sides are deterministic, so
+a change that touches nothing measured reads `same` everywhere.
+
+**The first divergence: `mamekit diverge`.** A comparison says a machine left
+MAME. `diverge` says where, as one bus access, with no address ranges given:
+
+```sh
+npm run mamekit -- diverge marble                 # find the frame, tap it, print the access
+npm run mamekit -- diverge marble --show          # only the ranges it would tap
+npm run mamekit -- diverge nes smb1 --frames 120-125
+```
+
+- *Ranges* come from the generated board's address maps
+  (`tools/compare/diverge-plan.ts`). On a board of several processors it taps
+  every device more than one of them reaches (latches, sound chips on a shared
+  bus, shared RAM devices), every share more than one maps, and every control
+  register (a handler whose method names a bank, latch, reset, halt, IRQ, NMI,
+  acknowledge, sound command or watchdog). On a board of one processor it taps
+  every device handler and control register. RAM and ROM are never tapped, and
+  a mirrored range is tapped across its mirrors. `--io <cpu>:<a>-<b>` names
+  ranges instead.
+- *Frames* come from one `against --ram` run: the first frame whose RAM
+  differs. The frames up to it are tapped on both sides. If the first
+  differing access lands in the window's first frame, the cause may be
+  earlier, so the window is widened back, doubling, up to three times.
+  `--frames a-b` skips the search, and `--until N` (default 1800) bounds it.
+- *The result* is, per processor, the first access that differs in kind,
+  address or value, or in time by more than two of its cycles. MAME stamps an
+  access with the cycles before it and ours with the access itself, a constant
+  one apart. It shows the accesses before it that both sides agree on, and
+  which processor left MAME first. On Marble Madness, unprompted: the 6502
+  reads `$1820` (`switch_6502_r`) as `97` in MAME and `87` in ours at frame 384.
+
+Both sides log an access the way the CPU issued it. A 68000's word access is
+one word, in ours (the tap wraps the bus's `read16be`/`write16be`/`read16le`/
+`write16le` as well as its byte calls) and in MAME, where `oracle.lua` turns a
+tap that covers one byte lane of a word back into that byte at its address.
+MAME taps whole bus words, so a range is installed word-aligned and only
+accesses that touch the bytes asked for are kept, the same rule ours applies.
+Until #260, our side logged no word accesses at all, which hid half of Marble
+Madness's traffic.
 
 **What CI checks without MAME or ROMs.** `npm run test:unit` type-checks the
 tool with the rest of the tree (`tsconfig.json` includes all of `tools/`), so a
@@ -1159,7 +1234,9 @@ harness hook it uses cannot be renamed under it.
 - the pixel, RAM and I/O comparisons, and the PNG writer;
 - survey grading and grouping;
 - the baseline's units, plans and verdicts (`baseline.spec.ts`);
-- the MAME cache's key, set fingerprint and captures (`mame-cache.spec.ts`).
+- the MAME cache's key, set fingerprint and captures (`mame-cache.spec.ts`);
+- the ranges `diverge` picks from a board's maps, and its per-processor
+  comparison by value and time (`diverge-plan.spec.ts`).
 
 With no Lua in CI, `mame-side.spec.ts` holds `oracle.lua` and the plan writer
 to one vocabulary: every plan field read is written, every timeline event kind

@@ -256,6 +256,7 @@ cp .env.example .env                          # once: set MAME_SRC and MAME_BIN
 npm run mamekit -- against dkong --ram        # one machine: pictures, RAM, bus, audio
 npm run mamekit -- compare dkong dkongjr      # better / same / worse against a baseline
 npm run mamekit -- show --markdown            # the baseline, for an issue
+npm run mamekit -- diverge marble             # the first bus access that leaves MAME
 npm run mamekit -- help against               # every option of a command
 ```
 
@@ -265,7 +266,13 @@ starting a full recording. `mamekit compare` re-runs the baseline's stored
 plans on the current tree and exits 1 when any measure is worse. MAME's side of
 every run is cached under `.mamekit/mame/`, keyed by everything MAME is given,
 so a comparison after a fix starts no MAME process unless our side changed
-what MAME is given (an analog value, a typed command's frame). CI does not run
+what MAME is given (an analog value, a typed command's frame). A verdict is
+`worse` only past its measure's tolerance (a level moving more than 1 dB, a
+first RAM divergence more than 2 frames earlier, an exact frame lost); a
+smaller change prints as `moved`. `mamekit diverge` then names the first bus
+access that differs, choosing the ranges from the board's own maps. After a
+change confined to `src/runtime`, `mamekit build` recompiles `dist/runtime` in
+seconds, with output identical to a full build. CI does not run
 these commands: it has no MAME binary, so its gates stay the goldens.
 [ENGINEERING](ENGINEERING.md) section 7 has the measures, the verdict rules,
 the cache flags and where every report is written.
