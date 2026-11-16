@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mameCacheKey, mameCaptures, setFiles, type MameCacheInputs } from './mame-cache.ts';
 
-const scratch = mkdtempSync(join(tmpdir(), 'mkt-mame-cache-'));
+const scratch = mkdtempSync(join(tmpdir(), 'mamekit-mame-cache-'));
 try {
   // --- the key: what MAME is given, never where this run writes ------------
   const inputs = (dir: string, overrides: Partial<MameCacheInputs> = {}): MameCacheInputs => ({
@@ -53,4 +53,4 @@ try {
   rmSync(scratch, { recursive: true, force: true });
 }
 
-console.log('mkt mame-cache.spec: ok');
+console.log('compare mame-cache.spec: ok');

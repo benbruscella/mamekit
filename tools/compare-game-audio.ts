@@ -21,7 +21,7 @@
  * from its frame, on both sides: Lagrange Point plays its VRC7 music only once
  * its intro has been started and stepped through.
  *
- * MAME runs the way mkt run runs it: refused unless it is the
+ * MAME runs the way mamekit against runs it: refused unless it is the
  * source checkout's release, booted cold from fresh nvram and cfg
  * directories (MAME writes NVRAM back on exit, so a reused one boots warm),
  * windowed so it cannot take over the screen, and at low priority.
@@ -37,8 +37,8 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runGameAcceptance } from '../src/games/acceptance-harness.ts';
 import { loadGenerationGameContracts } from '../src/games/contracts.ts';
-import { mamekitIdentity, politeCommand, resolveMame, romPaths, samplesDir } from './mkt/mame-side.ts';
-import { startSchedule } from './mkt/plan.ts';
+import { mamekitIdentity, politeCommand, resolveMame, romPaths, samplesDir } from './compare/mame-side.ts';
+import { startSchedule } from './compare/plan.ts';
 import { gameOutputDir } from '../src/gen/output-layout.ts';
 import { mameSourceDir } from '../src/paths.ts';
 import type { ShellConfig } from '../src/runtime/shell.ts';

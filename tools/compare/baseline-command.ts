@@ -3,9 +3,9 @@
  * change is judged by: better, the same or worse than before, measure by
  * measure.
  *
- *   mkt record [<target>|<target>/<scenario> ...]
- *   mkt compare [<target> ...] [--measures pixels,ram,audio]
- *   mkt show [<target> ...] [--markdown]
+ *   mamekit record [<target>|<target>/<scenario> ...]
+ *   mamekit compare [<target> ...] [--measures pixels,ram,audio]
+ *   mamekit show [<target> ...] [--markdown]
  *
  *   --refresh-mame       run MAME for every step and replace what the cache kept
  *   --verify-mame        run MAME for every step and check it against the cache: a
@@ -26,7 +26,7 @@
  *
  * The set is every acceptance contract scenario (src/games/contracts.ts),
  * accepted and candidate, so nothing is listed by hand. Each is run twice
- * through `mkt run`, which gives both sides the same input:
+ * through `mamekit against`, which gives both sides the same input:
  *
  *   * with no input (--input none --ram --audio): pixels, RAM and audio;
  *   * with the contract's own input (--input contract --audio): pixels and audio.
@@ -40,7 +40,7 @@
  * out once (tools/oracle/baseline.ts) and stored with the baseline, so a
  * comparison re-runs exactly what was recorded, whatever the rules become.
  *
- * `record` writes .mkt/baseline/<commit>/<target>.json. It is kept out of
+ * `record` writes .mamekit/baseline/<commit>/<target>.json. It is kept out of
  * .cache, which `npm run clean:all` deletes: a baseline is evidence that takes
  * hours of MAME to record, not a cache. Nothing else writes there: an oracle
  * run rewrites .cache/oracle/<target>.json and its
@@ -50,7 +50,7 @@
  * that fails is run once more before the failure is believed (#190).
  *
  * `compare` re-runs the stored plans on the current tree, writes the runs to
- * .mkt/compare/<target>.json and prints a verdict per measure. It
+ * .mamekit/compare/<target>.json and prints a verdict per measure. It
  * exits 1 when any measure is worse.
  */
 
@@ -62,17 +62,17 @@ import { loadGenerationGameContracts } from '../../src/games/contracts.ts';
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import {
-  mktArguments, audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
+  cliArguments, audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
   type AudioResult, type BaselineUnit, type Measure, type MeasureName, type MeasureVerdict, type PixelsResult, type RamSummary,
   type StepPlan, type UnitRecord,
 } from './baseline.ts';
 import { mamekitIdentity, projectRoot, resolveMame } from './mame-side.ts';
-import { baselineRoot, compareRoot, mktEntry } from './paths.ts';
+import { baselineRoot, compareRoot, cliEntry } from './paths.ts';
 import { mameSourceDir } from '../../src/paths.ts';
 import { boardRam, ramBytesPerFrame } from './plan.ts';
 import type { RunReport } from './report.ts';
 
-const thisFile = 'mkt';
+const thisFile = 'mamekit';
 
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -146,7 +146,7 @@ function currentIdentity(mame: string): BaselineIdentity {
 function requirePinnedNode(): void {
   const pinned = `v${readFileSync(join(projectRoot, '.nvmrc'), 'utf8').trim()}`;
   if (process.version !== pinned) {
-    console.error(`${thisFile} runs on Node ${pinned} (.nvmrc), not ${process.version}: fnm exec --using=${pinned.slice(1)} npm run mkt -- ...`);
+    console.error(`${thisFile} runs on Node ${pinned} (.nvmrc), not ${process.version}: fnm exec --using=${pinned.slice(1)} npm run mamekit -- ...`);
     process.exit(2);
   }
 }
@@ -211,7 +211,7 @@ function runTool(args: string[], log: string): Promise<{ status: number | null; 
   });
 }
 
-/** How each run is to treat the MAME cache, handed on to `mkt run`. */
+/** How each run is to treat the MAME cache, handed on to `mamekit against`. */
 const cacheFlags = ['--refresh-mame', '--verify-mame', '--no-mame-cache'].filter(name => options.has(name));
 /** Runs whose MAME side came from the cache, and runs that started MAME. */
 const mameTally = { cached: 0, ran: 0 };
@@ -229,7 +229,7 @@ async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunRe
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = `${scratch}.json`;
     rmSync(out, { force: true });
-    const ran = await runTool([mktEntry, ...mktArguments(plan), ...cacheFlags, '--out', out], `${scratch}.log`);
+    const ran = await runTool([cliEntry, ...cliArguments(plan), ...cacheFlags, '--out', out], `${scratch}.log`);
     const runs = existsSync(out) ? Object.values(readJson<Record<string, RunReport>>(out)) : [];
     if (runs[0]) {
       if (runs[0].mameCached) mameTally.cached++;
@@ -399,7 +399,7 @@ function baselineDir(): string {
     .filter(name => existsSync(join(baselineRoot, name, 'baseline.json')))
     .map(name => ({ dir: join(baselineRoot, name), startedAt: readJson<BaselineIdentity>(join(baselineRoot, name, 'baseline.json')).startedAt }))
     .sort((left, right) => right.startedAt.localeCompare(left.startedAt)) : [];
-  if (!recorded.length) throw new Error(`no baseline recorded yet in ${relative(projectRoot, baselineRoot)}: mkt record`);
+  if (!recorded.length) throw new Error(`no baseline recorded yet in ${relative(projectRoot, baselineRoot)}: mamekit record`);
   return recorded[0]!.dir;
 }
 

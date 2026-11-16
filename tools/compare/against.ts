@@ -3,7 +3,7 @@
  * title and the same input on both sides, its pictures, RAM and bus traffic
  * set side by side and the result reported as a number.
  *
- *   mkt run <target> [<title>] [options]
+ *   mamekit against <target> [<title>] [options]
  *
  *   <title>              a console cartridge by software-list name (smb1), or
  *                        any list's title as <list>:<name> (c64_cart:pacman)
@@ -24,7 +24,7 @@
  *   --io-frames a-b      the frames to tap (required with --io)
  *   --audio              record MAME's sound too (-wavwrite) and compare it with
  *                        ours over the run, as tools/compare-audio.mjs does
- *   --refresh-mame       run MAME and replace what the cache kept (tools/mkt/mame-cache.ts)
+ *   --refresh-mame       run MAME and replace what the cache kept (tools/compare/mame-cache.ts)
  *   --verify-mame        run MAME and check it against the cache; a machine whose two
  *                        runs differ is listed as uncacheable and always runs
  *   --no-mame-cache      neither read nor write the MAME cache
@@ -43,7 +43,7 @@
  * is refused. Every process runs at low priority (nice 10), MAME windowed and
  * without video, and a survey runs one title at a time unless told otherwise.
  *
- * The report goes to .cache/mkt/<target>.json, with a side-by-side PNG per
+ * The report goes to .cache/compare/<target>.json, with a side-by-side PNG per
  * compared frame (MAME | ours | differences in red) beside it. Frames are
  * counted as both sides run them: an input given at frame N is read during
  * frame N + 1, and our frame N is compared with MAME's N + offset, the offset
@@ -104,7 +104,7 @@ const option = (name: string): string | undefined => options.get(name)?.at(-1);
 const flag = (name: string): boolean => options.has(name);
 const [target, titleArg] = positional;
 if (!target) {
-  console.error('usage: mkt run <target> [<title>] [--frames a,b] [--input none|start|contract] [--ram] [--io cpu:a-b] [--survey]');
+  console.error('usage: mamekit against <target> [<title>] [--frames a,b] [--input none|start|contract] [--ram] [--io cpu:a-b] [--survey]');
   process.exit(2);
 }
 
@@ -313,7 +313,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
 
 /**
  * MAME's side of the run: restored from the cache when MAME was given exactly
- * this before (tools/mkt/mame-cache.ts), run and recorded otherwise.
+ * this before (tools/compare/mame-cache.ts), run and recorded otherwise.
  * `--refresh-mame` runs it and replaces what was kept; `--verify-mame` runs it
  * and checks it against what was kept, listing the machine as uncacheable
  * when the two differ; `--no-mame-cache` neither reads nor writes the cache.

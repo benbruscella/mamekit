@@ -1,8 +1,8 @@
 // A machine's latest comparison with MAME itself, shipped with its exhibit.
 //
-// `mkt run` (tools/mkt/run.ts) runs a generated machine and a MAME binary of the
+// `mamekit against` (tools/compare/against.ts) runs a generated machine and a MAME binary of the
 // same release side by side and writes what it found to the gitignored
-// `.cache/mkt/<target>.json`. That report is local evidence; what ships is
+// `.cache/compare/<target>.json`. That report is local evidence; what ships is
 // the summary below, written as `games/<category>/<target>/oracle.json` after
 // generation and again whenever the tool runs. It is refreshed outside the
 // per-target cache on purpose: a cached meta.json would keep an old result.
@@ -42,7 +42,7 @@ export interface OracleSurveyRecord {
   titles: Record<string, { board: string; title: string; cause: string }>;
 }
 
-/** `.cache/mkt/<target>.json` */
+/** `.cache/compare/<target>.json` */
 export interface OracleReportFile {
   target: string;
   runs: Record<string, OracleRunRecord>;
@@ -79,7 +79,7 @@ export interface OracleSummary {
 }
 
 export function oracleReportPath(projectRoot: string, target: string): string {
-  return join(projectRoot, '.cache/mkt', `${target}.json`);
+  return join(projectRoot, '.cache/compare', `${target}.json`);
 }
 
 function summarizeRun(run: OracleRunRecord): OracleRunSummary {
@@ -150,7 +150,7 @@ export function refreshOracleResult(outDir: string, reportPath: string, mameVers
   return true;
 }
 
-/** Every generated target's oracle.json, from `.cache/mkt`; returns how many carry one. */
+/** Every generated target's oracle.json, from `.cache/compare`; returns how many carry one. */
 export function refreshOracleResults(outRoot: string, projectRoot: string, mameVersion: string | undefined): number {
   let written = 0;
   for (const category of GAME_CATEGORIES) {

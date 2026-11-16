@@ -15,7 +15,7 @@
  * finds a second run that differs) is listed in `uncacheable.json` and always
  * runs. Entries are gzipped: RAM dumps shrink tenfold or more.
  *
- * Layout: .mkt/mame/<version>/<target>/<key>/{meta.json, <capture>.gz}.
+ * Layout: .mamekit/mame/<version>/<target>/<key>/{meta.json, <capture>.gz}.
  */
 
 import { createHash } from 'node:crypto';

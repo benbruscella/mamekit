@@ -1,4 +1,5 @@
-// mamekit CLI
+// mamekit CLI (the compiler; bin/mamekit.js hands the MAME comparison
+// commands -- against, record, compare, show, help -- to tools/compare)
 //   mamekit <game>            full pipeline: graph -> generate -> build web app
 //   mamekit graph <game>      knowledge graph only (graph.json + graph.cypher)
 //   mamekit from-graph <game> rebuild from a graph snapshot (no MAME required)
@@ -56,6 +57,13 @@ function usage(): never {
   console.error('       mamekit --build-runtime [--build-app] [--targets <game,...>]');
   console.error('       mamekit --serve            serve the unified app + all generated games');
   console.error('                  [--no-build]   serve dist exactly as it is, without recompiling the app');
+  console.error('');
+  console.error('comparing with MAME (tools/compare; needs MAME_BIN, see .env.example):');
+  console.error('       mamekit against <target> [<title>]   one machine against MAME: pictures, RAM, bus, audio');
+  console.error('       mamekit record [<target> ...]        record a baseline for every contract scenario');
+  console.error('       mamekit compare [<target> ...]       better / same / worse per measure against a baseline');
+  console.error('       mamekit show [<target> ...]          print a baseline (--markdown for an issue)');
+  console.error('       mamekit help <command>               a command\'s options');
   process.exit(2);
 }
 

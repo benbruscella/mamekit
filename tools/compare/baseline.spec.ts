@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {
-  mktArguments, audioLevelDb, audioMeasure, audioVerdict, baselineUnits, comparedFrames, compareUnit, pixelsMeasure, pixelsVerdict, ramMeasure, ramVerdict, ramWindow,
+  cliArguments, audioLevelDb, audioMeasure, audioVerdict, baselineUnits, comparedFrames, compareUnit, pixelsMeasure, pixelsVerdict, ramMeasure, ramVerdict, ramWindow,
   RAM_BUDGET_BYTES, selectUnits, unitPlan,
   type AudioResult, type Measure, type PixelsResult, type RamSummary,
 } from './baseline.ts';
@@ -33,10 +33,10 @@ assert.equal(ramWindow(264192, 3600), Math.floor(RAM_BUDGET_BYTES / 264192));
 // The plan: the oracle twice, with no input and with the contract's, both with audio.
 const pacman = unitPlan(units[0]!, 3088);
 assert.deepEqual(pacman.none.args,
-  ['run', 'pacman', '--input', 'none', '--frames', '300,600', '--audio', '--timeout', '1800', '--ram', '--ram-frames', '1-600']);
-// A baseline recorded before mkt names the old script; it runs as `mkt run`.
-assert.deepEqual(mktArguments({ args: ['tools/mame-oracle.ts', 'pacman', '--input', 'none'] }), ['run', 'pacman', '--input', 'none']);
-assert.deepEqual(mktArguments(pacman.none), pacman.none.args);
+  ['against', 'pacman', '--input', 'none', '--frames', '300,600', '--audio', '--timeout', '1800', '--ram', '--ram-frames', '1-600']);
+// A baseline recorded before the mamekit commands names the old script; it runs as `mamekit against`.
+assert.deepEqual(cliArguments({ args: ['tools/mame-oracle.ts', 'pacman', '--input', 'none'] }), ['against', 'pacman', '--input', 'none']);
+assert.deepEqual(cliArguments(pacman.none), pacman.none.args);
 assert.deepEqual(pacman.contract.args.slice(2, 4), ['--input', 'contract']);
 assert.ok(pacman.contract.args.includes('--audio') && !pacman.contract.args.includes('--ram'));
 const smb1 = unitPlan(units[1]!, 2048);
