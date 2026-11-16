@@ -17,5 +17,13 @@ Since #260 (2026-11-16) the old `tools/mame-oracle.ts` / `tools/mame-baseline.ts
 - MAME cache key = MAME args + Lua plan (work dir neutralised) + oracle.lua + version + set-file stamps. Moving oracle.lua's path changes every key once. Flags: `--refresh-mame`, `--verify-mame` (writes uncacheable.json), `--no-mame-cache`.
 - A cached compare is bounded by our side's emulation (dkong: 47 s for two runs). It defaults to half the cores.
 
-Remaining #260 items: 2 `mamekit build`, 4 `diverge`, 5 tolerances/`moved`, 3 `--against <commit>`, 7 `sweep`, 6 `levels`.
+All seven #260 items landed 2026-11-16:
+- `mamekit build`: tsc over the staged runtime only, ~2 s; `--check` was identical after a full build. Use it instead of `--build-app` for runtime-only changes.
+- `diverge`: ranges come from the board maps. Marble: `$1820` 97/87 at frame 384.
+- Verdicts: `TOLERANCE` in baseline.ts, `moved` within it. Pixels are read at the baseline's offset first.
+- `compare --against <commit>` and `against --runtime <commit>`: a git-archive overlay in `.cache/compare/overlay`. Copies, because symlinks break module resolution.
+- `sweep`: classifies each contract; the harness `throughput` option skips the fps floor.
+- `levels`: harness `onSoundWrite` plus `MAMEKIT_OBSERVE_STREAMS`.
+- The MAME cache keys oracle.lua's code only, not its comments. **It must be refilled after the #260 lua changes**: that is a full 107-scenario MAME pass, so ask the user first.
+- Taps on a 16-bit bus are aligned to whole words, and word accesses are logged once on both sides.
 Supersedes [[mame-oracle-tool]] and [[mame-baseline-204]] for command names. Related: [[ask-before-mame-sweeps]].
