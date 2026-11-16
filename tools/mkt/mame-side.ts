@@ -26,7 +26,9 @@ import type { IoPlan, OraclePlan, OursBoot, Timeline, TimelineEvent } from './pl
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const projectRoot = resolve(here, '../..');
-const luaScript = join(here, 'oracle.lua');
+/** The Lua script MAME runs every comparison with; its text is part of the MAME cache key. */
+export const luaScriptPath = join(here, 'oracle.lua');
+const luaScript = luaScriptPath;
 
 export interface Politeness {
   /** Run on the efficiency cores (macOS taskpolicy -b): ~6x slower, never in the way. */

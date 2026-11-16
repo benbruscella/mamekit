@@ -7,7 +7,12 @@
  *   mkt compare [<target> ...] [--measures pixels,ram,audio]
  *   mkt show [<target> ...] [--markdown]
  *
- *   --jobs N             targets at once (default 1; one target's scenarios always run in turn)
+ *   --refresh-mame       run MAME for every step and replace what the cache kept
+ *   --verify-mame        run MAME for every step and check it against the cache: a
+ *                        machine whose two runs differ is listed as uncacheable
+ *   --no-mame-cache      neither read nor write the MAME cache
+ *   --jobs N             targets at once (default: 1 for record, half the cores for compare;
+ *                        one target's scenarios always run in turn)
  *   --baseline <commit>  the baseline to compare with or show (default: the newest recorded);
  *                        with record, a baseline to finish from a later commit of the same src
  *   --measures list      compare only these: pixels, ram, audio, or any of
@@ -51,6 +56,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { loadGenerationGameContracts } from '../../src/games/contracts.ts';
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
@@ -87,7 +93,9 @@ if (command !== 'record' && command !== 'compare' && command !== 'show') {
 // Each oracle run is a child that resolves MAME for itself, through the environment.
 if (options.get('--mame-src')) process.env.MAME_SRC = resolve(options.get('--mame-src')!);
 if (options.get('--mame')) process.env.MAME_BIN = resolve(options.get('--mame')!);
-const jobs = Math.max(1, Number(options.get('--jobs') ?? 1));
+// A comparison mostly runs our side alone (MAME's comes from the cache), so it
+// takes half the cores unless told otherwise; recording runs MAME, one target at a time.
+const jobs = Math.max(1, Number(options.get('--jobs') ?? (command === 'compare' ? Math.floor(availableParallelism() / 2) : 1)));
 const dist = join(projectRoot, 'dist');
 
 // --- identity --------------------------------------------------------------
@@ -203,6 +211,12 @@ function runTool(args: string[], log: string): Promise<{ status: number | null; 
   });
 }
 
+/** How each run is to treat the MAME cache, handed on to `mkt run`. */
+const cacheFlags = ['--refresh-mame', '--verify-mame', '--no-mame-cache'].filter(name => options.has(name));
+/** Runs whose MAME side came from the cache, and runs that started MAME. */
+const mameTally = { cached: 0, ran: 0 };
+const mameSummary = () => `MAME's side: ${mameTally.cached} from the cache, ${mameTally.ran} run`;
+
 const lastLines = (text: string) => text.trim().split('\n').filter(Boolean).slice(-2).join(' | ').slice(0, 300);
 
 /**
@@ -215,8 +229,12 @@ async function oracleRun(plan: StepPlan, scratch: string): Promise<{ run?: RunRe
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = `${scratch}.json`;
     rmSync(out, { force: true });
-    const ran = await runTool([mktEntry, ...mktArguments(plan), '--out', out], `${scratch}.log`);
+    const ran = await runTool([mktEntry, ...mktArguments(plan), ...cacheFlags, '--out', out], `${scratch}.log`);
     const runs = existsSync(out) ? Object.values(readJson<Record<string, RunReport>>(out)) : [];
+    if (runs[0]) {
+      if (runs[0].mameCached) mameTally.cached++;
+      else mameTally.ran++;
+    }
     outcome = runs[0]
       ? { run: runs[0], ...(runFailure(runs[0]) ? { failure: runFailure(runs[0]) } : {}) }
       : { failure: `the oracle exited ${ran.status ?? 'on a signal'}: ${lastLines(ran.tail)}` };
@@ -365,6 +383,7 @@ async function record(): Promise<void> {
     }
   });
   show(dir);
+  console.log(mameSummary());
 }
 
 // --- compare ---------------------------------------------------------------
@@ -442,7 +461,7 @@ async function compare(): Promise<void> {
   if (notes.length) console.log(`\n${notes.join('\n')}`);
   const worse = rows.filter(row => Object.values(row.verdicts).some(verdict => verdict?.verdict === 'worse'));
   console.log(`\n${rows.length} scenarios: ${worse.length ? `${worse.length} worse on some measure (${worse.map(row => row.key).join(', ')})` : 'none worse'}; ` +
-    `runs in ${relative(projectRoot, compareRoot)}`);
+    `runs in ${relative(projectRoot, compareRoot)}; ${mameSummary()}`);
   if (worse.length) process.exitCode = 1;
 }
 

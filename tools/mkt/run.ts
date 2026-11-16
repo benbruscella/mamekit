@@ -24,6 +24,10 @@
  *   --io-frames a-b      the frames to tap (required with --io)
  *   --audio              record MAME's sound too (-wavwrite) and compare it with
  *                        ours over the run, as tools/compare-audio.mjs does
+ *   --refresh-mame       run MAME and replace what the cache kept (tools/mkt/mame-cache.ts)
+ *   --verify-mame        run MAME and check it against the cache; a machine whose two
+ *                        runs differ is listed as uncacheable and always runs
+ *   --no-mame-cache      neither read nor write the MAME cache
  *   --jobs N             titles at once in a survey (default 1)
  *   --limit N            survey at most N boards
  *   --fresh              re-run survey titles already graded on this commit
@@ -59,7 +63,8 @@ import { mameSourceDir, romsDir } from '../../src/paths.ts';
 import { reportRoot } from './paths.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
-import { mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, runMame, writeLuaPlan, type Politeness } from './mame-side.ts';
+import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
+import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
 import { boardRam, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
 
@@ -258,7 +263,8 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     shown.push(args[index] === '' ? '""' : /[\s;]/.test(args[index]!) ? `'${args[index]}'` : args[index]!);
   }
   report.mameCommand = `$MAME_BIN ${shown.join(' ')}`;
-  const ran = await runMame(mame.binary, args, dir, politeness, timeoutMs);
+  const ran = await mameSide(args, dir, boot);
+  if (ran.cached) report.mameCached = ran.cached;
   const mameError = readText(join(dir, 'mame-error.txt')) ??
     (existsSync(join(dir, 'mame-done.txt')) ? undefined : `MAME exited ${ran.status}: ${ran.output.trim().split('\n').slice(-2).join(' | ')}`);
   if (mameError) report.mameError = mameError.slice(0, 400);
@@ -306,6 +312,47 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
 }
 
 /**
+ * MAME's side of the run: restored from the cache when MAME was given exactly
+ * this before (tools/mkt/mame-cache.ts), run and recorded otherwise.
+ * `--refresh-mame` runs it and replaces what was kept; `--verify-mame` runs it
+ * and checks it against what was kept, listing the machine as uncacheable
+ * when the two differ; `--no-mame-cache` neither reads nor writes the cache.
+ */
+async function mameSide(args: string[], dir: string, boot: OursBoot): Promise<{ status: number | null; output: string; cached?: string }> {
+  const planText = readFileSync(join(dir, 'mame-plan.lua'), 'utf8');
+  const parents = [listed?.cloneof, listed?.romof, listed?.romof ? cachedListXmlMachine(mame, listed.romof)?.romof : undefined];
+  const names = [config.game, ...parents, ...(listed?.deviceSets ?? []), listed?.sampleof, ...Object.values(boot.slotCards)]
+    .filter((name): name is string => Boolean(name));
+  const searchPaths = [...romPaths(config, outputDir.category), samplesDir];
+  const key = mameCacheKey({
+    version: mame.version, target: target!, args, plan: planText, dir,
+    script: readFileSync(luaScriptPath, 'utf8'), sets: setFiles(searchPaths, names, boot.software),
+  });
+  const skipped = uncacheable(mame.version)[target!];
+  const useCache = !flag('--no-mame-cache') && !skipped;
+  if (useCache && !flag('--refresh-mame') && !flag('--verify-mame')) {
+    const kept = restoreMame(mame.version, target!, key, dir);
+    if (kept) return { ...kept, cached: kept.recordedAt };
+  }
+  const ran = await runMame(mame.binary, args, dir, politeness, timeoutMs);
+  mameRuns++;
+  const finished = existsSync(join(dir, 'mame-done.txt')) && !existsSync(join(dir, 'mame-error.txt'));
+  if (finished && flag('--verify-mame')) {
+    const differs = differingCapture(mame.version, target!, key, dir);
+    if (differs) {
+      markUncacheable(mame.version, target!, `${differs} between two runs of one plan (${new Date().toISOString().slice(0, 10)})`);
+      console.log(`  MAME's run of ${target} is not repeatable (${differs}): listed as uncacheable`);
+      return ran;
+    }
+  }
+  if (finished && useCache) storeMame(mame.version, target!, key, dir, ran);
+  return ran;
+}
+
+/** MAME processes this invocation started; a cached run starts none. */
+let mameRuns = 0;
+
+/**
  * Ours against MAME's -wavwrite with tools/compare-audio.mjs, the measure the
  * audio comparison prints; its spectrogram lands beside the frame PNGs. Ours
  * is the harness's capture of what reaches the browser's output.
@@ -330,6 +377,7 @@ function printRun(key: string, report: RunReport): void {
   if (report.ours?.error) console.log(`  ours: ${report.ours.error} (after ${report.ours.frames} frames)`);
   if (report.ours?.retried) console.log(`  ours failed once and passed on a retry: ${report.ours.retried}`);
   if (report.mameError) console.log(`  MAME: ${report.mameError}`);
+  if (report.mameCached) console.log(`  MAME's side from the cache (recorded ${report.mameCached.slice(0, 16).replace('T', ' ')})`);
   if (report.pixels) {
     const frames = report.pixels.frames.map(result =>
       `${result.frame}: ${result.size ? `size ${result.size}` : result.pixels === undefined ? '-' : result.pixels}`).join('  ');
@@ -517,5 +565,5 @@ if (flag('--survey')) {
     saveReport(report);
   }
   if (option('--out')) writeFileSync(resolve(option('--out')!), `${JSON.stringify(runs, null, 2)}\n`);
-  console.log(`report: ${relative(projectRoot, reportPath)}`);
+  console.log(`report: ${relative(projectRoot, reportPath)} (${mameRuns ? `${mameRuns} MAME run${mameRuns > 1 ? 's' : ''}` : "MAME's side from the cache"})`);
 }

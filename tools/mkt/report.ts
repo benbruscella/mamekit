@@ -53,6 +53,8 @@ export interface RunReport {
   /** How far our side ran; `retried` is a first failure the second run did not repeat. */
   ours?: { frames: number; error?: string; retried?: string };
   mameError?: string;
+  /** When MAME's side was restored from the cache: the time it was recorded. */
+  mameCached?: string;
 }
 
 export interface SurveyEntry {
