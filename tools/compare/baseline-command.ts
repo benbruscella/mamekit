@@ -50,7 +50,9 @@
  * that fails is run once more before the failure is believed (#190).
  *
  * `compare` re-runs the stored plans on the current tree, writes the runs to
- * .mamekit/compare/<target>.json and prints a verdict per measure. It
+ * .mamekit/compare/<target>.json and prints a verdict per measure: better,
+ * same, moved (within the measure's tolerance, tools/compare/baseline.ts
+ * TOLERANCE) or worse (past it). Material regressions are listed first. It
  * exits 1 when any measure is worse.
  */
 
@@ -64,7 +66,7 @@ import type { ShellConfig } from '../../src/runtime/shell.ts';
 import {
   cliArguments, audioLevelDb, audioMeasure, audioSpectrumDb, baselineUnits, compareUnit, MEASURES, SILENCE_RMS, pixelsMeasure, ramMeasure, runFailure, selectUnits, unitPlan,
   type AudioResult, type BaselineUnit, type Measure, type MeasureName, type MeasureVerdict, type PixelsResult, type RamSummary,
-  type StepPlan, type UnitRecord,
+  type StepPlan, type UnitRecord, type Verdict,
 } from './baseline.ts';
 import { mamekitIdentity, projectRoot, resolveMame } from './mame-side.ts';
 import { baselineRoot, compareRoot, cliEntry } from './paths.ts';
@@ -411,7 +413,7 @@ function measuresWanted(option = '--measures'): MeasureName[] {
   return wanted;
 }
 
-const MARK: Record<string, string> = { better: 'better', same: 'same', worse: 'WORSE', 'n/a': 'n/a' };
+const MARK: Record<string, string> = { better: 'better', same: 'same', moved: 'moved', worse: 'WORSE', 'n/a': 'n/a' };
 
 async function compare(): Promise<void> {
   requirePinnedNode();
@@ -454,13 +456,20 @@ async function compare(): Promise<void> {
   for (const row of rows) {
     console.log(`${row.key.padEnd(width)}  ${measures.map(measure => MARK[row.verdicts[measure]?.verdict ?? 'n/a']!.padEnd(15)).join(' ')}`);
   }
-  const notes = rows.flatMap(row => measures.flatMap(measure => {
-    const verdict = row.verdicts[measure];
-    return verdict?.detail && verdict.verdict !== 'same' ? [`  ${row.key} ${measure}: ${MARK[verdict.verdict]}, ${verdict.detail}`] : [];
-  }));
-  if (notes.length) console.log(`\n${notes.join('\n')}`);
-  const worse = rows.filter(row => Object.values(row.verdicts).some(verdict => verdict?.verdict === 'worse'));
-  console.log(`\n${rows.length} scenarios: ${worse.length ? `${worse.length} worse on some measure (${worse.map(row => row.key).join(', ')})` : 'none worse'}; ` +
+  // Material regressions first, then improvements, then moves within tolerance.
+  const order: Verdict[] = ['worse', 'better', 'moved'];
+  const heading: Record<string, string> = { worse: 'Worse (past tolerance):', better: 'Better:', moved: 'Moved, within tolerance:' };
+  for (const kind of order) {
+    const notes = rows.flatMap(row => measures.flatMap(measure => {
+      const verdict = row.verdicts[measure];
+      return verdict?.verdict === kind ? [`  ${row.key} ${measure}${verdict.detail ? `: ${verdict.detail}` : ''}`] : [];
+    }));
+    if (notes.length) console.log(`\n${heading[kind]}\n${notes.join('\n')}`);
+  }
+  const having = (kind: Verdict) => rows.filter(row => Object.values(row.verdicts).some(verdict => verdict?.verdict === kind));
+  const worse = having('worse');
+  console.log(`\n${rows.length} scenarios: ${worse.length ? `${worse.length} worse on some measure (${worse.map(row => row.key).join(', ')})` : 'none worse'}, ` +
+    `${having('better').length} better, ${having('moved').length} moved within tolerance; ` +
     `runs in ${relative(projectRoot, compareRoot)}; ${mameSummary()}`);
   if (worse.length) process.exitCode = 1;
 }
