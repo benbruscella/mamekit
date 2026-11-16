@@ -4,8 +4,7 @@
   "description": "Knowledge-graph-first transpiler: MAME driver source -> runnable browser (canvas) emulator app",
   "type": "module",
   "bin": {
-    "mamekit": "bin/mamekit.js",
-    "mkt": "bin/mkt.js"
+    "mamekit": "bin/mamekit.js"
   },
   "scripts": {
     "build": "tsc --noEmit",

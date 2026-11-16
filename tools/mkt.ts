@@ -7,7 +7,9 @@
  *   mkt compare [<target> ...]   better / same / worse per measure against a baseline
  *   mkt show [<target> ...]      print a baseline (--markdown for an issue)
  *
- * `mkt help <command>` prints a command's options. MAME_SRC and MAME_BIN come
+ * Run it as `npm run mkt -- <command> ...` or `node tools/mkt.ts <command> ...`.
+ * It is repository tooling, not part of the published package, so it has no
+ * bin entry of its own. `mkt help <command>` prints a command's options. MAME_SRC and MAME_BIN come
  * from the repository's .env (see .env.example), or the environment.
  */
 
