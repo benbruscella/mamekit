@@ -309,3 +309,32 @@ function bothWays(
 }
 
 console.log('emit-handler-codegen.spec: emitted board handlers match the interpreter');
+
+// A device member's own `length()` is a call on that device, never the
+// handle's JS `.length`. R-Type's draw_sprites loops `i < m_spriteram->length()`
+// over its BUFFERED_SPRITERAM16; emitted as `.length` on the device handle the
+// bound was undefined, the loop never ran, and no sprite was ever drawn (#246).
+{
+  const count = handler(
+    'count_sprites',
+    '',
+    `int n = 0;
+     for (int i = 0; i < m_spriteram->length(); i += 4)
+       n++;
+     return n;`,
+  );
+  const base = board([count]);
+  // Wired as the screen update, as R-Type's renderer is: an entry point.
+  const machine = {
+    ...base,
+    execution: { ...base.execution, screenUpdate: { handler: 'test_state.count_sprites' } },
+    devices: [{ id: 'device:test/spriteram', tag: 'spriteram', type: 'BUFFERED_SPRITERAM16', member: 'm_spriteram', clock: 0 }],
+  } as unknown as BoardIr;
+  const makeBindings = (): GeneratedHandlerBindings => ({
+    members: { m_spriteram: { tag: 'spriteram' } },
+    calls: { 'm_spriteram.length': () => 0x200 },
+  });
+  const { interpreted, compiled } = bothWays(machine, count, makeBindings);
+  assert.equal(interpreted, 0x80);
+  assert.equal(compiled, 0x80, "m_spriteram->length() is the device's call, not the handle's .length");
+}

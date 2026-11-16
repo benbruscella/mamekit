@@ -2237,7 +2237,13 @@ class IrBoard implements Board {
         bus.readOpcode = address => opcodeBus.read(address & opcodeMask);
       }
       if (specification.io) {
-        const ioDataWidth = specification.io.space?.dataWidth === 16 ? 16 : 8;
+        // The port space's width and byte order are the core's own
+        // (`m_io_config`, answered by the compiled device's spaceConfig): the
+        // V30's is 16 bits little-endian, so `out 6, ax` reaches a u16 handler
+        // once with the whole word. Built 8 bits wide, every word port was two
+        // byte writes (#246).
+        const ioConfig = this.devices.get(specification.tag)?.spaceConfig?.(2 /* AS_IO */);
+        const ioDataWidth = (specification.io.space?.dataWidth ?? ioConfig?.dataBits) === 16 ? 16 : 8;
         const ioBus = new Bus(
           specification.io.ranges,
           new Uint8Array(0),
@@ -2245,7 +2251,7 @@ class IrBoard implements Board {
           this.shares,
           ioDataWidth,
           undefined,
-          specification.io.space?.endianness ?? 'big',
+          specification.io.space?.endianness ?? ioConfig?.endianness ?? 'big',
         );
         const mask = specification.io.globalMask ?? 0xffff;
         bus.in = port => ioBus.read(port & mask);
@@ -2256,6 +2262,8 @@ class IrBoard implements Board {
         if (ioDataWidth === 16) {
           bus.in16be = port => ioBus.read16be(port & mask);
           bus.out16be = (port, data) => ioBus.write16be(port & mask, data);
+          bus.in16le = port => ioBus.read16le(port & mask);
+          bus.out16le = (port, data) => ioBus.write16le(port & mask, data);
         }
       }
       // MAME's installer on the built space, for driver code that installs at
@@ -2453,6 +2461,10 @@ class IrBoard implements Board {
         out: bus.out,
         ...(bus.out16be
           ? { out16be: (port: number, data: number) => bus.out16be!(port, data) }
+          : {}),
+        ...(bus.in16le ? { in16le: (port: number) => bus.in16le!(port) } : {}),
+        ...(bus.out16le
+          ? { out16le: (port: number, data: number) => bus.out16le!(port, data) }
           : {}),
         ...(specification.interruptAcknowledge ? {
           acknowledge: (level: number) => registry.read[specification.interruptAcknowledge!]?.(

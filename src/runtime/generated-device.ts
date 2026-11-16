@@ -4703,12 +4703,20 @@ function bindWideSpace(
     (target.write_word as (a: number, d: number) => number)(next(address), little ? high : low);
     return 0;
   };
-  // An unaligned word is two byte accesses, in the space's order.
-  target.read_word_unaligned = (address: number) => little
-    ? (space.read_byte(address) | (space.read_byte(address + 1) << 8)) & 0xffff
-    : ((space.read_byte(address) << 8) | space.read_byte(address + 1)) & 0xffff;
+  // emumem's `read_word_unaligned`: a word at an aligned address is one bus
+  // word, as `read_word` (the V30's `in ax, 6` reaches a u16 handler once,
+  // with the whole value); only a word straddling two bus words is two byte
+  // accesses, in the space's order. Splitting the aligned case handed
+  // m72_state::irq_line_w(u16) the low byte, then the high byte alone (#246).
+  const aligned = (address: number) => shift === 0 && (address & 1) === 0;
+  target.read_word_unaligned = (address: number) => aligned(address)
+    ? (target.read_word as (a: number) => number)(address)
+    : little
+      ? (space.read_byte(address) | (space.read_byte(address + 1) << 8)) & 0xffff
+      : ((space.read_byte(address) << 8) | space.read_byte(address + 1)) & 0xffff;
   target.write_word_unaligned = (address: number, data: number) => {
     const value = Number(data) & 0xffff;
+    if (aligned(address)) return (target.write_word as (a: number, d: number) => number)(address, value);
     space.write_byte(little ? address : address + 1, value & 0xff);
     space.write_byte(little ? address + 1 : address, value >>> 8);
     return 0;

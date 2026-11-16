@@ -100,8 +100,12 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     const buses = (board as unknown as { cpuBuses?: Map<string, object> }).cpuBuses;
     const generated = board as unknown as { cpuSeconds?(cpu: unknown): number; machine?: { execution: { cpus: { tag: string }[] } } };
     const byTag = new Map<string, { tap: IoTap; index: number }[]>();
-    plan.io!.taps.forEach((tap, index) => byTag.set(tap.tag, [...byTag.get(tap.tag) ?? [], { tap, index }]));
-    for (const [tag, taps] of byTag) {
+    // A processor's I/O space is its bus's port methods (in/out), keyed apart.
+    const key = (tap: IoTap) => tap.space === 'io' ? `${tap.tag}\u0000io` : tap.tag;
+    plan.io!.taps.forEach((tap, index) => byTag.set(key(tap), [...byTag.get(key(tap)) ?? [], { tap, index }]));
+    for (const [keyed, taps] of byTag) {
+      const tag = taps[0]!.tap.tag;
+      const ports = keyed !== tag;
       const bus = (cpus?.get(tag)?.bus ?? buses?.get(tag)) as Record<string, unknown> | undefined;
       if (!bus) throw new Error(`the board has no CPU bus ${tag}`);
       // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
@@ -118,11 +122,11 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         }
       };
       let inWord = 0;
-      for (const name of ['read', 'read16be', 'read16le']) {
+      for (const name of ports ? ['in', 'in16be', 'in16le'] : ['read', 'read16be', 'read16le']) {
         const method = bus[name] as ((address: number, ...rest: unknown[]) => number) | undefined;
         if (typeof method !== 'function') continue;
         const original = method.bind(bus);
-        const word = name !== 'read';
+        const word = name !== 'read' && name !== 'in';
         bus[name] = (address: number, ...rest: unknown[]) => {
           if (word) inWord++;
           let value: number;
@@ -135,11 +139,11 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           return value;
         };
       }
-      for (const name of ['write', 'write16be', 'write16le']) {
+      for (const name of ports ? ['out', 'out16be', 'out16le'] : ['write', 'write16be', 'write16le']) {
         const method = bus[name] as ((address: number, data: number, ...rest: unknown[]) => void) | undefined;
         if (typeof method !== 'function') continue;
         const original = method.bind(bus);
-        const word = name !== 'write';
+        const word = name !== 'write' && name !== 'out';
         bus[name] = (address: number, data: number, ...rest: unknown[]) => {
           if (word || inWord === 0) log('W', address, Number(data) & (word ? 0xffff : 0xff), word ? 2 : 1);
           if (word) inWord++;

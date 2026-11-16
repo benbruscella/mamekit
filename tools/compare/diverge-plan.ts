@@ -23,6 +23,8 @@ interface MapRange {
 
 export interface DivergeTap {
   tag: string;
+  /** The processor's I/O space; its program space when absent. */
+  space?: 'io';
   lo: number;
   hi: number;
   /** Why the range is tapped: the device, share or register that put it there. */
@@ -54,17 +56,19 @@ const CONTROL = /bank|latch|reset|halt|irq|nmi|firq|_ack|int_|interrupt|sound|sn
  * ROM are never tapped (RAM is compared whole, every frame, and a ROM read is
  * an instruction fetch). A mirrored range is tapped across its mirrors, since
  * code often reaches a register through one. Overlapping ranges of a
- * processor are merged.
+ * processor are merged. A processor's I/O space is tapped whole, every
+ * handler but a plain input port: it is all registers.
  */
 export function divergeRanges(config: ShellConfig): DivergeTap[] {
   const cpus = config.board.cpus.map(cpu => ({
     tag: cpu.tag,
     ranges: ((cpu as { ranges?: MapRange[] }).ranges ?? []).filter(range => range.kind !== 'rom'),
+    io: ((cpu as { io?: { ranges?: MapRange[] } }).io?.ranges ?? []).filter(range => range.kind !== 'rom'),
   }));
   const devicesOn = new Map<string, Set<string>>();
   const sharesOn = new Map<string, Set<string>>();
   for (const cpu of cpus) {
-    for (const range of cpu.ranges) {
+    for (const range of [...cpu.ranges, ...cpu.io]) {
       for (const owner of [handlerOwner(range.read), handlerOwner(range.write)]) {
         if (owner) (devicesOn.get(owner) ?? devicesOn.set(owner, new Set()).get(owner)!).add(cpu.tag);
       }
@@ -88,10 +92,19 @@ export function divergeRanges(config: ShellConfig): DivergeTap[] {
       if (!why.length) continue;
       picked.push({ tag: cpu.tag, lo: range.start, hi: range.end | (range.mirror ?? 0), why: [...new Set(why)] });
     }
+    // An I/O space is all registers: every handler but a plain input port is
+    // a device's or the driver's (an interrupt controller, a DMA trigger, a
+    // scroll register), and the space is small enough to tap whole.
+    const ports: DivergeTap[] = [];
+    for (const range of cpu.io) {
+      const why = [range.read, range.write].filter((name): name is string => !!name && !/^port\./.test(name));
+      if (why.length) ports.push({ tag: cpu.tag, space: 'io', lo: range.start, hi: range.end | (range.mirror ?? 0), why: [...new Set(why)] });
+    }
     picked.sort((left, right) => left.lo - right.lo);
-    for (const tap of picked) {
+    ports.sort((left, right) => left.lo - right.lo);
+    for (const tap of [...picked, ...ports]) {
       const last = taps.at(-1);
-      if (last && last.tag === tap.tag && tap.lo <= last.hi + 1) {
+      if (last && last.tag === tap.tag && last.space === tap.space && tap.lo <= last.hi + 1) {
         last.hi = Math.max(last.hi, tap.hi);
         last.why = [...new Set([...last.why, ...tap.why])];
       } else {

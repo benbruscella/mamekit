@@ -35,12 +35,25 @@ export interface RamPlan {
 }
 
 export interface IoPlan {
-  taps: { tag: string; lo: number; hi: number; read: boolean; write: boolean }[];
+  /** `space` is the processor's I/O space (`--io maincpu:io:40-43`); the program space when absent. */
+  taps: { tag: string; space?: 'io'; lo: number; hi: number; read: boolean; write: boolean }[];
   /** Our frames tapped. */
   from: number;
   to: number;
   /** MAME's tapped frames are ours + offset (a board that boots out of step); 0 when absent. */
   offset?: number;
+}
+
+/** `cpu:a-b[:rw]`, or `cpu:io:a-b[:rw]` for the processor's I/O space (hex). */
+export function parseIoTap(spec: string): IoPlan['taps'][number] {
+  const parts = spec.split(':');
+  const tag = parts.shift()!;
+  const space = parts[0] === 'io' ? (parts.shift(), 'io' as const) : undefined;
+  if (parts[0] === 'program') parts.shift();
+  const [range = '', mode = 'rw'] = parts;
+  const [lo, hi] = range.split('-').map(value => parseInt(value, 16));
+  if (!tag || Number.isNaN(lo)) throw new Error(`--io ${spec}: expected <cpu>[:io]:<start>-<end>[:r|w|rw]`);
+  return { tag, ...(space ? { space } : {}), lo: lo!, hi: hi ?? lo!, read: mode.includes('r'), write: mode.includes('w') };
 }
 
 /** Everything our side needs; the MAME side is derived from it plus what our boot reports. */

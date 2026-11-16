@@ -2382,7 +2382,18 @@ function emitCall(
       }
       return resized;
     }
+    // A device answers these itself: `m_spriteram->length()` on a
+    // `required_device<buffered_spriteram16_device>` is the buffer's word
+    // count, and read as the handle's `.length` it was undefined, so R-Type's
+    // draw_sprites listed no sprite at all (#246). Such a call falls through
+    // to the device's own member call below.
+    const sizedDevice = ['bytes', 'size', 'length'].includes(expression.callee.property) && !args.length &&
+      (isDeviceReceiverType(expressionValueType(expression.callee.object, context)) ||
+        // A board member the machine binds to one of its devices (`m_spriteram`
+        // is the BUFFERED_SPRITERAM16), which board scope carries no type for.
+        (context.boardScope && context.definition.concreteDeviceMembers?.includes(expressionName(expression.callee.object)) === true));
     if (
+      !sizedDevice &&
       ['bytes', 'size', 'length'].includes(expression.callee.property) &&
       !args.length
     ) {
@@ -3828,4 +3839,17 @@ function isKnownNumericType(valueType: string | undefined): boolean {
   const declared = valueType.trim();
   if (declared === 'auto' || declared.includes('*') || declared.includes('&')) return false;
   return true;
+}
+
+/**
+ * A receiver declared as a device: a finder (`required_device<T>`,
+ * `optional_device<T>`, `device_finder<T, R>`) or a `*_device` class, by
+ * value, reference or pointer. Its `length()`, `size()` and `bytes()` are
+ * methods of that device, never a container's extent.
+ */
+export function isDeviceReceiverType(type: string | undefined): boolean {
+  if (!type) return false;
+  const bare = type.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim();
+  return /^(?:required|optional)_device\s*</.test(bare) || /^device_finder\s*</.test(bare) ||
+    /^[\w:]*_device$/.test(bare);
 }

@@ -25,11 +25,14 @@ export interface CpuBus {
   /**
    * Atomic big-endian word access to the I/O space, for a core whose ports
    * are natively 16 bits wide (the TMS320C1x). Splitting one into two byte
-   * transactions would show a word handler two half writes.
+   * transactions would show a word handler two half writes. The `le` pair is
+   * the same for a little-endian port space (the V30's).
    */
   in16be?(port: number): number;
+  in16le?(port: number): number;
   out(port: number, data: number): void;
   out16be?(port: number, data: number): void;
+  out16le?(port: number, data: number): void;
   /** Optional source-derived interrupt-acknowledge address-space read. */
   acknowledge?(level: number): number;
   signal?(name: string, state: number): number | void;

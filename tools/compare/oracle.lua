@@ -145,10 +145,10 @@ local function read_back(frame)
   end
 end
 
-local function cpu_space(tag)
+local function cpu_space(tag, name)
   local device = machine.devices[":" .. tag]
   if not device then return nil end
-  return device.spaces["program"]
+  return device.spaces[name or "program"]
 end
 
 oracle.ram = {}
@@ -194,8 +194,8 @@ local function as_issued(space, offset, data, mask)
 end
 
 for index, tap in ipairs(plan.io) do
-  local space = cpu_space(tap.tag)
-  if not space then return fail("MAME has no CPU :" .. tap.tag) end
+  local space = cpu_space(tap.tag, tap.space)
+  if not space then return fail("MAME has no " .. (tap.space or "program") .. " space on :" .. tap.tag) end
   local function record(kind)
     return function(offset, data, mask)
       local frame = oracle.count + 1
