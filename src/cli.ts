@@ -63,6 +63,9 @@ function usage(): never {
   console.error('       mamekit record [<target> ...]        record a baseline for every contract scenario');
   console.error('       mamekit compare [<target> ...]       better / same / worse per measure against a baseline');
   console.error('       mamekit show [<target> ...]          print a baseline (--markdown for an issue)');
+  console.error('       mamekit diverge <target> [<title>]   the first bus access that differs from MAME, per processor');
+  console.error('');
+  console.error('       mamekit build [--check]              recompile only dist/runtime from src, in seconds');
   console.error('       mamekit help <command>               a command\'s options');
   process.exit(2);
 }
@@ -90,6 +93,34 @@ for (let i = 0; i < argv.length; i++) {
   } else {
     opts[key] = next && !next.startsWith('--') ? argv[++i] : '';
   }
+}
+
+// `mamekit build [--check] [--out <dir>]`: only the runtime (src/runtime, src/ir
+// and src/hardware's runtime-facing files) recompiled into dist, in seconds,
+// with the app's own compiler settings (src/gen/runtime-build.ts). `--check`
+// writes nothing and lists the modules that differ from dist's.
+if (positional[0] === 'build') {
+  const { buildRuntime } = await import('./gen/runtime-build.ts');
+  const root = resolve(opts.out ?? join(projectRoot, 'dist'));
+  if (!existsSync(join(root, 'runtime/core'))) {
+    console.error(`error: no runtime in ${root}; generate it first (npm run gen:all)`);
+    process.exit(1);
+  }
+  const check = 'check' in opts;
+  const built = buildRuntime(root, { check });
+  if (!built.ok) {
+    console.error('mamekit build: tsc failed; dist was not touched');
+    process.exit(1);
+  }
+  const listed = [...built.changed.map(path => `  ${check ? 'differs' : 'written'} ${path}`),
+    ...built.removed.map(path => `  ${check ? 'stale  ' : 'removed'} ${path}`)];
+  if (listed.length) console.log(listed.join('\n'));
+  console.log(`mamekit build: ${built.modules} runtime modules in ${(built.ms / 1000).toFixed(1)} s; ` +
+    (check
+      ? (listed.length ? `${listed.length} differ from ${root}` : `identical to ${root}`)
+      : `${built.changed.length} written, ${built.removed.length} removed`));
+  if (check && listed.length) process.exitCode = 1;
+  process.exit();
 }
 
 const namedCommands = new Set([

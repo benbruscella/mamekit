@@ -1,7 +1,6 @@
 import { mkdirSync, writeFileSync, cpSync, existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
 import { cacheIdentityFromEnv, cachingDisabled, copyTree, entryTree, genCacheRoot, hashTree, readEntry, writeEntry } from './gen-cache.ts';
 import { deriveBezelArtwork, copyBezelArtwork } from './bezel-artwork.ts';
 import { GAME_CATEGORIES, gameOutputDir } from './output-layout.ts';
@@ -10,6 +9,7 @@ import { emitHomePage } from './home.ts';
 import { readBuildManifest } from './build-manifest.ts';
 import { stageGeneratedBoards } from './app-targets.ts';
 import { inputKeys, sixButtonKeys } from './input-bindings.ts';
+import { compileStaged, stageRuntimeTrees, writeStagedTsconfig } from './runtime-build.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -81,25 +81,9 @@ export async function buildApp(
   mkdirSync(appDir, { recursive: true });
   mkdirSync(join(srcDir, 'app'), { recursive: true });
 
-  cpSync(join(projectRoot, 'src/runtime'), join(srcDir, 'runtime/core'), {
-    recursive: true,
-    filter: source => !source.endsWith('.spec.ts'),
-  });
-  // The neutral IR ships alongside the runtime as dist/runtime/ir. Staging it
-  // one level above runtime/core keeps every `../ir/...` import resolving to
-  // the same place it does in src, so no path rewriting is needed.
-  cpSync(join(projectRoot, 'src/ir'), join(srcDir, 'runtime/ir'), {
-    recursive: true,
-    filter: source => !source.endsWith('.spec.ts'),
-  });
-  // Capability packages ship only their runtime-facing files. extract.ts pulls
-  // in the compiler and acceptance.ts drives dist from Node; neither belongs in
-  // the browser bundle, and excluding them here is what keeps that true.
-  cpSync(join(projectRoot, 'src/hardware'), join(srcDir, 'runtime/hardware'), {
-    recursive: true,
-    filter: source => !['.spec.ts', '/extract.ts', '/acceptance.ts', '/registry.ts',
-      '/acceptance-registry.ts'].some(name => source.endsWith(name)),
-  });
+  // The runtime, the IR and the hardware packages, staged as `mamekit build`
+  // stages them (runtime-build.ts), so the two builds emit the same modules.
+  stageRuntimeTrees(srcDir);
   const hardwareImports: string[] = [];
   const deviceBindings: string[] = [];
   const streamBindings: string[] = [];
@@ -214,22 +198,7 @@ if (game) {
   export default value;
 }
 `);
-  writeFileSync(join(buildDir, 'tsconfig.json'), JSON.stringify({
-    compilerOptions: {
-      target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler',
-      lib: ['ES2022', 'DOM', 'DOM.Iterable'], strict: true,
-      // TypeScript 6 no longer loads every @types package by default. The
-      // staged hardware packages still carry Node-side helpers
-      // (stream-acceptance.ts, nes/ines-mappers.ts), so name Node's types as
-      // the root tsconfig does.
-      types: ['node'],
-      resolveJsonModule: false,
-      allowImportingTsExtensions: true, rewriteRelativeImportExtensions: true,
-      erasableSyntaxOnly: true, verbatimModuleSyntax: true, skipLibCheck: true,
-      outDir: 'out', rootDir: 'src',
-    },
-    include: ['src'],
-  }, null, 2));
+  writeStagedTsconfig(buildDir);
 
   // per-build stamp on the module URL: browsers cache module scripts hard,
   // and pages' CDN adds 10 min — the query flips both on every deploy
@@ -300,15 +269,7 @@ if (game) {
     // One program type-checks every generated device and CPU. The T-Unit
     // video device alone is 4 MB (MAME instantiates all 256 dma_draw
     // template variants), which took tsc past Node's default heap.
-    const tsc = spawnSync(process.execPath, [
-      '--max-old-space-size=8192',
-      join(projectRoot, 'node_modules/typescript/bin/tsc'),
-      '-p',
-      join(buildDir, 'tsconfig.json'),
-    ], {
-      stdio: 'inherit',
-    });
-    if (tsc.status !== 0) {
+    if (!compileStaged(buildDir, 8192).ok) {
       console.error('tsc failed — app emitted but not compiled');
       rmSync(buildDir, { recursive: true, force: true });
       rmSync(appDir, { recursive: true, force: true });
