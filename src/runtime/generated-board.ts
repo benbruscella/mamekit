@@ -5598,6 +5598,10 @@ class IrBoard implements Board {
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
       deviceTime: tag => this.roundDeviceSeconds(tag),
+      cpuCycleClock: tag => {
+        const cpu = machine.execution.cpus.find(candidate => candidate.tag === tag);
+        return cpu ? this.cycleClockOf(cpu) : 0;
+      },
       settledTime: () => {
         const cpus = machine.execution.cpus;
         let settled = Infinity;

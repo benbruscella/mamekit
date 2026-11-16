@@ -81,6 +81,11 @@ export interface SoundRuntimeContext {
    */
   settledTime?(): number;
   /**
+   * The rate of a processor's cycles as it stands now: `set_unscaled_clock`
+   * moves it, and a loaded state restores it.
+   */
+  cpuCycleClock?(cpuTag: string): number;
+  /**
    * Sound devices a board device is built out of that render a routed stream,
    * by MAME tag, with their route gain: an NES cartridge's MMC5, VRC6 or Namco
    * 163, which exist only once a cartridge chose that board. callDevice and

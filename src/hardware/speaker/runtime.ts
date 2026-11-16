@@ -688,7 +688,11 @@ export function createStreamMixer(
       // perfect-quantum slice reports its one-cycle target, whatever the
       // instruction took), so the slice's own cycles come off the count:
       // the next ask is never later than the tick the batch falls due on.
-      tick.cycles = Math.floor(((state.emitted + MIX_BATCH) / STREAM_AUDIO_RATE - time()) * tick.clock) - cycles - 1;
+      // At the rate its cycles run now: Missile Command stretches its 6502's
+      // clock line by line, and counted at the configured rate the slower
+      // cycles ran past the batch.
+      const clock = Math.max(1, context.cpuCycleClock?.(cpu) ?? tick.clock);
+      tick.cycles = Math.floor(((state.emitted + MIX_BATCH) / STREAM_AUDIO_RATE - time()) * clock) - cycles - 1;
     },
     cpuTimeMoved: cpu => {
       if (cpu === driver) driverTick.emitted = -1;
