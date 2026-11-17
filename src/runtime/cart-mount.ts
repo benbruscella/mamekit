@@ -21,6 +21,7 @@ import { generatedDeviceDefinition, slotCardForImage } from './generated-device.
 import type { BoardImage } from '../ir/host-config.ts';
 import type { ShellConfig } from './shell.ts';
 import { peripheralCards } from './input.ts';
+import { softwarePart } from './title-start.ts';
 import type { Regions } from './types.ts';
 
 /** The generated device registry a slot device is looked up in. */
@@ -167,6 +168,21 @@ export function mountCart(
       },
       roms,
     };
+  }
+  // Any other slot that mounts its own cartridges (the SNES's) is handed a
+  // catalogued cartridge as its software-list part, which its own
+  // get_default_card_software and call_load read; anything else as the file.
+  if (device && resolved.image) {
+    const entry = resolved.meta;
+    const bytes = resolved.image.bytes;
+    const chips = entry && !resolved.approx
+      ? new Map(entry.prg.roms.map((rom, index) => [String(index), bytes.subarray(rom.offset, rom.offset + rom.size)]))
+      : undefined;
+    const software = entry && chips ? softwarePart(chips, entry) : undefined;
+    const image: BoardImage = entry && software
+      ? { name: entry.name, software: { ...software, features: { ...software.features, ...(entry.pcb ? { pcb: entry.pcb } : {}) } } }
+      : { name: `cartridge${cfg.cart?.extensions?.[0] ?? ''}`, bytes };
+    return { regions, cart: {}, images: { [device.tag]: image }, roms };
   }
   const region = cfg.cart?.romRegion;
   if (!region || !resolved.image) return null;

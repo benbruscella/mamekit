@@ -572,9 +572,13 @@ export function generatedStructMethodsSources(definition: GeneratedDeviceDefinit
       className: type,
       // The device's free functions the methods call (`ymfm::roundtrip_fp`)
       // come along by name; only the struct's own methods are entry points.
+      // A field shadows a device method of its name, as in C++: the uPD7725
+      // status register's `operator unsigned()` reads its own `p1` field, not
+      // the device's `auto p1()` callback binder.
       methods: [
         ...single.map(method => ({ ...method, source: { file: '', line: 0 } })),
-        ...definition.methods.filter(method => !single.some(own => own.name === method.name)),
+        ...definition.methods.filter(method => !single.some(own => own.name === method.name) &&
+          !fields.some(field => field.name === method.name)),
       ],
       members: fields.map(field => ({
         name: field.name,
@@ -2262,9 +2266,19 @@ function emitCall(
       // A type name is its own width: `sizeof(uint16_t)` is 2. Read through
       // expressionValueType it had no type and fell to 1, which doubled
       // buffered_spriteram16's `length()` (#246).
+      // An element of a pointer or heap array is its pointee: Neo Geo's
+      // `memset(sprite_list, 0, sizeof(sprite_list[0]) * n)` over `u16
+      // *sprite_list` clears n words. Read as one byte, half the list's tail
+      // kept the last line's sprites. Only sizeof reads it so: the value
+      // types arithmetic is emitted in stay as they were.
+      const container = operand?.kind === 'index'
+        ? expressionValueType(operand.object, context)?.replace(/&\s*$/, '').trim()
+        : undefined;
+      const pointee = container && (/^(?:const\s+)?([\w:]+)\s*(?:const\s*)?\*$/.exec(container)?.[1] ??
+        /^std::unique_ptr\s*<\s*(?:const\s+)?([\w:]+)\s*\[\]\s*>$/.exec(container)?.[1]);
       const valueType = operand && namesType(operand) && operand.kind === 'identifier'
         ? operand.name
-        : operand ? expressionValueType(operand, context) : undefined;
+        : pointee ?? (operand ? expressionValueType(operand, context) : undefined);
       const bytes = /(?:u?int64_t|[us]64|double)/.test(valueType ?? '') ? 8
         : /(?:u?int32_t|[us]32|float|offs_t|pen_t)/.test(valueType ?? '') ? 4
         : /(?:u?int16_t|[us]16)/.test(valueType ?? '') ? 2
@@ -3802,7 +3816,7 @@ function namesType(expression: GeneratedExpression): boolean {
  */
 const RGB_CHANNEL_SHIFTS: Record<string, number | undefined> = { r: 0, g: 8, b: 16, a: 24 };
 /** attotime's accessors, as attotimeSecondsMethod answers them for a number. */
-const ATTOTIME_METHODS = new Set(['as_ticks', 'as_double', 'as_attoseconds', 'is_never', 'is_zero', 'attoseconds', 'seconds']);
+const ATTOTIME_METHODS = new Set(['as_ticks', 'as_double', 'as_attoseconds', 'as_hz', 'is_never', 'is_zero', 'attoseconds', 'seconds']);
 
 /**
  * Members whose C++ type is a struct or union rather than a number.

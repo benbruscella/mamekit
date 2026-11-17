@@ -498,17 +498,37 @@ export function lowerGeneratedMachine(
         }),
       ...(sourceRef(node.props) ? { source: sourceRef(node.props) } : {}),
     }));
+  // A space named the way MAME's devices name them; the processors' own
+  // program, I/O and opcode spaces are the execution CPUs' maps already.
+  const SPACE_INDEX: Record<string, number> = { AS_PROGRAM: 0, AS_DATA: 1, AS_IO: 2, AS_OPCODES: 3 };
+  const spaceIndex = (device: { tag: string }, space: unknown): number | undefined => {
+    const text = String(space ?? '');
+    if (/^\d+$/.test(text)) return Number(text);
+    // By name, only a data space: a device's AS_PROGRAM (an
+    // address_map_bank_device's, Missile Command's mainmap) is its own
+    // machinery's, and a processor's program and I/O are its CPU maps.
+    void device;
+    return SPACE_INDEX[text] === SPACE_INDEX.AS_DATA ? SPACE_INDEX.AS_DATA : undefined;
+  };
+  // A RAM range, shared by name: the SNES's spc_map is `ram().share("aram")`
+  // on both the S-SMP's data space and the S-DSP's space 0, one 64 KB RAM.
+  const sharedRam = (range: { props?: Record<string, unknown> }) =>
+    Boolean(range.props?.ram) && typeof range.props?.share === 'string';
   for (const device of devices) {
     const configured = graph.edges.filter(edge => edge.from === device.id &&
-      edge.rel === 'HAS_MAP' && /^\d+$/.test(String(edge.props?.space ?? '')) &&
+      edge.rel === 'HAS_MAP' && spaceIndex(device, edge.props?.space) !== undefined &&
       // ROM-only device spaces are bound by their image/region resources.
       // These overrides route live driver handlers back through the board.
-      maps.find(map => map.id === edge.to)?.ranges.some(range => range.read || range.write));
+      maps.find(map => map.id === edge.to)?.ranges.some(range => range.read || range.write || sharedRam(range)));
     if (!configured.length) continue;
     device.addressMaps = configured.map(edge => {
       const map = maps.find(candidate => candidate.id === edge.to);
       if (!map) throw new Error(`${device.tag}: configured map ${edge.to} is missing`);
-      return { index: Number(edge.props!.space), ranges: map.ranges.map(range => {
+      return { index: spaceIndex(device, edge.props!.space)!, ranges: map.ranges.map(range => {
+        if (sharedRam(range)) {
+          return { start: range.start, end: range.end, kind: 'ram' as const, share: String(range.props!.share),
+            ...(range.props?.mirror ? { mirror: Number(range.props.mirror) } : {}) };
+        }
         if (!range.read && !range.write) {
           throw new Error(`${device.tag}: configured device range requires executable handlers`);
         }

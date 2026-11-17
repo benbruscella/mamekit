@@ -291,7 +291,15 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     maxY: number,
     minX = this.machine.execution.screen.xOffset ?? 0,
     maxX = (this.machine.execution.screen.xOffset ?? 0) + this.width - 1,
+    scanline?: number,
   ): void {
+    // VIDEO_VARIABLE_WIDTH: MAME calls the update once a line, each with a
+    // bitmap of that line alone, whose row 0 is the line (screen.cpp's
+    // m_scan_bitmaps). The SNES PPU writes `bitmap.pix(0, x)`.
+    if (scanline === undefined && this.machine.execution.screen.variableWidth) {
+      for (let y = minY; y <= maxY; y++) this.renderRegion(frame, y, y, minX, maxX, y);
+      return;
+    }
     const xOffset = this.machine.execution.screen.xOffset ?? 0;
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const xScale = this.machine.video?.renderScale?.x ?? 1;
@@ -304,7 +312,8 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     );
     const target = this.penBuffer ?? frame;
     const scaledXOffset = xOffset * xScale;
-    const scaledYOffset = yOffset * yScale;
+    // A line's own bitmap: row 0 is that line.
+    const scaledYOffset = scanline === undefined ? yOffset * yScale : (yOffset - scanline) * yScale;
     const bitmap = {
       bpp: () => this.indexed ? 16 : 32,
       direct: {
@@ -366,8 +375,8 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         }
         const firstX = Math.floor((x - xOffset * xScale) / xScale);
         const lastX = Math.floor((x + pixelWidth - 1 - xOffset * xScale) / xScale);
-        const firstY = Math.floor((y - yOffset * yScale) / yScale);
-        const lastY = Math.floor((y + pixelHeight - 1 - yOffset * yScale) / yScale);
+        const firstY = Math.floor((y - scaledYOffset) / yScale);
+        const lastY = Math.floor((y + pixelHeight - 1 - scaledYOffset) / yScale);
         const clippedFirstX = Math.max(0, firstX);
         const clippedLastX = Math.min(this.width - 1, lastX);
         const clippedFirstY = Math.max(0, firstY);
@@ -402,8 +411,8 @@ export class GeneratedVideoRenderer implements VideoRenderer {
           Math.floor((x - scaledXOffset) / xScale),
       }),
       'pix=': (y: number, x: number, color: number) => {
-        const visibleX = Math.floor((x - xOffset * xScale) / xScale);
-        const visibleY = Math.floor((y - yOffset * yScale) / yScale);
+        const visibleX = Math.floor((x - scaledXOffset) / xScale);
+        const visibleY = Math.floor((y - scaledYOffset) / yScale);
         if (
           visibleX >= 0 && visibleX < this.width &&
           visibleY >= 0 && visibleY < this.height

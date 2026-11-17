@@ -645,6 +645,12 @@ export interface GeneratedScreen {
    * on the screen, `frame` otherwise.
    */
   updateMode?: 'frame' | 'scanline' | 'partial';
+  /**
+   * MAME's VIDEO_VARIABLE_WIDTH: the screen update is called once per
+   * scanline, with a bitmap of that one line and a clip of that line
+   * (screen_device::update_partial). The SNES PPU draws its line at row 0.
+   */
+  variableWidth?: true;
   rotate: number;
   /** SCREEN, CPU, or video device responsible for producing pixels. */
   ownerTag?: string;
@@ -1261,6 +1267,20 @@ export interface GeneratedStateMember {
    * (`m_nbajam_prot_table = nbajam_prot_values;`), element by element.
    */
   initialValues?: number[];
+  /**
+   * A struct member, each element an object of these fields at their declared
+   * widths: the SNES's `struct { uint8_t dmap; uint16_t src_addr; ... }
+   * m_dma_channel[8];`. `bits` is absent on one.
+   */
+  fields?: GeneratedStateField[];
+}
+
+/** One field of a struct state member: `uint16_t src_addr = 0;`. */
+export interface GeneratedStateField {
+  name: string;
+  bits: 1 | 8 | 16 | 32;
+  signed?: boolean;
+  initial?: number;
 }
 
 export interface BoardIr {

@@ -286,6 +286,14 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       // program area, so both land in `prg` and one identification path
       // serves every list.
       const mediaArea = areaName !== undefined && MEDIA_AREAS.has(areaName);
+      // A dataarea with no chips is RAM the slot allocates at that size
+      // (`get_software_region_length("nvram")`): a SNES cartridge's battery
+      // RAM is `<dataarea name="nvram" size="2048">`, empty.
+      if (areaName && areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea &&
+        size > 0 && !/<rom\b/.test(areaBlock)) {
+        (entry.areas ??= {})[areaName] = size;
+        continue;
+      }
       if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea) continue;
       const area: SoftArea = { size, roms: [] };
       const cartArea = CART_AREAS.has(areaName!);

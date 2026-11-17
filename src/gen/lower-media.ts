@@ -18,7 +18,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '../..');
 
 import type { GenerateOptions } from './generate.ts';
-import { inesMapperBySlot, nesCartOptions } from '../hardware/nes/ines-mappers.ts';
+import { inesMapperBySlot } from '../hardware/nes/ines-mappers.ts';
+import { SELF_MOUNTING_SLOTS } from './self-mounting-slots.ts';
 
 /** MAME's NES cartridge interface: its slot mounts and selects its own boards. */
 const NES_CART_INTERFACE = 'nes_cart';
@@ -60,14 +61,16 @@ export function lowerMedia(game: KGNode, kind: "console" | "computer" | undefine
   // code -- answers that itself from the cards it was generated with, and is
   // handed the cartridge as an image; the others keep a host list of boards
   // whose installer the runtime replays.
+  const selfMounting = SELF_MOUNTING_SLOTS;
   const cartBoards = (cartInterface: string): { slots: string[] } | { slotDevice: { tag: string; type: string }; boards: number } => {
-    const slotDevice = cartInterface === NES_CART_INTERFACE
-      ? devices.find(device => device.props.type === 'NES_CART_SLOT')
+    const facts = slotFor(cartInterface);
+    const slotDevice = facts && selfMounting[facts.type]
+      ? devices.find(device => device.props.type === facts.type)
       : undefined;
     return slotDevice
       ? {
           slotDevice: { tag: String(slotDevice.props.tag), type: String(slotDevice.props.type) },
-          boards: nesCartOptions(opts.mameSrc).length,
+          boards: selfMounting[String(slotDevice.props.type)]!(opts.mameSrc).length,
         }
       : { slots: CART_SLOT_SUPPORT[family] ?? [] };
   };
@@ -255,7 +258,7 @@ function cardSoftwareLists(mameSrc: string, devices: readonly KGNode[]) {
       if (!card) continue;
       const source = readFileSync(join(mameSrc, card.sourceFile), 'utf8');
       const mconfig = /device_add_mconfig\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/.exec(source)?.[1]?.replace(/\/\/[^\n]*/g, '') ?? '';
-      const image = /\b([A-Z][A-Z0-9_]+)\s*\(\s*config\s*,\s*m_\w+\s*,\s*\w+\s*,\s*"[^"]*"\s*,\s*"([^"]*)"\s*\)/.exec(mconfig);
+      const image = /\b([A-Z_][A-Z0-9_]+)\s*\(\s*config\s*,\s*m_\w+\s*,\s*\w+\s*,\s*"[^"]*"\s*,\s*"([^"]*)"\s*\)/.exec(mconfig);
       for (const list of mconfig.matchAll(/SOFTWARE_LIST\s*\([^)]*\)\s*\.\s*set_(original|compatible)\s*\(\s*"([^"]+)"\s*\)/g)) {
         if (!image) continue;
         lists.push({

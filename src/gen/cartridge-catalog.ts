@@ -53,7 +53,7 @@ export const CART_SLOT_SUPPORT: Record<string, string[]> = {
 //
 // Each also has to be a title the console room can actually get hold of: a
 // verified dump the "⌕ Search" button can fetch, and a cartridge scan.
-// `node tools/nes-cart-art.ts --check` is that audit, and it derives its work
+// `node tools/cart-art.ts --check` is that audit, and it derives its work
 // list from this one — so adding a title here is the only edit a new game
 // needs.
 export const CART_GAME_SUPPORT: Record<string, string[]> = {

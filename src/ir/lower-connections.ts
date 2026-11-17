@@ -158,8 +158,10 @@ export function lowerCallbackEffect(
   if (callback.targetTag && callback.inputLine) {
     // A line the board does not name is the core's own (`APU_IRQ_LINE`),
     // which the generated core numbers from its header.
+    // A line the board does not name is the core's own, however its header
+    // spells it (`APU_IRQ_LINE`, the 65C816's `G65816_LINE_IRQ`).
     const line = CPU_INPUT_LINES[callback.inputLine] ??
-      (/^[A-Z][A-Z0-9_]*_LINE$/.test(callback.inputLine.replace(/^\w+::/, '')) ? 'core' as const : undefined);
+      (/^[A-Za-z_]\w*$/.test(callback.inputLine.replace(/^\w+::/, '')) ? 'core' as const : undefined);
     const tag = resolveScopedTag(context.cpuTags, callback.targetTag);
     if (line === 'core' && tag) {
       return { kind: 'cpu-line', tag, line, delivery: 'level', input: callback.inputLine.replace(/^\w+::/, '') };

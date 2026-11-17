@@ -12,7 +12,7 @@ import { lowerDriverMemberPointers } from '../mame/member-pointers.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
 import { coreLineStates } from '../mame/device-compiler.ts';
-import { collectBitAliasMacros, collectMemberAliasMacros, collectMemberExpressionMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
+import { collectBitAliasMacros, collectMemberAliasFunctionMacros, collectMemberAliasMacros, collectMemberExpressionMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
 import {
   executeGeneratedHandler,
   type GeneratedHandlerBindings,
@@ -2405,12 +2405,13 @@ export function attotimeSeconds(
 function driverStateMembers(
   ast: MameAstIndex,
   className: string,
-): { name: string; bits?: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; arrayShape?: number[]; initial?: number; vector?: true; delegate?: true }[] {
+): { name: string; bits?: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; arrayShape?: number[]; initial?: number; vector?: true; delegate?: true; fields?: { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; initial?: number }[] }[] {
   const classes = new Map(
     ast.ast.units.flatMap(unit => unit.classes).map(entry => [entry.name, entry]),
   );
   const members: {
     name: string; bits?: 1 | 8 | 16 | 32; signed?: boolean; arrayLength?: number; arrayShape?: number[]; initial?: number; vector?: true; delegate?: true;
+    fields?: { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; initial?: number }[];
   }[] = [];
   // A member the driver uses to carry an input line. MAME's own
   // `INPUT_LINE_NMI` is 64 and sits in a `uint8_t` happily -- Double Dragon
@@ -2465,6 +2466,37 @@ function driverStateMembers(
           ? { initial: initial[member.name] } : {}),
       };
       const existing = members.findIndex(candidate => candidate.name === member.name);
+      if (existing >= 0) members[existing] = entry;
+      else members.push(entry);
+    }
+    // A struct member, declared in place: the SNES's `struct { uint8_t dmap
+    // = 0; uint16_t src_addr = 0; ... } m_dma_channel[8];`. Each element is
+    // an object of its integer fields, at their declared widths.
+    for (const struct of stripComments(declaration.body).matchAll(
+      /\bstruct\s*(?:\w+\s*)?\{([^{}]*)\}\s*(m_\w+)\s*(?:\[\s*([^\]]+?)\s*\])?\s*;/g,
+    )) {
+      const fields: { name: string; bits: 1 | 8 | 16 | 32; signed?: boolean; initial?: number }[] = [];
+      for (const line of struct[1]!.split(';')) {
+        const declared = /^\s*([\w:]+(?:\s+[\w:]+)*?)\s+(\w+(?:\s*(?:=\s*[^,]+)?\s*,\s*\w+)*)\s*(?:=\s*([^,]+))?\s*$/.exec(line);
+        if (!declared) continue;
+        const width = integerBits(declared[1]!);
+        if (!width) continue;
+        for (const part of `${declared[2]}${declared[3] !== undefined ? ` = ${declared[3]}` : ''}`.split(',')) {
+          const [name, value] = part.split('=').map(text => text.trim());
+          if (!name || !/^\w+$/.test(name)) continue;
+          const initial = value !== undefined ? Number(value) : undefined;
+          fields.push({
+            name, bits: width,
+            ...(integerSigned(declared[1]!) ? { signed: true } : {}),
+            ...(initial !== undefined && Number.isFinite(initial) && initial !== 0 ? { initial } : {}),
+          });
+        }
+      }
+      if (!fields.length) continue;
+      const length = struct[3] !== undefined ? Number(struct[3]) : undefined;
+      if (struct[3] !== undefined && !Number.isInteger(length)) continue;
+      const entry = { name: struct[2]!, fields, ...(length ? { arrayLength: length } : {}) };
+      const existing = members.findIndex(candidate => candidate.name === entry.name);
       if (existing >= 0) members[existing] = entry;
       else members.push(entry);
     }
@@ -2778,7 +2810,14 @@ function emitCallbacks(
         if (['ASSERT_LINE', 'CLEAR_LINE', 'HOLD_LINE', 'PULSE_LINE'].includes(value)) return false;
         return /^(?:INPUT_LINE_[A-Z0-9_]+|M68K_IRQ_[1-7]|[A-Z][A-Z0-9_]*_INPUT_(?:LINE_)?[A-Z0-9_]+|[A-Z][A-Z0-9_]*(?:IRQ\d*|FIRQ\d*|NMI|RESET)_LINE|\w+::(?:IRQ\d*|FIRQ\d*|NMI|RESET)_LINE|\d+)$/.test(value);
       });
-      if (line) props.inputLine = line.trim();
+      // devcb's own signature says which argument is the line:
+      // `set_inputline(tag, linenum[, value])`. That reaches a core's line
+      // spelled any way its header likes (the 65C816's `G65816_LINE_IRQ`).
+      const positional = operation.args.length >= 2 && operation.args.length <= 3
+        ? operation.args[1]!.trim()
+        : undefined;
+      const named = line?.trim() ?? (positional && /^(?:\w+::)?[A-Za-z_]\w*$/.test(positional) ? positional : undefined);
+      if (named) props.inputLine = named;
     }
     if (operation.name === 'set_maincpu') {
       props.signal = 'nmi';
@@ -2876,7 +2915,7 @@ function handlerProps(
     // was never written and every button read as held down.
     body = expandMemberAliasMacros(body, [
       ...collectMemberAliasMacros(source), ...collectBitAliasMacros(source), ...collectMemberExpressionMacros(source)]);
-    body = expandFunctionMacros(body, collectParameterCallMacros(source));
+    body = expandFunctionMacros(body, [...collectParameterCallMacros(source), ...collectMemberAliasFunctionMacros(source)]);
     body = expandStatementMacros(body, ast.ast.units.find(unit => unit.file === fn.span.file)?.source ?? '');
     body = lowerDriverMemberPointers(body, ast.ast.units.flatMap(unit => unit.classes.map(declaration => declaration.name)));
     body = lowerOverloadedCalls(body, ast, fn.className);
@@ -3057,7 +3096,7 @@ export function constructorConfigCalls(
   const none = { calls: [], tags: [], clockConsumed: false };
   // `TYPE(config, ...)`, or the same wrapped to keep a reference:
   // `snapshot_image_device &snapshot(SNAPSHOT(config, "snapshot", "sna,z80"))`.
-  const added = /^\s*\w+\s*\(/.exec(addStatement) ?? /\b[A-Z][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
+  const added = /^\s*\w+\s*\(/.exec(addStatement) ?? /\b[A-Z_][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
   if (!added) return none;
   const open = addStatement.indexOf('(', added.index);
   let depth = 0;
@@ -3192,7 +3231,7 @@ export function constructorAggregate(
 ): { setter: string; name: string } | undefined {
   // The device-add call, which may be wrapped to keep a reference:
   // `discrete_sound_device &discrete(DISCRETE(config, "discrete", polepos_discrete))`.
-  const added = /\b[A-Z][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
+  const added = /\b[A-Z_][A-Z0-9_]*\s*\(\s*config\b/.exec(addStatement);
   const open = added ? addStatement.indexOf('(', added.index) : addStatement.indexOf('(');
   if (open < 0) return undefined;
   let close = -1;
@@ -3715,7 +3754,7 @@ function processorSlotCards(
       // A card that runs a program (the 1541), or one that carries a sound
       // chip (the Spectrum 128's AY8912 behind its AY slot): either is part
       // of the machine MAME builds and has to run with it.
-      const sounding = mconfig && [...mconfig.body.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,/g)]
+      const sounding = mconfig && [...mconfig.body.matchAll(/\b([A-Z_][A-Z0-9_]{2,})\s*\(\s*config\s*,/g)]
         .some(device => (hardware ??= indexMameHardware(mameSrc)).get(device[1]!)?.sourceFile.startsWith('src/devices/sound/'));
       if (!mconfig || (!/set_addrmap\s*\(\s*AS_PROGRAM\b/.test(mconfig.body) && !sounding)) continue;
       cards.set(key, {

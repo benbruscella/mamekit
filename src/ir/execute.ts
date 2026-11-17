@@ -268,6 +268,9 @@ export function attotimeSecondsMethod(seconds: number, method: string, args: rea
     case 'as_double': return seconds;
     case 'as_ticks': return Math.floor(seconds * Math.max(1, args[0] ?? 1));
     case 'as_attoseconds': return seconds * 1e18;
+    // The frequency the period is: the SNES PPU's device_reset reads its
+    // frame rate as `screen().frame_period().as_hz()`. Never is 0 Hz.
+    case 'as_hz': return seconds === Infinity || seconds === 0 ? 0 : 1 / seconds;
     case 'seconds': return Math.floor(seconds);
     case 'attoseconds': return (seconds - Math.floor(seconds)) * 1e18;
     default: return undefined;
@@ -3043,6 +3046,15 @@ function applyIdentifierCall(
     if (isIndexableMemory(operand)) {
       return (operand as { byteLength?: number }).byteLength ?? operand.length;
     }
+    // An element's size is its container's element width: `sizeof(sprite_list[0])`
+    // over a `u16 *` into a typed array is 2.
+    const indexed = expression.args[0];
+    if (indexed?.kind === 'index') {
+      const container = evaluate(indexed.object, context) as { BYTES_PER_ELEMENT?: number; generatedPointer?: boolean; source?: { BYTES_PER_ELEMENT?: number } };
+      const width = ArrayBuffer.isView(container) ? container.BYTES_PER_ELEMENT
+        : container?.generatedPointer ? container.source?.BYTES_PER_ELEMENT : undefined;
+      if (width) return width;
+    }
     return typeByteWidth(generatedExpressionName(expression.args[0]!));
   }
   if (name === 'ioport') return reference(`ioport:${String(args[0] ?? '')}`);
@@ -5246,13 +5258,20 @@ function memoryDelegate(
   // otherwise every Game Boy MBC read an address where it wanted a bank number.
   const declared = context.bindings.callParameters?.[method];
   const dataOnly = declared?.length === 1;
+  // Or one that takes the space first, `u8 snes20_lo_r(address_space &space,
+  // offs_t offset)`: MAME hands it the space it is installed in, then the
+  // offset. Handed the offset first, the SNES's cartridge read saw every
+  // address as 0xffff.
+  const spaced = /\baddress_space\s*&/.test(String(declared?.[0] ?? ''));
   // Named by the handler it binds, `cls.method`, so a board installing it
   // into a processor's space can decode it exactly as its address map would.
   const apply = (
     callee: (...values: number[]) => unknown,
   ): ((...values: number[]) => number) => Object.assign(
     (...values: number[]) =>
-      Number(callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0,
+      Number(spaced
+        ? callee(...([context.bindings.addressSpace?.() ?? 0, ...values] as number[]))
+        : callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0,
     { delegateHandler: qualified.name.replace('::', '.') },
   );
   const bound = target && typeof target === 'object'

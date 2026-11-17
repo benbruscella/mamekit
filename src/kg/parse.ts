@@ -1386,6 +1386,47 @@ export interface InstalledHandlerDef {
 }
 
 /**
+ * Whether the statement at `index` is one of several alternatives the running
+ * machine chooses between: inside a `switch` (a case), an `else`, or an `if`
+ * that has an `else`. A plain guard (`if (m_cartslot && m_cartslot->m_cart)`
+ * around the NES's installs) is not a choice and stays static.
+ */
+function installIsConditional(body: string, index: number): boolean {
+  const blank = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, m => ' '.repeat(m.length)).replace(/\/\/[^\n]*/g, m => ' '.repeat(m.length));
+  const full = blank(body);
+  const text = full.slice(0, index);
+  // The block opened at `open` chooses: a switch body, an else, or an if
+  // whose closing brace an `else` follows.
+  const chooses = (open: number): boolean => {
+    const trimmed = text.slice(Math.max(0, open - 400), open).trimEnd();
+    if (/\belse$/.test(trimmed)) return true;
+    if (!trimmed.endsWith(')')) return false;
+    let depth = 0;
+    let keyword = '';
+    for (let at = trimmed.length - 1; at >= 0; at--) {
+      if (trimmed[at] === ')') depth++;
+      else if (trimmed[at] === '(' && --depth === 0) { keyword = /\b(if|while|for|switch)\s*$/.exec(trimmed.slice(0, at))?.[1] ?? ''; break; }
+    }
+    if (keyword === 'switch') return true;
+    if (keyword !== 'if') return false;
+    let level = 0;
+    for (let at = open; at < full.length; at++) {
+      if (full[at] === '{') level++;
+      else if (full[at] === '}' && --level === 0) return /^\s*else\b/.test(full.slice(at + 1));
+    }
+    return false;
+  };
+  const stack: boolean[] = [];
+  for (let at = 0; at < text.length; at++) {
+    if (text[at] === '{') stack.push(chooses(at));
+    else if (text[at] === '}') stack.pop();
+  }
+  if (stack.some(Boolean)) return true;
+  const statementStart = Math.max(text.lastIndexOf(';'), text.lastIndexOf('{'), text.lastIndexOf('}')) + 1;
+  return /^(?:else\b|case\b|default\s*:)/.test(text.slice(statementStart).trimStart());
+}
+
+/**
  * Address-space handlers installed by a selected driver-init method.
  *
  * These are executable map overrides, not ordinary calls: MAME installs them
@@ -1429,6 +1470,15 @@ export function parseInstalledHandlers(
     const open = body.indexOf('(', match.index + match[0]!.lastIndexOf('install_'));
     const close = matchParen(body, open);
     if (close < 0) continue;
+    // An install a condition chooses is the running machine's to make: the
+    // SNES's machine_start installs the cartridge's handlers by
+    // `switch (m_cartslot->get_type())`, one board's windows in each case.
+    // Taken statically, every case's windows were in the map at once. The
+    // board runs machine_start and installs the one the cartridge picks.
+    if (installIsConditional(body, match.index)) {
+      pattern.lastIndex = close + 1;
+      continue;
+    }
     const args = splitArgs(body.slice(open + 1, close));
     const text = body.slice(open + 1, close);
     // A delegate names its method either through FUNC() in an address map or
@@ -1850,7 +1900,7 @@ function formatFinderTag(format: string, start: string, index: number): string {
   });
 }
 
-const DEVICE_MACRO_RE = /^(?:[\w]+\s+)?(?:&?\s*(\w+)\s*\(\s*)?([A-Z][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*([^,)]+)\s*(?:,\s*([^;]+?))?\)\s*\)?/;
+const DEVICE_MACRO_RE = /^(?:[\w]+\s+)?(?:&?\s*(\w+)\s*\(\s*)?([A-Z_][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*([^,)]+)\s*(?:,\s*([^;]+?))?\)\s*\)?/;
 
 /** The text between a brace at `open` and its partner, or undefined. */
 function braceBody(text: string, open: number): string | undefined {
@@ -2041,7 +2091,7 @@ export function parseMachineConfigs(
     // instead of spelling out each device (Mario's four sound latches). Expand
     // those declarations into the same source forms handled below.
     for (const loop of body.matchAll(
-      /for\s*\(\s*int\s+(\w+)\s*=\s*0\s*;\s*\1\s*<\s*(\d+)\s*;\s*\1\+\+\s*\)\s*([A-Z][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*(m_\w+)\s*\[\s*\1\s*\]\s*\)\s*;/g,
+      /for\s*\(\s*int\s+(\w+)\s*=\s*0\s*;\s*\1\s*<\s*(\d+)\s*;\s*\1\+\+\s*\)\s*([A-Z_][A-Z0-9_]{1,})\s*\(\s*config\s*,\s*(m_\w+)\s*\[\s*\1\s*\]\s*\)\s*;/g,
     )) {
       const count = Number(loop[2]);
       for (let index = 0; index < count; index++) {
@@ -2094,7 +2144,7 @@ export function parseMachineConfigs(
       //     config.replace(), m_maincpu, MASTER_CLOCK / 5));
       // It is not a second device; preserve the effective type/clock as an
       // inherited-device patch and let the per-game graph apply it.
-      const replacementHead = /^(?:\w+(?:_device)?\s*&\s*(\w+)\s*\(\s*)?\b([A-Z][A-Z0-9_]{1,})\s*\(\s*config\.replace\(\)\s*,/.exec(s);
+      const replacementHead = /^(?:\w+(?:_device)?\s*&\s*(\w+)\s*\(\s*)?\b([A-Z_][A-Z0-9_]{1,})\s*\(\s*config\.replace\(\)\s*,/.exec(s);
       const replacementOpen = replacementHead ? s.indexOf('(', s.indexOf(replacementHead[2]!) + replacementHead[2]!.length - 1) : -1;
       const replacementArgs = replacementOpen >= 0
         ? splitArgs(s.slice(replacementOpen + 1, matchParen(s, replacementOpen)))

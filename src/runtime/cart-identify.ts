@@ -170,6 +170,30 @@ export function cartImageFromSoftlistSet(
   catalog: SoftCatalog | null,
 ): { bytes: Uint8Array; entry: SoftEntry } | null {
   if (!catalog) return null;
+  // A merged set holds the parent's chips at its root and each clone's in a
+  // folder of its own (`smw.zip`: `spal-mw-1.u1`, `smwj/shvc-mw-0.u1`, ...):
+  // the parent is the root, and each folder is one more candidate.
+  const folders = new Map<string, Map<string, Uint8Array>>();
+  for (const [name, bytes] of files) {
+    const slash = name.lastIndexOf('/');
+    const folder = slash < 0 ? '' : name.slice(0, slash);
+    if (!folders.has(folder)) folders.set(folder, new Map());
+    folders.get(folder)!.set(name, bytes);
+  }
+  if (folders.size > 1) {
+    for (const folder of [...folders.keys()].sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)))) {
+      const found = cartImageFromSoftlistFiles(folders.get(folder)!, catalog);
+      if (found) return found;
+    }
+    return null;
+  }
+  return cartImageFromSoftlistFiles(files, catalog);
+}
+
+function cartImageFromSoftlistFiles(
+  files: Map<string, Uint8Array>,
+  catalog: SoftCatalog,
+): { bytes: Uint8Array; entry: SoftEntry } | null {
   const byCrc = new Map<string, Uint8Array>();
   for (const bytes of files.values()) {
     if (bytes.length) byCrc.set(hex8(crc32(bytes)), bytes);

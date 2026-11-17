@@ -166,6 +166,8 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
         || devices.some(device => mameDeviceUpdatesPartially(opts.mameSrc, String(device.props.type ?? '')))
         ? 'partial' as const
         : 'frame' as const,
+    ...((screenDev?.props.screenVideoAttributes as string[] | undefined)?.includes('VIDEO_VARIABLE_WIDTH')
+      ? { variableWidth: true as const } : {}),
     rotate: monitor === 'ROT90' ? 90 : monitor === 'ROT270' ? 270 : monitor === 'ROT180' ? 180 : 0,
   };
 

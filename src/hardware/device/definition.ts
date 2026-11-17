@@ -65,6 +65,14 @@ export const DEVICE_MAME_TYPES = [
   // m68kcpu.cpp's Musashi 68010 (MAME's own choice for it): its opcode table
   // built at start, an address error a C++ throw execute_run catches.
   'M68010',
+  // g65816.cpp's 65C816 as the SNES's Ricoh 5A22: one opcode table per M/X/E
+  // mode, each g65816oN.cpp build unit expanding g65816op.ipp under its own
+  // EXECUTION_MODE.
+  '_5A22',
+  // spc700.cpp's SPC700 as the SNES's S-SMP: its opcode switch written in
+  // token-pasting macros, read after the preprocessor; its RAM the driver's
+  // AS_DATA map.
+  'S_SMP',
   'AVG_BZONE',
   // Atari's motion-object engine, atarimo.cpp over sprite.h's sprite_device.
   'ATARI_MOTION_OBJECTS',

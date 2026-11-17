@@ -293,6 +293,8 @@ export interface GeneratedDeviceDefinition {
   constants: Record<string, number>;
   /** A core that stops between an instruction's cycles (device-compiler.ts). */
   suspendsMidInstruction?: true;
+  /** The member the core counts cycles in, set_icountptr's (device-compiler.ts). */
+  icountMember?: string;
   /** device_state_interface's state_add table (device-compiler.ts GeneratedDeviceStateEntry). */
   stateEntries?: { index: number; name: string; mask?: number; import?: true; export?: true; read: string; write: string }[];
   members: DeviceMember[];
@@ -404,6 +406,8 @@ export interface GeneratedDeviceDefinition {
 export type DeviceCallbackListener = (...args: number[]) => number | void;
 
 export interface Device {
+  /** The member an executing core counts its cycles in (`set_icountptr(m_ICount)`). */
+  readonly icountMember?: string;
   findDevice?(role: string): Device | undefined;
   imageExtensions?(): string[];
   /** `features` are the list part's, as `get_feature` answers them, when the image came from one. */
@@ -432,6 +436,8 @@ export interface Device {
    */
   bindAddressSpace?(index: number, read: (address: number) => number,
     write: (address: number, data: number) => void, wide?: WideSpaceAccess): void;
+  /** The owner's installers for one of the device's spaces (CpuBus.installers). */
+  bindSpaceInstallers?(index: number, installers: Readonly<Record<string, (...args: unknown[]) => number>>): void;
   /** The MAME address-space indices the device declares (memory_space_config). */
   spaceIndices?(): readonly number[];
   /** One declared space's config: its width, byte order and address shift. */
@@ -1290,6 +1296,10 @@ export function generatedInstanceFactories(): Map<string, (data: Record<string, 
 }
 
 class IrDevice implements Device {
+  /** The member the core counts cycles in (definition.icountMember, set_icountptr's). */
+  get icountMember(): string {
+    return this.definition.icountMember ?? 'm_icount';
+  }
   private readonly definition: GeneratedDeviceDefinition;
   private readonly members: Record<string, unknown> = {};
   private readonly memberBits = new Map<string, 1 | 8 | 16 | 32>();
@@ -1546,7 +1556,7 @@ class IrDevice implements Device {
                 : seedStruct(structMember(member.fields, definition.structs, structTypeName(member.valueType)), member.initialValue))
         : member.memory
         ? memoryMember(member, options, definition.structs, definition.spaces?.some(space => space.map) === true)
-        : member.values ? [...member.values]
+        : member.values ? allocatedArray(member.valueType, member.values as number[])
         // A multi-dimensional array needs its inner rows to exist before the
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
         // indexes a number otherwise, and the write goes nowhere.
@@ -1814,6 +1824,19 @@ class IrDevice implements Device {
       };
     }
     const palette: number[] = [];
+    // m_indirect_pens and m_indirect_colors, sized from the device's own
+    // palette_entries()/palette_indirect_entries() the first time one is used.
+    const indirect: { pens?: number[]; colors: number[] } = { colors: [] };
+    const indirectPens = (): number[] => {
+      if (!indirect.pens) {
+        const count = (name: string) => this.methodNames().includes(name) ? Number(this.call(name)) || 0 : 0;
+        const entries = count('palette_entries') || palette.length;
+        const colors = count('palette_indirect_entries');
+        indirect.pens = Array.from({ length: entries }, (_unused, pen) => colors ? pen % colors : 0);
+        indirect.colors = new Array<number>(colors).fill(0xff000000);
+      }
+      return indirect.pens;
+    };
     this.bindings = {
       members: this.members,
       pointerMembers: new Set(definition.members.filter(member => /\*\s*$/.test(member.valueType ?? '')).map(member => member.name)),
@@ -2037,7 +2060,7 @@ class IrDevice implements Device {
           return stream as unknown as number;
         },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
-          ? 0 : this.runningCycles - Number(this.members.m_icount)),
+          ? 0 : this.runningCycles - Number(this.members[this.icountMember])),
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
         // MAME `device_t::attotime_to_clocks`, the inverse. A chip that
         // measures an interval in its own clocks needs it: the Game Boy APU
@@ -2076,6 +2099,26 @@ class IrDevice implements Device {
           return 0;
         },
         pen_color: entry => palette[entry] ?? 0xff000000,
+        // device_palette_interface's indirection (dipalette.cpp): a pen names
+        // an indirect colour, `pen % indirect_entries` as allocate_palette
+        // starts it, and setting a colour updates every pen naming it. The
+        // SNES PPU is its own palette: 256 pens over 32768 BGR555 colours.
+        set_indirect_color: (index, rgb) => {
+          const color = (rgb! | 0xff000000) >>> 0;
+          const pens = indirectPens();
+          if (indirect.colors[index!] !== color) {
+            indirect.colors[index!] = color;
+            for (let pen = 0; pen < pens.length; pen++) if (pens[pen] === index) palette[pen] = color;
+          }
+          return 0;
+        },
+        set_pen_indirect: (pen, index) => {
+          indirectPens()[pen!] = index!;
+          palette[pen!] = indirect.colors[index!] ?? 0xff000000;
+          return 0;
+        },
+        indirect_color: index => { indirectPens(); return indirect.colors[index!] ?? 0xff000000; },
+        pen_indirect: pen => indirectPens()[pen!] ?? 0,
         // device_palette_interface::pen(i). With no indirection table MAME
         // points m_pens straight at the adjusted entry colours, so the pen a
         // device writes into a bitmap_rgb32 is the colour itself.
@@ -2784,23 +2827,23 @@ class IrDevice implements Device {
 
   /** device_execute_interface::total_cycles(), mid-slice included. */
   totalCyclesNow(): number {
-    return this.executedCycles + (this.runningCycles === undefined ? 0 : this.runningCycles - Number(this.members.m_icount));
+    return this.executedCycles + (this.runningCycles === undefined ? 0 : this.runningCycles - Number(this.members[this.icountMember]));
   }
 
   /** cpu_device::defer_access: the access waits for the next slice. */
   deferAccess(): void {
-    if (Number(this.members.m_icount) > 0) this.members.m_icount = 0;
+    if (Number(this.members[this.icountMember]) > 0) this.members[this.icountMember] = 0;
     this.accessToBeRedone = true;
   }
 
   /** cpu_device::access_before_time: wait until `access`, or defer when the slice cannot. */
   accessBeforeTime(access: number, current: number): boolean {
     const delta = (access - current) | 0;
-    if (Number(this.members.m_icount) <= delta) {
+    if (Number(this.members[this.icountMember]) <= delta) {
       this.deferAccess();
       return true;
     }
-    this.members.m_icount = Number(this.members.m_icount) - delta;
+    this.members[this.icountMember] = Number(this.members[this.icountMember]) - delta;
     return false;
   }
 
@@ -2810,8 +2853,8 @@ class IrDevice implements Device {
       this.accessBeforeDelayTag = undefined;
       return false;
     }
-    this.members.m_icount = Number(this.members.m_icount) - cycles;
-    if (Number(this.members.m_icount) <= 0) {
+    this.members[this.icountMember] = Number(this.members[this.icountMember]) - cycles;
+    if (Number(this.members[this.icountMember]) <= 0) {
       this.accessBeforeDelayTag = tag;
       this.accessToBeRedone = true;
       return true;
@@ -2821,7 +2864,7 @@ class IrDevice implements Device {
 
   /** cpu_device::access_after_delay. */
   accessAfterDelay(cycles: number): void {
-    this.members.m_icount = Number(this.members.m_icount) - cycles;
+    this.members[this.icountMember] = Number(this.members[this.icountMember]) - cycles;
   }
 
   runCycles(cycles: number): number {
@@ -2832,14 +2875,14 @@ class IrDevice implements Device {
       return charged;
     }
     if (!this.executeEntry) this.connectCall('execute_run', call => { this.executeEntry = call; });
-    this.members.m_icount = cycles;
+    this.members[this.icountMember] = cycles;
     this.runningCycles = cycles;
     let ran = cycles;
     try {
       this.executeEntry!();
     } finally {
       // An abort_timeslice took back what was left (runningCycles).
-      ran = this.runningCycles! - Number(this.members.m_icount);
+      ran = this.runningCycles! - Number(this.members[this.icountMember]);
       this.executedCycles += ran;
       this.runningCycles = undefined;
     }
@@ -2863,10 +2906,10 @@ class IrDevice implements Device {
    */
   abortTimeslice(): void {
     if (this.runningCycles === undefined) return;
-    const left = Number(this.members.m_icount);
+    const left = Number(this.members[this.icountMember]);
     if (left > 0) {
       this.runningCycles -= left;
-      this.members.m_icount = 0;
+      this.members[this.icountMember] = 0;
     }
   }
 
@@ -3240,6 +3283,12 @@ class IrDevice implements Device {
     space.read_byte = address => read(address & mask);
     space.write_byte = (address, data) => { write(address & mask, data & 0xff); return 0; };
     interruptible(space);
+  }
+
+  bindSpaceInstallers(index: number, installers: Readonly<Record<string, (...args: unknown[]) => number>>): void {
+    const space = this.deviceSpace(index) as unknown as Record<string, unknown> | undefined;
+    if (!space) return;
+    for (const [name, install] of Object.entries(installers)) space[name] ??= install;
   }
 
   dataAddressBits(): number | undefined {
@@ -3908,6 +3957,27 @@ function asBankBytes(
   }
   if (isGeneratedPointer(value)) return { source: value.source, offset: value.offset };
   return undefined;
+}
+
+/**
+ * A device's own heap array, `std::unique_ptr<uint16_t[]> m_cgram` made by
+ * `std::make_unique<uint16_t[]>(n)`: typed at its element's width, so it
+ * stores the way C++ does and a byte view of it (`(uint8_t *)m_cgram.get()`,
+ * how the SNES PPU writes its palette RAM a byte at a time) reinterprets the
+ * same memory. An element type that is no fixed-width integer stays a list.
+ */
+function allocatedArray(valueType: string | undefined, values: readonly number[]): number[] | ArrayLike<number> {
+  const element = /^std::unique_ptr\s*<\s*(?:const\s+)?([\w:]+)\s*\[\]\s*>$/.exec((valueType ?? '').trim())?.[1];
+  const widths: Record<string, [8 | 16 | 32, boolean]> = {
+    uint8_t: [8, false], u8: [8, false], int8_t: [8, true], s8: [8, true],
+    uint16_t: [16, false], u16: [16, false], int16_t: [16, true], s16: [16, true],
+    uint32_t: [32, false], u32: [32, false], int32_t: [32, true], s32: [32, true],
+  };
+  const width = element ? widths[element] : undefined;
+  if (!width) return [...values];
+  const array = integerArray(values.length, width[0], width[1]) as Uint8Array;
+  array.set(values);
+  return array;
 }
 
 function integerArray(length: number, bits: number | undefined, signed: boolean | undefined): number[] | ArrayLike<number> {
@@ -4903,9 +4973,17 @@ function mappedDeviceSpace(
       },
       // An 8-bit lambda is a byte handler whatever the bus width: the 68000's
       // autovectors answer on one byte lane of its CPU space.
+      // emumem's named overloads put a name after each lambda:
+      // `lrw8(rlambda, "data_r", wlambda, "data_w")` (the S-SMP's RAM window)
+      // beside `lrw8(NAME(rlambda), NAME(wlambda))`.
       lr8: handler => { chain.r!(handler); entry.words = false; return chain; },
       lw8: handler => { chain.w!(handler); entry.words = false; return chain; },
-      lrw8: (read, write) => { chain.rw!(read, write); entry.words = false; return chain; },
+      lrw8: (...handlers: unknown[]) => {
+        const [read, write] = handlers.length >= 4 ? [handlers[0], handlers[2]] : handlers;
+        chain.rw!(read, write);
+        entry.words = false;
+        return chain;
+      },
       ram: () => {
         if (sparse) { entry.storage = new Uint8Array(entry.end - entry.start + 1); entry.storageOffset = 0; }
         else { entry.storage = memory; entry.storageOffset = undefined; }

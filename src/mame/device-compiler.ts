@@ -253,6 +253,12 @@ export interface GeneratedDeviceDefinition {
    * device asks the time mid-instruction (generated-board catchUpDeviceTime).
    */
   suspendsMidInstruction?: true;
+  /**
+   * The member a core counts its cycles in, as its device_start hands it to
+   * the scheduler (`set_icountptr(m_ICount)`): the 65C816's and the SPC700's
+   * are `m_ICount`, most cores' `m_icount`.
+   */
+  icountMember?: string;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
@@ -515,6 +521,9 @@ export function compileMameDevice(
       /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {
       device.suspendsMidInstruction = true;
     }
+    const icount = device.sourceFiles.map(file => existsSync(join(mameSrc, file)) ? readFileSync(join(mameSrc, file), 'utf8') : '')
+      .map(text => /\bset_icountptr\s*\(\s*(m_\w+)\s*\)/.exec(stripCppComments(text))?.[1]).find(Boolean);
+    if (icount && icount !== 'm_icount') device.icountMember = icount;
   }
   return device;
 }
@@ -530,9 +539,33 @@ export function compileMameDevice(
 // eminline.h's portable multiply and divide helpers too (`mulu_32x32`, which
 // the TMS34010's MPYU uses): each sits under `#ifndef name`, the C version an
 // asm one only replaces with the same result.
-const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h', 'src/osd/osdcomm.h', 'src/osd/eminline.h'];
+const LIBRARY_INLINE_HEADERS = ['src/lib/util/endianness.h', 'src/osd/osdcomm.h', 'src/osd/eminline.h', 'src/lib/util/palette.h'];
 type LibraryInline = { parameters: string; body: string; file: string; line: number; returnType?: string };
 const LIBRARY_INLINES = new Map<string, Map<string, LibraryInline>>();
+/**
+ * Value templates among the library inlines, palette.h's `template <int
+ * NumBits> constexpr uint8_t palexpand(uint8_t bits)`: an instance is made
+ * when a call names one, as the handler IR spells `palexpand<5>(x)`,
+ * `palexpand_5(x)`.
+ */
+type LibraryTemplate = LibraryInline & { templateParameters: string[] };
+const LIBRARY_TEMPLATES = new Map<string, Map<string, LibraryTemplate>>();
+
+/** The library inline a call names: a plain one, or a value template's instance. */
+function libraryInline(mameSrc: string, name: string): LibraryInline | undefined {
+  const plain = libraryInlines(mameSrc).get(name);
+  if (plain) return plain;
+  const instance = /^(\w+?)((?:_\d+)+)$/.exec(name);
+  const template = instance && LIBRARY_TEMPLATES.get(mameSrc)?.get(instance[1]!);
+  if (!instance || !template) return undefined;
+  const values = instance[2]!.slice(1).split('_');
+  if (values.length !== template.templateParameters.length) return undefined;
+  let body = template.body;
+  template.templateParameters.forEach((parameter, index) => {
+    body = body.replace(new RegExp(`\\b${parameter}\\b`, 'g'), values[index]!);
+  });
+  return { ...template, body };
+}
 
 function libraryInlines(mameSrc: string): Map<string, LibraryInline> {
   const cached = LIBRARY_INLINES.get(mameSrc);
@@ -585,6 +618,29 @@ function libraryInlines(mameSrc: string): Map<string, LibraryInline> {
       // product is a signed 64-bit value.
       const converted = endian(body!).replace(/\breturn\s+([^;]+);/g, `return (${returnType})($1);`);
       found.set(name!, { parameters: parameters!.trim(), body: converted, file, line, returnType });
+    }
+    // A one-line helper over several parameters, palette.h's `constexpr rgb_t
+    // pal555(uint32_t data, uint8_t rshift, ...) { return rgbexpand<5,5,5>(...); }`.
+    for (const match of text.matchAll(/^[ \t]*constexpr\s+(rgb_t|u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(([^()]*)\)\s*\{\s*return\s+([^;]+);\s*\}/gm)) {
+      const [, returnType, name, parameters, value] = match;
+      if (found.has(name!)) continue;
+      const line = lines.findIndex(candidate => new RegExp(`\\b${name}\\s*\\(`).test(candidate)) + 1;
+      const body = returnType === 'rgb_t' ? `return ${endian(value!)};` : `return (${returnType})(${endian(value!)});`;
+      found.set(name!, { parameters: parameters!.trim(), body, file, line, ...(returnType === 'rgb_t' ? {} : { returnType }) });
+    }
+    // A value template: `template <int RBits, int GBits, int BBits>\nconstexpr
+    // rgb_t rgbexpand(...)\n{ ... }`.
+    for (const match of text.matchAll(/^[ \t]*template\s*<((?:\s*int\s+\w+\s*,?)+)>\s*\n[ \t]*constexpr\s+(rgb_t|u?int(?:8|16|32|64)_t)\s+(\w+)\s*\(([^()]*)\)\s*\n\{([\s\S]*?)\n\}/gm)) {
+      const [, templateParameters, returnType, name, parameters, body] = match;
+      const line = lines.findIndex(candidate => new RegExp(`\\b${name}\\s*\\(`).test(candidate)) + 1;
+      const converted = returnType === 'rgb_t' ? endian(body!) : endian(body!).replace(/\breturn\s+([^;]+);/g, `return (${returnType})($1);`);
+      const templates = LIBRARY_TEMPLATES.get(mameSrc) ?? new Map<string, LibraryTemplate>();
+      LIBRARY_TEMPLATES.set(mameSrc, templates);
+      templates.set(name!, {
+        parameters: parameters!.trim(), body: converted, file, line,
+        ...(returnType === 'rgb_t' ? {} : { returnType }),
+        templateParameters: templateParameters!.split(',').map(parameter => parameter.trim().split(/\s+/).at(-1)!),
+      });
     }
   }
   LIBRARY_INLINES.set(mameSrc, found);
@@ -690,14 +746,14 @@ function markDeviceWidePrecision(mameSrc: string, device: GeneratedDeviceDefinit
 
 /** A library inline the device calls and does not define, added as one of its methods. */
 function attachLibraryFunctions(mameSrc: string, device: GeneratedDeviceDefinition): void {
-  const inlines = libraryInlines(mameSrc);
-  if (!inlines.size) return;
+  if (!libraryInlines(mameSrc).size) return;
+  const inlines = { has: (name: string) => libraryInline(mameSrc, name) !== undefined, get: (name: string) => libraryInline(mameSrc, name) };
   const defined = new Set(device.methods.map(method => method.name));
   const wanted = new Set<string>();
   for (const method of device.methods) {
     walkExpressions(method.program.operations, expression => {
       if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
-          inlines.has(expression.callee.name) && !defined.has(expression.callee.name)) wanted.add(expression.callee.name);
+          !defined.has(expression.callee.name) && inlines.has(expression.callee.name)) wanted.add(expression.callee.name);
     });
   }
   // An inline that calls another brings it too (little_endianize_int32's
@@ -940,8 +996,11 @@ function preprocessedSources(
     [join(dirname(from), path), join('src/devices', path), join('src/mame', path)]
       .find(file => existsSync(join(mameSrc, file)));
   const hierarchy = device.hierarchy ?? [device.className];
-  const entries = device.sourceFiles.filter(file =>
-    file.endsWith('.cpp') && hierarchy.some(className => read(file).includes(`${className}::`)));
+  const entries = device.sourceFiles.filter(file => {
+    if (!file.endsWith('.cpp')) return false;
+    const unit = buildUnitText(mameSrc, file);
+    return hierarchy.some(className => unit.includes(`${className}::`));
+  });
   const nonHeader = entries.some(entry => includes(entry).some(path => !path.endsWith('.h')));
   // A non-header that defines macros the entry itself is written in
   // (z80.inc's `#define PC m_pc.w`), as opposed to one that is data with
@@ -992,7 +1051,25 @@ function preprocessedSources(
       classes: hierarchy,
     });
   });
-  if (!nonHeader && !foreignMacros && !calledForeign.size && !definesMethods) return undefined;
+  // Or an entry written in what only the preprocessor resolves: macros that
+  // paste tokens (spc700.cpp's `OPER_8_##MODE()`, 63 of them behind every
+  // opcode), or a directive inside a function body (its `#if
+  // !SPC700_OPTIMIZE_SNES` in SET_FLAG_I). Read as written, both are
+  // statements no C++ parser can take.
+  const preprocessorWritten = entries.some(entry => {
+    const own = stripCppComments(read(entry)).replace(/\\\r?\n/g, ' ');
+    if (/^\s*#\s*define\s+\w+\([^)]*\)[^\n]*##/m.test(own)) return true;
+    let depth = 0;
+    for (const line of own.split('\n')) {
+      if (depth > 0 && /^\s*#\s*(?:if|ifdef|ifndef)\b/.test(line)) return true;
+      for (const char of line.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g, '')) {
+        if (char === '{') depth++;
+        else if (char === '}') depth = Math.max(0, depth - 1);
+      }
+    }
+    return false;
+  });
+  if (!nonHeader && !foreignMacros && !calledForeign.size && !definesMethods && !preprocessorWritten) return undefined;
   const transform = (file: string, source: string) => transforms.reduce((current, step) => step(file, current), source);
   return Object.assign(transform, { foreignMacros, foreignNames: calledForeign, nonHeader, nonHeaderMacros });
 }
@@ -2505,7 +2582,7 @@ function compileMameDeviceSource(
     const known = indexMameHardware(mameSrc);
     // An element of a device array is added the same way, in a loop over the
     // array: `Z80CTC_CHANNEL(config, m_channel[ch])`.
-    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)(?:\s*\[[^\]]*\])?/g)) {
+    for (const match of mconfig.matchAll(/\b([A-Z_][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)(?:\s*\[[^\]]*\])?/g)) {
       const [, childType, member] = match;
       if (!childType || !member || nested.has(childType)) continue;
       if (children.some(existing => existing.member === member)) continue;
@@ -2594,7 +2671,7 @@ function compileMameDeviceSource(
       tags?.forEach((tag, index) => byTag.set(tag, { member: member.name, index, count: tags.length }));
     }
     const tagged = new Map<string, { type: string; tags: string[] }>();
-    for (const match of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*"([^"]+)"\s*\)/g)) {
+    for (const match of mconfig.matchAll(/\b([A-Z_][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*"([^"]+)"\s*\)/g)) {
       const owner = byTag.get(match[2]!);
       if (!owner || nested.has(match[1]!) || children.some(existing => existing.member === owner.member)) continue;
       const entry = tagged.get(owner.member) ?? { type: match[1]!, tags: new Array<string>(owner.count) };
@@ -2663,9 +2740,20 @@ function compileMameDeviceSource(
     const bare = method.name.split('::').at(-1)!;
     const own = splitMameArgs(method.parameters).map(parameter => parameter.trim()).filter(Boolean);
     if (!own.length || own.every(parameter => parameter.includes('='))) continue;
+    // A numeric function-template instance (`read_bwram<true>` is
+    // `read_bwram_1`) takes the defaults its template declares: the SA-1's
+    // `template<bool SA1Read> u8 read_bwram(offs_t offset, bool bitmap = false);`.
+    const template = bare.replace(/(?:_\d+)+$/, '');
     for (const className of [...hierarchy].reverse()) {
       const body = stripCppComments(classes.get(className)?.body ?? '');
-      const declared = [...body.matchAll(new RegExp(`\\b${bare}\\s*\\(([^;{}]*)\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?(?:override\\s*)?(?:ATTR_\\w+\\s*)?;`, 'g'))]
+      const tail = `\\s*\\(([^;{}]*)\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?(?:override\\s*)?(?:ATTR_\\w+\\s*)?;`;
+      const declarations = [
+        ...body.matchAll(new RegExp(`\\b${bare}${tail}`, 'g')),
+        ...(template !== bare
+          ? body.matchAll(new RegExp(`\\btemplate\\s*<[^<>;{}]*>\\s*[\\w:<>*&\\s]*?\\b${template}${tail}`, 'g'))
+          : []),
+      ];
+      const declared = declarations
         .map(match => splitMameArgs(match[1]!).map(parameter => parameter.trim()).filter(Boolean))
         .find(parameters => parameters.length === own.length && parameters.some(parameter => parameter.includes('=')));
       if (!declared) continue;
@@ -4537,15 +4625,41 @@ function buildUnitSiblings(mameSrc: string, sourceFile: string, className: strin
   const block = blocks.find(files => files.includes(sourceFile));
   if (!block) return [];
   const header = `${basename(sourceFile, extname(sourceFile))}.h`;
-  const bare = className.split('::').at(-1)!;
+  // The class itself, or any class its own header declares: the 5A22 is a
+  // g65816_device, whose opcode handlers are the siblings' methods.
+  const headerPath = join(mameSrc, dirname(sourceFile), header);
+  const declared = existsSync(headerPath)
+    ? [...stripCppComments(readFileSync(headerPath, 'utf8')).matchAll(/^\s*class\s+(\w+)\b[^;]*$/gm)].map(match => match[1]!)
+    : [];
+  const names = [...new Set([className.split('::').at(-1)!, ...declared])];
   // A method, or a static member defined there: m68000-decode.cpp holds only
   // `m68000_device::s_packed_decode_table[]`.
-  const definesMethod = new RegExp(`^[^\\n;{}]*\\b${bare}::~?\\w+\\s*[(\\[=]`, 'm');
+  const definesMethod = new RegExp(`^[^\\n;{}]*\\b(?:${names.join('|')})::~?\\w+\\s*[(\\[=]`, 'm');
   return block.filter(file => file !== sourceFile && file.endsWith('.cpp') &&
     dirname(file) === dirname(sourceFile) && existsSync(join(mameSrc, file)) && (() => {
       const text = readFileSync(join(mameSrc, file), 'utf8');
-      return new RegExp(`^\\s*#\\s*include\\s+"${header.replace(/\./g, '\\.')}"`, 'm').test(text) && definesMethod.test(text);
+      return new RegExp(`^\\s*#\\s*include\\s+"${header.replace(/\./g, '\\.')}"`, 'm').test(text) &&
+        definesMethod.test(buildUnitText(mameSrc, file));
     })());
+}
+
+/**
+ * A build unit as the compiler sees its code: the file and the code it
+ * includes from its own directory (`.ipp`, `.hxx`, `.inc`), in order. Each of
+ * g65816o0.cpp..o4.cpp is three lines -- `#define EXECUTION_MODE ...` and
+ * `#include "g65816op.ipp"` -- and every opcode handler is in that .ipp.
+ */
+function buildUnitText(mameSrc: string, file: string, seen = new Set<string>()): string {
+  if (seen.has(file)) return '';
+  seen.add(file);
+  const path = join(mameSrc, file);
+  if (!existsSync(path)) return '';
+  const text = readFileSync(path, 'utf8');
+  const parts = [text];
+  for (const match of stripCppComments(text).matchAll(/^\s*#\s*include\s+"([^"/]+\.(?:ipp|hxx|inc))"/gm)) {
+    parts.push(buildUnitText(mameSrc, join(dirname(file), match[1]!), seen));
+  }
+  return parts.join('\n');
 }
 
 function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
@@ -5159,6 +5273,11 @@ function compileMethod(
   // every later `m_cprogram13.read_byte(a)` reads through it. The accessor is
   // the space as far as the generated device is concerned.
   body = body.replace(
+    // Or chosen between two spaces: the 65C816's `(has_space(AS_OPCODES) ?
+    // space(AS_OPCODES) : space(AS_PROGRAM)).cache(m_opcode);`.
+    /(?<=^|[;{}])(\s*)\(\s*([^;{}]*?\?\s*space\s*\([^()]*\)\s*:\s*space\s*\([^()]*\))\s*\)\s*\.\s*(?:cache|specific)\s*\(\s*(m_\w+(?:\s*(?:->|\.)\s*\w+)*)\s*\)\s*;/g,
+    '$1$3 = ($2);',
+  ).replace(
     // The space may be chosen in place: the 6800 fetches opcodes through
     // `space(has_space(AS_OPCODES) ? AS_OPCODES : AS_PROGRAM).cache(m_copcodes)`.
     // Or a field of an object the device holds: the 6809 reads memory
@@ -6856,7 +6975,7 @@ function deviceAddressSpaces(
       // and a CPU's owner maps the rest of the space (internal first, so it
       // takes priority, as address_map's constructor has it).
       const { map: _map, ...facts } = config;
-      spaces.push({ index, ...facts, map: config.map });
+      spaces.push({ index, ...facts, map: config.map, ...(conditional.has(index) ? { conditional: true as const } : {}) });
       continue;
     }
     const [start, end] = splitMameArgs(statements[0]![1]!)
@@ -6865,7 +6984,7 @@ function deviceAddressSpaces(
     // bytes at 0x0000, its owner's map around them.
     if (start !== 0 || end !== (1 << config.addressBits) - 1) {
       const { map: _map, ...facts } = config;
-      spaces.push({ index, ...facts, map: config.map });
+      spaces.push({ index, ...facts, map: config.map, ...(conditional.has(index) ? { conditional: true as const } : {}) });
       continue;
     }
     spaces.push({
@@ -6876,6 +6995,7 @@ function deviceAddressSpaces(
       ...(config.endianness ? { endianness: config.endianness } : {}),
       ...(config.addressShift ? { addressShift: config.addressShift } : {}),
       ram: true,
+      ...(conditional.has(index) ? { conditional: true as const } : {}),
     });
   }
   return spaces;

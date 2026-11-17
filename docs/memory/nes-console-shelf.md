@@ -18,7 +18,7 @@ generated machine so they cannot drift:
 - a verified dump in the bucket, which is what the shelf's "⌕ Search" button
   fetches (`carts.json` / `_manifest.json`);
 - a box scan at `.data/artwork/carts/nes/<dump>.sticker.png`, fetched by
-  `tools/nes-cart-art.ts` from libretro-thumbnails. `make cart-art-all` /
+  `tools/cart-art.ts` from libretro-thumbnails. `make cart-art-all` /
   `make cart-art-check` in `.data/` wrap it.
 
 The support list names the parent; the shelf keys art and the fetch button off

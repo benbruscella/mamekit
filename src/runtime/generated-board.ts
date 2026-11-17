@@ -887,6 +887,9 @@ class IrBoard implements Board {
             (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
+          // screen_device::frame_period(), in the seconds an attotime is held
+          // in: the SNES PPU's device_reset times its first frame by it.
+          frame_period: () => this.lineSeconds() * Math.max(1, machine.execution.screen.vtotal),
           priority: () => this.videoPrimitives?.screenPriority?.() ?? 0,
           // MAME `screen_device::visible_area()`: the window inside the raster
           // that reaches the display, in the same coordinates a device plots.
@@ -1962,6 +1965,30 @@ class IrBoard implements Board {
           calls[`${name}.${method}`] ??= call as (...args: number[]) => unknown;
         }
       }
+      // A call through a slot's card member reaches the card mounted there:
+      // the SNES driver's `m_cartslot->m_cart->get_rom_size()`. The member
+      // itself stays hidden from the referent (see below), so a driver's
+      // `if (m_cartslot->m_cart)` keeps the answer it has always had.
+      const slot = specification ? generatedDeviceDefinition(generatedDeviceKey(specification))?.slot : undefined;
+      if (slot) {
+        const cardMethods = new Set(Object.values(slot.options).flatMap(card => card.methods.map(method => method.name)));
+        for (const method of slot.cardInterface?.methods ?? []) cardMethods.add(method.name);
+        const card = () => (device.instance?.() as Record<string, unknown> | undefined)?.[slot.member] as
+          Record<string, unknown> | undefined;
+        for (const method of cardMethods) {
+          const viaCard = (...args: unknown[]) => {
+            const target = card()?.[method];
+            if (typeof target !== 'function') {
+              noteUnresolvedCall(`${slot.member}.${method}`);
+              return 0;
+            }
+            return (target as (...values: unknown[]) => unknown)(...args);
+          };
+          for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
+            calls[`${name}.${slot.member}.${method}`] ??= viaCard as (...args: number[]) => unknown;
+          }
+        }
+      }
       const lag = this.deviceAccessLag(device);
       for (const method of device.methodNames()) {
         const accessed = lag !== undefined && (method === 'read' || method === 'write');
@@ -2427,6 +2454,12 @@ class IrBoard implements Board {
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const screenSpec = machine.execution.screen;
       const cpuBus: CpuBus = {
+        installers: {
+          ...installers(),
+          unmap_read: (...args: unknown[]) => unmapFrom(true, false)(Number(args[0]), Number(args[1]), Number(args[2] ?? 0)),
+          unmap_write: (...args: unknown[]) => unmapFrom(false, true)(Number(args[0]), Number(args[1]), Number(args[2] ?? 0)),
+          unmap_readwrite: (...args: unknown[]) => unmapFrom(true, true)(Number(args[0]), Number(args[1]), Number(args[2] ?? 0)),
+        },
         // Exactly the callbacks `signal` below would run for this processor.
         boundSignals: new Set(machine.callbacks
           .filter(callback => callback.ownerTag === specification.tag)
@@ -2819,9 +2852,9 @@ class IrBoard implements Board {
       ...(device.runCycles ? { direct: device as Device & { runCycles(cycles: number): number } } : {}),
       run: (cycles: number) => {
         if (device.runCycles) return device.runCycles(cycles);
-        device.set('m_icount', cycles);
+        device.set(device.icountMember ?? 'm_icount', cycles);
         device.call('execute_run');
-        return cycles - device.get('m_icount');
+        return cycles - device.get(device.icountMember ?? 'm_icount');
       },
     });
     const executionCpuTags = new Set(machine.execution.cpus.map(cpu => cpu.tag));
@@ -4859,7 +4892,7 @@ class IrBoard implements Board {
     const round = this.roundDevices.get(tag);
     if (!round) return undefined;
     const running = round.running
-      ? round.running.target - Number(round.running.device.get('m_icount'))
+      ? round.running.target - Number(round.running.device.get(round.running.device.icountMember ?? 'm_icount'))
       : 0;
     return (round.cycles + running) / Math.max(1, this.devices.get(tag)!.cycleClock());
   }
@@ -6374,6 +6407,27 @@ export function generatedStateSetters(
   for (const member of members) {
     if (member.delegate) {
       state[member.name] ??= null;
+      continue;
+    }
+    // A struct member: each element an object whose fields keep their
+    // declared widths, as C++ stores them (a DMA channel's uint16_t
+    // src_addr wraps as it counts).
+    if (member.fields) {
+      const fields = member.fields;
+      const element = (): Record<string, number> => {
+        const values: Record<string, number> = {};
+        const object: Record<string, number> = {};
+        for (const field of fields) {
+          values[field.name] = generatedStateWidth(field.initial ?? 0, field.bits, field.signed);
+          Object.defineProperty(object, field.name, {
+            enumerable: true,
+            get: () => values[field.name]!,
+            set: (value: number) => { values[field.name] = generatedStateWidth(Number(value) || 0, field.bits, field.signed); },
+          });
+        }
+        return object;
+      };
+      state[member.name] ??= member.arrayLength ? Array.from({ length: member.arrayLength }, element) : element();
       continue;
     }
     // C++ fixed arrays exist zero-initialized before their first write. A
