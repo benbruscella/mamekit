@@ -168,3 +168,5 @@
 - [In-slice cycles #254](in-slice-cycles-254.md) — compiled cores report cycles only at slice end; beam reads must add elapsedCycles()
 - [Scheduler bound #255](scheduler-bound-255.md) — 250 us fallback deleted; seven gaps it hid (cross-CPU timers, synchronize order, mixer, abort clock); marble was a `u32&` setter bug; open leftovers
 - [mamekit compare commands](mamekit-compare-commands.md) — #260: `mamekit against|record|compare|show`, no separate mkt, .env paths, MAME cache in .mamekit/mame
+- [Epic 178 closed](epic-178-closed.md) — #266: architecture.spec guards must find nothing; RETIRED_MODULES/RETIRED_NAMES
+- [Closure pool #265](closure-pool-265.md) — closure was serial main-thread lowering; pool + 2 hot spots 564→103 s, verify by byte-diffing a scratch cold build
