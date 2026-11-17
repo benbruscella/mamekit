@@ -36,14 +36,14 @@ export const qix = sourceTarget({
       300: { video: '7b0b7216', state: '324ce4bd' },
       480: { video: 'f39b292d', state: '3377c50c' },
       600: { video: 'fabd3c10', state: 'b0335432' },
-      900: { video: '88486e1d', state: '0ee232fa' },
+      900: { video: 'd9a33d70', state: 'fcc245ba' },
     },
     audio: {
       writes: 902603,
       nonzeroWrites: 902359,
-      writeHash: '46520a15',
-      pcmHash: '3bbf0933',
-      rms: 0.097377,
+      writeHash: '8105dc4b',
+      pcmHash: 'e63d0c04',
+      rms: 0.09251,
     },
   },
 });

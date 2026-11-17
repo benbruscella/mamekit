@@ -303,6 +303,11 @@ export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
   members?: Record<string, unknown>;
   /**
+   * The emitted bodies of this handler's lambdas, by lambda node: an
+   * interpreted handler still installs emitted code (see compiledLambdaKey).
+   */
+  compiledLambdas?: ReadonlyMap<object, (...args: unknown[]) => unknown>;
+  /**
    * Members declared as pointers (`PAIR16 *m_reg16`): assigning one aims it,
    * never copies into what it points at, though that is a struct.
    */
@@ -972,6 +977,37 @@ function preparedHandlerRuntime(
  * the first handlers have already run, and a copy would freeze every later
  * handler on the pre-merge view.
  */
+/**
+ * A program's lambdas, in one fixed order (depth first, fields in order), so
+ * the board emitter and the interpreter number them alike.
+ */
+export function programLambdas(operations: readonly unknown[]): Extract<GeneratedExpression, { kind: 'lambda' }>[] {
+  const found: Extract<GeneratedExpression, { kind: 'lambda' }>[] = [];
+  const visit = (value: unknown): void => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+      return;
+    }
+    if ((value as { kind?: string }).kind === 'lambda') found.push(value as Extract<GeneratedExpression, { kind: 'lambda' }>);
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(operations);
+  return found;
+}
+
+/**
+ * The name an emitted lambda of a driver handler is compiled under:
+ * `snes_console_state.machine_start__lambda1` is the cartridge tap
+ * machine_start installs on every 65C816 access. The handler itself may stay
+ * interpreted (a lifecycle method runs once); what it installs runs millions
+ * of times, and is emitted on its own when its body needs nothing of the
+ * enclosing scope.
+ */
+export function compiledLambdaKey(ownerClass: string, method: string, index: number): string {
+  return `${ownerClass}.${method}__lambda${index}`;
+}
+
 function machineHandlerBindings(
   machine: BoardIr,
   handler: GeneratedHandler,
@@ -994,6 +1030,15 @@ function machineHandlerBindings(
       concreteDeviceMembers: prepared.concreteDeviceMembers,
     },
   );
+  const lambdas = handler.program ? programLambdas(handler.program.operations) : [];
+  const compiledLambdas = new Map<object, (...args: unknown[]) => unknown>();
+  lambdas.forEach((lambda, index) => {
+    const compiled = machine.compiledHandlers?.[compiledLambdaKey(handler.ownerClass, handler.method, index)];
+    if (!compiled || lambda.captures?.length) return;
+    compiledLambdas.set(lambda, (...args: unknown[]) =>
+      compiled(currentHandlerRuntime(prepared, bindings), ...args.map(argument => isLValue(argument) ? argument.get() : argument)));
+  });
+  if (compiledLambdas.size) created.compiledLambdas = compiledLambdas;
   prepared.handlerBindings.set(handler, created);
   return created;
 }
@@ -2384,6 +2429,12 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     // resolvable there -- with its parameters bound over the top. An unnamed
     // parameter keeps its position and binds nothing.
     const { parameters, body } = expression;
+    const emitted = context.bindings.compiledLambdas?.get(expression);
+    if (emitted) {
+      const call = (...args: unknown[]): unknown => emitted(...args);
+      Object.defineProperty(call, 'declaredParameters', { value: parameters.length });
+      return call;
+    }
     // Init-captures are evaluated here, where the lambda is written, exactly
     // once -- which is what C++ does and what MAME relies on: the captured
     // pointer is taken before the loop that calls the lambda begins.

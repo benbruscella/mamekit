@@ -157,6 +157,31 @@ export function generatedHandlerRegistry(
 }
 
 /**
+ * A registry entry for a driver handler the machine installs at run time,
+ * `install_read_handler(..., read8m_delegate(*this, FUNC(cls::method)))`,
+ * built exactly as a map range's is -- so an emitted handler runs emitted. The
+ * SNES installs every cartridge window this way in machine_start, and wrapping
+ * the interpreter's delegate instead ran each cartridge read interpreted.
+ */
+export function installedHandlerEntry(
+  machine: BoardIr,
+  registry: HandlerRegistry,
+  direction: 'read' | 'write',
+  key: string,
+  bindings: GeneratedHandlerBindings,
+  cpuTag: string | undefined,
+): boolean {
+  if (registry[direction][key]) return true;
+  const handler = machine.handlers?.find(candidate =>
+    `${candidate.ownerClass}.${candidate.method}` === key &&
+    candidate.program && candidate.program.diagnostics.length === 0);
+  if (!handler) return false;
+  if (direction === 'read') registry.read[key] = makeReadHandler(machine, handler, bindings, cpuTag);
+  else registry.write[key] = makeWriteHandler(machine, handler, bindings, cpuTag);
+  return true;
+}
+
+/**
  * MAME's `address_space &space` handler parameter, when the source declares
  * one. Congo Bongo's sprite DMA reads its source list straight out of the
  * program space through it.

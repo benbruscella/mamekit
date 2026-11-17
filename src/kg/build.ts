@@ -907,6 +907,9 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // Qix's three processors share RAM through a handshake that will not
     // survive anything coarser.
     const perfectQuantum = /\bset_perfect_quantum\s*\(/.test(cfg.raw);
+    // The device it names (`m_maincpu`, `"u7"`): the quantum is that
+    // device's minimum_quantum(), one of its cycles times execute_min_cycles.
+    const perfectQuantumDevice = /\bset_perfect_quantum\s*\(\s*([^()]+?)\s*\)/.exec(cfg.raw)?.[1];
     // MAME `machine_config::set_maximum_quantum(attotime::from_hz(N))`: no
     // timeslice is longer than 1/N s. Donkey Kong asks for 60 kHz "for
     // I8257", whose transfers hold the Z80's bus. Only a literal rate is a
@@ -1012,6 +1015,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         ? { memoryBanks: driverMemoryBanks(ast, cfg.cls, memberTags).map(bank => JSON.stringify(bank)) }
         : {}),
       ...(perfectQuantum ? { perfectQuantum: true } : {}),
+      ...(perfectQuantumDevice ? { perfectQuantumDevice } : {}),
       ...(maximumQuantum ? { maximumQuantum } : {}),
       ...(driverTimers.length ? { driverTimers } : {}),
       ...(resetHandlers.length ? { resetHandlers } : {}),

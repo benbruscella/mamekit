@@ -383,7 +383,7 @@ export async function runGameAcceptance(
   options.onBoard?.({ board, boardConfig, config, input });
 
   const audio = await createAudioProbe(config, outRoot);
-  const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
+  let framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
   const checkpoints: GameAcceptanceGolden['checkpoints'] = {};
   const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
   // --- save-state round trip (machine-state.ts) ------------------------------
@@ -481,6 +481,8 @@ export async function runGameAcceptance(
     typing?.tick(1 / config.board.screen.refresh);
     input.advance();
     traceLog.length = 0;
+    // A screen a device reconfigured takes its new visible area here.
+    if (framebuffer.length !== board.fbWidth * board.fbHeight) framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
     board.frame(framebuffer);
     step++;
     if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {

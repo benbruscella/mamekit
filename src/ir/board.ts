@@ -797,6 +797,12 @@ export interface GeneratedExecutionPlan {
    */
   perfectQuantum?: boolean;
   /**
+   * The processor `set_perfect_quantum` names. MAME's quantum is its
+   * minimum_quantum(): one of its cycles times its execute_min_cycles(), and
+   * each round every processor runs the whole cycles of its own that fit.
+   */
+  perfectQuantumTag?: string;
+  /**
    * MAME `machine_config::set_maximum_quantum`, in seconds: no timeslice is
    * longer. Read where a processor waits on the next timeslice (a core
    * parked for BUSREQ looks again when it starts).

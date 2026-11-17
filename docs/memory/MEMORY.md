@@ -171,3 +171,6 @@
 - [Epic 178 closed](epic-178-closed.md) — #266: architecture.spec guards must find nothing; RETIRED_MODULES/RETIRED_NAMES
 - [Closure pool #265](closure-pool-265.md) — closure was serial main-thread lowering; pool + 2 hot spots 564→103 s, verify by byte-diffing a scratch cold build
 - [SNES #174 decisions](snes-174-decisions.md) — ONE PR, stereo in phase 2, IPL at consoles/snes/bios/spc700.rom
+- [Worktree PR hooks](worktree-pr-hooks.md) — changelog hook checks the session cwd; EnterWorktree before gh pr create
+- [S-DSP silence gaps](sdsp-silence-gaps.md) — devcb offset, space() default, const pointers into tables (#174)
+- [Save-state shared arrays](save-state-shared-arrays.md) — pointer-into-table members save as aliases; tables built first

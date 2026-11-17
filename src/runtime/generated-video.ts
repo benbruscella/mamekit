@@ -138,6 +138,21 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     if (this.indexed) this.penBuffer = new Uint32Array(this.width * this.height);
   }
 
+  /**
+   * screen_device::configure with a visible area of another size: the SNES
+   * PPU's dynamic_res_change shows 240 lines when the game turns overscan on.
+   * Applied between frames, so the frame drawn is the shape it was drawn in.
+   */
+  resize(width: number, height: number): void {
+    (this as { width: number }).width = width;
+    (this as { height: number }).height = height;
+    (this.primitives as { width: number }).width = width;
+    (this.primitives as { height: number }).height = height;
+    if (this.indexed) (this as unknown as { penBuffer?: Uint32Array }).penBuffer = new Uint32Array(width * height);
+    this.partialNextY = this.machine.execution.screen.yOffset ?? 0;
+    this.nowNextY = this.partialNextY;
+  }
+
   vblank(): void {
     this.primitives.vblank();
   }

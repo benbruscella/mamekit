@@ -1486,7 +1486,17 @@ class IrDevice implements Device {
       overloads.push(method);
       this.methods.set(method.name, overloads);
     }
-    for (const member of definition.members) {
+    // A device's constant tables are made first. A save captures an object
+    // shared by two members once, by value at the first and as an alias at
+    // the second, so a pointer into a table (the 65C816's `m_opcodes`, aimed
+    // at one of five mode tables) must come second: it is then restored by
+    // being aimed again, where coming first it was restored by writing the
+    // saved mode's opcodes into whichever table it pointed at.
+    const ordered = [
+      ...definition.members.filter(member => member.valueType === 'table'),
+      ...definition.members.filter(member => member.valueType !== 'table'),
+    ];
+    for (const member of ordered) {
       const inputTag = member.finder?.kind === 'input'
         ? [options.tag, member.finder.tag].filter(Boolean).join(':')
         : undefined;
@@ -2165,7 +2175,9 @@ class IrDevice implements Device {
         // `space(n)`: the device's own address space, as MAME's
         // device_memory_interface hands it out. Every declared space is flat
         // RAM (the extractor records no other shape), so the map is the buffer.
-        space: index => this.deviceSpace(Number(index)) ?? 0,
+        // `space(int spacenum = 0)`: the S-DSP's `space().cache(m_cache)` names
+        // none, and Number(undefined) left its sample RAM unbound -- silence.
+        space: (index = 0) => this.deviceSpace(Number(index)) ?? 0,
         // device_memory_interface::has_configured_map: whether the owner gave
         // the space a map of its own. Nothing here configures one, so a device
         // maps its regions itself (the YM2610's ADPCM ROM).
@@ -3300,7 +3312,7 @@ class IrDevice implements Device {
     // through its finder: Neo Geo's init_ym takes `m_ym->space(0)` and
     // installs the cartridge's ADPCM ROM there.
     if (this.definition.spaces?.length && !this.hostedSurface.space) {
-      this.hostedSurface.space = ((index: number) => this.deviceSpace(Number(index)) ?? 0) as (...args: never[]) => unknown;
+      this.hostedSurface.space = ((index = 0) => this.deviceSpace(Number(index)) ?? 0) as (...args: never[]) => unknown;
     }
     return this.hostedSurface;
   }

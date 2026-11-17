@@ -301,6 +301,11 @@ export function generatedDeviceMethodsSource(
   const source = `(() => {
   const cppMin = (a${operand}, b${operand}) => (b < a ? b : a);
   const cppMax = (a${operand}, b${operand}) => (a < b ? b : a);
+  // An aggregate initializer's struct, marked as one (execute.ts's
+  // isGeneratedStruct) through its prototype: like generatedStruct's
+  // non-enumerable marker, field walks and spreads never see it, and a
+  // literal with a prototype costs nothing next to defineProperty.
+  const cppStructPrototype = { [Symbol.for('mamekit.struct')]: true };
   const cppStringText = (value${typescript ? ': unknown' : ''}) => typeof value === 'string' ? value
     : typeof value === 'number' || typeof value === 'boolean' ? String(Number(value))
     : value === undefined || value === null ? '' : String(value);
@@ -718,8 +723,10 @@ function isBusEntryPoint(method: GeneratedDeviceMethod): boolean {
   // NAME is the discriminator, not the arity: a ColecoVision cartridge's
   // `read(offs_t offset, int _8000, int _a000, int _c000, int _e000)` carries
   // four chip selects besides the address -- and runs on every instruction
-  // fetch, because the game code lives in cartridge ROM.
-  return /^offs_t\s+offset$/.test(first);
+  // fetch, because the game code lives in cartridge ROM. Nor is the type: the
+  // SNES PPU's `read(uint32_t offset, uint8_t wrio_bit7)` is every $21xx
+  // register access the 65C816 makes.
+  return /^(?:offs_t|u?int(?:8|16|32)_t|u(?:8|16|32)|unsigned|int)\s+offset$/.test(first);
 }
 
 /**
@@ -803,7 +810,7 @@ export function supportsMethod(
       // emitter's sizeof answers it from the name (buffered_spriteram's
       // `length()`, #246), so the operand is never emitted on its own.
       if (expression.kind === 'call' && expression.callee.kind === 'identifier' &&
-          expression.callee.name === 'sizeof' && expression.args[0] && namesType(expression.args[0])) {
+          expression.callee.name === 'sizeof' && expression.args[0] && namesType(expression.args[0], definition.structs)) {
         chainReceivers.add(expression.args[0]);
       }
     });
@@ -1157,6 +1164,12 @@ function emitOperation(
   const pad = ' '.repeat(indentation);
   if (operation.op === 'declare') {
     const value = operation.value ? emitExpression(operation.value, context) : '0';
+    // From here on the name has this declaration's type. One method can
+    // declare a name more than once -- the SNES PPU's update_objects has
+    // `for (uint32_t n ...)`, `for (int n = 31; n >= 0; n--)` and another
+    // `uint32_t n` -- and typed by its last declaration throughout, the
+    // middle loop's `n--` wrapped to 0xffffffff and never ended.
+    if (operation.valueType && operation.valueType !== 'auto') context.locals.set(operation.name, operation.valueType);
     const annotation = context.typescript ? ': any' : '';
     // A scalar valueType says nothing about the value: MAME declares local
     // aggregates as `uint8_t protdata[0x1e] = {...}`, and narrowing that to a
@@ -1276,41 +1289,14 @@ function emitOperation(
     return lines.filter(Boolean).join('\n');
   }
   if (operation.op === 'for') {
-    const range = rangeLoopElement(operation);
-    if (range) {
-      const element = `${localName(range.sequence)}_item`;
-      const read = emitExpression(range.element, context);
-      const previous = context.rangeElements?.get(range.sequence);
-      (context.rangeElements ??= new Map()).set(range.sequence, element);
-      const body = emitOperations(operation.body, context, indentation + 2);
-      if (previous === undefined) context.rangeElements.delete(range.sequence);
-      else context.rangeElements.set(range.sequence, previous);
-      const initialize = operation.initialize
-        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
-        .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
-        .join(', ');
-      const iterate = operation.iterate
-        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
-        .join(', ');
-      return [
-        `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
-        `${pad}  const ${element}${context.typescript ? ': any' : ''} = ${read};`,
-        body,
-        `${pad}}`,
-      ].filter(Boolean).join('\n');
+    // A for statement is a scope: what its initializer declares ends with it.
+    const outer = new Map(context.locals);
+    try {
+      return emitForOperation(operation, context, indentation, pad);
+    } finally {
+      context.locals.clear();
+      for (const [name, type] of outer) context.locals.set(name, type);
     }
-    const initialize = operation.initialize
-      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
-      .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
-      .join(', ');
-    const iterate = operation.iterate
-      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
-      .join(', ');
-    return [
-      `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
-      emitOperations(operation.body, context, indentation + 2),
-      `${pad}}`,
-    ].filter(Boolean).join('\n');
   }
   if (operation.op === 'while') {
     return [
@@ -2228,6 +2214,16 @@ function emitCall(
       return String(applyGeneratedMacro(name, expression.args.map(argument =>
         (argument as { value: number }).value)));
     }
+    // `object_item item = { true, index, 0, 0 }`: the struct literal itself.
+    // Through runtime.macro, the SNES PPU built 128 of these a line.
+    if (name === 'STRUCT' && expression.args.length % 2 === 0 &&
+        expression.args.every((argument, index) => index % 2 === 1 || argument.kind === 'string')) {
+      const fields = [];
+      for (let index = 0; index < expression.args.length; index += 2) {
+        fields.push(`${JSON.stringify((expression.args[index] as { value: string }).value)}: ${args[index + 1]}`);
+      }
+      return `({ __proto__: cppStructPrototype, ${fields.join(', ')} })`;
+    }
     if (name === 'TABLE') {
       const index = args[0] ?? '0';
       const values = args.slice(1);
@@ -2276,7 +2272,7 @@ function emitCall(
         : undefined;
       const pointee = container && (/^(?:const\s+)?([\w:]+)\s*(?:const\s*)?\*$/.exec(container)?.[1] ??
         /^std::unique_ptr\s*<\s*(?:const\s+)?([\w:]+)\s*\[\]\s*>$/.exec(container)?.[1]);
-      const valueType = operand && namesType(operand) && operand.kind === 'identifier'
+      const valueType = operand && namesType(operand, context.definition.structs) && operand.kind === 'identifier'
         ? operand.name
         : pointee ?? (operand ? expressionValueType(operand, context) : undefined);
       const bytes = /(?:u?int64_t|[us]64|double)/.test(valueType ?? '') ? 8
@@ -2296,7 +2292,7 @@ function emitCall(
       // names a value, and C++ answers with the whole object -- for the line
       // buffers TIA composites into, the array's length, not one element.
       // The declared width stays the fallback for a scalar operand.
-      if (operand && !namesType(operand)) {
+      if (operand && !namesType(operand, context.definition.structs)) {
         return `((${args[0]})?.byteLength ?? ${bytes})`;
       }
       return String(bytes);
@@ -3301,7 +3297,7 @@ function plainlyAssigned(operations: GeneratedHandlerOperation[], name: string):
   return plain;
 }
 
-function assignsIdentifier(
+export function assignsIdentifier(
   operations: GeneratedHandlerOperation[],
   name: string,
   /**
@@ -3806,8 +3802,11 @@ function localName(name: string): string {
 }
 
 /** Whether an expression names a C++ type rather than a value. */
-function namesType(expression: GeneratedExpression): boolean {
-  return expression.kind === 'identifier' && TYPE_WORDS.has(expression.name);
+function namesType(expression: GeneratedExpression, structs?: Readonly<Record<string, unknown>>): boolean {
+  return expression.kind === 'identifier' &&
+    // Or a struct the device declares: the SNES PPU clears its sprite list
+    // with `memset(items, 0, sizeof(object_item) * 32)`.
+    (TYPE_WORDS.has(expression.name) || Boolean(structs && Object.hasOwn(structs, expression.name)));
 }
 
 /**
@@ -3953,3 +3952,47 @@ export function isMemoryFinderType(type: string): boolean {
   const bare = type.replace(/\bconst\b/g, '').replace(/&/g, '').trim();
   return /^(?:required|optional)_(?:shared|region)_ptr\s*</.test(bare) || /^memory_share_creator\s*</.test(bare);
 }
+
+/** A for statement, emitted inside the scope emitOperation opens for it. */
+function emitForOperation(
+  operation: Extract<GeneratedHandlerOperation, { op: 'for' }>,
+  context: EmitContext,
+  indentation: number,
+  pad: string,
+): string {
+    const range = rangeLoopElement(operation);
+    if (range) {
+      const element = `${localName(range.sequence)}_item`;
+      const read = emitExpression(range.element, context);
+      const previous = context.rangeElements?.get(range.sequence);
+      (context.rangeElements ??= new Map()).set(range.sequence, element);
+      const body = emitOperations(operation.body, context, indentation + 2);
+      if (previous === undefined) context.rangeElements.delete(range.sequence);
+      else context.rangeElements.set(range.sequence, previous);
+      const initialize = operation.initialize
+        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+        .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
+        .join(', ');
+      const iterate = operation.iterate
+        .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+        .join(', ');
+      return [
+        `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
+        `${pad}  const ${element}${context.typescript ? ': any' : ''} = ${read};`,
+        body,
+        `${pad}}`,
+      ].filter(Boolean).join('\n');
+    }
+    const initialize = operation.initialize
+      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+      .map((part, index) => index > 0 && part.startsWith('let ') ? part.slice(4) : part)
+      .join(', ');
+    const iterate = operation.iterate
+      .map(item => emitOperation(item, context, 0).trim().replace(/;$/, ''))
+      .join(', ');
+    return [
+      `${pad}for (${initialize}; ${emitExpression(operation.condition, context)}; ${iterate}) {`,
+      emitOperations(operation.body, context, indentation + 2),
+      `${pad}}`,
+    ].filter(Boolean).join('\n');
+  }

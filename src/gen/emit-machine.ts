@@ -720,6 +720,12 @@ export function lowerGeneratedMachine(
   // the request to the whole machine however deep it is set.
   const perfectQuantumBoard = graph.nodes.some(node =>
     node.label === 'MachineConfig' && node.props.perfectQuantum === true);
+  // `set_perfect_quantum(m_maincpu)` names a finder, `("u7")` a tag.
+  const perfectQuantumDevice = graph.nodes.find(node =>
+    node.label === 'MachineConfig' && typeof node.props.perfectQuantumDevice === 'string')?.props.perfectQuantumDevice as string | undefined;
+  const perfectQuantumTag = perfectQuantumDevice === undefined ? undefined
+    : /^"([^"]+)"$/.exec(perfectQuantumDevice)?.[1]
+      ?? devices.find(device => device.member === perfectQuantumDevice)?.tag;
   // The shortest asked for anywhere in the chain bounds every slice.
   const maximumQuantum = Math.min(...graph.nodes
     .filter(node => node.label === 'MachineConfig' && typeof node.props.maximumQuantum === 'number')
@@ -876,6 +882,7 @@ export function lowerGeneratedMachine(
     ...(unplannedBanks.length ? { memoryBanks: unplannedBanks } : {}),
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
+    ...(perfectQuantumBoard && perfectQuantumTag ? { perfectQuantumTag } : {}),
     ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),
     ...(executeDevices.length ? { executeDevices } : {}),
     ...(spaceAccessors.length ? { spaceAccessors } : {}),

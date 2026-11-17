@@ -41,7 +41,28 @@ export const snes = {
         300,
         600
       ],
-      "actions": []
+      "actions": [],
+      golden: {
+        regions: {
+          maincpu: 'a47ca14a',
+          'snsslot:cart:rom': 'b47f5f20',
+          'soundcpu:sound_ipl': '44bb3a40',
+        },
+        checkpoints: {
+          1: { video: '9b4e52d8', state: 'd5e58c9d' },
+          60: { video: '9b4e52d8', state: '4faaa7f1' },
+          180: { video: '1bb8616f', state: '6f2b717a' },
+          300: { video: '2168e31a', state: 'e2d1fb3c' },
+          600: { video: 'a2c0af63', state: '4ba4f41e' },
+        },
+        audio: {
+          writes: 479213,
+          nonzeroWrites: 224336,
+          writeHash: '96da5c63',
+          pcmHash: 'dd84e558',
+          rms: 0.02883,
+        },
+      }
     }
   ]
 } satisfies MachineTargetContract;

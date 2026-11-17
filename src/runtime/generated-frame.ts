@@ -92,6 +92,13 @@ export interface GeneratedFrameRunnerOptions {
    */
   maximumQuantum?: number;
   /**
+   * The board runs MAME's own rounds under its perfect quantum: every device
+   * that executes is a processor in the round, so the rounds are modelled
+   * whole. Otherwise (the C64's VIC-II and CIAs run on device time, caught up
+   * at each access) the furthest-behind-first lockstep stands.
+   */
+  perfectRounds?: boolean;
+  /**
    * Seconds from the round's base, which stands on line `baseLine`, to the
    * soonest timer, a device's or the driver's: MAME ends the round there.
    */
@@ -200,6 +207,14 @@ export class GeneratedFrameRunner {
    * of lines is several of them (see runProcessors).
    */
   private readonly machineQuantum: number;
+  /**
+   * MAME's perfect quantum, where the board names its processor: rounds of
+   * that processor's minimum_quantum(), run as any other round (each
+   * processor taking the whole cycles of its own that fit, schedule.cpp
+   * timeslice) and ended at the soonest timer, rather than the
+   * furthest-behind-first lockstep.
+   */
+  readonly perfectRounds: boolean;
   /** The processors in the order a round runs them (see roundOrder). */
   private readonly order: Int32Array;
   private readonly suspendable: boolean;
@@ -270,8 +285,22 @@ export class GeneratedFrameRunner {
       const cycle = new AttoPeriod(hzToAttoseconds(clock));
       return { processor, cycle, cyclesPerLine: this.linePeriod.total / cycle.total, local: new Attotime() };
     });
+    // MAME's perfect quantum is the named processor's minimum_quantum(): its
+    // cycle times its execute_min_cycles(). A 5A22 rounds every master cycle,
+    // and the S-SMP, whose cycle is ten of those, runs only once a whole one
+    // of its own fits before the target -- which is when its port writes
+    // become visible to the 5A22. The grid restarts at every timer expiry
+    // (nextTimerSeconds). Run furthest-behind-first instead, the S-SMP ran
+    // early and the 5A22 saw an answer microseconds before MAME does.
+    const perfectTag = options.machine.execution.perfectQuantumTag;
+    const perfectProcessor = perfectTag ? this.processors.find(entry => entry.processor.tag === perfectTag) : undefined;
+    const perfectMinCycles = options.machine.execution.executeDevices?.find(device => device.tag === perfectTag)?.minCycles ?? 1;
+    const perfectQuantumAttos = options.machine.execution.perfectQuantum === true && perfectProcessor
+      ? perfectProcessor.cycle.total * perfectMinCycles
+      : undefined;
+    this.perfectRounds = options.perfectRounds === true && perfectQuantumAttos !== undefined && this.processors.length > 1;
     this.permanentLockstep = options.machine.execution.perfectQuantum === true &&
-      this.processors.length > 1;
+      this.processors.length > 1 && !this.perfectRounds;
     this.order = Int32Array.from(this.processors, (_, index) => index);
     this.suspendable = this.processors.some(entry => entry.processor.suspended);
     for (const event of options.machine.execution.frameEvents) {
@@ -315,9 +344,18 @@ export class GeneratedFrameRunner {
       }
     }
     const machineQuantum = options.maximumQuantum;
-    this.machineQuantum = secondsToAttoseconds(machineQuantum !== undefined && machineQuantum > 0
+    const configuredQuantum = secondsToAttoseconds(machineQuantum !== undefined && machineQuantum > 0
       ? Math.min(machineQuantum, DEFAULT_QUANTUM_SECONDS)
       : DEFAULT_QUANTUM_SECONDS);
+    // And no shorter than the perfect interleave (add_quantum's m_actual =
+    // max(requested, m_quantum_minimum)): the second shortest minimum_quantum
+    // of every device that executes. On the SNES that is the S-SMP's, two of
+    // its cycles, so a round is ~976 ns, not one 5A22 master cycle.
+    const interleave = this.perfectInterleave?.();
+    const floor = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : 0;
+    this.machineQuantum = perfectQuantumAttos !== undefined && this.perfectRounds
+      ? Math.max(Math.min(configuredQuantum, perfectQuantumAttos), Math.min(configuredQuantum, floor))
+      : configuredQuantum;
     // The lines MAME's own timers fall on, where the lines since the last one
     // are handed to the processors. A declared scanline TIMER's cadence
     // (Gauntlet's 32 lines keep its sound board's reply burst whole, MCR's
@@ -608,6 +646,7 @@ export class GeneratedFrameRunner {
       // MAME's round ends at the soonest timer, so every processor stands
       // at its expiry when it fires.
       let slop = 0;
+      let timerAttos: number | undefined;
       if (this.nextTimerSeconds) {
         const seconds = this.nextTimerSeconds(this.linesAt(base));
         // A timer standing on the base itself, give or take that slop, is one
@@ -617,7 +656,20 @@ export class GeneratedFrameRunner {
         // that instant, and a bound of no attoseconds never ended the round.
         if (seconds > 0 && Number.isFinite(seconds)) {
           const attos = secondsToAttoseconds(seconds);
-          if (attos > TIMER_SLOP && this.lowerTarget(attos)) slop = TIMER_SLOP;
+          if (attos > TIMER_SLOP) {
+            timerAttos = attos;
+            if (this.lowerTarget(attos)) slop = TIMER_SLOP;
+          }
+        }
+      }
+      // Rounds nobody runs in pass at once, short of the timer and the end;
+      // the round's target is then taken again from where the base stands.
+      if (this.perfectRounds && !windowed) {
+        const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity));
+        if (skipped > 0) {
+          target.set(end);
+          this.lowerTarget(this.machineQuantum);
+          if (timerAttos !== undefined) this.lowerTarget(timerAttos - skipped);
         }
       }
       const order = this.roundOrder();
@@ -639,7 +691,7 @@ export class GeneratedFrameRunner {
         this.synchronizedAt = undefined;
         // A window's slice is an instruction against a target of a cycle or
         // so, as a lockstep step is (see the board's lockstepping).
-        this.lockstepping = windowed;
+        this.lockstepping = windowed || this.perfectRounds;
         let executed: number;
         try {
           executed = scheduled.processor.run(cycles);
@@ -677,6 +729,28 @@ export class GeneratedFrameRunner {
   }
 
   /** Bring the target down to `attos` past the base; answers whether it moved. */
+  /**
+   * Under a perfect quantum most rounds run nobody: the 5A22 is part way
+   * through an instruction and the S-SMP not yet a whole cycle behind. MAME
+   * steps its base through them a quantum at a time with no effect; they are
+   * passed at once, to just short of the first round in which a processor has
+   * a whole cycle of its own (and never past a timer, which bounds `end`).
+   */
+  private skipIdleRounds(room: number): number {
+    const quantum = this.machineQuantum;
+    let soonest = Infinity;
+    for (const scheduled of this.processors) {
+      if (scheduled.processor.suspended?.() === 'waiting') continue;
+      const due = scheduled.local.since(this.base) + scheduled.cycle.total;
+      if (due < soonest) soonest = due;
+    }
+    if (!(soonest > quantum) || !Number.isFinite(soonest)) return 0;
+    const rounds = Math.min(Math.floor((soonest - 1) / quantum), Math.floor((room - 1) / quantum));
+    if (!(rounds > 0)) return 0;
+    this.base.add(rounds * quantum);
+    return rounds * quantum;
+  }
+
   private lowerTarget(attos: number): boolean {
     const candidate = this.scratch.set(this.base).add(attos);
     if (!candidate.before(this.target)) return false;

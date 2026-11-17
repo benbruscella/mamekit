@@ -187,7 +187,12 @@ export function comparePictures(
   for (const frame of frames) {
     const path = join(dir, `ours-${frame}.rgba`);
     if (existsSync(path)) {
-      oursFor.set(frame, scaledPicture(oursPicture(path, ours.width, ours.height, ours.rotate), ours.scale ?? 1, ours.rotate));
+      // The picture's own size when it recorded one; the boot size otherwise.
+      const sizePath = join(dir, `ours-${frame}.size`);
+      const [width, height] = existsSync(sizePath)
+        ? readFileSync(sizePath, 'utf8').trim().split(/\s+/).map(Number) as [number, number]
+        : [ours.width, ours.height];
+      oursFor.set(frame, scaledPicture(oursPicture(path, width, height, ours.rotate), ours.scale ?? 1, ours.rotate));
     }
   }
   const mameFor = (frame: number): Picture | undefined => {

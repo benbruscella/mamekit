@@ -50,6 +50,7 @@ import {
   generatedReferent,
   prepareGeneratedMachineHandler,
   generatedHandlerRegistry,
+  installedHandlerEntry,
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
@@ -436,13 +437,15 @@ function generatedCallValue(value: unknown): unknown {
 }
 
 class IrBoard implements Board {
-  readonly fbWidth: number;
+  fbWidth: number;
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
   private screenUpdateNow?: () => void;
   /** screen_device::update_partial(line), once video is composed. */
   private screenUpdatePartial?: (line: number, beam: number) => void;
   private screenPixel?: (x: number, y: number) => number;
-  readonly fbHeight: number;
+  fbHeight: number;
+  /** A visible area a device configured this frame, applied when it ends. */
+  private pendingScreenArea?: { x: number; y: number; width: number; height: number };
 
   private readonly machine: BoardIr;
   private readonly cpus = new Map<string, Cpu>();
@@ -862,7 +865,13 @@ class IrBoard implements Board {
             const area = visarea as { min_x?: number; max_x?: number; min_y?: number; max_y?: number } | undefined;
             const screen = machine.execution.screen;
             if (!area || area.min_x === undefined || area.max_x === undefined || area.min_y === undefined || area.max_y === undefined) return 0;
-            if (area.max_x - area.min_x + 1 !== screen.width || area.max_y - area.min_y + 1 !== screen.height) return 0;
+            // Another shape: the SNES PPU shows 240 lines with overscan on.
+            // The picture takes it at the end of this frame (applyScreenArea),
+            // so the frame in progress keeps the shape it is drawn in.
+            if (area.max_x - area.min_x + 1 !== screen.width || area.max_y - area.min_y + 1 !== screen.height) {
+              this.pendingScreenArea = { x: area.min_x, y: area.min_y, width: area.max_x - area.min_x + 1, height: area.max_y - area.min_y + 1 };
+              return 0;
+            }
             screen.xOffset = area.min_x;
             screen.yOffset = area.min_y;
             return 0;
@@ -2344,6 +2353,13 @@ class IrBoard implements Board {
             if (!delegate) return undefined;
             const named = (delegate as { delegateHandler?: string }).delegateHandler;
             if (named && registry[direction][named]) return named;
+            // A driver handler (not a device's own method, which its device
+            // instance answers) gets the entry its map range would have had.
+            const handler = named && !named.split('.')[0]!.endsWith('_device')
+              ? machine.handlers?.find(candidate => `${candidate.ownerClass}.${candidate.method}` === named)
+              : undefined;
+            if (handler && installedHandlerEntry(machine, registry, direction, named!,
+              this.deviceHandlerBindings(handler), specification.tag)) return named;
             const key = `installed:${specification.tag}:${this.installedHandlerCount++}`;
             if (direction === 'read') registry.read[key] = (_address, offset, mask) => Number(delegate(offset, mask ?? 0xffff)) || 0;
             else registry.write[key] = (_address, offset, data, mask) => void delegate(offset, data, mask ?? 0xffff);
@@ -3361,7 +3377,14 @@ class IrBoard implements Board {
       if (now === undefined) return 0;
       return this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - now;
     };
-    const timerRounds = roundQuantum && machine.execution.perfectQuantum !== true;
+    // A perfect quantum whose processor the board names runs MAME's own rounds
+    // (frame runner perfectRounds), and those end at the soonest timer too.
+    // ... where every device that executes runs in the round, so MAME's
+    // rounds are modelled whole (roundQuantum); the C64's VIC-II and CIAs run
+    // on device time instead, and keep the lockstep that matches MAME there.
+    const perfectRounds = machine.execution.perfectQuantum === true && machine.execution.perfectQuantumTag !== undefined &&
+      machine.execution.cpus.length > 1 && roundQuantum;
+    const timerRounds = roundQuantum && (machine.execution.perfectQuantum !== true || perfectRounds);
     // Asked every round, so only the devices that own a timer: the ones the
     // device clock ticks. Walking every device cost Lagrange Point a fifth
     // of its frame.
@@ -3401,6 +3424,7 @@ class IrBoard implements Board {
       // MAME's screen starts at the beginning of VBLANK (#184).
       origin: 'vbstart',
       perfectInterleave,
+      perfectRounds,
       ...(roundQuantum && machine.execution.maximumQuantum !== undefined
         ? { maximumQuantum: machine.execution.maximumQuantum }
         : {}),
@@ -4012,6 +4036,25 @@ class IrBoard implements Board {
     return () => !model.resetHeld && !this.cpuHeld.get(tag);
   }
 
+  /**
+   * screen_device::configure's new visible area, between frames: the screen
+   * IR, the picture's size the host allocates (fbWidth/fbHeight) and the
+   * renderer all take it before the next frame is drawn.
+   */
+  private applyScreenArea(): void {
+    const area = this.pendingScreenArea;
+    if (!area) return;
+    this.pendingScreenArea = undefined;
+    const screen = this.machine.execution.screen;
+    screen.xOffset = area.x;
+    screen.yOffset = area.y;
+    screen.width = area.width;
+    screen.height = area.height;
+    this.fbWidth = area.width;
+    this.fbHeight = area.height;
+    this.video?.resize(area.width, area.height);
+  }
+
   frame(framebuffer: Uint32Array): void {
     this.pollInputLatches();
     this.inFrame = true;
@@ -4021,6 +4064,7 @@ class IrBoard implements Board {
     } finally {
       this.inFrame = false;
     }
+    this.applyScreenArea();
     if (this.softResetPending) {
       this.softResetPending = false;
       this.softReset();
@@ -6070,10 +6114,17 @@ class IrBoard implements Board {
       deviceMethod: (tag, method, ownerClass) => {
         const device = this.devices.get(tag);
         if (device?.methodNames().includes(method)) {
-          return state => device.call(
-            method,
-            ...generatedDeviceCallbackArguments(device.parameters(method), state),
-          );
+          const parameters = device.parameters(method);
+          // devcb_write8::operator()(offset, data, mem_mask) hands its offset
+          // to an (offs_t offset, u8 data) target. Supplying 0 here sent every
+          // S-SMP $F2/$F3 write to s_dsp_device::dsp_io_w as the register
+          // address, so no S-DSP register was ever written.
+          const takesOffset = parameters.length >= 2 && /\boffs_t\b/.test(parameters[0] ?? '');
+          return (state, ...sourceArgs) => {
+            const args = generatedDeviceCallbackArguments(parameters, state);
+            if (takesOffset && sourceArgs.length >= 2) args[0] = Number(sourceArgs[0]) || 0;
+            return device.call(method, ...args);
+          };
         }
         // A composite MAME device (timeplt_audio) is not instantiated; its
         // methods are the generated handlers for its class.

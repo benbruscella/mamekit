@@ -5331,7 +5331,9 @@ function compileMethod(
     body = table.columns === undefined
       ? body.replace(
           new RegExp(`\\b${name}\\s*\\[${subscript}\\]`, 'g'),
-          (_entry, index: string) => `TABLE(${index}, ${table.values.join(', ')})`,
+          (_entry, index: string) => table.offset !== undefined
+            ? `TABLE((${table.offset}) + (${index}), ${table.values.join(', ')})`
+            : `TABLE(${index}, ${table.values.join(', ')})`,
         )
       : body.replace(
           new RegExp(`\\b${name}\\s*\\[${subscript}\\]\\s*\\[${subscript}\\]`, 'g'),
@@ -6723,6 +6725,12 @@ interface ConstantTable {
    * one, which is what the table indexed once answers (`if (!tunes[n])`).
    */
   rows?: string[];
+  /**
+   * A pointer into another table, as the element it starts at: the S-DSP's
+   * `static const int *const G4 = &gauss[0]`, read as `G4[-vl-1]`, indexes
+   * `gauss` from there.
+   */
+  offset?: string;
 }
 
 function constantTables(source: string): Record<string, ConstantTable> {
@@ -6812,6 +6820,17 @@ function constantTables(source: string): Record<string, ConstantTable> {
     tables[match[1]!] ??= {
       values: splitMameArgs(match[2]!).map(value => value.trim()),
     };
+  }
+  // A constant pointer into a table is that table from the element it points
+  // at: `static const int *const G1 = &gauss[256];` (s_dsp.cpp), or
+  // `= gauss + 256` / `= gauss`. Left out, the S-DSP's Gaussian interpolation
+  // read every tap as an unknown name and the chip rendered silence.
+  for (const match of source.matchAll(
+    /\bstatic\s+const\s+[\w:]+\s*\*\s*(?:const\s+)?(\w+)\s*=\s*(?:&\s*(\w+)\s*\[([^\]]+)\]|(\w+)\s*(?:\+\s*([^;]+))?)\s*;/g,
+  )) {
+    const target = tables[match[2] ?? match[4]!];
+    if (!target || target.columns !== undefined || target.rows || target.offset !== undefined) continue;
+    tables[match[1]!] = { values: target.values, offset: (match[3] ?? match[5] ?? '0').trim() };
   }
   return tables;
 }

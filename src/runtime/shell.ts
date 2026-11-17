@@ -1081,9 +1081,18 @@ export async function runShell(
       mine.length && typing ? cfg.boot?.command : undefined));
   });
 
-  const fb = new Uint32Array(board.fbWidth * board.fbHeight);
-  const image = new ImageData(
+  let fb = new Uint32Array(board.fbWidth * board.fbHeight);
+  let image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+  // A screen a device reconfigures (screen_device::configure: the SNES PPU
+  // shows 240 lines with overscan on) takes its new visible area at a frame
+  // boundary; the picture is reallocated to it.
+  const fitFramebuffer = (): void => {
+    if (fb.length === board.fbWidth * board.fbHeight && image.width === board.fbWidth) return;
+    fb = new Uint32Array(board.fbWidth * board.fbHeight);
+    image = new ImageData(new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+    ui.setNative(board.fbWidth, board.fbHeight);
+  };
 
   // One-click play (issue #161): a title the room booted starts itself with
   // its shelf's command, typed once the machine is up, then PLAY on the tape
@@ -1180,6 +1189,7 @@ export async function runShell(
     // frame that runs; what it presses lands in the next one.
     typing?.tick(1 / cfg.board.screen.refresh);
     input.advance(netplay.take());
+    fitFramebuffer();
     board.frame(fb);
     start?.advance();
     memory.tick();
