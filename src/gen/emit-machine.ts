@@ -2,7 +2,7 @@ import { lowerVideoExecution } from '../mame/video-execution.ts';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KGNode, KnowledgeGraph } from '../kg/types.ts';
-import { lowerNetlistFinders, lowerNetlistLogicInputs, lowerNetlistSound } from './lower-netlist.ts';
+import { lowerNetlistFinders, lowerNetlistLogicInputs, lowerNetlistParamInputs, lowerNetlistSound } from './lower-netlist.ts';
 import { evalExpr } from '../kg/parse.ts';
 import type {
   BoardIr,
@@ -991,6 +991,11 @@ export function lowerGeneratedMachine(
     reachableDevices.map(({ node }) => node),
     String(graph.meta.mameSrc),
   );
+  const netlistParamInputs = lowerNetlistParamInputs(
+    graph,
+    reachableDevices.map(({ node }) => node),
+    String(graph.meta.mameSrc),
+  );
   // The NETLIST_SOUND the streams feed, compiled from its netlist, with the
   // lines its driver writes and the finders its handlers test. One that does
   // not compile is left out (silent) rather than approximated.
@@ -1007,7 +1012,27 @@ export function lowerGeneratedMachine(
     return {
       ...(netlist.plan ? { netlist: netlist.plan, netlistTag } : {}),
       ...(netlistLogicInputs.length ? { netlistLogicInputs } : {}),
+      ...(netlistParamInputs.length ? { netlistParamInputs } : {}),
       ...(netlistLogicInputs.length || netlist.plan ? { netlistFinders: lowerNetlistFinders(graph, nodes, String(graph.meta.mameSrc)) } : {}),
+    };
+  };
+  // A board whose whole sound is a netlist its driver writes (Mario's TTL
+  // and VCOs, its DAC into an R-2R ladder) is mixed as a stream too, with no
+  // chip beside the netlist node.
+  const netlistOnly = () => {
+    if (streamDevices.length) return undefined;
+    const netlist = boardNetlist();
+    if (!netlist.netlist) return undefined;
+    return {
+      kind: 'stream',
+      deviceTag: netlist.netlistTag!,
+      deviceTags: [] as string[],
+      deviceType: 'NETLIST_SOUND',
+      writeMethods: [],
+      enableMethods: [],
+      controlOffset: -1,
+      routes: [],
+      ...netlist,
     };
   };
   const sound = streamDevices.length
@@ -1025,7 +1050,7 @@ export function lowerGeneratedMachine(
               routes: monoRoutes(graph, scopedRoutes(streamDevices, routesOf(streamDevices))),
               ...boardNetlist(),
             }
-        : undefined;
+        : netlistOnly();
   // A speaker, cassette or POKEY routed beside a chip that owns the worklet.
   const auxiliaryStreams = sound && sound.kind !== 'stream'
     ? devices.filter(rendersStream).flatMap(device => {

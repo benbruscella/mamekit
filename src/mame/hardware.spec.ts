@@ -34,6 +34,7 @@ assert.equal(definitions[0]?.sourceLine, 3);
 
 for (const type of [
   'FILTER_BIQUAD',
+  'NETLIST_INT_INPUT',
   'NETLIST_LOGIC_INPUT',
   'NETLIST_SOUND',
   'NETLIST_STREAM_INPUT',

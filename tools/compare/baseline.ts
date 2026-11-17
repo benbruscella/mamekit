@@ -406,24 +406,33 @@ export function pixelsVerdict(before: Measure<PixelsResult> | undefined, after: 
  * RAM: the first frame that differs from MAME's decides. Never differing and
  * starting to is worse, and the reverse better; moving earlier or later by
  * more than TOLERANCE.ramFrames is worse or better, and by less, moved. The
- * bytes that differ (on that frame, then over the run) are material only past
- * TOLERANCE.countFactor and bytesFloor.
+ * bytes that differ (on that frame, then a compared frame over the run) are
+ * material only past TOLERANCE.countFactor and bytesFloor.
+ *
+ * The run is judged per compared frame, never on its frame count: a moved
+ * alignment lines up one frame more or fewer, and elevator's 206,866 -> 3,208
+ * differing bytes read as worse for one frame fewer (#268). A change in the
+ * count is a note on the verdict, not a verdict.
  */
 export function ramVerdict(before: Measure<RamSummary> | undefined, after: Measure<RamSummary> | undefined): MeasureVerdict {
   return ranOrFailed(before, after, (was, now) => {
-    if (now.compared < was.compared) return { verdict: 'worse', detail: `compared ${now.compared} frames, baseline ${was.compared}` };
+    const note = now.compared !== was.compared ? `compared ${was.compared} -> ${now.compared} frames` : undefined;
+    const noted = (verdict: MeasureVerdict): MeasureVerdict =>
+      note ? { verdict: verdict.verdict, detail: [verdict.detail, note].filter(Boolean).join('; ') } : verdict;
     const wasFirst = was.firstDivergence;
     const nowFirst = now.firstDivergence;
-    if (!wasFirst && !nowFirst) return { verdict: 'same' };
-    if (!nowFirst) return { verdict: 'better', detail: `identical at every frame (baseline differed from ${wasFirst!.frame})` };
-    if (!wasFirst) return { verdict: 'worse', detail: `differs from frame ${nowFirst.frame} (baseline identical)` };
+    if (!wasFirst && !nowFirst) return noted({ verdict: 'same' });
+    if (!nowFirst) return noted({ verdict: 'better', detail: `identical at every frame (baseline differed from ${wasFirst!.frame})` });
+    if (!wasFirst) return noted({ verdict: 'worse', detail: `differs from frame ${nowFirst.frame} (baseline identical)` });
     if (nowFirst.frame !== wasFirst.frame) {
       const detail = `first differs at ${wasFirst.frame} -> ${nowFirst.frame}`;
-      if (Math.abs(nowFirst.frame - wasFirst.frame) <= TOLERANCE.ramFrames) return { verdict: 'moved', detail };
-      return { verdict: nowFirst.frame > wasFirst.frame ? 'better' : 'worse', detail };
+      if (Math.abs(nowFirst.frame - wasFirst.frame) <= TOLERANCE.ramFrames) return noted({ verdict: 'moved', detail });
+      return noted({ verdict: nowFirst.frame > wasFirst.frame ? 'better' : 'worse', detail });
     }
     const atFirst = count(wasFirst.bytes, nowFirst.bytes, TOLERANCE.bytesFloor, `bytes at ${nowFirst.frame}`);
-    return atFirst.verdict !== 'same' ? atFirst : count(was.total, now.total, TOLERANCE.bytesFloor, 'bytes over all frames');
+    if (atFirst.verdict !== 'same') return noted(atFirst);
+    const perFrame = (ram: RamSummary) => ram.compared ? ram.total / ram.compared : 0;
+    return noted(count(perFrame(was), perFrame(now), TOLERANCE.bytesFloor, 'bytes per compared frame'));
   });
 }
 

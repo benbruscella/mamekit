@@ -146,7 +146,15 @@ assert.equal(ramVerdict(ramAt(13, 4), ramAt(13, 2)).verdict, 'moved', 'bytes at 
 assert.equal(ramVerdict(ramAt(13, 4, 100), ramAt(13, 4, 120)).verdict, 'moved');
 assert.equal(ramVerdict(ramAt(4, 3), ramAt(4, 22)).verdict, 'worse', 'bublbobl (#255): 3 -> 22 bytes at frame 4 is material');
 assert.equal(ramVerdict(ramAt(4, 3), ramAt(4, 12)).verdict, 'moved', 'four times over but under the floor');
-assert.equal(ramVerdict(ramAt(13), ramAt(13, 4, 100, 300)).verdict, 'worse', 'fewer frames compared is a shorter run');
+// The frame count is a note, never the verdict (#268): elevator's alignment
+// moved from +2 to -1 and one frame fewer lined up, while its differing RAM
+// fell from 206,866 to 3,208 bytes.
+const elevator = ramVerdict(ramAt(13, 4, 206_866, 600), ramAt(13, 4, 3_208, 599));
+assert.equal(elevator.verdict, 'better', 'far fewer bytes over one frame fewer is better, not worse');
+assert.match(elevator.detail ?? '', /bytes per compared frame .*; compared 600 -> 599 frames/);
+assert.deepEqual(ramVerdict(ramAt(13, 4, 100, 600), ramAt(13, 4, 50, 300)), { verdict: 'same', detail: 'compared 600 -> 300 frames' },
+  'the same bytes per frame over half the frames is the same, noted');
+assert.equal(ramVerdict(ramAt(13, 4, 6_000, 600), ramAt(13, 4, 24_000, 300)).verdict, 'worse', 'eight times the bytes per frame is worse');
 
 const audio = (ratioDb: number, bands: number[], onsets: number, ref = 0.1): Measure<AudioResult> => ({
   status: 'ok',

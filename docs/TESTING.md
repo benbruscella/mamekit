@@ -115,7 +115,8 @@ the rest of executable BoardIR are not.
 `test:netlists` runs every `NETLIST_SOUND` a generated machine carries beside
 MAME's own netlist engine. It builds `nltool` from the MAME checkout's
 `src/lib/netlist` once per checkout revision (under `.cache/nltool`), drives
-both with the same events, and fails when the level is more than 0.5 dB off or
+both with the same events (resistance and voltage streams, logic toggles, and a
+byte staircase into each `NETLIST_INT_INPUT`), and fails when the level is more than 0.5 dB off or
 any third-octave band from 50 Hz to 16 kHz is more than 1.5 dB off. Ours runs
 through the solver API the worklet uses, at each input's own sample time, so
 it checks the browser's scheduling, not a test-only path. Run it after `gen:all`
@@ -173,7 +174,10 @@ A new MAME call that answers 0 is therefore a failing contract, not a quiet
 wrong value. `node tools/unresolved-calls.ts [game ...]` runs the contracts
 with a census and lists every unresolved call, the machines that reach it, and
 how often. Run over every contract, it also names known gaps that nothing
-reaches any more, which must be deleted.
+reaches any more, which must be deleted. It names none when any run ended
+early, with no result or by throwing part way (an fps floor on a busy machine):
+that run never reached its later calls, so live entries would look unreached.
+It lists the runs that ended early instead, to be run again alone.
 
 Each token owns its checkpoint and input schedule because machines reach their
 input-ready attract state at different times. Frame counts range from 600 to

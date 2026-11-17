@@ -3,25 +3,21 @@ import { sourceTarget } from './source-contract.ts';
 export const mario = {
   ...sourceTarget({
     game: 'mario',
-    // Bounded closure gaps covered by this target's real-ROM acceptance.
-    runtimeCoverage: {
-      generationGaps: [
-        'snd_nl:dac:NETLIST_INT_INPUT',
-      ],
-      handlerGaps: [],
-    },
     driver: 'src/mame/nintendo/mario.cpp',
     machine: { className: 'mario_state', name: 'mario' },
     screen: { width: 256, height: 224 },
-    soundKind: 'none',
+    soundKind: 'stream',
     minimumFps: 10,
   }),
   // The title/high-score sequence ignores inputs until roughly frame 1500.
   // Exercise coin/start only after the real board has reached INSERT COIN.
+  // The coin is a 4-frame pulse: this revision rejects a coin switch held
+  // for 10 (MAME too), so the game never started and the netlist was never
+  // written. Started, the phase intro writes SOUND7 (the skid one-shot).
   frames: 1840,
   checkpoints: [1, 300, 600, 900, 1200, 1500, 1650, 1840],
   actions: [
-    { atFrame: 1520, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
+    { atFrame: 1520, code: 'Digit5', heldFrames: 4, releasedFrames: 20 },
     { atFrame: 1550, code: 'Digit1', heldFrames: 10, releasedFrames: 20 },
     { atFrame: 1700, code: 'ArrowRight', heldFrames: 60, releasedFrames: 20 },
     { atFrame: 1800, code: 'Space', heldFrames: 20, releasedFrames: 20 },
@@ -43,15 +39,15 @@ export const mario = {
       900: { video: '026875d1', state: '24080e55' },
       1200: { video: 'e7380771', state: '7da55db6' },
       1500: { video: '080dbf8e', state: 'ea830d34' },
-      1650: { video: '080dbf8e', state: '45da9c4c' },
-      1840: { video: 'c69c9e03', state: '142f15ed' },
+      1650: { video: '267fe7a7', state: '224cf64f' },
+      1840: { video: '22b59f23', state: 'eaebd557' },
     },
     audio: {
-      writes: 0,
-      nonzeroWrites: 0,
-      writeHash: '0d4cbb29',
-      pcmHash: '00000000',
-      rms: 0,
+      writes: 1492254,
+      nonzeroWrites: 1492244,
+      writeHash: '585d816d',
+      pcmHash: '6e28f95e',
+      rms: 0.062301,
     },
   },
 };

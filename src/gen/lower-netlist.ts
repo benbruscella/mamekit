@@ -82,22 +82,58 @@ export function lowerNetlistFinders(graph: KnowledgeGraph, devices: readonly KGN
   ])];
 }
 
+/** One `NETLIST_INT_INPUT`: the parameter a driver writes as a number (`DAC.VAL`). */
+export interface GeneratedNetlistParamInput {
+  deviceTag: string;
+  param: string;
+  /** netlist_mame_int_input_device::write: `(val >> shift) & mask`. */
+  shift: number;
+  mask: number;
+  /** The finder members handlers reach it through (`m_audio_dac`). */
+  members: string[];
+}
+
+/**
+ * The finders naming a device: by tag, and the member its configuration
+ * statement passes (`NETLIST_LOGIC_INPUT(config, m_audio_snd[0], ...)`), which
+ * is the only name a finder array initialised with its tags gives it.
+ */
+function finderMembers(device: KGNode, tags: Record<string, string>, call: string): string[] {
+  const tag = String(device.props.tag);
+  const finders = Object.entries(tags).filter(([, candidate]) => candidate === tag).map(([member]) => member);
+  const member = typeof device.props.member === 'string' ? [device.props.member] : [];
+  const passed = (callArguments(statement(device), call) ?? [])[1];
+  const named = passed && /^\w+(?:\[\d+\])?$/.test(passed) ? [passed] : [];
+  return [...new Set([...member, ...named, ...finders])];
+}
+
+export function lowerNetlistParamInputs(graph: KnowledgeGraph, devices: readonly KGNode[], mameSrc: string): GeneratedNetlistParamInput[] {
+  const inputs = devices.filter(device => device.props.type === 'NETLIST_INT_INPUT');
+  if (!inputs.length) return [];
+  const tags = driverMemberTags(graph, mameSrc);
+  return inputs.map(device => {
+    const args = callArguments(statement(device), 'NETLIST_INT_INPUT') ?? [];
+    return {
+      deviceTag: String(device.props.tag),
+      param: unquoted(args[2]),
+      shift: Number(args[3] ?? 0) || 0,
+      mask: args[4] === undefined ? 0xffffffff : Number(args[4]),
+      members: finderMembers(device, tags, 'NETLIST_INT_INPUT'),
+    };
+  });
+}
+
 export function lowerNetlistLogicInputs(graph: KnowledgeGraph, devices: readonly KGNode[], mameSrc: string): GeneratedNetlistLogicInput[] {
   const inputs = devices.filter(device => device.props.type === 'NETLIST_LOGIC_INPUT');
   if (!inputs.length) return [];
   const tags = driverMemberTags(graph, mameSrc);
   return inputs.map(device => {
-    const tag = String(device.props.tag);
     const args = callArguments(statement(device), 'NETLIST_LOGIC_INPUT') ?? [];
-    const finders = Object.entries(tags)
-      .filter(([, candidate]) => candidate === tag)
-      .map(([member]) => member);
-    const member = typeof device.props.member === 'string' ? [device.props.member] : [];
     return {
-      deviceTag: tag,
+      deviceTag: String(device.props.tag),
       param: unquoted(args[2]),
       shift: Number(args[3] ?? 0) || 0,
-      members: [...new Set([...member, ...finders])],
+      members: finderMembers(device, tags, 'NETLIST_LOGIC_INPUT'),
     };
   });
 }
@@ -141,6 +177,8 @@ export function lowerNetlistSound(
         output: { node: unquoted(outputArgs[3]), mult: mult * routeGain, offset: offset * routeGain },
         logicInputs: lowerNetlistLogicInputs(graph, devices, mameSrc)
           .map(input => ({ tag: input.deviceTag, param: input.param, value: 0 })),
+        paramInputs: lowerNetlistParamInputs(graph, devices, mameSrc)
+          .map(input => ({ tag: input.deviceTag, param: input.param })),
       }),
     };
   } catch (error) {

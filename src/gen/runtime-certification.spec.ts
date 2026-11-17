@@ -7,7 +7,6 @@ import {
 assert.deepEqual(Object.keys(RUNTIME_CERTIFICATIONS).sort(), [
   'gauntlet',
   'marble',
-  'mario',
   'mk',
   'mslug',
   'nbajam',
@@ -32,6 +31,8 @@ assert.equal(
   false,
   'VLM5030 is generated now, so the speech gap it once excused must not be accepted',
 );
+// Mario's DAC is a bound NETLIST_INT_INPUT into its compiled netlist now (#268).
+assert.equal(isRuntimeCertified('mario', ['snd_nl:dac:NETLIST_INT_INPUT'], [], true), false);
 // Galaga and Venture no longer keep a certification, so their old gaps fail closed.
 assert.equal(isRuntimeCertified('galaga', ['mcu:MB8843'], [], true), false);
 assert.equal(isRuntimeCertified('venture', [], [
