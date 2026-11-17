@@ -29,14 +29,6 @@ export interface GeneratedVideoPrimitives extends VideoRenderer {
   /** The board's palette, which `screen_device::palette()` answers. */
   devicePalette?(): GeneratedPaletteDevice | undefined;
   generatedVideoBindings(frame: Uint32Array): GeneratedHandlerBindings;
-  generatedVideoArgs?(frame: Uint32Array): Record<string, unknown>;
-  /** Execute a source-matched hot screen-update shape without IR tree walking. */
-  directScreenUpdate?(
-    handler: string,
-    screen: { visible_area(): GeneratedRectangle },
-    bitmap: BitmapTarget,
-    cliprect: GeneratedRectangle,
-  ): boolean;
   /** Resolve composed pen indices from the pen buffer into the RGBA frame. */
   resolveScreenPens?(pens: Uint32Array, frame: Uint32Array, start: number, count: number): void;
   /**
@@ -444,27 +436,18 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     };
     const handlerKey =
       `${this.screenUpdate.targetClass}.${this.screenUpdate.targetMethod}`;
-    const direct = this.primitives.directScreenUpdate?.(
-      handlerKey,
-      screen,
-      bitmap,
-      cliprect,
-    ) ?? false;
-    const result = direct
-      ? 0
-      : this.deviceScreenUpdate
-        ? this.deviceScreenUpdate(screen, bitmap, cliprect)
-        : executeGeneratedCallbackHandler(
-          this.machine,
-          this.screenUpdate,
-          this.primitives.generatedVideoBindings(frame),
-          {
-            screen,
-            bitmap,
-            cliprect,
-            ...this.primitives.generatedVideoArgs?.(frame),
-          },
-        );
+    const result = this.deviceScreenUpdate
+      ? this.deviceScreenUpdate(screen, bitmap, cliprect)
+      : executeGeneratedCallbackHandler(
+        this.machine,
+        this.screenUpdate,
+        this.primitives.generatedVideoBindings(frame),
+        {
+          screen,
+          bitmap,
+          cliprect,
+        },
+      );
     if (result === undefined) {
       throw new Error(`generated screen-update handler "${handlerKey}" is not executable`);
     }

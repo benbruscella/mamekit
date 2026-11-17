@@ -1,19 +1,14 @@
-// Browser-only Web Audio glue for a worklet-hosted sound core (no libraries).
+// Browser-only Web Audio glue for the shared stream worklet (no libraries).
 //
-// The DSP runs inside an AudioWorkletProcessor (see wsg-worklet.ts) so
-// main-thread jank never glitches audio. AudioOutput only owns the
-// AudioContext / GainNode wiring and forwards register writes to the
-// worklet over its MessagePort.
+// The generated devices render on the main thread and the stream worklet
+// (src/mame/stream-worklet.ts) plays what they rendered, so main-thread jank
+// never glitches audio. AudioOutput only owns the AudioContext / GainNode
+// wiring and forwards each frame's writes to the worklet over its MessagePort.
 
-/**
- * What the worklet needs to boot its own DSP instance. `{ sampleRate }`
- * alone is enough for the wiring; for the Namco WSG pass `waveRom` (the
- * first 0x100 bytes of the "namco" PROM region are the wavetable) and
- * `clock` (defaults to sampleRate — for the WSG they are the same, 96000).
- */
 import type { GeneratedAudioRoute } from '../ir/board.ts';
 import type { GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
 
+/** What the worklet needs to boot. */
 export interface WorkletCoreConfig {
   readonly sampleRate: number;
   readonly clock?: number;
@@ -32,16 +27,6 @@ interface PendingWrite {
   method?: string;
 }
 
-/** A bulk sample-data push (NES DMC), queued in order with register writes. */
-interface PendingData {
-  id: number;
-  bytes: Uint8Array;
-}
-
-type PendingItem =
-  | { kind: 'write'; write: PendingWrite }
-  | { kind: 'data'; data: PendingData };
-
 export class AudioOutput {
   private ctx: AudioContext | null = null;
   private node: AudioWorkletNode | null = null;
@@ -49,17 +34,16 @@ export class AudioOutput {
   private gain: GainNode | null = null;
   private volume: number = 1;
   private systemMuted = false;
-  /** writes + data pushes, kept in issue order, flushed once per frame */
-  private pending: PendingItem[] = [];
+  /** writes, kept in issue order, flushed once per frame */
+  private pending: PendingWrite[] = [];
   /** Complete frames produced while the async AudioWorklet is starting. */
-  private pendingFrames: PendingItem[][] = [];
+  private pendingFrames: PendingWrite[][] = [];
 
   constructor() {}
 
   /**
    * Call from a user gesture (browsers block AudioContext otherwise).
-   * Loads the compiled worklet module (e.g. "runtime/wsg-worklet.js"
-   * relative to dist), wires node -> gain -> destination and sends the
+   * Loads the compiled worklet module (the stream worklet, relative to dist), wires node -> gain -> destination and sends the
    * init message.
    */
   async start(core: WorkletCoreConfig, workletUrl: string, processorName = 'stream'): Promise<void> {
@@ -134,19 +118,10 @@ export class AudioOutput {
   write(offset: number, data: number, frac?: number, method?: string): void {
     const write: PendingWrite = { offset, data, frac };
     if (method !== undefined) write.method = method;
-    this.pending.push({ kind: 'write', write });
+    this.pending.push(write);
   }
 
-  /**
-   * Queue a bulk sample-data push (NES DMC) in the SAME ordered stream as
-   * register writes, so the buffer lands at the worklet before any later
-   * write that starts playing it (the board pushes bytes, then writes $4015).
-   */
-  data(id: number, bytes: Uint8Array): void {
-    this.pending.push({ kind: 'data', data: { id, bytes } });
-  }
-
-  /** Post all queued writes/data preserving order. Call once per frame. */
+  /** Post all queued writes in order. Call once per frame. */
   flush(): void {
     const frame = this.pending.splice(0);
     if (this.node) this.postFrame(this.node, frame);
@@ -168,27 +143,11 @@ export class AudioOutput {
     else this.pendingFrames.push(frame);
   }
 
-  /**
-   * Drain one frame to the worklet, batching consecutive register writes into
-   * one 'batch' message but breaking the batch at every data push so ordering
-   * (write < data < write) is preserved across the port.
-   */
-  private postFrame(node: AudioWorkletNode, items: PendingItem[]): void {
-    let batch: PendingWrite[] = [];
-    for (const item of items) {
-      if (item.kind === 'write') {
-        batch.push(item.write);
-      } else {
-        if (batch.length) {
-          node.port.postMessage({ type: 'batch', writes: batch });
-          batch = [];
-        }
-        node.port.postMessage({ type: 'data', id: item.data.id, bytes: item.data.bytes });
-      }
-    }
-    // An empty batch still represents one emulated frame. Timestamp-aware
-    // worklets need it to advance sound even when no registers changed.
-    node.port.postMessage({ type: 'batch', writes: batch });
+  /** Drain one frame to the worklet as one 'batch' message. */
+  private postFrame(node: AudioWorkletNode, writes: PendingWrite[]): void {
+    // An empty batch still represents one emulated frame: the worklet needs
+    // it to advance sound even when nothing was written.
+    node.port.postMessage({ type: 'batch', writes });
   }
 
   /**

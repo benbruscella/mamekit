@@ -17,9 +17,6 @@ export const GAMEBOY_MAME_TYPES = [
   'GB_CART_SLOT',
 ] as const;
 
-/** The tag the gameboy driver gives its sound device. */
-export const GAMEBOY_APU_TAG = 'apu';
-
 /**
  * The tag the gameboy driver gives its cartridge slot.
  *
@@ -40,16 +37,6 @@ export const GAMEBOY_PORTS: readonly PortDeclaration[] = [
 /** MAME's own type for the console's sound half. */
 export const GAMEBOY_APU_TYPE = 'DMG_APU';
 
-
-/**
- * Output rate for the APU's stream.
- *
- * MAME allocates it `SAMPLE_RATE_OUTPUT_ADAPTIVE`, which means the sound
- * system picks -- so this is ours to choose, and it is the one place that
- * chooses it: the runtime renders at this rate and the shell opens its audio
- * context at it.
- */
-export const GAMEBOY_OUTPUT_RATE = 48000;
 
 export function gameboyDeviceIrArtifact(type: string): string {
   return `devices/${type.toLowerCase()}.device.ir.json`;

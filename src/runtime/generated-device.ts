@@ -491,15 +491,6 @@ export interface Device {
    * one the host does not keep.
    */
   configureHost?(method: string, args: readonly unknown[]): boolean;
-  /**
-   * PCM the device published through `sound_stream::put_int`, and clear it.
-   *
-   * A sound device rendered on the main thread has to hand its samples to the
-   * board's sink somehow; MAME hands them to a `sound_stream`, so this is that
-   * stream, drained by whoever is pumping the device. Absent on the devices
-   * that have no sound interface at all.
-   */
-  takeStreamSamples?(): readonly number[];
   /** Stream-rendering sound devices this one and its slot's card are built out of. */
   streamDescendants?(): { tag: string; device: Device; gain: number }[];
   /** Every stream the device allocated, in `stream_alloc` order. */
@@ -1350,7 +1341,6 @@ class IrDevice implements Device {
   private suspension = { now: 0, next: 0, eat: false, nextEat: false, trigger: 0 };
   private executeEntry?: (...args: GeneratedCallArgument[]) => unknown;
   /** Samples published through `sound_stream::put_int` since the last collection. */
-  private streamSamples: number[] = [];
   private readonly soundStreams: IrSoundStream[] = [];
   private slotChild?: IrDevice;
   /** The option the slot selected, whether or not its card is held. */
@@ -2056,14 +2046,6 @@ class IrDevice implements Device {
         // zero every time -- the square waves never toggled and the console
         // rendered silence however loud the game set the envelope.
         attotime_to_clocks: seconds => Math.floor(Number(seconds) * clock),
-        // MAME `sound_stream::put_int(channel, index, value, max)`, with the
-        // channel dropped by the caller: a sound device publishes one rendered
-        // sample per call, scaled to full-range, and the host collects them
-        // through takeStreamSamples() rather than the device pushing anywhere.
-        stream_put_int: (index, value, max) => {
-          this.streamSamples[index] = max ? value / max : 0;
-          return 0;
-        },
         'attotime::from_hz': frequency =>
           frequency > 0 ? 1 / frequency : Infinity,
         'attotime::from_ticks': (ticks, frequency) =>
@@ -2700,7 +2682,7 @@ class IrDevice implements Device {
   stateKeys(): readonly string[] {
     // accessToBeRedone is cpu_device state a core reads back on its next
     // slice: an access the 68000's VPA sync deferred is redone after a load.
-    return ['members', 'timers', 'spaces', 'executedCycles', 'suspension', 'streamSamples', 'children', 'slotChild', 'executionContext', 'accessToBeRedone'];
+    return ['members', 'timers', 'spaces', 'executedCycles', 'suspension', 'children', 'slotChild', 'executionContext', 'accessToBeRedone'];
   }
 
   tick(seconds: number): void {
@@ -3089,12 +3071,6 @@ class IrDevice implements Device {
   streamRate(): number | undefined {
     const rate = Number(this.members.__stream_rate);
     return rate > 0 ? rate : undefined;
-  }
-
-  takeStreamSamples(): readonly number[] {
-    const samples = this.streamSamples;
-    this.streamSamples = [];
-    return samples;
   }
 
   arity(name: string): number {

@@ -507,7 +507,7 @@ chip is (#249): every core -- the M6800, I8080, MCS-48, 6809, Z80, LR35902,
 microcoded `m68000_device` and the 68010 as its Musashi core, the Sega Z80
 decryptors and Data East's encrypted 6502s among them. There is no other kind
 of CPU: no hand-written support layer, and no CPU facts typed in by type
-(`src/runtime/architecture.spec.ts` keeps both lists empty). MAME's build generators produce the generated
+(`src/runtime/architecture.spec.ts` fails on either). MAME's build generators produce the generated
 part (`z80make.py`'s state machine, `m6809.hxx`), and `runtime/device-cpu.ts`
 is the board's side of `device_execute_interface`: the core's spaces bound to
 the CPU's bus, its input lines through the board's `device_input`,
@@ -848,8 +848,8 @@ in `src/ir/walk.ts`, shared with the driver-init lowering).
 Every sound chip is its MAME class, compiled whole from its source, and every
 board plays through one path: the stream mix. There is one `sound.kind`,
 `stream`, and a board with no sound device is `none`. No chip is modelled
-anywhere else, and `architecture.spec.ts` pins that with `SOUND_KINDS`, a
-shrink-only list of kinds that name a chip family or a board. It is empty.
+anywhere else, and `architecture.spec.ts` keeps it so: its `SOUND_KINDS`
+guard fails on any kind that names a chip family or a board.
 
 A sound device is any MAME class with a `sound_stream_update`. Most compile
 through the `sound-device` capability (`src/hardware/sound-device`), which
@@ -1541,36 +1541,38 @@ The test for a proposed host feature is therefore not "did this come from
 MAME source" (design test question 1 does not apply) but "would this work
 unchanged for the next generated machine".
 
-### WHAT IS STILL HAND-WRITTEN
+### GUARDS AGAINST HAND-WRITTEN HARDWARE
 
-The left-hand column above is the rule, not yet the whole state of the code.
-Some MAME-derived behaviour is still written by hand: CPU support layers and
-MAME facts copied by hand. Generating an item and deleting its hand-written
-version is tracked in
-[#178](https://github.com/benbruscella/mamekit/issues/178). The board devices
-(#237), the video hardware (#240) and every sound engine (#242) went that way
-and now compile from MAME's own source.
+Everything in the left-hand column above compiles from MAME's source: every
+CPU, device, video and sound chip, and every board. Nothing MAME-derived is
+written by hand. `src/runtime/architecture.spec.ts` keeps it that way. Each
+guard there scans for one kind of hand-written hardware and must find none:
 
-The source of truth for what is left is `src/runtime/architecture.spec.ts`,
-which pins each piece by name in an exact, shrink-only list:
-
-| List | What it pins |
+| Guard | What it must not find |
 |---|---|
-| `DEVICE_TYPE_BRANCHES` | Shared-runtime branches on a MAME device type, per file |
-| `DIRECT_SCREEN_SHAPES` | Renderers written for one driver |
-| `REPLACED_METHODS` | `replaceMethod` calls in `src/hardware/device/extract.ts`, as compiler and method |
-| `SPECIALIZED_COMPILERS` | Device types `extract.ts` compiles with their own source-editing function |
-| `HAND_WRITTEN_ENGINES` | Classes in `src/hardware` and in compiler-emitted worklets: cores, chips, mixers, frame renderers and processors |
-| `SOUND_KINDS` | Sound kinds that name a chip family or a board rather than the stream mix |
+| machine-name branches | A conditional in `src/runtime`, `src/hardware` or `src/ir` on a machine's game or family, or on the name of any target with a contract |
+| `DEVICE_TYPE_BRANCHES` | A shared-runtime branch on a MAME device type, or a pattern that picks a chip or CPU family by name, as a sound-chip prefix list once did |
+| `DIRECT_SCREEN_SHAPES` | A renderer written for one driver in place of its screen update |
+| `REPLACED_VIDEO_HANDLERS` | A video handler the runtime resolves to a stand-in body in place of MAME's method |
+| `HAND_PORTED_LIBRARIES` | MAME library code restated in the runtime (`resnet.cpp`, `atarimo.cpp`) |
+| `HAND_WRITTEN_ENGINES` | A class in `src/hardware` or in a compiler's emitted worklet: a core, a chip model, or the renderer and processor that hosted one |
+| `SOUND_KINDS` | A sound kind that names a chip family or a board, not the stream mix |
+| `HAND_WRITTEN_CPU_LAYERS` | A C++ body composed in TypeScript, an edit of MAME's source or a typed-in constant table in the CPU lowering idioms |
+| `HAND_WRITTEN_CPU_FACTS` | A per-CPU fact (clock divider, width, endianness, mask, ROM window) keyed by CPU type outside the compiler |
+| `RETIRED_MODULES` | Any file that once held hand-written hardware, under the same path |
+| `RETIRED_NAMES` | Any identifier of retired hardware, or of a hook that hosted it, anywhere in `src`: `replaceMethod` and `SPECIALIZED` (the device forks), `directScreenUpdate`, `_MASTER_GAIN`, `MAX_QUANTUM_SECONDS` and the rest |
 
-A new entry fails the spec, and so does an entry that no longer matches until
-it is deleted from its list. Host boundaries, such as the `SCREEN` and
-`VECTOR` hosts and the shared stream worklet that plays what a generated chip
-rendered, are declared apart in `HOST_BOUNDARIES` with the reason each is not
-hardware. Every list is empty; only `HOST_BOUNDARIES` is left. The
-[#176 audit](https://github.com/benbruscella/mamekit/issues/176#issuecomment-6343282103)
-has the original file and line references; CPU support layers and MAME facts
-copied by hand have no list yet, and nothing may be added to them either.
+These are guards, not a backlog: none has an exception list. A guard that
+fails is answered by teaching the compiler the idiom, never by an entry.
+MAMEKIT's own hosting is declared apart, in `HOST_BOUNDARIES`, each piece
+with the reason it is not hardware: the `SCREEN` and `VECTOR` hosts, the
+shared stream worklet that plays what a generated chip rendered, the netlist
+solver, and the audio probe's resampler. Two shrink-only lists pin what the
+board keeps beside the generated machine, `HOST_MODELS` and
+`SAVED_BOARD_FIELDS`, because hand-written hardware would hide its registers
+there. `npm run audit:generated` adds the file-level check: no MAME hardware
+copy in `src/runtime`, and no `generated-*` file there beyond the generic
+executors.
 
 ## 9. BROWSER BOOT SEQUENCE
 

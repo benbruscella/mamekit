@@ -41,23 +41,6 @@ export interface StreamInput {
   gain: number;
 }
 
-/**
- * The streams a worklet's runtime mixes beside its chip, as the sound plan
- * lists them, each at its route's gain over `over`: the gain the shell already
- * applies after the worklet (a WSG's own route).
- */
-export function streamDeviceSources(
-  devices: readonly { deviceTag: string; gain: number; outputGains?: readonly number[]; inputs?: readonly StreamInput[] }[],
-  over = 1,
-): StreamSource[] {
-  return devices.map(device => ({
-    tag: device.deviceTag,
-    gain: device.gain / over,
-    ...(device.outputGains ? { outputGains: device.outputGains } : {}),
-    ...(device.inputs ? { inputs: device.inputs } : {}),
-  }));
-}
-
 /** MAME's ALL_OUTPUTS, as `set_output_gain` takes it. */
 const ALL_OUTPUTS = 65535;
 

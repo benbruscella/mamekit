@@ -24,15 +24,6 @@ export interface VideoRenderer {
   vblankEnd?(): void;
 }
 
-/** One mono audio DSP core, pulled by the audio glue at its native rate. */
-export interface SoundCore {
-  readonly sampleRate: number;
-  /** Register write, already time-ordered. */
-  write(offset: number, data: number): void;
-  /** Fill `out` with the next out.length mono samples in [-1, 1]. */
-  render(out: Float32Array): void;
-}
-
 /** Active-low raw input port state, updated by the shell from DOM events. */
 export interface InputPorts {
   /** read the current byte for a port tag ("IN0", "IN1", "DSWA", "DSWB") */
@@ -56,8 +47,7 @@ export type { BoardConfig, CpuSpec } from '../ir/host-config.ts';
 
 export interface BoardSinks {
   /**
-   * Sound register write, forwarded to the audio worklet (offset space is
-   * per SoundCore). `frac` is the write's position within the current video
+   * Sound register write, forwarded to the audio worklet. `frac` is the write's position within the current video
    * frame (0..1, e.g. scanline/vtotal): boards emulate a whole frame in one
    * burst, so without it every write lands at the same instant and fast SFX
    * sweeps quantize into chirpy stair-steps. Pass it whenever known.
@@ -69,13 +59,6 @@ export interface BoardSinks {
    * TMS5220C's speech under a YM2151's music). The browser asks for none.
    */
   observeStreams?: readonly string[];
-  /**
-   * Bulk sample-data push to the worklet (NES DMC: the APU DSP runs in the
-   * worklet and cannot read CPU memory, so the board snapshots the sample
-   * bytes at trigger time and ships them). `id` names the buffer slot the
-   * core's register writes refer to.
-   */
-  soundData?: (id: number, bytes: Uint8Array) => void;
   /**
    * MAME's `sound_manager::system_mute`: the machine silences every speaker
    * (Frogger's and Scramble's "sound disable" bit). `frac` is where in the

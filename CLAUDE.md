@@ -26,6 +26,11 @@ documentation set.
 - A hardware family is one package under `src/hardware/<family>/`. Its
   `runtime`-facing code wires generated IR; DSP, opcode semantics, register
   models and pixel loops belong in generated artifacts, never handwritten there.
+- `src/runtime/architecture.spec.ts` guards against hand-written hardware
+  coming back (ARCHITECTURE.md "Guards against hand-written hardware"). Its
+  guards have no exception lists: a failing guard is answered by teaching the
+  compiler the idiom, never by an entry. Only host code goes in
+  `HOST_BOUNDARIES`, with its reason.
 - Dependency direction is compile -> IR -> execution, enforced by
   `src/ir/dependency-direction.spec.ts`.
 - JSON stores generated data; TypeScript/JavaScript stores behavior.
