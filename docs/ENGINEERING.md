@@ -427,9 +427,20 @@ Target generation is already parallel. `gen:all` uses a bounded worker pool
 (memory-aware, capped at 8 — see `src/gen/generator-workers.ts`). Override it
 with `npm run gen:all -- --jobs 12` or `MAMEKIT_JOBS=12`; do not launch an
 unbounded process per target because every worker parses and lowers a sizeable
-MAME source closure before the shared runtime/app build runs once. The
-hardware closure's isolated CPU artifact workers run through the same bounded
-pool policy.
+MAME source closure before the shared runtime/app build runs once.
+
+The hardware closure lowers across a pool of the same size
+(`src/mame/closure-pool.ts`, workers in `src/mame/closure-worker.ts`). Each
+capability is one job, and a family whose types lower independently
+(`extractsPerType` in its registry entry: the generated devices, the stream
+sound chips) is one job per type. Workers write their own artifacts and
+answer with the manifest's share. The results merge in registry order and two
+jobs may emit one path only with identical bytes, so the output is the same
+as one process lowering everything in turn. Before #265 every capability ran
+synchronously on the main thread: about 560 s on an M3 Pro and 15 of the 17
+minutes CI's assemble step took. With the pool it is about 100 s locally.
+The run prints its slowest jobs, which bound it: DISCRETE's single compile
+first, then the NES boards, the 68000 and the C64.
 
 Each target generates in a process of its own, and every one needs MAME's
 device index (`indexMameHardware`): about twenty seconds of reading every

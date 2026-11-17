@@ -110,6 +110,13 @@ export interface HardwareCapability {
    * promise; one with nothing to do still answers undefined at once.
    */
   extract(input: CapabilityInput): CapabilityExtraction | Promise<CapabilityExtraction | undefined> | undefined;
+  /**
+   * Each type lowers on its own: `extract` given one entry gives exactly that
+   * entry's share of what it gives for all of them, and artifacts two types
+   * both emit are identical. The closure then compiles the family one type a
+   * job across its worker pool (see closure-pool.ts) rather than as one job.
+   */
+  extractsPerType?: true;
 }
 
 /** Find the capability that claims a MAME device type. */

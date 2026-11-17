@@ -93,6 +93,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     mameTypes: DEVICE_MAME_TYPES,
     ports: DEVICE_PORTS,
     extract: extractDevices,
+    extractsPerType: true,
   },
   {
     id: VECTOR_ID,
@@ -137,7 +138,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     extract: extractGameboy,
   },
   // Audio
-  { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices },
+  { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices, extractsPerType: true },
   {
     id: POKEY_ID,
     mameTypes: POKEY_MAME_TYPES,

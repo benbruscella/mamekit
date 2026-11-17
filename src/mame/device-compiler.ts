@@ -7136,6 +7136,10 @@ function outOfLineStructMethods(
 ): { name: string; parameters: string; program: GeneratedHandlerProgram }[] {
   const leaf = name.split('::').at(-1)!;
   const found: { name: string; parameters: string; program: GeneratedHandlerProgram }[] = [];
+  // The pattern below needs `<leaf>::` literally. Without one it can only
+  // fail, but it fails by backtracking from every statement boundary of every
+  // source, once per struct: 90 s of DISCRETE's compile (#265).
+  if (!code.includes(`${leaf}::`)) return found;
   const definition = new RegExp(
     `(?:^|[;}])\\s*(?:inline\\s+)?[\\w:<>]+[\\s*&]+(?:\\w+::)*${leaf}::(\\w+)\\s*\\(([^()]*)\\)\\s*(?:const\\s*)?(?:noexcept\\s*)?\\{`,
     'gm',

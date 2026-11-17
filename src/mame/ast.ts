@@ -178,7 +178,36 @@ const CONTROL_KEYWORDS = new Set([
   'if', 'else', 'for', 'while', 'switch', 'do', 'catch', 'return', 'sizeof', 'namespace',
 ]);
 
+/**
+ * The units last parsed, by file and source. A device compiles each class it
+ * nests (DISCRETE has one per node type) against the same sources, and the
+ * function scan below re-ran on every one: a third of DISCRETE's compile
+ * (#265). Callers rewrite what they are given (variadic templates, overload
+ * names), so each gets its own copy.
+ */
+const PARSED = new Map<string, Map<string, MameTranslationUnit>>();
+let parsedCount = 0;
+
 export function parseMameSource(file: string, source: string): MameTranslationUnit {
+  let byFile = PARSED.get(file);
+  let unit = byFile?.get(source);
+  if (!unit) {
+    unit = parseMameSourceOnce(file, source);
+    // Bounded by count, not file: one compile reads a few dozen files, some
+    // in two or three spellings (preprocessed, specialised).
+    if (parsedCount >= 512) {
+      PARSED.clear();
+      parsedCount = 0;
+      byFile = undefined;
+    }
+    if (!byFile) PARSED.set(file, byFile = new Map());
+    byFile.set(source, unit);
+    parsedCount++;
+  }
+  return structuredClone(unit);
+}
+
+function parseMameSourceOnce(file: string, source: string): MameTranslationUnit {
   // A call operator is the method `__call`, which a call on the object
   // lowers to: the slapstic's address predicate is `bool operator()(offs_t a)`.
   // Respelled in place, so every offset into the masked text still holds.

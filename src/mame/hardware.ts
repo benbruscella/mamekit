@@ -10,6 +10,7 @@ import {
 } from 'node:fs';
 import { basename, dirname, extname, join, relative, resolve } from 'node:path';
 import { HARDWARE_CAPABILITIES } from '../hardware/registry.ts';
+import { extractCapabilitiesInPool } from './closure-pool.ts';
 import { streamRoutedDevices } from '../hardware/speaker/definition.ts';
 import { GraphBuilder, type KnowledgeGraph } from '../kg/types.ts';
 import { parseMameSource, type MameMacro, type MameTranslationUnit } from './ast.ts';
@@ -664,7 +665,7 @@ export function hardwareKnowledgeGraph(
 export async function emitHardwareClosure(
   closure: HardwareClosure,
   outRoot: string,
-  /** Concurrent isolated artifact workers; policy belongs to the caller. */
+  /** Closure worker processes; policy belongs to the caller. */
   emitterJobs = 4,
 ): Promise<void> {
   const root = join(outRoot, 'runtime/generated');
@@ -688,18 +689,14 @@ export async function emitHardwareClosure(
   // Capability packages own their own extraction, emitted artifacts and
   // manifest entry. Everything below this line is hardware still awaiting a
   // package; adding one must not require editing this function again.
-  // Every capability is started before any is awaited, so one that compiles
-  // in worker processes (the NES's cartridge boards) runs alongside the rest.
-  const pending = HARDWARE_CAPABILITIES.map(capability => ({
-    capability,
-    result: capability.extract({
-      mameSource: closure.mameSource,
-      entries: closure.hardware,
-    }),
-  }));
-  const extracted = (await Promise.all(pending.map(async ({ capability, result }) =>
-    ({ capability, result: await result }))))
-    .flatMap(({ capability, result }) => result ? [{ capability, result }] : []);
+  // They lower across a pool of worker processes, which write the artifacts.
+  const extracted = await extractCapabilitiesInPool(
+    HARDWARE_CAPABILITIES,
+    closure.mameSource,
+    closure.hardware,
+    root,
+    emitterJobs,
+  );
   const capabilityExecutable = new Map(
     extracted.flatMap(({ result }) => Object.entries(result.executable)),
   );
@@ -792,34 +789,6 @@ export async function emitHardwareClosure(
     join(root, 'hardware-graph.json'),
     JSON.stringify(hardwareKnowledgeGraph(closure, executableTypes), null, 2),
   );
-  const isolatedEmitters: Array<(root: string) => void | Promise<void>> = [];
-  for (const { result } of extracted) {
-    const writeArtifacts = (artifacts: typeof result.artifacts): void => {
-      for (const artifact of artifacts) {
-        const target = join(root, artifact.path);
-        mkdirSync(dirname(target), { recursive: true });
-        writeFileSync(target, artifact.contents);
-      }
-    };
-    writeArtifacts(result.artifacts);
-    for (const generateArtifacts of result.artifactGroups ?? []) {
-      writeArtifacts(generateArtifacts());
-    }
-    isolatedEmitters.push(...(result.artifactEmitters ?? []));
-  }
-  // Each emitter compiles in its own worker process and none depend on each
-  // other, so a bounded pool replaces the previous one-at-a-time sequence.
-  let nextEmitter = 0;
-  const drainEmitters = async (): Promise<void> => {
-    while (nextEmitter < isolatedEmitters.length) {
-      await isolatedEmitters[nextEmitter++]!(root);
-    }
-  };
-  await Promise.all(Array.from(
-    { length: Math.max(1, Math.min(emitterJobs, isolatedEmitters.length)) },
-    drainEmitters,
-  ));
-
   for (const entry of closure.hardware) {
     const slug = entry.type.toLowerCase();
     const emitted = compactEntry(entry);
