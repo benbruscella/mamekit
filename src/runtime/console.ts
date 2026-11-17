@@ -133,6 +133,20 @@ function dmgGrip(): string {
   return ribs;
 }
 
+/**
+ * The Super Nintendo / Super Famicom cartridge's grip: fine ridges down each
+ * curved shoulder of the top edge, where fingers pull the cartridge out.
+ */
+function sfcGrip(): string {
+  let ridges = '';
+  for (let index = 0; index < 5; index++) {
+    const y = 14 + index * 5.2;
+    ridges += `<rect x="12" y="${y}" width="22" height="2.4" rx="1" fill="rgba(0,0,0,.22)"/>`
+      + `<rect x="166" y="${y}" width="22" height="2.4" rx="1" fill="rgba(0,0,0,.22)"/>`;
+  }
+  return ridges;
+}
+
 const CART_SHELLS: Record<string, CartShell> = {
   nes: {
     label: { x: 53.5, y: 15.5, w: 133, h: 151 },
@@ -194,11 +208,31 @@ const CART_SHELLS: Record<string, CartShell> = {
     <rect x="14" y="199.8" width="172" height="1.2" fill="rgba(255,255,255,.22)"/>
     ${dmgGrip()}`,
   },
+  // The Super Nintendo / Super Famicom cartridge: a squat grey shell, wider
+  // than it is tall, with rounded shoulders at the top edge and a landscape
+  // label across the upper face -- which is what a box scan from either region
+  // is fitted into (fitLabelToArt narrows it for a portrait Japanese box).
+  sfc: {
+    label: { x: 22, y: 50, w: 156, h: 112 },
+    artHeight: 112,
+    art: { x: 22, y: 60, w: 156, h: 48 },
+    title: { x: 29, y: 128, wrap: 17 },
+    bodyTop: '#c4c3bf',
+    bodyBottom: '#96958f',
+    moulding: 'rgba(24,24,24,.40)',
+    chrome: () => `
+    <path d="M6 30 q0-22 22-24 h144 q22 2 22 24 v204 a12 12 0 0 1-12 12 h-164 a12 12 0 0 1-12-12 z" fill="url(#cb)"/>
+    <path d="M40 6 h120 v22 q0 8-8 8 h-104 q-8 0-8-8 z" fill="rgba(0,0,0,.08)"/>
+    <path d="M28 8 h144" stroke="rgba(255,255,255,.45)" stroke-width="2.2"/>
+    ${sfcGrip()}
+    <rect x="6" y="198" width="188" height="1.8" fill="rgba(0,0,0,.24)"/>
+    <rect x="6" y="199.8" width="188" height="1.2" fill="rgba(255,255,255,.20)"/>`,
+  },
 };
 
 /**
  * The shell this room draws, chosen once from the software list's own cartridge
- * interface -- `a2600_cart`, `nes_cart`, `coleco_cart`, `gameboy_cart` -- so the
+ * interface -- `a2600_cart`, `nes_cart`, `coleco_cart`, `gameboy_cart`, `snes_cart` -- so the
  * drawing follows MAME's own name for the slot rather than a hand-kept console
  * list.
  */
@@ -208,6 +242,7 @@ export const useCartShell = (name: string | undefined): void => { activeShell = 
 export const shellForInterface = (name: string | undefined): CartShell =>
   name === 'a2600_cart' ? CART_SHELLS.vcs!
     : name === 'gameboy_cart' ? CART_SHELLS.dmg!
+    : name === 'snes_cart' ? CART_SHELLS.sfc!
     : CART_SHELLS.nes!;
 
 /** viewBox units as a percentage, for overlaying HTML on the drawn cartridge */
@@ -1006,16 +1041,28 @@ export async function runConsole(cfg: ShellConfig): Promise<void> {
     const { naturalWidth: w, naturalHeight: h } = img;
     if (!w || !h) return;
     const { label, artHeight } = activeShell;
-    const width = Math.min(label.w, artHeight * (w / h));
+    // Whichever side binds: a tall scan narrows the label, a wide one (a North
+    // American SNES box, landscape) lowers it. Fitting only the width left a
+    // wide scan at full height under object-fit: cover, cropping both sides.
+    const aspect = w / h;
+    const width = Math.min(label.w, artHeight * aspect);
+    const height = Math.min(artHeight, label.w / aspect);
     const x = label.x + label.w / 2 - width / 2;
+    const y = label.y + (artHeight - height) / 2;
     const bg = cover.querySelector('[data-label-bg]');
     const frame = cover.querySelector('[data-label-frame]');
     bg?.setAttribute('x', String(x));
     bg?.setAttribute('width', String(width));
+    bg?.setAttribute('y', String(y));
+    bg?.setAttribute('height', String(height));
     frame?.setAttribute('x', String(x - LABEL_FRAME_PAD));
     frame?.setAttribute('width', String(width + LABEL_FRAME_PAD * 2));
+    frame?.setAttribute('y', String(y - LABEL_FRAME_PAD));
+    frame?.setAttribute('height', String(height + LABEL_FRAME_PAD * 2));
     img.style.left = pct(x, CART_W);
     img.style.width = pct(width, CART_W);
+    img.style.top = pct(y, CART_H);
+    img.style.height = pct(height, CART_H);
     // the label now matches the scan, so filling it crops nothing
     img.style.objectFit = 'cover';
   }
