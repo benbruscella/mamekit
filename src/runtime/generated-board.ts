@@ -2149,13 +2149,16 @@ class IrBoard implements Board {
       }
     }
 
+    // palette_device takes the byte order of the share it binds, which is the
+    // byte order of the space the share is mapped in, unless the driver called
+    // set_endianness: the 68000's palette RAM is big-endian, the TMS34010's
+    // little-endian, each as its compiled class's address_space_config says.
     const ramPalette = machine.video?.ramPalette;
-    if (
-      ramPalette && !ramPalette.endianness &&
-      machine.execution.cpus.some(cpu =>
-        /^m680(?:00|10|20)/i.test(cpu.type ?? '') &&
-        (cpu.ranges ?? []).some(range => range.write === `${ramPalette.tag}.write16`))
-    ) ramPalette.endianness = 'big';
+    if (ramPalette && !ramPalette.endianness) {
+      const owner = machine.execution.cpus.find(cpu =>
+        (cpu.ranges ?? []).some(range => range.share === ramPalette.tag));
+      if (owner?.space?.endianness) ramPalette.endianness = owner.space.endianness;
+    }
 
     // Bound before any CPU exists: a generated CPU may emit a signal from its
     // own constructor, and every connection must already be executable.
@@ -2421,13 +2424,6 @@ class IrBoard implements Board {
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
       let sliceTarget = 0;
-      // Cycles of the running slice already reported to a sound device, and
-      // the resolved hook itself (the runtime is installed after this closure).
-      const instructionTicks = this.hostModel(
-        `${specification.tag}.instructionTicks`, { previous: 0 },
-      );
-      const instructionTick: { resolved: boolean; tick?: (cycles: number) => void } =
-        { resolved: false };
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const screenSpec = machine.execution.screen;
       const cpuBus: CpuBus = {
@@ -2473,23 +2469,7 @@ class IrBoard implements Board {
           ) ?? 0xff,
         } : {}),
         timing: (elapsed, target) => {
-          // Runs between every pair of instructions: what can be resolved once
-          // -- whether a sound device ticks on this processor -- is.
-          if (!instructionTick.resolved) {
-            const sound = this.soundRuntime;
-            instructionTick.resolved = true;
-            instructionTick.tick = sound?.tickInstruction &&
-              sound.instructionCpus?.has(specification.tag)
-              ? (cycles: number) => sound.tickInstruction!(specification.tag, cycles)
-              : undefined;
-          }
           const clamped = elapsed < 0 ? 0 : elapsed > target ? target : elapsed;
-          if (instructionTick.tick) {
-            if (clamped > instructionTicks.previous) {
-              instructionTick.tick(clamped - instructionTicks.previous);
-            }
-            instructionTicks.previous = clamped === target ? 0 : clamped;
-          }
           this.currentLineFraction = target > 0 ? Math.min(1, elapsed / target) : 0;
           this.runningSliceCycles = clamped;
           sliceTarget = target;
@@ -5598,15 +5578,12 @@ class IrBoard implements Board {
     const deviceFor = (tag: string): Device | undefined => this.devices.get(tag) ?? descendants.get(tag);
     const hooks = installSoundRuntime({
       board: machine,
-      regions,
       sound: machine.sound,
-      registry,
       calls: this.bindings.calls!,
       state: this.state,
       soundWrite: (offset, data, frac, method) =>
         sinks.soundWrite(offset, data, frac, method),
       ...(sinks.observeStreams?.length ? { observeStreams: sinks.observeStreams } : {}),
-      soundData: (id, bytes) => sinks.soundData?.(id, bytes),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
       deviceTime: tag => this.roundDeviceSeconds(tag),
@@ -5635,53 +5612,10 @@ class IrBoard implements Board {
         // MAME's `sound_stream` surface, which is an object, not a number.
         return Number(device.invoke(method, ...args as GeneratedCallArgument[])) || 0;
       },
-      deviceStream: tag => deviceFor(tag)?.takeStreamSamples?.() ?? [],
       deviceStreamRate: tag => deviceFor(tag)?.streamRate?.(),
       deviceStreams: tag => deviceFor(tag)?.streams?.() ?? [],
       streamDescendants: () => streamDescendants,
-      runCallbackHandler: callbackId =>
-        executeGeneratedCallbackHandler(machine, callbackId, this.bindings),
-      dispatch: (ownerTag, signal, value) =>
-        void dispatchGeneratedCallbacks(machine, ownerTag, signal, value, this.effects),
-      readSignal: (ownerTag, signal) => {
-        for (const callback of machine.callbacks) {
-          if (callback.ownerTag !== ownerTag || callback.signal !== signal) continue;
-          const effect = this.effects.get(callback.id);
-          if (!effect) continue;
-          const value = effect.run(0);
-          if (value !== undefined) {
-            return applyBoardTransforms(Number(value) || 0, effect.transforms);
-          }
-        }
-        return undefined;
-      },
-      readProgram: (cpuTag, address) => this.cpuBuses.get(cpuTag)?.read(address) ?? 0xff,
-      bankEntry: tag => this.bankSelection.get(tag)?.entry,
-      stallCpu: (cpuTag, cycles) => {
-        this.cpuStalls.set(cpuTag, (this.cpuStalls.get(cpuTag) ?? 0) + cycles);
-      },
-      setCpuInputLine: (cpuTag, line, state) => {
-        const cpu = this.cpus.get(cpuTag);
-        if (cpu) cpu.setInputLine(line, state);
-      },
-      perfectQuantum: seconds => this.perfectQuantum(seconds),
-      synchronize: run => this.synchronize(run),
     });
-    for (const specification of machine.devices ?? []) {
-      if (!/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(specification.type)) continue;
-      for (const alias of [specification.tag, `m_${specification.tag}`, specification.member]
-        .filter((value): value is string => Boolean(value))) {
-        this.bindings.calls![`${alias}.set_output_gain`] ??= (channel, gain) => {
-          sinks.soundWrite(
-            Math.max(0, Math.round(Number(channel)) || 0),
-            Math.round(Math.max(0, Math.min(1, Number(gain))) * 255),
-            this.soundFraction(),
-            `${specification.tag}.set_output_gain`,
-          );
-          return 0;
-        };
-      }
-    }
     // device_t::set_unscaled_clock on any generated device the board drives:
     // the device's own (its clock, then device_clock_changed). Recorded as
     // well, so a contract can see the board change it.
@@ -6118,17 +6052,6 @@ class IrBoard implements Board {
         const call = this.bindings.calls?.[`${tag}.${method}`] ??
           this.bindings.calls?.[`m_${tag}.${method}`];
         if (call) return state => { call(state); };
-        const type = this.machine.devices?.find(candidate => candidate.tag === tag)?.type ?? '';
-        if (/^(?:YM|AY|POKEY|TMS|OKI|MSM|SN|DAC|DISCRETE)/.test(type)) {
-          // Auxiliary sound chips may not be the board's selected primary
-          // synthesizer, but their control pins remain real I/O endpoints.
-          return state => sinks.soundWrite(
-            0,
-            state,
-            this.soundFraction(),
-            `${tag}.${method}`,
-          );
-        }
         return undefined;
       },
       handler: (key, deviceTag) => {

@@ -1655,11 +1655,11 @@ function compileSetFormatRamPalette(
     template.some(value => !Number.isFinite(value))) {
     return fail(`unsupported rgb decoder template <${decoder[3]}>`);
   }
-  const configuredEndianness =
-    /\.set_endianness\s*\(\s*ENDIANNESS_(LITTLE|BIG)\s*\)/.exec(raw)?.[1];
-  const endianness = (configuredEndianness?.toLowerCase() ??
-    paletteShareEndianness(graph, String(device.props.tag))) as
-    'little' | 'big' | undefined;
+  // set_endianness, where the driver calls it. Otherwise palette_device takes
+  // the byte order of its share's space, which the board reads from the
+  // owning processor's compiled address_space_config.
+  const endianness = /\.set_endianness\s*\(\s*ENDIANNESS_(LITTLE|BIG)\s*\)/.exec(raw)?.[1]
+    ?.toLowerCase() as 'little' | 'big' | undefined;
 
   // palette_device::device_start binds memshare(tag()) and tag() + "_ext".
   const tag = String(device.props.tag);
@@ -1695,32 +1695,6 @@ function compileSetFormatRamPalette(
     } : {}),
     source: { file: sourceFile, line: lineOf(implementation, overload.index) },
   };
-}
-
-/**
- * palette_device inherits the byte order of the memory share it binds. Find
- * the CPU whose address map owns that share and mirror MAME's CPU-space order
- * when the driver did not explicitly call set_endianness().
- */
-export function paletteShareEndianness(
-  graph: KnowledgeGraph,
-  share: string,
-): 'little' | 'big' | undefined {
-  const rangeIds = new Set(graph.nodes
-    .filter(node => node.label === 'AddressRange' && node.props.share === share)
-    .map(node => node.id));
-  const mapIds = new Set(graph.edges
-    .filter(edge => edge.rel === 'HAS_RANGE' && rangeIds.has(edge.to))
-    .map(edge => edge.from));
-  const deviceId = graph.edges.find(edge =>
-    edge.rel === 'HAS_MAP' && mapIds.has(edge.to))?.from;
-  const type = String(graph.nodes.find(node => node.id === deviceId)?.props.type ?? '');
-  if (!type) return undefined;
-  // These MAME CPU families expose big-endian program address spaces. Width
-  // is deliberately irrelevant: an 8-bit 6809 share still orders a packed
-  // two-byte palette entry most-significant byte first.
-  return /^(?:M68|MC68|HD63|KONAMI|SCC68070|PPC|POWERPC|R3000BE|MIPS\w*BE|SH\w*BE)/
-    .test(type) ? 'big' : 'little';
 }
 
 /**

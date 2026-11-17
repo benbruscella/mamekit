@@ -6,8 +6,8 @@
 // then: this queues a frame of samples, resamples the chip's rate to whatever
 // the audio context chose, and holds the last value when it runs dry.
 //
-// Shared, because the shape is the host's rather than the hardware's. The
-// Atari 2600's TIA and the Game Boy's APU differ in everything except this.
+// One worklet for every board, because the shape is the host's rather than
+// the hardware's: every chip plays through it.
 
 /** What identifies the chip whose samples the worklet plays. */
 export interface StreamWorkletSubject {

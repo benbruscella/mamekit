@@ -6,7 +6,6 @@ export const shinobi = sourceTarget({
   runtimeCoverage: {
     generationGaps: [],
     handlerGaps: [],
-    allowDirectScreen: true,
   },
   driver: 'src/mame/sega/segas16a.cpp',
   machine: { className: 'segas16a_state', name: 'system16a' },

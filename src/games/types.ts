@@ -120,7 +120,6 @@ export interface MediaCapability {
 export interface RuntimeCoverage {
   generationGaps: readonly string[];
   handlerGaps: readonly string[];
-  allowDirectScreen?: boolean;
 }
 
 /** Source identity and generated-machine facts, independent of QA scenarios. */

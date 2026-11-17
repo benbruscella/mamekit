@@ -598,8 +598,8 @@ source-declared `AY8910 + FILTER_RC` or `AY8910 + MSM5205 + DISCRETE` chain
 renders as compiled streams, each feeding the next as MAME routes it; do not
 replace it with a game-specific mixer or silently select only the first
 supported chip. A new sound chip is a type in `sound-device/definition.ts`,
-never an engine or a sound kind of its own (`SOUND_KINDS` in
-`architecture.spec.ts` is empty).
+never an engine or a sound kind of its own (the `SOUND_KINDS` guard in
+`architecture.spec.ts` fails on one).
 
 Do not mark unsupported hardware as executable to make the catalog button
 appear. The runtime report and manifest are honesty contracts.

@@ -3,8 +3,8 @@
 // The board used to switch on sound kind to install each family's register
 // handlers — the fifth place a family had to be registered. A capability
 // package now installs its own, through a context that exposes only the
-// generic machinery: bus handler slots, generated-call aliases, the audio sink
-// and callback dispatch.
+// generic machinery: generated-call aliases, calls on composed devices, their
+// streams, the scheduler's time and the audio sink.
 //
 // This ships to the browser, so it wires generated IR and nothing else. No DSP,
 // no register models, no MAME source.
@@ -24,25 +24,16 @@ export interface SoundStreamSurface {
 
 export interface SoundRuntimeContext {
   board: BoardIr;
-  /** Loaded ROMs for sound devices with a device-local sample region. */
-  regions?: Record<string, Uint8Array>;
   /** The board's generated sound binding; never undefined when this runs. */
   sound: NonNullable<BoardIr['sound']>;
-  /** Bus handler slots, keyed as MAME's "<tag>.<method>". */
-  registry: {
-    read: Record<string, (address: number, offset: number) => number>;
-    write: Record<string, (address: number, offset: number, data: number) => void>;
-  };
   /** Generated-handler call aliases, keyed as "<tag>.<method>". */
   calls: Record<string, (...args: number[]) => unknown>;
-  /** Driver state members, for families that bind a member (AY filters). */
+  /** Driver state members. */
   state: Record<string, unknown>;
   /** Forward a register write to the generated worklet. */
   soundWrite(offset: number, data: number, frac?: number, method?: string): void;
   /** Stream devices whose own samples are reported as `<tag>.stream` (acceptance gates). */
   observeStreams?: readonly string[];
-  /** Push bulk sample bytes to a worklet (the NES DMC cannot read the CPU bus there). */
-  soundData(id: number, bytes: Uint8Array): void;
   /** Position within the current video frame, so writes keep their timing. */
   fraction(): number;
   /** Scheduler time, including the running instruction. */
@@ -55,14 +46,6 @@ export interface SoundRuntimeContext {
   // A stream-rendering chip is handed MAME's own `sound_stream` surface, so
   // the argument is not always a number.
   callDevice(tag: string, method: string, ...args: unknown[]): number | undefined;
-  /**
-   * Drain the PCM a main-thread sound device rendered into its MAME stream.
-   *
-   * The board collects `sound_stream::put_int` per device, so a family that
-   * pumps its chip beside the CPU can forward samples to the sink without the
-   * board knowing which chip it is.
-   */
-  deviceStream(tag: string): readonly number[];
   /** The native rate a main-thread device gave `stream_alloc`, once started. */
   deviceStreamRate?(tag: string): number | undefined;
   /** Every stream the device allocated, in `stream_alloc` order. */
@@ -92,51 +75,17 @@ export interface SoundRuntimeContext {
    * bindDeviceCall reach them by these tags.
    */
   streamDescendants?(): readonly { tag: string; gain: number }[];
-  /** Run a callback's generated handler, for device ports read back. */
-  runCallbackHandler(callbackId: string): number | undefined;
-  /** Deliver a device signal through the board's typed effects. */
-  dispatch(ownerTag: string, signal: string, value: number): void;
-  /** Pull a value from a read callback through the same typed connection. */
-  readSignal(ownerTag: string, signal: string): number | undefined;
-  /** The entry a memory bank currently selects (memory_bank::entry()). */
-  bankEntry?(tag: string): number | undefined;
-  /** Read the live generated program bus, used by integrated DMA sound units. */
-  readProgram(cpuTag: string, address: number): number;
-  /** Charge cycles stolen by an integrated peripheral to its owning CPU. */
-  stallCpu(cpuTag: string, cycles: number): void;
-  /** Drive a CPU input line without collapsing distinct IRQ sources. */
-  setCpuInputLine(cpuTag: string, line: number, state: number): void;
-  /**
-   * MAME `scheduler::perfect_quantum` — let the other processors observe what
-   * was just published before the running one overwrites it.
-   */
-  perfectQuantum(seconds: number): void;
-  /**
-   * MAME `scheduler().synchronize()`: run once the processor that asked has
-   * yielded and the others have caught up to it.
-   */
-  synchronize(run: () => void): void;
 }
 
 export interface SoundRuntimeHooks {
   /** Advance an integrated sound device by CPU cycles actually elapsed. */
   tickCpu?(cpuTag: string, cycles: number): void;
   /**
-   * The same clock at instruction boundaries, for the CPUs in
-   * `instructionCpus`: a timer interrupting its own CPU faster than a slice
-   * (the Williams ADPCM board's 14 kHz YM2151 FIRQ) has to assert between
-   * instructions, as MAME's scheduler does, or expiries collapse and are lost.
-   * tickCpu still receives each slice's total; a hook implementing both counts
-   * only what this one has not already seen.
-   */
-  tickInstruction?(cpuTag: string, cycles: number): void;
-  /**
    * A processor's time moved without it running: cycles booked to it while
    * held in RESET, or its clock changed. A hook that counts tickCpu's cycles
    * toward a deadline starts its count again.
    */
   cpuTimeMoved?(cpuTag: string): void;
-  instructionCpus?: ReadonlySet<string>;
   /** The board finished a frame: anything still to render for it renders now. */
   endFrame?(): void;
   reset?(): void;

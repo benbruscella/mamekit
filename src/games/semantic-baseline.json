@@ -56,31 +56,31 @@
       "palette": "none"
     },
     "bnj": {
-      "sha256": "faf97918f011d3238fa595f50a6465376309761866a7f4515e6f1ed203866945",
+      "sha256": "f4e7751180c21ebd8dbb7832e78829130844607ed8282128dda8d900450681f3",
       "callbacks": 6,
       "frameEvents": 34,
       "devices": 12,
       "handlers": 24,
       "maps": 3,
-      "palette": "ram:palette:-:little:16:1"
+      "palette": "ram:palette:-:native:16:1"
     },
     "bombjack": {
-      "sha256": "42073dfaf5eccdf3e8010dd5c59c6bdf673bf1ddb9645d625df67d452252f951",
+      "sha256": "c94f7c436c5babcdc74e96b86e4784834059a5bb96a2ba338dfaa6aed3087d3e",
       "callbacks": 9,
       "frameEvents": 4,
       "devices": 11,
       "handlers": 24,
       "maps": 3,
-      "palette": "ram:palette:-:little:128:2"
+      "palette": "ram:palette:-:native:128:2"
     },
     "btime": {
-      "sha256": "076b25c3cd8852c7c02a1e16dae4f61720b8c277e0c172cdd2963737d67640eb",
+      "sha256": "8089806dc316b42660333cf08cc0234bdba1eecce2a866384866d09cbf05c70b",
       "callbacks": 6,
       "frameEvents": 34,
       "devices": 12,
       "handlers": 22,
       "maps": 2,
-      "palette": "ram:palette:-:little:16:1"
+      "palette": "ram:palette:-:native:16:1"
     },
     "bublbobl": {
       "sha256": "627dbb5ad0d0da95b0151bd86c49cf912a4f9cfdbf49dc2e78500192b5f4ac4d",
@@ -290,13 +290,13 @@
       "palette": "none"
     },
     "gauntlet": {
-      "sha256": "ae502f3854dca0f93c0cbddfa32ec12148f7a66ab0e6f1e6e1ef9f4b92bbf53e",
+      "sha256": "eb204821e0d6f69a1bf709ecb5ade6d6da7c59117a8ed8c9a1f90642c468b219",
       "callbacks": 15,
       "frameEvents": 10,
       "devices": 20,
       "handlers": 42,
       "maps": 2,
-      "palette": "ram:palette:-:big:1024:2"
+      "palette": "ram:palette:-:native:1024:2"
     },
     "gberet": {
       "sha256": "5c674ec929fe23582576fe2d593d460caf80e472531854e8376dca67fe3f4a3c",
@@ -317,13 +317,13 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "gng": {
-      "sha256": "1fff58d16acd5eae0e1830af495c1b3eb2963af4d6ada985bd4e91193d9bd16e",
+      "sha256": "35f87ab999be477f96971b829031926f0a152b5411f67faac9fb666583f18fed",
       "callbacks": 6,
       "frameEvents": 5,
       "devices": 11,
       "handlers": 22,
       "maps": 2,
-      "palette": "ram:palette:palette_ext:big:256:2"
+      "palette": "ram:palette:palette_ext:native:256:2"
     },
     "gunsmoke": {
       "sha256": "d69eb7bac5710d42c5c1569ab69ea10b4e8f38ee5f55ee9f52c3e0906134b9c0",
@@ -677,13 +677,13 @@
       "palette": "ram:paletteram:-:big:4096:2"
     },
     "simpsons": {
-      "sha256": "85d77ab5db449104afee7e946b889b361b4085a48ec2a6d94373bef8a07d2277",
+      "sha256": "1186cf5e23ae1c0c8be8048fb7915cce7aed733d6bc5a025f9938c9387bce800",
       "callbacks": 7,
       "frameEvents": 1,
       "devices": 12,
       "handlers": 56,
       "maps": 2,
-      "palette": "ram:palette:-:big:2048:2"
+      "palette": "ram:palette:-:native:2048:2"
     },
     "sinistar": {
       "sha256": "452f47930f394c50cc2ea4753ab31e7a9c986a3bcccb56d8ef0169e1e7cdd83e",
@@ -731,13 +731,13 @@
       "palette": "none"
     },
     "tmnt": {
-      "sha256": "596586eeaad61ed68e147dbd518d4e0aa20521bfec44eeda9986da12a445907b",
+      "sha256": "7c0038660e1128fa233eda67a41d6a678b40570ffc8b6c171f94c062e61cabfd",
       "callbacks": 5,
       "frameEvents": 2,
       "devices": 13,
       "handlers": 51,
       "maps": 2,
-      "palette": "ram:palette:-:big:1024:2"
+      "palette": "ram:palette:-:native:1024:2"
     },
     "trackfld": {
       "sha256": "e5813d157566659ef225e6289f3d617c913674b3f3efc0d5c1b1eda627ed96ce",
@@ -785,13 +785,13 @@
       "palette": "ram:palette:-:native:8:2"
     },
     "wardner": {
-      "sha256": "9ff79f220c09150f48578e6e0256bd66d6fc64c9cbd0fd5864705a14cb967043",
+      "sha256": "037e55323936c07a84d61bc978bf51b9cf2c4d874591bd06530487995b899bb7",
       "callbacks": 20,
       "frameEvents": 4,
       "devices": 14,
       "handlers": 63,
       "maps": 6,
-      "palette": "ram:palette:-:little:2048:2"
+      "palette": "ram:palette:-:native:2048:2"
     },
     "wboy": {
       "sha256": "c23b67395798237921e272862a6a8d31e2a8a21c1dba100ba012ec60a0eb8a1c",

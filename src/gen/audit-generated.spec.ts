@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import {
-  auxiliarySoundConfigFailures,
   requiresPlayableGeneration,
   REQUIRED_TARGETS as AUDIT_TARGETS,
 } from './audit-generated.ts';
@@ -17,21 +16,4 @@ for (const candidate of CANDIDATE_TARGETS) {
     'visible candidates remain experimental rather than accepted');
   assert.equal(requiresPlayableGeneration(candidate, false), false);
 }
-assert.deepEqual(
-  auxiliarySoundConfigFailures(
-    'congo',
-    { auxiliaryDevices: [{ type: 'SAMPLES', deviceTag: 'samples' }] },
-    { auxiliaryDevices: [] },
-  ),
-  ['congo: board IR routes auxiliary sound samples:SAMPLES but the app config omits it'],
-);
-assert.deepEqual(
-  auxiliarySoundConfigFailures(
-    'congo',
-    { auxiliaryDevices: [{ type: 'SAMPLES', deviceTag: 'samples' }] },
-    { auxiliaryDevices: [{ type: 'SAMPLES', deviceTag: 'samples' }] },
-  ),
-  [],
-);
-
-console.log('audit-generated.spec: target identity and sound-surface parity passed');
+console.log('audit-generated.spec: target identity passed');

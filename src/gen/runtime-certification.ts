@@ -25,5 +25,5 @@ export function isRuntimeCertified(
   return certification !== undefined &&
     isSubset(generationGaps, certification.generationGaps) &&
     isSubset(handlerGaps, certification.handlerGaps) &&
-    (screenUpdateCompiled || certification.allowDirectScreen === true);
+    screenUpdateCompiled;
 }

@@ -167,7 +167,7 @@ cannot stop a game. In a contract it must be accounted for, in one of two ways:
   with its reason in `src/ir/framework-calls.ts`. Save-state and debugger
   registration are examples.
 - **A known gap:** it is listed in `src/games/unresolved-calls.ts`, which only
-  shrinks (#178).
+  shrinks. The open gaps are tracked in #247.
 
 A new MAME call that answers 0 is therefore a failing contract, not a quiet
 wrong value. `node tools/unresolved-calls.ts [game ...]` runs the contracts

@@ -33,7 +33,7 @@ export interface CapabilityEntry {
 
 /** A file the capability emits into dist/runtime/generated. */
 export interface CapabilityArtifact {
-  /** Path relative to dist/runtime/generated, e.g. "audio/ym2203-worklet.ts". */
+  /** Path relative to dist/runtime/generated, e.g. "audio/stream-worklet.ts". */
   path: string;
   contents: string;
 }

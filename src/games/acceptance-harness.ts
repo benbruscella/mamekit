@@ -382,7 +382,7 @@ export async function runGameAcceptance(
   input.frameFraction = () => board.frameFraction?.() ?? 1;
   options.onBoard?.({ board, boardConfig, config, input });
 
-  const audio = await createAudioProbe(config, regions, outRoot);
+  const audio = await createAudioProbe(config, outRoot);
   const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
   const checkpoints: GameAcceptanceGolden['checkpoints'] = {};
   const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
@@ -1175,7 +1175,6 @@ export function verifyInputBindings(
 
 async function createAudioProbe(
   config: ShellConfig,
-  regions: Regions,
   outRoot: string,
 ): Promise<AudioProbe> {
   installWorkletGlobals();
@@ -1195,7 +1194,6 @@ async function createAudioProbe(
   );
   const renderer = await factory({
     sound: config.sound,
-    regions,
     refresh: config.board.screen.refresh,
     outRoot,
     outputRate: PROBE_OUTPUT_RATE,

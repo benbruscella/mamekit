@@ -767,7 +767,6 @@ export function supportsMethod(
   method: GeneratedDeviceMethod,
   definition: CodegenScope,
   compiled: Set<string>,
-  onUnsupported?: (expression: GeneratedExpression) => void,
 ): boolean {
   const parameters = tryParseParameters(method.parameters);
   if (!parameters) return false;
@@ -973,7 +972,6 @@ export function supportsMethod(
           definition.methods.some(candidate => candidate.name ===
             (inner.callee as { name: string }).name);
       }
-      if (!supported) onUnsupported?.(expression);
     });
   });
   return supported;

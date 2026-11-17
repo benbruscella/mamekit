@@ -27,23 +27,6 @@ export interface GeneratedAudit {
 
 interface GeneratedSoundSurface {
   kind?: string;
-  auxiliaryDevices?: { type?: string; deviceTag?: string }[];
-}
-
-/** Ensure the shell/worklet receives every secondary stream the board emits. */
-export function auxiliarySoundConfigFailures(
-  target: string,
-  boardSound?: GeneratedSoundSurface,
-  appSound?: GeneratedSoundSurface,
-): string[] {
-  const app = new Set((appSound?.auxiliaryDevices ?? [])
-    .map(device => `${device.deviceTag}:${device.type}`));
-  return (boardSound?.auxiliaryDevices ?? []).flatMap(device => {
-    const key = `${device.deviceTag}:${device.type}`;
-    return app.has(key)
-      ? []
-      : [`${target}: board IR routes auxiliary sound ${key} but the app config omits it`];
-  });
 }
 
 export function auditGenerated(outRoot: string): GeneratedAudit {
@@ -263,9 +246,8 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
         sound?: GeneratedSoundSurface;
       }).sound;
       const appSound = (JSON.parse(readFileSync(configPath, 'utf8')) as {
-        sound?: GeneratedSoundSurface & { worklet?: string };
+        sound?: GeneratedSoundSurface;
       }).sound;
-      failures.push(...auxiliarySoundConfigFailures(target, boardSound, appSound));
       if (boardSound?.kind && boardSound.kind !== 'none') {
         if (!appSound?.kind || appSound.kind === 'none') {
           failures.push(
@@ -275,12 +257,12 @@ export function auditGenerated(outRoot: string): GeneratedAudit {
           const worklet = join(
             outRoot,
             'runtime/generated/audio',
-            `${appSound.worklet ?? appSound.kind}-worklet.js`,
+            `${appSound.kind}-worklet.js`,
           );
           if (!existsSync(worklet)) {
             failures.push(
               `${target}: app config plays ${appSound.kind} sound with no ` +
-              `${appSound.worklet ?? appSound.kind}-worklet.js for the shell to load`,
+              `${appSound.kind}-worklet.js for the shell to load`,
             );
           }
         }

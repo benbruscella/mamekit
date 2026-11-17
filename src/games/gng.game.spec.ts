@@ -55,7 +55,15 @@ const ramPalette = video.plan.ramPalette;
 assert.ok(ramPalette);
 assert.equal(ramPalette.tag, 'palette');
 assert.equal(ramPalette.extShare, 'palette_ext');
-assert.equal(ramPalette.endianness, 'big');
+// The driver calls no set_endianness, so the palette takes its share's byte
+// order: the 6809's program space, big-endian in its own address_space_config,
+// which the board reads from the compiled CPU.
+assert.equal(ramPalette.endianness, undefined);
+assert.equal(
+  compileMameDevice(mameSrc, indexMameHardware(mameSrc).get('MC6809')!)
+    .spaces?.find(space => space.index === 0)?.endianness,
+  'big',
+);
 assert.equal(ramPalette.entries, 256);
 assert.equal(ramPalette.bytesPerEntry, 2);
 assert.deepEqual(ramPalette.channels, [

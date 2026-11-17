@@ -81,26 +81,8 @@ export interface AudioProbeContext {
   /** Generated sound configuration for the target. */
   sound: {
     kind: string;
-    deviceType?: string;
-    worklet?: string;
     clock?: number;
-    chips?: number;
-    deviceTags?: string[];
-    deviceTypes?: string[];
-    clocks?: number[];
-    dacs?: unknown;
-    waveRegion?: string;
-    sampleRegion?: string;
-    routes?: unknown;
-    auxiliaryDevices?: unknown;
-    filterChain?: unknown;
-    chipOutputs?: unknown;
-    netlist?: unknown;
-    discreteDac?: unknown;
-    discreteEffects?: unknown;
   };
-  /** Assembled ROM regions, for cores that read a wavetable. */
-  regions: Record<string, Uint8Array>;
   /** Screen refresh, which sets how many samples one frame is worth. */
   refresh: number;
   /** Absolute path to the distribution root holding the emitted worklets. */

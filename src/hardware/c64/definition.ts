@@ -12,6 +12,3 @@ export const C64_PORTS: readonly PortDeclaration[] = [
   { name: 'irq', kind: 'interrupt-out' },
 ];
 
-/** Host-selected adaptive stream rate, shared by rendering and playback. */
-export const C64_AUDIO_RATE = 48000;
-

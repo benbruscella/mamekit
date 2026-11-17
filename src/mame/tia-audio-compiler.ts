@@ -18,7 +18,6 @@ import { evalExpr, parseDefines, parseEnumConstants, stripComments } from '../kg
 import { compileMameHandler } from './handler-ir.ts';
 import { normalizeMameExecutionSource } from './execution-source.ts';
 import type { GeneratedDeviceDefinition, GeneratedDeviceMember } from './device-compiler.ts';
-import { generatedStreamWorkletSource } from './stream-worklet.ts';
 
 const SOURCE_FILE = 'src/devices/sound/tiasound.cpp';
 const INTERFACE_FILE = 'src/devices/sound/tiaintf.cpp';
@@ -283,22 +282,4 @@ export function compileTiaAudio(mameSource: string): GeneratedTiaAudio {
   } as GeneratedTiaAudio;
 }
 
-/**
- * The worklet that plays what the chip renders.
- *
- * The DSP itself is NOT here. `tia_video_device` reaches its sound half
- * through a `required_device<tia_device>` finder and calls `tia_sound_w` on it
- * directly, so the chip has to sit beside the CPU as a generated device --
- * across a worklet boundary that finder has nothing to resolve to. What
- * crosses is PCM: the board pumps `sound_stream_update` at the chip's own
- * clock and this resamples that stream to the output rate, which is the job
- * MAME's `sound_stream` does for the same device.
- */
-export function generatedTiaWorkletSource(device: GeneratedTiaAudio): string {
-  return generatedStreamWorkletSource({
-    kind: 'tia',
-    sourceFiles: device.sourceFiles,
-    methods: device.methods.map(method => method.name),
-  });
-}
 

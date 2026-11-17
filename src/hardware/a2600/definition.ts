@@ -20,9 +20,6 @@ export const A2600_MAME_TYPES = [
   'VCS_CONTROL_PORT',
 ] as const;
 
-/** The tag the a2600 driver gives the TIA's sound half. */
-export const A2600_TIA_AUDIO_TAG = 'tia';
-
 
 /**
  * The tag the a2600 driver gives its cartridge slot.

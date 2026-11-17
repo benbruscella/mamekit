@@ -1123,18 +1123,6 @@ export interface GeneratedBitmapPlan {
   source?: BoardSourceRef;
 }
 
-/**
- * One `sprite_parameter` from an `atari_motion_objects_config` entry: which
- * of the four words of a sprite-RAM entry carries the field, how far it is
- * shifted down, and the mask that remains after the shift. This is exactly
- * what `sprite_parameter::set` derives from the driver's mask words.
- */
-export interface GeneratedSpriteParameter {
-  word: number;
-  shift: number;
-  mask: number;
-}
-
 export interface GeneratedVideoPlan {
   /**
    * Rendering cadence required by the lowered video implementation. This is
