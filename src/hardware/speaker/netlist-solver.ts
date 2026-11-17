@@ -1,9 +1,12 @@
 // MAME's netlist solver as the stream mix runs it: one sparse LU per group,
 // each group on its own clock as MAME's matrix solvers are, backward Euler,
-// and Newton-Raphson only for the groups a diode or BJT is in. It runs a
-// compiled plan (src/ir/netlist-plan.ts) and models no circuit of its own.
+// and Newton-Raphson only for the groups a diode or BJT is in. Logic nets run
+// on MAME's event queue: a push lands after its delay unless a later push to
+// the same net replaces it, and a delivered change runs the handlers of the
+// devices that read the net. It runs a compiled plan (src/ir/netlist-plan.ts)
+// and models no circuit of its own.
 
-import type { GeneratedNetlistElementData, GeneratedNetlistPlanData } from '../../ir/netlist-plan.ts';
+import type { GeneratedNetlistElementData, GeneratedNetlistLogicData, GeneratedNetlistPlanData } from '../../ir/netlist-plan.ts';
 
 const NETLIST_T0_VT = 300 * 1.38064852e-23 / 1.6021765314e-19;
 const NETLIST_DIODE_MIN_CUTOFF = -5;
@@ -189,7 +192,7 @@ class GeneratedNetlistGroup {
 
 function netlistElementPins(element: GeneratedNetlistElementData): number[] {
   switch (element.kind) {
-    case 'r': case 'streamR': case 'c': case 'switch': return [element.a, element.b];
+    case 'r': case 'streamR': case 'c': case 'switch': case 'dsw': case 'cs': case 'dac': return [element.a, element.b];
     case 'd': return [element.a, element.k];
     case 'q': return [element.e, element.c, element.b];
     case 'vccs': return [element.ip, element.in, element.op, element.on];
@@ -243,6 +246,36 @@ interface GeneratedNetlistSwitch extends GeneratedNetlistTwoTerminal {
   group: number;
 }
 interface GeneratedNetlistGate { input: number; vdd: number; vss: number; ivl: number; ivh: number; drive: GeneratedNetlistDrive }
+/** nld_sys_dsw1: the resistor a logic net switches. */
+interface GeneratedNetlistDsw extends GeneratedNetlistTwoTerminal { ron: number; roff: number; state: number; group: number }
+interface GeneratedNetlistCurrent extends GeneratedNetlistTwoTerminal { i: number }
+interface GeneratedNetlistDac extends GeneratedNetlistTwoTerminal { g: number; vin: number; bits: number; value: number; group: number }
+
+/**
+ * What a delivered logic change runs: a logic device's handler (by index and
+ * handler), a d_to_a proxy, or a SYS_DSW. `edge` is MAME's terminal state: 3
+ * for any change, 1 for low to high, 2 for high to low.
+ */
+type GeneratedNetlistListener =
+  | { kind: 'device'; device: number; handler: number; edge: number }
+  | { kind: 'drive'; drive: GeneratedNetlistDrive }
+  | { kind: 'dsw'; dsw: GeneratedNetlistDsw };
+
+/** A logic device's state: its handlers' state_vars. */
+interface GeneratedNetlistLogicState {
+  /** monostable m_last_trig, m_state; vco m_enableq, m_out, m_inc; counter m_cnt, IP active. */
+  a: number;
+  b: number;
+  c: number;
+  /** The analog inputs as last delivered (analog_output_t::push compares). */
+  seen: Float64Array;
+}
+
+/** netlist_time::quantum(): config's INTERNAL_RES is 10^10 a second. */
+const NETLIST_TIME_QUANTUM = 1e-10;
+/** fp_constants<double>: the LTE estimate's clamps. */
+const NETLIST_TIMESTEP_MAXDIFF = 1e100;
+const NETLIST_TIMESTEP_MINDIV = 1e-60;
 
 interface GeneratedNetlistGroupState {
   matrix: GeneratedNetlistGroup;
@@ -255,6 +288,15 @@ interface GeneratedNetlistGroupState {
   diodes: GeneratedNetlistDiodeStamp[];
   bjts: GeneratedNetlistBjtStamp[];
   frontiers: { from: number; to: number }[];
+  dsws: GeneratedNetlistDsw[];
+  currents: GeneratedNetlistCurrent[];
+  dacs: GeneratedNetlistDac[];
+  /** Logic devices reading a node of this group, run after it solves. */
+  watchers: number[];
+  /** Dynamic time stepping: the voltages before the solve, and each net's last step and change. */
+  lastV?: Float64Array;
+  hPrev?: Float64Array;
+  ddPrev?: Float64Array;
   /** When it last solved and when it next solves unless something changes first. */
   lastStep: number;
   next: number;
@@ -281,15 +323,48 @@ export class GeneratedNetlistSolver {
   private readonly inputValues: Float64Array;
   /** Seconds: the time the last read was taken at. */
   private now = 0;
+  private readonly dynamic?: { lte: number; minStep: number };
+  /** `NETLIST_INT_INPUT`s, in the plan's `paramInputs` order. */
+  private readonly params: (GeneratedNetlistDac | undefined)[] = [];
+  /** The logic nets: each one's value, the value pushed to it, and its listeners. */
+  private readonly logic: readonly GeneratedNetlistLogicData[];
+  private readonly logicStates: GeneratedNetlistLogicState[];
+  private readonly curQ: Uint8Array;
+  private readonly newQ: Uint8Array;
+  private readonly listeners: GeneratedNetlistListener[][];
+  /** The queue: one pending change a net, `version` telling a replaced one apart. */
+  private readonly version: Uint32Array;
+  private heapTime = new Float64Array(64);
+  private heapNet = new Int32Array(64);
+  private heapVersion = new Uint32Array(64);
+  private heapSeq = new Float64Array(64);
+  private heapSize = 0;
+  private seq = 0;
+  /** Logic sources a driver writes, in the plan's `logicInputs` order. */
+  private readonly sources: (number | undefined)[] = [];
+  /** Whether netlist_state_t::reset's startup pass has run. */
+  private started = false;
+  /** The time handlers run at: an event's, or a solve's. */
+  private time = 0;
 
   /**
    * Save-state roots (machine-state.ts): node voltages, the inputs as they
    * last landed, each group's clock, matrix, capacitors, switches, drives and
-   * diodes. Without them the netlist was opaque to a save, and a rewound board
-   * played on from whatever voltages the netlist had reached instead.
+   * diodes, and the logic nets with their queue and each device's state.
+   * Without them the netlist was opaque to a save, and a rewound board played
+   * on from whatever voltages the netlist had reached instead.
    */
+  /** The queue's arrays grow as it fills, so a save may carry them at another length. */
+  stateResizable(): readonly string[] {
+    return ['heapTime', 'heapNet', 'heapVersion', 'heapSeq'];
+  }
+
   stateKeys(): readonly string[] {
-    return ['v', 'inputG', 'inputValues', 'now', 'groups', 'switches', 'gates', 'logics'];
+    return [
+      'v', 'inputG', 'inputValues', 'now', 'groups', 'switches', 'gates', 'logics', 'params',
+      'logicStates', 'curQ', 'newQ', 'version', 'heapTime', 'heapNet', 'heapVersion', 'heapSeq', 'heapSize', 'seq',
+      'started', 'time',
+    ];
   }
 
   constructor(plan: GeneratedNetlistPlanData, rate: number) {
@@ -301,7 +376,15 @@ export class GeneratedNetlistSolver {
     this.reltol = plan.reltol;
     this.vntol = plan.vntol;
     this.nrLoops = plan.nrLoops;
+    if (plan.dynamic) this.dynamic = plan.dynamic;
     this.v = new Float64Array(plan.nodes);
+    const logicNets = plan.logicNets ?? 0;
+    this.logic = plan.logic ?? [];
+    this.curQ = new Uint8Array(logicNets);
+    this.newQ = new Uint8Array(logicNets);
+    this.version = new Uint32Array(logicNets);
+    this.listeners = Array.from({ length: logicNets }, () => []);
+    this.logicStates = this.logic.map(() => ({ a: 0, b: 0, c: 0, seen: new Float64Array(2).fill(NaN) }));
     const rail = new Uint8Array(plan.nodes);
     for (const entry of plan.rails) {
       this.v[entry.node] = entry.volts;
@@ -329,6 +412,16 @@ export class GeneratedNetlistSolver {
       diodes: [],
       bjts: [],
       frontiers: plan.frontiers.filter(frontier => nodes.includes(frontier.from)),
+      dsws: [],
+      currents: [],
+      dacs: [],
+      watchers: [],
+      ...(plan.dynamic ? {
+        lastV: new Float64Array(nodes.length),
+        // nld_matrix_solver_ext: "we need a non zero value here"
+        hPrev: new Float64Array(nodes.length).fill(1e-6),
+        ddPrev: new Float64Array(nodes.length),
+      } : {}),
       lastStep: 0,
       next: this.maxStep,
     }));
@@ -395,7 +488,7 @@ export class GeneratedNetlistSolver {
         case 'vccs': {
           // nld_VCCS and nld_VCVS::reset: 1/RI across the input, the output
           // current m_G * gfac from the input's difference, and 1/RO on a VCVS.
-          const gfac = element.ro !== undefined ? 1 / element.ro : 1;
+          const gfac = element.gfac ?? (element.ro !== undefined ? 1 / element.ro : 1);
           const mult = element.g * gfac;
           resistor(state, element.ip, element.in, 1 / element.ri);
           constant(state, element.op, element.ip, -mult);
@@ -435,6 +528,21 @@ export class GeneratedNetlistSolver {
         case 'logic': {
           const made = drive(element, state, element.vcc, element.gnd);
           if (element.param !== undefined) this.logics[plan.logicInputs.indexOf(element.param)] = made;
+          if (element.net !== undefined) this.listeners[element.net]!.push({ kind: 'drive', drive: made });
+          break;
+        }
+        case 'dsw': {
+          // nld_sys_dsw1::reset: off.
+          const made = { ...place(state, element.a, element.b), ron: element.ron, roff: element.roff, state: 0, group: home };
+          state.dsws.push(made);
+          this.listeners[element.net]!.push({ kind: 'dsw', dsw: made });
+          break;
+        }
+        case 'cs': state.currents.push({ ...place(state, element.a, element.b), i: element.i }); break;
+        case 'dac': {
+          const made = { ...place(state, element.a, element.b), g: element.g, vin: element.vin, bits: element.bits, value: element.value, group: home };
+          state.dacs.push(made);
+          if (element.param !== undefined) this.params[(plan.paramInputs ?? []).indexOf(element.param)] = made;
           break;
         }
         case 'gate':
@@ -442,15 +550,64 @@ export class GeneratedNetlistSolver {
           break;
       }
     }
+    // Each logic device listens to the nets it reads, and to the groups its
+    // analog inputs are solved in.
+    const watch = (device: number, node: number): void => {
+      const group = groupOf.get(node);
+      if (group !== undefined && !this.groups[group]!.watchers.includes(device)) this.groups[group]!.watchers.push(device);
+    };
+    this.logic.forEach((device, index) => {
+      const listen = (net: number, handler: number, edge = 3): void => { this.listeners[net]!.push({ kind: 'device', device: index, handler, edge }); };
+      switch (device.kind) {
+        case 'source':
+          if (device.param !== undefined) this.sources[plan.logicInputs.indexOf(device.param)] = index;
+          break;
+        case 'table': for (const net of device.inputs) listen(net, 0); break;
+        case 'threshold': watch(index, device.node); break;
+        case 'monostable':
+          for (const net of device.inputs) listen(net, 0);
+          watch(index, device.cv);
+          break;
+        case 'vco':
+          listen(device.enq, 0);
+          listen(device.y, 1);
+          watch(index, device.fc);
+          watch(index, device.rng);
+          break;
+        case 'counter':
+          // IP is active high-to-low only (activate_hl); RESET on either edge.
+          listen(device.ip, 0, 2);
+          listen(device.reset, 1);
+          break;
+      }
+    });
   }
 
   /** A `NETLIST_LOGIC_INPUT`'s value (`m_filter_ctl[n]->write(bit)`), from `at` seconds. */
   writeLogic(index: number, value: number, at = this.now): void {
-    const entry = this.logics[index];
     const state = value ? 1 : 0;
+    const source = this.sources[index];
+    if (source !== undefined) {
+      // nld_logic_input::update_param: its output pushes the new value.
+      const device = this.logic[source] as Extract<GeneratedNetlistLogicData, { kind: 'source' }>;
+      this.advance(at);
+      this.time = at;
+      this.push(device.net, state, device.delay);
+      return;
+    }
+    const entry = this.logics[index];
     if (!entry || entry.state === state) return;
     this.advance(at);
     this.changeState(entry.group, at, () => { entry.state = state; });
+  }
+
+  /** A `NETLIST_INT_INPUT`'s value (`m_audio_dac->write(data)`), from `at` seconds. */
+  writeParam(index: number, value: number, at = this.now): void {
+    const dac = this.params[index];
+    if (!dac || dac.value === value) return;
+    this.advance(at);
+    // nld_r2r_dac::update_param: change_state with the new source voltage.
+    this.changeState(dac.group, at, () => { dac.value = value; });
   }
 
   /**
@@ -492,21 +649,35 @@ export class GeneratedNetlistSolver {
     return this.read(this.now + 1 / this.rate);
   }
 
-  /** Each group's time-stepped solves due by `at`, earliest first (the solver queue). */
+  /**
+   * Each group's time-stepped solves and each logic change due by `at`,
+   * earliest first: MAME keeps both on one queue.
+   */
   private advance(at: number): void {
+    if (!this.started) this.startup();
     const groups = this.groups;
+    const limit = at + NETLIST_QUANTUM;
     for (;;) {
       let due = -1;
       for (let index = 0; index < groups.length; index++) {
-        if (groups[index]!.next <= at + NETLIST_QUANTUM && (due < 0 || groups[index]!.next < groups[due]!.next)) due = index;
+        if (groups[index]!.next <= limit && (due < 0 || groups[index]!.next < groups[due]!.next)) due = index;
+      }
+      const event = this.heapSize ? this.heapTime[0]! : Infinity;
+      if (event <= limit && (due < 0 || event <= groups[due]!.next)) {
+        this.deliver();
+        continue;
       }
       if (due < 0) return;
       // Rescheduled before solving: a switch the solve flips may bring its own
       // group back sooner (change_state).
       const state = groups[due]!;
       const time = state.next;
-      state.next = time + this.maxStep;
-      this.solve(due, time);
+      const planned = time + this.maxStep;
+      state.next = planned;
+      const step = this.solve(due, time);
+      // With DYNAMIC_TS the step is what the solve's error estimate allows,
+      // and a group with no capacitor waits for a change (time_step_device_count).
+      if (this.dynamic && state.next === planned) state.next = state.capacitors.length ? time + step : Infinity;
     }
   }
 
@@ -521,13 +692,267 @@ export class GeneratedNetlistSolver {
     state.next = at + NETLIST_MIN_TS_TS;
   }
 
+  /** netlist_state_t::reset: inputs push their values, then every handler runs once. */
+  private startup(): void {
+    this.started = true;
+    this.time = 0;
+    for (const device of this.logic) if (device.kind === 'source') this.push(device.net, device.state, device.delay);
+    this.logic.forEach((device, index) => {
+      switch (device.kind) {
+        case 'source': break;
+        case 'table': this.handle(index, 0); break;
+        case 'threshold': this.watched(index, true); break;
+        case 'monostable': this.handle(index, 0); this.watched(index, true); break;
+        case 'vco': this.watched(index, true); this.handle(index, 1); break;
+        case 'counter': this.handle(index, 0); this.handle(index, 1); break;
+      }
+    });
+  }
+
+  /** net_t::set_Q_and_push: a new value replaces whatever the net had pending. */
+  private push(net: number, value: number, delay: number): void {
+    if (value === this.newQ[net]) return;
+    this.newQ[net] = value;
+    const version = ++this.version[net]!;
+    this.heapPush(this.time + delay, net, version);
+  }
+
+  /** net_t::update_devs: the earliest pending change lands and its listeners run. */
+  private deliver(): void {
+    const time = this.heapTime[0]!;
+    const net = this.heapNet[0]!;
+    const version = this.heapVersion[0]!;
+    this.heapPop();
+    if (version !== this.version[net]) return;
+    const value = this.newQ[net]!;
+    if (value === this.curQ[net]) return;
+    this.curQ[net] = value;
+    this.time = time;
+    const mask = value ? 1 : 2;
+    const listeners = this.listeners[net]!;
+    for (let index = 0; index < listeners.length; index++) {
+      const listener = listeners[index]!;
+      if (listener.kind === 'device') {
+        if (listener.edge & mask) this.handle(listener.device, listener.handler);
+      } else if (listener.kind === 'drive') {
+        // nld_d_to_a_proxy's input handler.
+        const drive = listener.drive;
+        if (drive.state !== value) this.changeState(drive.group, time, () => { drive.state = value; });
+      } else {
+        // nld_sys_dsw1's input handler.
+        const dsw = listener.dsw;
+        if (dsw.state !== value) this.changeState(dsw.group, time, () => { dsw.state = value; });
+      }
+    }
+  }
+
+  /** A logic device's handler for a change of a logic input (0: its main input set, 1: its second). */
+  private handle(index: number, handler: number): void {
+    const device = this.logic[index]!;
+    const state = this.logicStates[index]!;
+    const q = this.curQ;
+    switch (device.kind) {
+      case 'table': {
+        let bits = 0;
+        for (let i = 0; i < device.inputs.length; i++) bits |= q[device.inputs[i]!]! << i;
+        const out = device.table[bits]!;
+        const count = device.outputs.length;
+        for (let o = 0; o < count; o++) this.push(device.outputs[o]!, (out >> o) & 1, device.delays[bits * count + o]!);
+        break;
+      }
+      case 'monostable': {
+        // nld_74123_base::ab_clear; a = m_last_trig, b = m_state.
+        let bits = 0;
+        for (let i = 0; i < device.inputs.length; i++) bits |= q[device.inputs[i]!]! << i;
+        const trig = device.trigger[bits]!;
+        if (!device.clear[bits]) {
+          this.push(device.q, 0, device.tC);
+          this.push(device.qq, 1, device.tC);
+          this.push(device.rp, 1, device.tC);
+          this.push(device.rn, 0, device.tC);
+          state.b = 2;
+        } else if (!state.a && trig) {
+          this.push(device.q, 1, device.tAB);
+          this.push(device.qq, 0, device.tAB);
+          this.push(device.rn, 1, device.tAB);
+          this.push(device.rp, 0, device.tAB);
+          state.b = 1;
+        }
+        state.a = trig;
+        break;
+      }
+      case 'vco': {
+        // a = m_enableq, b = m_out, c = m_inc.
+        if (handler === 1) {
+          // SN74LS629clk::fb
+          if (!state.a) {
+            state.b ^= 1;
+            this.push(device.y, state.b, state.c);
+          } else {
+            this.push(device.y, 1, state.c);
+          }
+        } else {
+          this.vcoInputs(index);
+        }
+        break;
+      }
+      case 'counter': {
+        // a = m_cnt, b = IP inactive while RESET holds.
+        if (handler === 0) {
+          if (state.b) break;
+          state.a++;
+          for (let bit = 0; bit < device.outputs.length; bit++) {
+            if (device.outputs[bit]! >= 0) this.push(device.outputs[bit]!, (state.a >> bit) & 1, device.delays[bit]!);
+          }
+        } else if (q[device.reset]) {
+          state.a = 0;
+          state.b = 1;
+          for (const net of device.outputs) if (net >= 0) this.push(net, 0, device.resetDelay);
+        } else {
+          state.b = 0;
+        }
+        break;
+      }
+      default: break;
+    }
+  }
+
+  /** nld_SN74LS629's inputs handler: a new half period, then the enable. */
+  private vcoInputs(index: number): void {
+    const device = this.logic[index] as Extract<GeneratedNetlistLogicData, { kind: 'vco' }>;
+    const state = this.logicStates[index]!;
+    const vFreq = this.v[device.fc]!;
+    const vRng = this.v[device.rng]!;
+    let freq = 0;
+    for (const term of device.terms) freq += term.k * vFreq ** term.f * vRng ** term.r;
+    freq *= device.scale;
+    // netlist_time::from_fp rounds to the quantum.
+    state.c = Math.round(0.5 / freq / NETLIST_TIME_QUANTUM) * NETLIST_TIME_QUANTUM;
+    const enq = this.curQ[device.enq]!;
+    if ((!state.a && enq) || (state.a && !enq)) {
+      state.a = enq;
+      state.b ^= 1;
+      this.push(device.y, state.b, 1e-9);
+    }
+  }
+
+  /**
+   * A device's analog inputs after its group solved: analog_output_t::push
+   * runs the handler only when a value moved (`force` at startup).
+   */
+  private watched(index: number, force = false): void {
+    const device = this.logic[index]!;
+    const state = this.logicStates[index]!;
+    const v = this.v;
+    switch (device.kind) {
+      case 'threshold': {
+        const value = v[device.node]!;
+        if (!force && value === state.seen[0]) return;
+        state.seen[0] = value;
+        // nld_a_to_d_proxy::input against the family's thresholds.
+        const vn = v[device.vn]!;
+        const span = v[device.vp]! - vn;
+        if (value > vn + span * device.ivh) this.push(device.net, 1, NETLIST_TIME_QUANTUM);
+        else if (value < vn + span * device.ivl) this.push(device.net, 0, NETLIST_TIME_QUANTUM);
+        return;
+      }
+      case 'monostable': {
+        const value = v[device.cv]!;
+        if (!force && value === state.seen[0]) return;
+        state.seen[0] = value;
+        // nld_74123_base::cv
+        const vcc = v[device.vcc]!;
+        if (state.b === 1 && value < device.kp * vcc) {
+          this.push(device.rn, 0, device.tCv);
+          state.b = 2;
+        }
+        if (state.b === 2 && value > (1 - device.kp) * vcc) {
+          this.push(device.rp, 0, device.tCv);
+          this.push(device.q, 0, device.tCv);
+          this.push(device.qq, 1, device.tCv);
+          state.b = 0;
+        }
+        return;
+      }
+      case 'vco': {
+        const fc = v[device.fc]!;
+        const rng = v[device.rng]!;
+        if (!force && fc === state.seen[0] && rng === state.seen[1]) return;
+        state.seen[0] = fc;
+        state.seen[1] = rng;
+        this.vcoInputs(index);
+        return;
+      }
+      default: return;
+    }
+  }
+
+  private heapPush(time: number, net: number, version: number): void {
+    if (this.heapSize === this.heapTime.length) {
+      const grow = <T extends Float64Array | Int32Array | Uint32Array>(array: T): T => {
+        const next = new (array.constructor as new (length: number) => T)(array.length * 2);
+        next.set(array);
+        return next;
+      };
+      this.heapTime = grow(this.heapTime);
+      this.heapNet = grow(this.heapNet);
+      this.heapVersion = grow(this.heapVersion);
+      this.heapSeq = grow(this.heapSeq);
+    }
+    const seq = this.seq++;
+    let at = this.heapSize++;
+    const { heapTime, heapNet, heapVersion, heapSeq } = this;
+    while (at > 0) {
+      const up = (at - 1) >> 1;
+      if (heapTime[up]! < time || (heapTime[up] === time && heapSeq[up]! < seq)) break;
+      heapTime[at] = heapTime[up]!;
+      heapNet[at] = heapNet[up]!;
+      heapVersion[at] = heapVersion[up]!;
+      heapSeq[at] = heapSeq[up]!;
+      at = up;
+    }
+    heapTime[at] = time;
+    heapNet[at] = net;
+    heapVersion[at] = version;
+    heapSeq[at] = seq;
+  }
+
+  private heapPop(): void {
+    const { heapTime, heapNet, heapVersion, heapSeq } = this;
+    const last = --this.heapSize;
+    if (last <= 0) return;
+    const time = heapTime[last]!;
+    const seq = heapSeq[last]!;
+    const net = heapNet[last]!;
+    const version = heapVersion[last]!;
+    let at = 0;
+    for (;;) {
+      let child = 2 * at + 1;
+      if (child >= last) break;
+      if (child + 1 < last && (heapTime[child + 1]! < heapTime[child]! ||
+          (heapTime[child + 1] === heapTime[child] && heapSeq[child + 1]! < heapSeq[child]!))) child++;
+      if (time < heapTime[child]! || (time === heapTime[child] && seq < heapSeq[child]!)) break;
+      heapTime[at] = heapTime[child]!;
+      heapNet[at] = heapNet[child]!;
+      heapVersion[at] = heapVersion[child]!;
+      heapSeq[at] = heapSeq[child]!;
+      at = child;
+    }
+    heapTime[at] = time;
+    heapNet[at] = net;
+    heapVersion[at] = version;
+    heapSeq[at] = seq;
+  }
+
   /** matrix_solver_t::solve at `at`: one backward Euler step since the group's last. */
-  private solve(group: number, at: number): void {
+  private solve(group: number, at: number): number {
     const state = this.groups[group]!;
     const h = at - state.lastStep;
-    if (h < NETLIST_QUANTUM) return;
+    if (h < NETLIST_QUANTUM) return this.dynamic ? this.dynamic.minStep : this.maxStep;
     state.lastStep = at;
     const v = this.v;
+    // backup(): the voltages the step's error estimate differences against.
+    if (state.lastV) for (let row = 0; row < state.matrix.size; row++) state.lastV[row] = v[state.matrix.nodes[row]!]!;
     const { gmin, reltol, vntol, nrLoops } = this;
     const matrix = state.matrix;
     const nonlinear = state.diodes.length > 0 || state.bjts.length > 0;
@@ -576,6 +1001,34 @@ export class GeneratedNetlistSolver {
       const next = input > supply * gate.ivh ? 0 : input < supply * gate.ivl ? 1 : drive.state;
       if (next !== drive.state) this.changeState(drive.group, at, () => { drive.state = next; });
     }
+    // The logic devices reading this group's nets (matrix_solver_t::update_inputs).
+    const watchers = state.watchers;
+    if (watchers.length) {
+      const time = this.time;
+      this.time = at;
+      for (let index = 0; index < watchers.length; index++) this.watched(watchers[index]!);
+      this.time = time;
+    }
+    return this.dynamic && state.capacitors.length ? this.nextStep(state, h) : this.maxStep;
+  }
+
+  /** matrix_solver_ext_t::compute_next_time_step: the step each net's second difference allows. */
+  private nextStep(state: GeneratedNetlistGroupState, h: number): number {
+    const { lte, minStep } = this.dynamic!;
+    const { nodes, size } = state.matrix;
+    const lastV = state.lastV!;
+    const hPrev = state.hPrev!;
+    const ddPrev = state.ddPrev!;
+    const v = this.v;
+    let best = this.maxStep * this.maxStep;
+    for (let row = 0; row < size; row++) {
+      const dd = Math.max(-NETLIST_TIMESTEP_MAXDIFF, Math.min(NETLIST_TIMESTEP_MAXDIFF, v[nodes[row]!]! - lastV[row]!));
+      const dd2 = (dd / h - ddPrev[row]! / hPrev[row]!) / (h + hPrev[row]!);
+      hPrev[row] = h;
+      ddPrev[row] = dd;
+      if (Math.abs(dd2) > NETLIST_TIMESTEP_MINDIV) best = Math.min(best, lte / Math.abs(0.5 * dd2));
+    }
+    return Math.max(Math.sqrt(best), minStep, NETLIST_TIME_QUANTUM * 2);
   }
 
   // set_G_V_I(g, 0, i), the rail's side of g moving to the right.
@@ -619,6 +1072,22 @@ export class GeneratedNetlistSolver {
       const s = switches[index]!;
       const g = s.closed ? (v[s.vdd]! - v[s.vss]!) / (s.baseR * 5) : this.gmin;
       this.stamp(a, rhs, s, g, 0);
+    }
+    for (let index = 0; index < state.dsws.length; index++) {
+      const dsw = state.dsws[index]!;
+      // R_base::set_R
+      this.stamp(a, rhs, dsw, 1 / Math.max(dsw.state ? dsw.ron : dsw.roff, this.gmin), 0);
+    }
+    for (let index = 0; index < state.currents.length; index++) {
+      const source = state.currents[index]!;
+      // set_mat(0, 0, -I, 0, 0, I)
+      this.stamp(a, rhs, source, 0, source.i);
+    }
+    for (let index = 0; index < state.dacs.length; index++) {
+      const dac = state.dacs[index]!;
+      // set_G_V_I(1/R, VIN / 2^N * VAL, 0)
+      const volts = dac.vin / 2 ** dac.bits * dac.value;
+      this.stamp(a, rhs, dac, dac.g, -dac.g * volts);
     }
     for (let index = 0; index < drives.length; index++) {
       const d = drives[index]!;

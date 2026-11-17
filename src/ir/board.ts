@@ -1208,6 +1208,8 @@ export interface GeneratedSoundBinding {
   routes?: GeneratedAudioRoute[];
   /** A netlist's `NETLIST_LOGIC_INPUT` lines, as handlers reach them. */
   netlistLogicInputs?: { deviceTag: string; param: string; shift: number; members: string[] }[];
+  /** A netlist's `NETLIST_INT_INPUT` parameters (an R-2R DAC's VAL), as handlers reach them. */
+  netlistParamInputs?: { deviceTag: string; param: string; shift: number; mask: number; members: string[] }[];
   /** The bound finders a handler can test on a netlist board. */
   netlistFinders?: string[];
   /**

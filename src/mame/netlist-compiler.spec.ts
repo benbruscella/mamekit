@@ -128,16 +128,81 @@ for (const [file, source, node, names] of [
   assert.ok(plan.elements.length > 0, source);
 }
 
-// A device the compiler does not have stops the compile: the board stays
-// visibly unlowered rather than playing an approximation.
+// Logic nets run on MAME's event queue: an inverter between a logic input
+// and an RC delivers its change after the truth table's delay, and a push
+// replaced before it lands never lands (net_t::push_to_queue).
+{
+  const plan = {
+    ...base,
+    nodes: 3,
+    rails: [{ node: 0, volts: 5 }, { node: 1, volts: 0 }],
+    groups: [[2]],
+    elements: [
+      { kind: 'logic' as const, output: 2, vcc: 0, gnd: 1, net: 1, state: 0, rLow: 1, rHigh: 130, vLow: 0.1, vHigh: 1 },
+      { kind: 'r' as const, a: 2, b: 1, g: 1e-3 },
+    ],
+    logicInputs: ['IN.IN'],
+    logicNets: 2,
+    logic: [
+      { kind: 'source' as const, net: 0, state: 1, delay: 1e-9, param: 'IN.IN' },
+      { kind: 'table' as const, inputs: [0], outputs: [1], table: [1, 0], delays: [22e-9, 15e-9] },
+    ],
+    output: { node: 2, mult: 1, offset: 0 },
+  };
+  const solver = new GeneratedNetlistSolver(plan, 48000);
+  close(solver.read(1e-3), 0.1 * 1000 / 1001, 1e-6, 'input high: the inverter drives low, OVL behind ORL');
+  solver.writeLogic(0, 0, 1e-3);
+  assert.ok(solver.read(1e-3 + 10e-9) < 1, 'not before the truth table\'s 22 ns');
+  assert.ok(solver.read(1e-3 + 40e-9) > 3, `low input: the inverter drives high after 22 ns (${solver.read(1e-3 + 40e-9)})`);
+  solver.writeLogic(0, 1, 2e-3);
+  solver.writeLogic(0, 0, 2e-3 + 0.5e-9);
+  assert.ok(solver.read(3e-3) > 3, 'a push replaced before it lands never lands');
+}
+
+// Mario's netlist compiles from MAME's source: its TTL is truth tables from
+// the macro library, its one-shots, VCOs and counter MAME's own classes, its
+// LM3900s a CCCS and a CCVS, and its DAC an R-2R ladder the driver writes.
+const mario = compileNetlist(mameSrc, 'src/mame/nintendo/nl_mario.cpp', {
+  source: 'mario',
+  streamInputs: [],
+  output: { node: 'ROUT.1', mult: 1, offset: 0 },
+  logicInputs: ['SOUND0', 'SOUND1', 'SOUND7'].map(name => ({ tag: name, param: `${name}.IN`, value: 0 })),
+  paramInputs: [{ tag: 'snd_nl:dac', param: 'DAC.VAL' }],
+});
+const kinds = (list: readonly { kind: string }[]) => list.reduce<Record<string, number>>((count, { kind }) => ({ ...count, [kind]: (count[kind] ?? 0) + 1 }), {});
+assert.deepEqual(kinds(mario.logic ?? []), { source: 5, threshold: 1, monostable: 3, table: 10, vco: 6, counter: 1 });
+assert.equal(kinds(mario.elements).logic, 7, 'every TTL output into an analog net has its d_to_a proxy');
+assert.equal(kinds(mario.elements).dsw, 6, 'each 74123 switches its RC through two SYS_DSWs');
+assert.deepEqual(mario.paramInputs, ['DAC.VAL']);
+assert.deepEqual(mario.dynamic, { lte: 5e-2, minStep: 1e-6 }, 'Solver.DYNAMIC_TS with its DYNAMIC_LTE');
+assert.equal(largest(mario), 18, 'the DAC and its LM3900s are the 18-net matrix nltool reports');
+
+// A walk write (SOUND1 low, then high) fires its one-shot: the VCO pair plays
+// for its pulse, then the netlist falls quiet again.
+{
+  const solver = new GeneratedNetlistSolver(mario, 48000);
+  const level = (from: number, to: number): number => {
+    let sum = 0; let squares = 0; let count = 0;
+    for (let at = from; at < to; at += 1 / 48000) { const value = solver.read(at); sum += value; squares += value * value; count++; }
+    return Math.sqrt(squares / count - (sum / count) ** 2);
+  };
+  assert.ok(level(0.45, 0.5) < 1e-3, 'quiet once the power-on pulse has decayed');
+  solver.writeLogic(1, 0, 0.5);
+  solver.writeLogic(1, 1, 0.5001);
+  assert.ok(level(0.5001, 0.55) > 0.05, 'the walk sound plays');
+  assert.ok(level(0.9, 0.95) < 1e-3, 'and stops');
+}
+
+// A device the compiler does not have still stops the compile: the board stays
+// visibly unlowered rather than playing an approximation (an NE555 here).
 assert.throws(
-  () => compileNetlist(mameSrc, 'src/mame/nintendo/nl_mario.cpp', {
-    source: 'mario',
+  () => compileNetlist(mameSrc, 'src/mame/misc/nl_gi6809.cpp', {
+    source: 'gi6809',
     streamInputs: [],
     output: { node: 'ROUT.1', mult: 1, offset: 0 },
     logicInputs: [],
   }),
-  /unsupported/,
+  /unsupported .*NE555/,
 );
 
-console.log('netlist-compiler.spec: stamps, filter lines, the shelf\'s netlists and the refusal hold');
+console.log('netlist-compiler.spec: stamps, logic nets, filter lines, the shelf\'s netlists and the refusal hold');

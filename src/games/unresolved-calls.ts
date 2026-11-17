@@ -27,8 +27,6 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["has_screen", "qix wardner"],
   ["konami_sortlayers_3", "simpsons"],
   ["m_adc.found", "marble"],
-  ["m_audio_snd[0].write", "mario"],
-  ["m_audio_snd[1].write", "mario"],
   ["m_bitmap[0].resize", "popeye"],
   ["m_bitmap[1].resize", "popeye"],
   ["m_cpu3_interrupt_timer.adjust", "digdug galaga xevious"],
