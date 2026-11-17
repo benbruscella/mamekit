@@ -425,7 +425,7 @@
       "palette": "ram:palette:-:native:1024:2"
     },
     "mario": {
-      "sha256": "5074280616b86ea99d732b39542499f1a699d5b8cf415b9cd4d4f93703d2233c",
+      "sha256": "e83971a95f8034bececd1b898e9c7f21a8d1179ea308ede508b62ba8936ee092",
       "callbacks": 21,
       "frameEvents": 2,
       "devices": 19,

@@ -1178,9 +1178,14 @@ improvements, then the moves. The rules and the numbers are in
 | Measure | Worse when | Within tolerance (`moved`) |
 |---|---|---|
 | Pixels | a frame that was exact no longer is; the first differing frame comes earlier | the count at an unchanged first divergence changes by less than 4x or 2000 px |
-| RAM | it starts to differ, or the first differing frame comes more than 2 frames earlier | the first divergence moves 2 frames or fewer; bytes change by less than 4x or 16 B |
+| RAM | it starts to differ, or the first differing frame comes more than 2 frames earlier | the first divergence moves 2 frames or fewer; bytes (at the first divergence, then per compared frame) change by less than 4x or 16 B |
 | Audio | the level moves more than 1 dB further from MAME's, the summed band differences grow by more than 3 dB, or the onset rate moves more than max(0.25/s, 10% of MAME's) further off | smaller moves; rounding (0.05 dB, 0.1 dB, 0.02/s) is `same` |
 | Any | the run fails where the baseline ran, or MAME read different input | — |
+
+RAM is judged per compared frame, never on how many frames lined up: a moved
+alignment compares a frame more or fewer, and elevator's 206,866 → 3,208
+differing bytes read as worse for one frame fewer (#268). A change in the frame
+count is a note on the verdict.
 
 Pixels are read at the baseline's frame offset first. When every frame the
 baseline had exact is still exact there, that reading stands, so a still

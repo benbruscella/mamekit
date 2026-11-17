@@ -980,12 +980,28 @@ reads MAME's setup language as `nlparse_t` does (`NETLIST_START`, `SUBMODEL`,
 `INCLUDE`, `NET_C`, `ALIAS`, `DIPPINS`, `PARAM`, `NET_MODEL`, `OPTIMIZE_FRONTIER`
 and the macro library under `src/lib/netlist/macro`), elaborates it into nets,
 and lowers each device to the elements of its MAME class: `RES`, `CAP`, `POT`,
-`DIODE`, `QBJT_EB`, a type 3 `OPAMP` as `nld_opamp` builds it, `CD4066_GATE`, a
-frontier, logic outputs through `nld_d_to_a_proxy`, and a one-input `TRUTH_TABLE`
-inverter. A device outside that set stops the compile, so generation fails rather
-than playing an approximation. Mario's netlist is one: its VCOs and TTL need a
-digital simulator that doesn't exist yet, so it is left out with a warning and
-Mario is silent until it compiles (issue #247, 1.1).
+`DIODE`, `QBJT_EB`, a type 3 `OPAMP` as `nld_opamp` builds it, `CCCS`, `CCVS`,
+`CS`, `CD4066_GATE`, `R2R_DAC` as its Thevenin source, a frontier, and a
+`SYS_DSW` resistor a logic net switches. A device's positional arguments follow
+the parameter list its `NETLIB_DEVICE_IMPL` (or `TRUTH_TABLE`) declares, as
+`nlparse_t::register_dev` reads it: `+PIN` connects, `@PIN` ties to the net of
+that name, anything else sets a parameter.
+
+Logic is told apart from analog as MAME's setup tells it. A net holding only
+logic pins is a logic net; a logic output on an analog net drives it through
+an `nld_d_to_a_proxy` (its family's `ORL`/`OVL` and `ORH`/`OVH` to the device's
+supply), and a logic input on one reads an `nld_a_to_d_proxy` (the family's
+`IVL`/`IVH`). The logic devices are a few generic kinds whose constants come
+from their MAME source, read by `src/mame/netlist-devices.ts`: a `TRUTH_TABLE`
+from the macro library, expanded to every input combination with its per-line
+delays; a 74123-family one-shot (its `desc_` struct's K, RI, timings, and the
+trigger and clear tables evaluated from `trigfunc` and `clear`); a 74LS629 VCO
+(the fitted frequency polynomial and its input resistors); a CD4020-family
+ripple counter (stage count, the live-stage mask and each stage's delay). An
+inverter whose input and output are both analog nets, with nothing else logic
+on either, and a `TTL_INPUT` driving only analog, keep their direct elements,
+which is what the proxies reduce to. A device outside these stops the compile,
+so generation fails rather than playing an approximation.
 
 `src/hardware/speaker/netlist-solver.ts` runs the plan in the stream mix, as a
 node of `createStreamMixer`, the way MAME's
@@ -997,7 +1013,18 @@ transistor. Each group keeps its own clock. It solves once per `1/FREQ`
 switch it holds changes, it does what `matrix_solver_t::change_state` does:
 solves up to that moment on the old value, takes the new one, and solves again
 `MIN_TS_TS` (1 ns) later. Rails and frontiers cut a netlist into small groups,
-as they cut MAME's matrices. It is the one hand-written piece, and it names no
+as they cut MAME's matrices. With `Solver.DYNAMIC_TS` a group's next step is
+`compute_next_time_step`'s: each net's second difference against
+`DYNAMIC_LTE`, never below `DYNAMIC_MIN_TIMESTEP`, and a group with no capacitor
+waits for a change. Logic nets run on MAME's event queue beside the solves,
+earliest first: `logic_output_t::push` lands after its delay unless a later push
+to the same net replaces it (`net_t::push_to_queue`), a delivered change runs the
+handlers of the devices reading that net (an edge-only input such as the
+counter's clock runs on its edge), and a solve that moves a node a logic device
+reads runs that device's analog handler, as `update_inputs` does. A proxy or a
+`SYS_DSW` changing state is its group's `change_state`. On the first advance the
+logic inputs push their values and every handler runs once
+(`netlist_state_t::reset`). It is the one hand-written piece, and it names no
 chip or machine; it is pinned in `HOST_BOUNDARIES` in `architecture.spec.ts`.
 
 A chip's routes carry its stream to `NETLIST_STREAM_INPUT` channels at the
@@ -1010,13 +1037,18 @@ by more than 10 dB. An MSM5205's stream is volts through its `set_mult_offset`.
 Each chip routed into a `NETLIST_STREAM_INPUT` is rendered only by the netlist
 node, at its native rate, every sample landing in the solver at its own time,
 earliest first across the chips. A driver's `NETLIST_LOGIC_INPUT` writes
-(Frogger's filter capacitors) land once the netlist has caught up to them. Kung-Fu Master's `I_BD0`…`I_OH0` drum lines exist,
+(Frogger's filter capacitors, Mario's `SOUND0`/`SOUND1`/`SOUND7` one-shot
+triggers) land once the netlist has caught up to them, and a `NETLIST_INT_INPUT`
+(Mario's `m_audio_dac->write`, an R-2R ladder's `VAL`) the same way, masked and
+shifted as `netlist_mame_int_input_device::write` does. A board whose whole
+sound is its netlist is mixed as a stream with no chip beside the netlist node. Kung-Fu Master's `I_BD0`…`I_OH0` drum lines exist,
 but in MAME its sound program never writes them.
 
 `npm run test:netlists` (`tools/netlist-reference.ts`) checks every compiled
 netlist against MAME's own engine. It builds `nltool` from the MAME checkout's
 `src/lib/netlist`, drives MAME's netlist and ours with the same events
-(native-rate resistance streams, MSM-like staircases, logic toggles), and fails
+(native-rate resistance streams, MSM-like staircases, logic toggles, byte
+staircases into integer inputs), and fails
 when the level or any third-octave band from 50 Hz to 16 kHz is more than
 1.5 dB off.
 

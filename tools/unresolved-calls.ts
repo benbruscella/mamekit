@@ -26,6 +26,7 @@ import { runGameAcceptance } from '../src/games/acceptance-harness.ts';
 import { loadGameContracts } from '../src/games/contracts.ts';
 import { KNOWN_UNRESOLVED_CALLS } from '../src/games/unresolved-calls.ts';
 import { isDeclaredFrameworkNoOp } from '../src/ir/framework-calls.ts';
+import { staleEntries, type CensusRun } from './unresolved/stale.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -40,7 +41,7 @@ const contracts = (await loadGameContracts())
 if (!contracts.length) throw new Error(`no contracts match: ${[...games].join(', ')}`);
 
 // Every call that fell through, interpreted or emitted, with how often.
-type Run = { contract: string; calls: Record<string, number>; error?: string };
+type Run = CensusRun;
 
 const childIndex = args.indexOf('--child');
 if (childIndex >= 0) {
@@ -112,10 +113,15 @@ if (unknown.length) {
   console.log(`\nnot in src/games/unresolved-calls.ts (the harness fails on these):`);
   for (const [call] of unknown) console.log(`  ${call}`);
 }
-if (!games.size && !frames && runs.every(run => !run.error?.startsWith('no result'))) {
-  const stale = [...KNOWN_UNRESOLVED_CALLS.keys()].filter(call => !byCall.has(call));
-  if (stale.length) {
-    console.log(`\nno longer reached; delete from src/games/unresolved-calls.ts:`);
-    for (const call of stale) console.log(`  ${call}`);
-  }
+const verdict = staleEntries(runs, KNOWN_UNRESOLVED_CALLS.keys(), !games.size && !frames);
+if (verdict.kind === 'complete' && verdict.stale.length) {
+  console.log(`\nno longer reached; delete from src/games/unresolved-calls.ts:`);
+  for (const call of verdict.stale) console.log(`  ${call}`);
+} else if (verdict.kind === 'partial' && verdict.reason === 'ended-early') {
+  // A run that stopped early never reached its later calls: listing entries
+  // as stale now would delete live ones. Re-run these alone, then run all.
+  console.log(`\nno stale list: ${verdict.ended.length} run(s) ended early, so their later calls are missing.`);
+  for (const { contract, error } of verdict.ended) console.log(`  ${contract}: ${error}`);
+  const rerun = [...new Set(verdict.ended.map(run => run.contract.split(':')[0]))].join(' ');
+  console.log(`re-run them alone: node tools/unresolved-calls.ts ${rerun}`);
 }

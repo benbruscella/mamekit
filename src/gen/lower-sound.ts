@@ -31,8 +31,11 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   const mixed = devices.flatMap(device => mixerChildren(opts.mameSrc, String(device.props.type))
     .filter(child => STREAM_SOUND_TYPES.includes(child.type))
     .map(child => `${String(device.props.tag)}:${child.tag}`));
+  // A netlist the driver writes directly (Mario's TTL and VCOs) is a stream
+  // of its own, played by the netlist node with no chip beside it.
   const speakerDevice = devices.find(device => device.props.type !== 'CASSETTE' &&
-    (STREAM_SOUND_TYPES.includes(String(device.props.type)) || streamed.has(device.id)));
+    (STREAM_SOUND_TYPES.includes(String(device.props.type)) || streamed.has(device.id))) ??
+    devices.find(device => device.props.type === 'NETLIST_SOUND');
   const sound = mixed.length || speakerDevice
     ? { kind: 'stream', clock: STREAM_AUDIO_RATE, deviceTag: mixed[0] ?? String(speakerDevice!.props.tag) }
     : { kind: 'none' };

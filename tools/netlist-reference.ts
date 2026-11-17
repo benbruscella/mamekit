@@ -13,7 +13,9 @@
  *   * each resistor input gets an AY-like stream at a chip's own rate, noise,
  *     a square and silence in turn, between an on and an off resistance;
  *   * each voltage input gets an MSM5205-like staircase at 8 kHz;
- *   * each logic input toggles every quarter second.
+ *   * each logic input toggles every quarter second;
+ *   * each integer input (`NETLIST_INT_INPUT`, an R-2R DAC's VAL) gets a byte
+ *     staircase at 8 kHz, in bursts with silence between.
  *
  * Ours runs as the worklet runs it (GeneratedNetlistSolver.set at each event's
  * time, read at 48 kHz), so this checks the scheduling the browser uses, not a
@@ -67,7 +69,8 @@ function shippedNetlists(): Map<string, { plan: GeneratedNetlistPlan; machines: 
   const games = join(dist, 'games');
   for (const system of existsSync(games) ? readdirSync(games) : []) {
     for (const machine of readdirSync(join(games, system))) {
-      const file = join(games, system, machine, 'config.json');
+      // The board IR carries the plan (`sound.netlist`); the app's config.json does not.
+      const file = join(games, system, machine, 'generated', 'board.json');
       if (!existsSync(file)) continue;
       const plan = (JSON.parse(readFileSync(file, 'utf8')) as { sound?: { netlist?: GeneratedNetlistPlan } }).sound?.netlist;
       if (!plan) continue;
@@ -80,7 +83,7 @@ function shippedNetlists(): Map<string, { plan: GeneratedNetlistPlan; machines: 
   return found;
 }
 
-interface NetlistEvent { at: number; kind: 'stream' | 'logic'; channel: number; sample: number }
+interface NetlistEvent { at: number; kind: 'stream' | 'logic' | 'param'; channel: number; sample: number }
 
 /** The same events for both sides, in time order; a deterministic generator so runs repeat. */
 function stimulus(plan: GeneratedNetlistPlan): NetlistEvent[] {
@@ -121,12 +124,19 @@ function stimulus(plan: GeneratedNetlistPlan): NetlistEvent[] {
       events.push({ at, kind: 'logic', channel: index, sample: value });
     }
   });
+  (plan.paramInputs ?? []).forEach((_, index) => {
+    for (let step = 0; step < 8_000 * seconds; step++) {
+      const burst = Math.floor(step / 2_000) % 2 === 0;
+      events.push({ at: step / 8_000, kind: 'param', channel: index, sample: burst ? Math.floor(random() * 256) : 0 });
+    }
+  });
   return events.sort((a, b) => a.at - b.at);
 }
 
 function runMame(nltool: string, plan: GeneratedNetlistPlan, events: NetlistEvent[], dir: string): Float64Array {
   const lines = events.flatMap(event => {
     if (event.kind === 'logic') return [`${event.at.toFixed(12)},${plan.logicInputs[event.channel]},${event.sample}`];
+    if (event.kind === 'param') return [`${event.at.toFixed(12)},${plan.paramInputs![event.channel]},${event.sample}`];
     return plan.inputs.filter(input => input.channel === event.channel)
       .map(input => `${event.at.toFixed(12)},${input.param},${event.sample * input.mult + input.offset}`);
   });
@@ -158,6 +168,7 @@ function runOurs(plan: GeneratedNetlistPlan, events: NetlistEvent[]): Float64Arr
     for (; next < events.length && events[next]!.at <= time; next++) {
       const event = events[next]!;
       if (event.kind === 'logic') solver.writeLogic(event.channel, event.sample, event.at);
+      else if (event.kind === 'param') solver.writeParam(event.channel, event.sample, event.at);
       else solver.set(event.channel, event.sample, event.at);
     }
     out[index] = solver.read(time);

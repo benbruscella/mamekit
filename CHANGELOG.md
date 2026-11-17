@@ -30,6 +30,19 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Mario's sound circuit plays from MAME's netlist ([#268](https://github.com/benbruscella/mamekit/issues/268))
+
+**For players:** Mario Bros. has sound. Its walk, skid and power-on sounds come from the board's TTL and VCO circuit, compiled from MAME's netlist. Before this, the board was silent. In a started game its level is within 0.2 dB of MAME's for each second of the contract run.
+
+**Under the hood:**
+- The netlist compiler has a logic layer. Logic nets run on MAME's event queue beside the analog solves (`logic_output_t::push`, a later push replacing a pending one). Where logic meets analog it goes through `nld_d_to_a_proxy` and `nld_a_to_d_proxy` with the family's thresholds and output stages. The logic devices are generic kinds whose constants are read from MAME's source (`src/mame/netlist-devices.ts`): any `TRUTH_TABLE` of the macro library with its delays, the 74123-family one-shot (its `desc_` timing, K, RI, and trigger and clear tables evaluated from `trigfunc`), the 74LS629 VCO's fitted polynomial, and the CD4020-family counter's stages and delays.
+- New analog elements: `SYS_DSW`, `CCCS`, `CCVS`, `CS` (the LM3900's model 4), and `R2R_DAC` as a Thevenin source. `Solver.DYNAMIC_TS` steps each group by `compute_next_time_step`. Positional device arguments follow each type's `NETLIB_DEVICE_IMPL` parameter list. The five netlists that already shipped compile byte-identical.
+- `NETLIST_INT_INPUT` is bound like `NETLIST_LOGIC_INPUT`, with its shift and mask. A finder passed by member (`m_audio_snd[0]`) is bound by that name. A board whose only sound is a netlist is mixed as a stream. `m_audio_snd[0/1].write` leave `KNOWN_UNRESOLVED_CALLS`.
+- `npm run test:netlists` now finds the plans in `generated/board.json` (it was reading `config.json`, which no longer carries them, and found nothing). It also drives integer inputs. Mario is within 0.1 dB of nltool in every band.
+- Mario's contract coin is a 4-frame pulse. This revision rejects a 10-frame one as a coin jam, so the old contract never started a game.
+- `tools/unresolved-calls.ts` lists no stale entries when any run ended early, and names those runs instead.
+- `mamekit compare` judges RAM per compared frame. A change in how many frames lined up is a note on the verdict, not the verdict.
+
 ### The dead Exidy collision delivery is deleted ([#252](https://github.com/benbruscella/mamekit/issues/252))
 
 **For players:** Nothing visible.

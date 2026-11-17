@@ -735,6 +735,24 @@ export function installStreamAudioRuntime(context: SoundRuntimeContext): SoundRu
       else context.state[alias] = device;
     }
   });
+  // The numbers a driver writes into the netlist (`NETLIST_INT_INPUT`, Mario's
+  // `m_audio_dac->write(data)`), landing as the logic lines do.
+  (sound.netlistParamInputs ?? []).forEach((input, index) => {
+    const device = {
+      write: (data: number): number => {
+        const seconds = context.time?.() ?? 0;
+        mixer.renderTo?.(seconds);
+        netlist?.solver.writeParam(index, ((data >>> input.shift) & input.mask) >>> 0, seconds);
+        return 0;
+      },
+    };
+    for (const alias of [input.deviceTag, ...input.members]) {
+      context.calls[`${alias}.write`] = device.write;
+      const element = /^(\w+)\[(\d+)\]$/.exec(alias);
+      if (element) ((context.state[element[1]!] ??= []) as unknown[])[Number(element[2])] = device;
+      else context.state[alias] = device;
+    }
+  });
   for (const finder of sound.netlistFinders ?? []) {
     const element = /^(\w+)\[(\d+)\]$/.exec(finder);
     if (element) ((context.state[element[1]!] ??= []) as unknown[])[Number(element[2])] ??= 1;
