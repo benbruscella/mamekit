@@ -157,6 +157,12 @@ export interface GeneratedStructField {
   union?: true;
   /** The value its declaration gives a scalar field: nes_defs.h's `u16 lfsr = 1;`. */
   initial?: number;
+  /**
+   * Every bound of an array of more than one (`int ktable[MAX_K][MAX_SCALE]`):
+   * `length` is the first. Its elements are rows, not integers, so it is never
+   * one block of typed memory.
+   */
+  dimensions?: number[];
 }
 
 export interface GeneratedDeviceCallback {
@@ -7504,6 +7510,10 @@ function structFieldList(
         const field = /^(\*\s*)?([A-Za-z_]\w*)\s*(?:\[\s*([^\]]+)\s*\])?/.exec(declarator.trim());
         if (!field) continue;
         const length = bound(field[3]);
+        // Every bound between the name and any initializer.
+        const extents = [...declarator.trim().split('=')[0]!.matchAll(/\[\s*([^\]]+)\s*\]/g)]
+          .map(extent => bound(extent[1]));
+        const dimensions = extents.length > 1 && extents.every(extent => extent !== undefined) ? extents as number[] : undefined;
         // A pointer field (desc_s's `const uint8_t *data`) is an address, never
         // narrowed to its pointee's width.
         const pointer = Boolean(field[1]);
@@ -7518,6 +7528,7 @@ function structFieldList(
         found.push({ at: statement.index, field: {
           name: field[2]!,
           ...(length !== undefined ? { length } : {}),
+          ...(dimensions ? { dimensions } : {}),
           ...(initial !== null && initial !== 0 && Number.isFinite(initial) ? { initial } : {}),
           ...(integral && !pointer ? { bits, ...(signed ? { signed } : {}) } : { valueType: pointer ? `${qualified(valueType)}*` : qualified(valueType) }),
         } });

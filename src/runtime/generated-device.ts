@@ -96,6 +96,8 @@ interface StructField {
   union?: true;
   /** The value its declaration gives a scalar field (`u16 lfsr = 1;`). */
   initial?: number;
+  /** Every bound of a multi-dimensional array field; `length` is the first. */
+  dimensions?: number[];
 }
 
 interface DeviceCallback {
@@ -5590,7 +5592,11 @@ function structMember(
     // memset of it is a fill. The SNES PPU clears six 256-entry line buffers
     // on every line, element by element while they were plain arrays.
     if (field.length) {
-      const integral = field.bits !== undefined && !/\b(?:float|double)\b|\*/.test(field.valueType ?? '');
+      // One dimension only: the elements of `int ktable[MAX_K][MAX_SCALE]` are
+      // rows. Typed, each row a TMS5220's coefficient table assigned turned
+      // into 0, and Gauntlet's speech came out garbled (8 dB off MAME).
+      const integral = field.bits !== undefined && !field.dimensions &&
+        !/\b(?:float|double)\b|\*/.test(field.valueType ?? '');
       value[field.name] = integral
         ? integerArray(field.length, field.bits, field.signed)
         : Array.from({ length: field.length }, () => 0);
