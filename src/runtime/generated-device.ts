@@ -1168,15 +1168,27 @@ class IrTimer {
     // `render` draws the line in progress only when its scanline timer has
     // time left, and at the start of VBLANK it has none, so MAME's picture
     // keeps line 239 from the frame before (#184).
-    const left = this.remainingSeconds - timerNowAheadSeconds;
+    //
+    // Read by a processor the device clock does not follow, now is that
+    // processor's own local time, which the clock stands ahead of (the lead
+    // adjust() takes off when it arms): MAME's 6532 reads `remaining()`
+    // against `machine().time()`. Counted on the device clock, Venture's
+    // sound 6502 polled its RIOT timer up to a quantum short, and timed its
+    // music from it differently from MAME (#271).
+    const left = this.remainingSeconds + this.readLead() - timerNowAheadSeconds;
     return new IrAttotime(left > TIMER_NOW_TOLERANCE_SECONDS ? left : 0);
   }
 
   elapsed(): IrAttotime {
     const seconds = !Number.isFinite(this.intervalSeconds)
       ? 0
-      : Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds));
+      : Math.max(0, this.intervalSeconds - Math.max(0, this.remainingSeconds + this.readLead()));
     return new IrAttotime(seconds);
+  }
+
+  /** How far the device clock stands ahead of the processor reading this timer (see timerArmLead). */
+  private readLead(): number {
+    return Number.isFinite(this.remainingSeconds) ? timerArmLead?.() ?? 0 : 0;
   }
 
   enabled(): boolean {

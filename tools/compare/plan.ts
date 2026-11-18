@@ -46,11 +46,14 @@ export interface IoPlan {
 
 /** `cpu:a-b[:rw]`, or `cpu:io:a-b[:rw]` for the processor's I/O space (hex). */
 export function parseIoTap(spec: string): IoPlan['taps'][number] {
+  // Read from the right: a processor's tag is a device path and may hold
+  // colons itself (Venture's sound CPU is `soundbd:audiocpu`).
   const parts = spec.split(':');
-  const tag = parts.shift()!;
-  const space = parts[0] === 'io' ? (parts.shift(), 'io' as const) : undefined;
-  if (parts[0] === 'program') parts.shift();
-  const [range = '', mode = 'rw'] = parts;
+  const mode = /^(r|w|rw|wr)$/.test(parts.at(-1) ?? '') && parts.length > 2 ? parts.pop()! : 'rw';
+  const range = parts.pop() ?? '';
+  const space = parts.at(-1) === 'io' ? (parts.pop(), 'io' as const) : undefined;
+  if (!space && parts.at(-1) === 'program') parts.pop();
+  const tag = parts.join(':');
   const [lo, hi] = range.split('-').map(value => parseInt(value, 16));
   if (!tag || Number.isNaN(lo)) throw new Error(`--io ${spec}: expected <cpu>[:io]:<start>-<end>[:r|w|rw]`);
   return { tag, ...(space ? { space } : {}), lo: lo!, hi: hi ?? lo!, read: mode.includes('r'), write: mode.includes('w') };
