@@ -1296,6 +1296,12 @@ export function generatedInstanceFactories(): Map<string, (data: Record<string, 
 }
 
 class IrDevice implements Device {
+  /**
+   * Reads made through the device's own mapped spaces: a core whose memory is
+   * all its own (the S-SMP's) fetches nothing over the board's bus, and the
+   * board tells a stopped core from a running one by its reads.
+   */
+  spaceReads = 0;
   /** The member the core counts cycles in (definition.icountMember, set_icountptr's). */
   get icountMember(): string {
     return this.definition.icountMember ?? 'm_icount';
@@ -5162,6 +5168,7 @@ function mappedDeviceSpace(
   const space: GeneratedDeviceSpace & WideSpaceAccess & { fallback?: Fallback } = {
     memory,
     read_byte: address => {
+      device.spaceReads++;
       const at = address & mask;
       const index = readIndex(at);
       const entry = index < 0 ? undefined : resolve(index, at, false);

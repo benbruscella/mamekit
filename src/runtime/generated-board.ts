@@ -2480,6 +2480,10 @@ class IrBoard implements Board {
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
+      // Every read the processor makes, opcode fetches included (see
+      // stoppedProcessor): a core that reads nothing over a slice fetched no
+      // instruction in it.
+      const activity = this.cpuActivity(specification.tag);
       let sliceTarget = 0;
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const screenSpec = machine.execution.screen;
@@ -2494,20 +2498,20 @@ class IrBoard implements Board {
         boundSignals: new Set(machine.callbacks
           .filter(callback => callback.ownerTag === specification.tag)
           .map(callback => callback.signal)),
-        read: address => bus.read(busAddress(address)),
+        read: address => { activity.reads++; return bus.read(busAddress(address)); },
         // Keep native 16-bit address-map handlers atomic. In particular,
         // Neo Geo's palette RAM self-test writes complete 68000 words; losing
         // these methods here makes the CPU fall back to two byte transactions
         // and the second byte overwrites the first handler value.
-        read16be: address => bus.read16be(busAddress(address)),
+        read16be: address => { activity.reads++; return bus.read16be(busAddress(address)); },
         // A 68000 long access is two word accesses on the real bus, so keep
         // it that way: address-space taps must see the same two.
-        read32be: address => bus.read32be(busAddress(address)),
-        read16le: address => bus.read16le(busAddress(address)),
+        read32be: address => { activity.reads++; return bus.read32be(busAddress(address)); },
+        read16le: address => { activity.reads++; return bus.read16le(busAddress(address)); },
         write16le: (address, data) => bus.write16le(busAddress(address), data),
         ...(bus.readOpcode ? {
           // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
-          readOpcode: address => bus.readOpcode!(address),
+          readOpcode: address => { activity.reads++; return bus.readOpcode!(address); },
         } : {}),
         write: (address, data) => bus.write(busAddress(address), data),
         // The core's own memory_view: the MCS-48's internal ROM, which its
@@ -3547,6 +3551,11 @@ class IrBoard implements Board {
           this.soundRuntime?.cpuTimeMoved?.(specification.tag);
         },
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
+        // Stopped for an interrupt (stoppedProcessor): only a perfect
+        // quantum's rounds are extended for it.
+        ...(machine.execution.perfectQuantum === true
+          ? { stopped: () => this.cpuActivity(specification.tag).quietSlices >= 2 }
+          : {}),
         // A core MAME stops between bus cycles stands, mid-instruction, at
         // the cycles before this instruction and those it has paid for so far
         // (the access in progress included, as total_cycles counts it).
@@ -3568,12 +3577,29 @@ class IrBoard implements Board {
             }
             if (stalled > 0) tickCardDevices(specification.tag, stalled);
             this.coreExecuting = true;
+            const activity = this.cpuActivity(specification.tag);
+            const watched = machine.execution.perfectQuantum === true;
+            const readsBefore = watched ? activity.reads + this.processorSpaceReads(specification.tag) : 0;
             const executed = stalled + (cycles > stalled
               ? this.cpus.get(specification.tag)!.run(cycles - stalled)
               : 0);
             this.coreExecuting = outerExecuting;
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            // A slice of exactly its cycles with no read and the PC where it
+            // was is a core stopped for an interrupt: MAME's 65C816 in WAI
+            // returns every clock it is given and fetches nothing. Two in a
+            // row, so that the slice which executed the WAI does not count.
+            // The PC is read only after a quiet slice, which a running core
+            // almost never has: two quiet slices in a row ending at one PC.
+            if (watched) {
+              const quiet = executed === cycles &&
+                activity.reads + this.processorSpaceReads(specification.tag) === readsBefore;
+              const pc = quiet ? this.processorPc(specification.tag) : undefined;
+              activity.quietSlices = pc !== undefined && activity.quietSlices > 0 && activity.quietPc === pc
+                ? activity.quietSlices + 1 : pc !== undefined ? 1 : 0;
+              activity.quietPc = pc;
+            }
             this.runningSliceCycles = 0;
             this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
@@ -3941,9 +3967,41 @@ class IrBoard implements Board {
    *   slice, the MCU never saw it, and no voice sample ever played.
    */
   private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
-    const apply = () => applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+    const apply = () => {
+      // A line that changes may wake a stopped core (stoppedProcessor).
+      const activity = this.cpuActivity(tag);
+      activity.quietSlices = 0;
+      activity.quietPc = undefined;
+      applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+    };
     if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
     else apply();
+  }
+
+  /**
+   * Per processor, the reads it has made and how many slices in a row it has
+   * been stopped for an interrupt: no read, its cycles exactly, its PC
+   * unmoved. A perfect quantum's rounds are extended while the processors
+   * that lead them are (the frame runner's stoppedLead). Kept out of the save
+   * state: it only decides how rounds are cut, never what they compute.
+   */
+  private readonly cpuActivities = new Map<string, { reads: number; quietSlices: number; quietPc?: number }>();
+
+  private cpuActivity(tag: string): { reads: number; quietSlices: number; quietPc?: number } {
+    let activity = this.cpuActivities.get(tag);
+    if (!activity) this.cpuActivities.set(tag, activity = { reads: 0, quietSlices: 0 });
+    return activity;
+  }
+
+  /** Reads a compiled core has made through its own spaces (IrDevice.spaceReads). */
+  private processorSpaceReads(tag: string): number {
+    return (this.cpus.get(tag) as { device?: { spaceReads?: number } } | undefined)?.device?.spaceReads ?? 0;
+  }
+
+  /** A compiled core's STATE_GENPC, or undefined where it publishes none. */
+  private processorPc(tag: string): number | undefined {
+    const device = (this.cpus.get(tag) as { device?: { stateInt?(index: number): number | undefined } } | undefined)?.device;
+    return device?.stateInt?.(DEFAULT_CONSTANTS.STATE_GENPC!);
   }
 
   /** Whether a line on `tag` is driven from another running processor. */

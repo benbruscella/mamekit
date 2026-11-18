@@ -31,6 +31,12 @@ export interface GeneratedFrameProcessor {
    * runs after every active processor, as `rebuild_execute_list` moves it.
    */
   suspended?: () => 'eating' | 'waiting' | undefined;
+  /**
+   * The core is stopped waiting for an interrupt (the 65C816's WAI): its
+   * execute_run burns whatever it is given and touches nothing until one of
+   * its input lines changes. See runProcessors' stopped rounds.
+   */
+  stopped?: () => boolean;
 }
 
 /**
@@ -677,9 +683,28 @@ export class GeneratedFrameRunner {
           }
         }
       }
-      // Rounds nobody runs in pass at once, short of the timer and the end;
-      // the round's target is then taken again from where the base stands.
-      if (this.perfectRounds && !windowed) {
+      // A perfect round whose leading processors are stopped (stoppedLead)
+      // runs to the timer or the lines' end rather than one quantum, the
+      // stopped ones last. Nothing they could do is lost: they read nothing
+      // and burn every cycle, and the only things that wake one -- a timer,
+      // or a line another processor drives, which synchronizes -- end the
+      // round. Stopped first in MAME's order, each would already stand at the
+      // end of the quantum such a cut falls in, so that is where it is run to
+      // (stoppedTarget).
+      let order = this.roundOrder();
+      let stoppedFrom = order.length;
+      const lead = this.perfectRounds && !windowed ? this.stoppedLead() : 0;
+      if (lead > 0) {
+        target.set(end);
+        slop = timerAttos !== undefined && this.lowerTarget(timerAttos) ? TIMER_SLOP : 0;
+        this.extendedFrom.set(base);
+        this.extendedTo.set(target);
+        const stopped = [...order].filter(index => index < lead);
+        order = Int32Array.from([...[...order].filter(index => index >= lead), ...stopped]);
+        stoppedFrom = order.length - stopped.length;
+      } else if (this.perfectRounds && !windowed) {
+        // Rounds nobody runs in pass at once, short of the timer and the end;
+        // the round's target is then taken again from where the base stands.
         const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity));
         if (skipped > 0) {
           target.set(end);
@@ -687,11 +712,13 @@ export class GeneratedFrameRunner {
           if (timerAttos !== undefined) this.lowerTarget(timerAttos - skipped);
         }
       }
-      const order = this.roundOrder();
       for (let position = 0; position < order.length; position++) {
         const scheduled = processors[order[position]!]!;
         const local = scheduled.local;
-        const cycles = scheduled.cycle.within(local, target, slop);
+        // A stopped processor's end: the round's, or past a cut, the end of
+        // MAME's quantum the cut falls in.
+        const runTo = position >= stoppedFrom ? this.stoppedTarget(target) : target;
+        const cycles = scheduled.cycle.within(local, runTo, slop);
         // Less than a cycle to the target: MAME neither runs it nor moves on.
         if (cycles === 0) continue;
         if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
@@ -741,6 +768,44 @@ export class GeneratedFrameRunner {
     // round of the next lines, so nothing is left posted between lines: a
     // line event, or a save state taken between frames, finds none.
     this.onSynchronize?.();
+  }
+
+  /** Where a stopped round (runProcessors) began and the end it was given. */
+  private readonly extendedFrom = new Attotime();
+  private readonly extendedTo = new Attotime();
+  private readonly stoppedScratch = new Attotime();
+
+  /**
+   * How many processors, from the first in configured order, are stopped
+   * (GeneratedFrameProcessor.stopped) and run: a round they lead can be
+   * extended. Every other processor comes after them in MAME's order, so a
+   * line one of those drives reaches a stopped one at the end of the quantum
+   * it falls in. None when no processor is left to run.
+   */
+  private stoppedLead(): number {
+    const processors = this.processors;
+    let lead = 0;
+    while (lead < processors.length) {
+      const processor = processors[lead]!.processor;
+      if (!processor.stopped?.() || processor.suspended?.() || (processor.enabled && !processor.enabled())) break;
+      lead++;
+    }
+    return lead;
+  }
+
+  /**
+   * A stopped processor's end in a round extended for it: the round's own,
+   * or, where the round was cut short (a synchronize, a timer armed inside
+   * it), the end of the quantum the cut falls in, counted from the round's
+   * start as MAME's rounds are.
+   */
+  private stoppedTarget(target: Attotime): Attotime {
+    if (!target.before(this.extendedTo)) return target;
+    const quantum = this.machineQuantum;
+    const into = target.since(this.extendedFrom);
+    const quanta = Math.max(1, Math.ceil(into / quantum));
+    const boundary = this.stoppedScratch.set(this.extendedFrom).add(quanta * quantum);
+    return boundary.before(this.extendedTo) ? boundary : this.extendedTo;
   }
 
   /** Bring the target down to `attos` past the base; answers whether it moved. */

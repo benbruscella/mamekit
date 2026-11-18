@@ -51,14 +51,14 @@ export const snes = {
         checkpoints: {
           1: { video: '9b4e52d8', state: 'd5e58c9d' },
           60: { video: '9b4e52d8', state: '4faaa7f1' },
-          180: { video: '1bb8616f', state: '7e188cbb' },
+          180: { video: '1bb8616f', state: 'c00ce692' },
           300: { video: '39314342', state: 'ea8e9cf3' },
           600: { video: '2bca5235', state: '0516a169' },
         },
         audio: {
           writes: 479213,
           nonzeroWrites: 243195,
-          writeHash: 'abac8876',
+          writeHash: 'd1fe0424',
           pcmHash: 'f33bfda3',
           rms: 0.029104,
         },
