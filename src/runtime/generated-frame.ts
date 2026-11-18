@@ -154,6 +154,16 @@ export class GeneratedFrameRunner {
 
   /** MAME `m_frame_period` and `m_scantime`. */
   private readonly framePeriod: Attotime;
+  /**
+   * The raster `screen_device::configure` gave the screen, when it is not
+   * set_raw's: its height, width and VBLANK start line (visarea bottom + 1).
+   * A height of 0 is set_raw's own. MAME keeps `m_vblank_start_time` across
+   * configure, so the beam keeps its time and only its labels move: the
+   * SNES PPU turning overscan on makes the line its VBLANK tick fires at 240
+   * where it was 225, still at the same instant. Saved, as MAME's screen
+   * saves m_width, m_height and m_visarea.
+   */
+  readonly screenRaster = { height: 0, width: 0, vbstart: 0 };
   private readonly linePeriod: AttoPeriod;
   /** When the frame in progress began: a whole number of frame periods. */
   private readonly frameBase = new Attotime();
@@ -432,6 +442,11 @@ export class GeneratedFrameRunner {
     return this.framePeriod.seconds;
   }
 
+  /** When the frame in progress began, at its origin line, in seconds of emulated time. */
+  get frameStartSeconds(): number {
+    return this.frameBase.seconds;
+  }
+
   get frameCount(): number {
     return this.frames;
   }
@@ -492,7 +507,7 @@ export class GeneratedFrameRunner {
 
   /** Save-state roots (machine-state.ts): the times and counters, never the schedule. */
   stateKeys(): readonly string[] {
-    return ['processors', 'frameBase', 'base', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin'];
+    return ['processors', 'frameBase', 'base', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin', 'screenRaster'];
   }
 
   /**

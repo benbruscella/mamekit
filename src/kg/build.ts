@@ -955,8 +955,9 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // A timer armed inside a line rather than at its start: MAME's
     // `time_until_pos(v, h)` with a pixel, or a duration in clocks (the
     // Spectrum's IRQ, raised at the screen area's left edge and held for 32
-    // T-states). Only those need the board to fire them between instructions;
-    // one aimed at a line start keeps its line (Missile Command's).
+    // T-states; the SNES NMI, 12 65C816 cycles after VBLANK). Only those need
+    // the board to fire them between instructions; one aimed at a line start
+    // keeps its line (Missile Command's).
     const timeMacros = new Map([...combined.matchAll(/^[ \t]*#define[ \t]+(\w+)[ \t]+([^\n]+)/gm)]
       .map(match => [match[1]!, match[2]!.trim()]));
     const expandTimeMacros = (text: string): string => {
@@ -981,7 +982,7 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
             ? new RegExp(`\\b${local}\\s*(?:=\\s*([^;]+);|\\(([^;]+)\\)\\s*;)`).exec(fn.body)
             : undefined;
           if (initializer) argument = expandTimeMacros(initializer[1] ?? initializer[2] ?? '');
-          if (/\bclocks_to_attotime\s*\(|\bfrom_ticks\s*\(/.test(argument)) return true;
+          if (/\b(?:clocks|cycles)_to_attotime\s*\(|\bfrom_ticks\s*\(/.test(argument)) return true;
           const position = /\btime_until_pos\s*\(/.exec(argument);
           if (position) {
             const start = position.index + position[0].length - 1;

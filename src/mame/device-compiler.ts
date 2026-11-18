@@ -793,11 +793,25 @@ function distateIndices(mameSrc: string): Record<string, number> {
  * lvalue (a lambda) is left out; nothing reads it as a register.
  */
 function attachStateEntries(mameSrc: string, device: GeneratedDeviceDefinition): void {
+  // Every expression, the object a call's member callee is called on too:
+  // `state_add(STATE_GENPC, "GENPC", m_debugger_temp).callimport().noshow()`
+  // is a call of `noshow` on the call of `callimport` on the state_add, and
+  // walkExpressions treats a callee as a name, not an operand. Through it
+  // alone every chained entry was missed, the 65C816's whole table with them,
+  // so the SNES driver's `m_maincpu->pc()` answered nothing.
+  const walkChained = (operations: GeneratedHandlerOperation[], visit: (expression: GeneratedExpression) => void) =>
+    walkExpressions(operations, function visitChain(expression: GeneratedExpression) {
+      visit(expression);
+      if (expression.kind === 'call' && expression.callee.kind === 'member' && expression.callee.object.kind === 'call') {
+        visitChain(expression.callee.object);
+        for (const argument of expression.callee.object.args) walkExpressions([{ op: 'call', expression: argument } as GeneratedHandlerOperation], visit);
+      }
+    });
   // device_start's own, or a helper it calls: the 6502 family registers its
   // table in init(), the Z8002 in register_debug_state().
   const registers = (method: GeneratedDeviceMethod) => {
     let found = false;
-    walkExpressions(method.program.operations, expression => {
+    walkChained(method.program.operations, expression => {
       if (expression.kind === 'call' && expression.callee.kind === 'identifier' && /^state_add\b/.test(expression.callee.name)) found = true;
     });
     return found;
@@ -821,7 +835,7 @@ function attachStateEntries(mameSrc: string, device: GeneratedDeviceDefinition):
   const entries: GeneratedDeviceStateEntry[] = [];
   const done = new Set<GeneratedExpression>();
   for (const start of starts) {
-    walkExpressions(start.program.operations, expression => {
+    walkChained(start.program.operations, expression => {
       if (expression.kind !== 'call' || done.has(expression)) return;
       const flags: { name: string; args: GeneratedExpression[] }[] = [];
       let bottom: GeneratedExpression = expression;

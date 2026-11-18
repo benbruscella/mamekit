@@ -796,7 +796,7 @@ class IrBoard implements Board {
           time_until_pos: (position: number, hpos = 0) => {
             this.deviceClockFollowsProcessors = true;
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal + this.lineFractionAt(hpos);
+            const target = this.rasterTarget(position, hpos);
             // Answered in the clock the device timers themselves run on, not
             // in whole beam lines. MAME measures the beam to the attosecond,
             // so a scanline callback re-arming for "one line further on"
@@ -821,7 +821,7 @@ class IrBoard implements Board {
             // callback re-arming for the position it fired at waits a frame.
             // Without it, Metal Slug's auto-animation timer, firing at
             // VSSTART a hair short of it, re-armed for no time 65536 times.
-            const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
+            const halfPixel = this.halfPixelLines() * vtotal / this.rasterHeight();
             let lines = target - this.deviceBeamPosition();
             lines -= Math.floor(lines / vtotal) * vtotal;
             if (lines <= halfPixel) lines += vtotal;
@@ -839,7 +839,7 @@ class IrBoard implements Board {
           vblank: () => {
             const line = this.beamLine();
             const screen = machine.execution.screen;
-            return line >= screen.vbstart || line < (screen.vbend ?? 0) ? 1 : 0;
+            return line >= (this.configuredRaster()?.vbstart ?? screen.vbstart) || line < (screen.vbend ?? 0) ? 1 : 0;
           },
           // update_now() and pixel(x, y): the picture composed up to the
           // beam and read back as an rgb_t, which is how the NES Zapper's
@@ -861,10 +861,11 @@ class IrBoard implements Board {
           // TMS34010 from HEBLNK/HSBLNK: Mortal Kombat moves its window ten
           // pixels left of the set_raw one). The framebuffer keeps its size,
           // so a window of the same size moves and any other shape is left.
-          configure: (_width: number, _height: number, visarea: unknown) => {
+          configure: (width: number, height: number, visarea: unknown) => {
             const area = visarea as { min_x?: number; max_x?: number; min_y?: number; max_y?: number } | undefined;
             const screen = machine.execution.screen;
             if (!area || area.min_x === undefined || area.max_x === undefined || area.min_y === undefined || area.max_y === undefined) return 0;
+            this.configureRaster(Number(width), Number(height), area.max_y + 1);
             // Another shape: the SNES PPU shows 240 lines with overscan on.
             // The picture takes it at the end of this frame (applyScreenArea),
             // so the frame in progress keeps the shape it is drawn in.
@@ -1608,7 +1609,8 @@ class IrBoard implements Board {
           entry.port === port) ?? []) {
           let line = 0;
           if (custom.source === 'screen-vblank') {
-            const { vbstart, vbend = 0 } = machine.execution.screen;
+            const { vbend = 0 } = machine.execution.screen;
+            const vbstart = this.configuredRaster()?.vbstart ?? machine.execution.screen.vbstart;
             const beam = this.beamLine();
             const inVblank = vbstart > vbend
               ? beam >= vbstart || beam < vbend
@@ -1794,13 +1796,12 @@ class IrBoard implements Board {
       calls[`${screenMember}.time_until_pos`] ??= (position, hpos) => {
         // MAME targets `vpos * scantime + hpos * pixeltime`: the Spectrum
         // raises its interrupt 48 pixels (24 T-states) into line 0.
-        const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal +
-          this.lineFractionAt(Number(hpos ?? 0));
+        const target = this.rasterTarget(Number(position), Number(hpos ?? 0));
         // Within half a pixel of the target counts as past it, as the device
         // screen's does: a precise driver timer fires a hair short of the line
         // it was armed for, and Neo Geo's vblank callback, re-arming for that
         // line, asked again and again for no time at all.
-        const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
+        const halfPixel = this.halfPixelLines() * vtotal / this.rasterHeight();
         let lines = target - this.beamPosition();
         lines -= Math.floor(lines / vtotal) * vtotal;
         if (lines <= halfPixel) lines += vtotal;
@@ -1833,7 +1834,7 @@ class IrBoard implements Board {
         // expiry, and a round's timer once the processors have run to it,
         // the first of them usually an instruction past; MAME's callback
         // sees the expiry itself.
-        if (timer.driver || this.roundTimers) withGeneratedTimerExpiry(pending.at, run);
+        if (timer.driver || this.roundTimers) this.atTimerExpiry(pending.at, run);
         else run();
       };
       this.genericTimerFires.set(timer.member, fire);
@@ -1885,7 +1886,7 @@ class IrBoard implements Board {
         const handler = machine.handlers?.find(candidate =>
           `${candidate.ownerClass}.${candidate.method}` === callback);
         if (!handler?.program || handler.program.diagnostics.length) return;
-        withGeneratedTimerExpiry(pending.at, () =>
+        this.atTimerExpiry(pending.at, () =>
           executeGeneratedMachineHandler(machine, handler, this.bindings, { param: pending.param }));
       });
       return {
@@ -2744,6 +2745,11 @@ class IrBoard implements Board {
       // MAME's device_state_interface, by the state index the CPU's own lowered
       // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
       calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
+      // device_state_interface::pc() and pcbase(): the same table at its
+      // generic indices. Unbound, the SNES's open bus (`read_byte(pc() - 1)`)
+      // read the byte at -1 instead of the operand the 65C816 last fetched.
+      calls[`m_${specification.tag}.pc`] = () => cpu.stateInt(DEFAULT_CONSTANTS.STATE_GENPC!);
+      calls[`m_${specification.tag}.pcbase`] = () => cpu.stateInt(DEFAULT_CONSTANTS.STATE_GENPCBASE!);
       // And its write half: a snapshot loader restores every register this
       // way, and the core's state_import settles what the write implies.
       calls[`m_${specification.tag}.set_state_int`] = (state, value) => {
@@ -2770,7 +2776,7 @@ class IrBoard implements Board {
       const cpuMethodNames = [
         'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
         'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
-        'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
+        'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time', 'pc', 'pcbase',
       ];
       this.deviceReferents.set(specification.tag, Object.fromEntries(cpuMethodNames.map(name => [
         name,
@@ -2798,7 +2804,7 @@ class IrBoard implements Board {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
           'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
-          'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
+          'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time', 'pc', 'pcbase',
         ];
         for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
@@ -3700,9 +3706,14 @@ class IrBoard implements Board {
           // beam one line ahead and every Missile Command IRQ landed a line
           // early.
           if (this.pendingTimers.size) {
-            const now = this.machineSeconds();
+            // Due by the boundary itself, on the frame's clock: the processor
+            // can stand an instruction short of it, and a timer aimed at this
+            // line's start (time_until_pos(v), now armed from its callback's
+            // expiry) then waited a whole line more. The SNES scanline tick
+            // read line 241 for its VBLANK line 240 and raised no NMI.
+            const now = Math.max(this.machineSeconds(), this.lineBoundarySeconds());
             for (const [member, pending] of [...this.pendingTimers]) {
-              if (pending.at > now) continue;
+              if (pending.at > now + ROUND_TIMER_SLOP_SECONDS) continue;
               // A round's own timer fires where the round ends.
               if (this.roundTimers && this.roundTimerMembers.has(member)) continue;
               this.genericTimerFires.get(member)?.();
@@ -4227,8 +4238,7 @@ class IrBoard implements Board {
    * screen_device::vpos() derives it from emulated time.
    */
   private deviceBeamLine(): number {
-    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
-    return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
+    return Math.floor(this.rasterLabel(this.deviceBeamPosition()) + this.halfPixelLines()) % this.rasterHeight();
   }
 
   private deviceBeamPosition(): number {
@@ -4241,9 +4251,51 @@ class IrBoard implements Board {
       : undefined;
     // Inside a slice the beam is the processor's, which the devices' clock
     // trails by whatever is held for the frame's presentation.
+    if (this.expiryBeam !== undefined) return this.expiryBeam;
     if (running !== undefined) return running - (generatedTimerBacklog() + this.heldDeviceSeconds) / this.lineSeconds();
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
+  }
+
+  /**
+   * Run a driver timer's callback at its expiry, as MAME's scheduler does:
+   * machine().time() answers the expiry (withGeneratedTimerExpiry), and so
+   * does the beam. This schedule fires a timer at the line boundary after it
+   * falls due, or a precise one an instruction past it; measured from where
+   * the beam had got to, the SNES scanline tick read line 241 for the 240 it
+   * was armed for, so no VBLANK and no NMI that frame, and every timer a
+   * callback re-armed with time_until_pos came early by the lateness.
+   */
+  private atTimerExpiry<T>(at: number, run: () => T): T {
+    const outer = this.expiryBeam;
+    // Where the expiry falls in the frame, on the frame's own clock (the
+    // processor's can stand a round ahead of the beam).
+    const start = this.frameRunner?.frameStartSeconds;
+    const position = start === undefined ? undefined
+      : (this.frameRunner?.originLine ?? 0) + (at - start) / this.lineSeconds();
+    this.expiryBeam = position !== undefined && Number.isFinite(position) ? position : undefined;
+    try {
+      return withGeneratedTimerExpiry(at, run);
+    } finally {
+      this.expiryBeam = outer;
+    }
+  }
+
+  /** The beam position at the expiry of the driver timer whose callback is running (atTimerExpiry). */
+  private expiryBeam?: number;
+
+  /**
+   * When the beam reached the start of the line it stands on, on the frame's
+   * clock. On the frame's last boundary, the wrap to its origin line, the
+   * frame in progress has not been closed yet and the line is its vtotal-th.
+   */
+  private lineBoundarySeconds(): number {
+    const runner = this.frameRunner;
+    if (!runner) return 0;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    let lines = ((this.currentLine - runner.originLine) % vtotal + vtotal) % vtotal;
+    if (lines === 0 && this.machineSeconds() - runner.frameStartSeconds > runner.frameSeconds / 2) lines = vtotal;
+    return runner.frameStartSeconds + lines * this.lineSeconds();
   }
 
   /** Fire every precise driver timer that has come due, earliest first. */
@@ -4273,30 +4325,99 @@ class IrBoard implements Board {
     return this.runningSliceCycles + (tag ? this.cpus.get(tag)?.elapsedCycles?.() ?? 0 : 0);
   }
 
-  /** Pixel `hpos` of a line as a fraction of that line, for `time_until_pos(vpos, hpos)`. */
-  private lineFractionAt(hpos: number): number {
+  /**
+   * `time_until_pos(vpos, hpos)`'s target as a beam position: MAME aims at
+   * `vpos * scantime + hpos * pixeltime` in the screen's own labels.
+   */
+  private rasterTarget(position: number, hpos: number): number {
+    const height = this.rasterHeight();
+    const line = ((Math.floor(Number(position) || 0) % height) + height) % height;
+    const label = line + Math.max(0, Math.floor(Number(hpos) || 0)) / this.rasterWidth();
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    return ((this.rasterPosition(label) % vtotal) + vtotal) % vtotal;
+  }
+
+  /** The raster screen_device::configure set (GeneratedFrameRunner.screenRaster), or undefined while it is set_raw's. */
+  private configuredRaster(): { height: number; width: number; vbstart: number } | undefined {
+    const raster = this.frameRunner?.screenRaster;
+    return raster && raster.height > 0 ? raster : undefined;
+  }
+
+  /**
+   * screen_device::configure(width, height, visarea, period): the new raster
+   * takes effect at once. MAME keeps m_vblank_start_time, so vpos() and
+   * hpos() count from the same instant with the new visarea bottom and line
+   * length: the SNES PPU's overscan makes the instant its VBLANK tick fired
+   * at line 225 read 240, and its 341-dot configure halves hpos's unit.
+   * (The frame period is taken as set_raw's; a configure that changes it
+   * would also move VBLANK, which this does not model.)
+   */
+  private configureRaster(width: number, height: number, vbstart: number): void {
+    const raster = this.frameRunner?.screenRaster;
+    if (!raster) return;
     const screen = this.machine.execution.screen;
-    return Math.max(0, Math.floor(Number(hpos) || 0)) / Math.max(1, screen.htotal ?? screen.width);
+    const own = height === screen.vtotal && width === (screen.htotal ?? screen.width) && vbstart === screen.vbstart;
+    const valid = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0;
+    raster.height = own || !valid ? 0 : height;
+    raster.width = own || !valid ? 0 : width;
+    raster.vbstart = own || !valid ? 0 : ((vbstart % height) + height) % height;
+  }
+
+  /** Lines a frame has in the screen's own labels. */
+  private rasterHeight(): number {
+    return Math.max(1, this.configuredRaster()?.height ?? this.machine.execution.screen.vtotal);
+  }
+
+  /** Pixels a line has in the screen's own labels. */
+  private rasterWidth(): number {
+    const screen = this.machine.execution.screen;
+    return Math.max(1, this.configuredRaster()?.width ?? screen.htotal ?? screen.width);
+  }
+
+  /**
+   * A beam position (frame-runner lines, VBLANK at the screen IR's vbstart)
+   * as the configured screen labels it: the time since VBLANK start, in the
+   * configured line length, from the configured VBLANK line.
+   */
+  private rasterLabel(position: number): number {
+    const raster = this.configuredRaster();
+    if (!raster) return position;
+    const screen = this.machine.execution.screen;
+    const vtotal = Math.max(1, screen.vtotal);
+    const since = (((position - screen.vbstart) % vtotal) + vtotal) % vtotal;
+    return raster.vbstart + since * raster.height / vtotal;
+  }
+
+  /** rasterLabel's inverse: the beam position at which the screen reads `label`. */
+  private rasterPosition(label: number): number {
+    const raster = this.configuredRaster();
+    if (!raster) return label;
+    const screen = this.machine.execution.screen;
+    const since = (((label - raster.vbstart) % raster.height) + raster.height) % raster.height;
+    return screen.vbstart + since * Math.max(1, screen.vtotal) / raster.height;
   }
 
   /** The beam's pixel within its line: MAME's `screen_device::hpos()`. */
   private beamHpos(): number {
-    const screen = this.machine.execution.screen;
-    const htotal = Math.max(1, screen.htotal ?? screen.width);
+    const htotal = this.rasterWidth();
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
-    const beam = (running ?? this.currentLineFraction) + this.halfPixelLines();
+    const beam = this.rasterLabel(this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
   }
 
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
   private beamLine(): number {
-    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const vtotal = this.rasterHeight();
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
-    const line = running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
+    const line = this.expiryBeam !== undefined
+      ? Math.floor(this.rasterLabel(this.expiryBeam) + this.halfPixelLines())
+      : this.configuredRaster()
+        ? Math.floor(this.rasterLabel(running ?? this.currentLine) + this.halfPixelLines())
+        : running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
     return ((line % vtotal) + vtotal) % vtotal;
   }
 
@@ -4306,8 +4427,7 @@ class IrBoard implements Board {
    * m_scantime, so a processor a few attoseconds short of a line reads that line.
    */
   private halfPixelLines(): number {
-    const screen = this.machine.execution.screen;
-    return 0.5 / Math.max(1, screen.htotal ?? screen.width);
+    return 0.5 / this.rasterWidth();
   }
 
   /** One scanline of emulated wall time — the unit both clocks settle in. */
@@ -5189,7 +5309,8 @@ class IrBoard implements Board {
         let value = base(address, offset);
         for (const custom of customs) {
           if (custom.source === 'screen-vblank') {
-            const { vbstart, vbend = 0 } = this.machine.execution.screen;
+            const { vbend = 0 } = this.machine.execution.screen;
+            const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
             const beam = this.beamLine();
             const inVblank = vbstart > vbend
               ? beam >= vbstart || beam < vbend

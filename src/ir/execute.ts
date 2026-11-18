@@ -478,6 +478,11 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'filter_rc_device::AC': 4,
   INPUT_LINE_IRQ0: 0,
   ...HOST_INPUT_LINES,
+  // emu/distate.h's generic state indices: device_state_interface::pc() is
+  // state_int(STATE_GENPC). The SNES open bus is the byte at the 65C816's
+  // `pc() - 1`, the last one it fetched.
+  STATE_GENPC: -1,
+  STATE_GENPCBASE: -2,
   // emu/machine.h's machine_phase, which running_machine::phase() answers. A
   // device ignores a port write while MAME is still resetting: the 1541's
   // VIA port B handler drives the spindle motor and stepper only when RUNNING.

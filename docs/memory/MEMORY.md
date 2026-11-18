@@ -13,7 +13,7 @@
 - [Frame render point](frame-render-point.md) — frame-mode video must present at vbstart like MAME, not end-of-frame
 - [Artwork CDN bucket](artwork-cdn-bucket.md) — metadata-REPLACE wipes Content-Type
 - [Defender attract trap](defender-attract-trap.md) — needs ~6 Start presses
-- [Venture silent RIOT IRQ](venture-silent-riot-irq.md) — #63 unfixed
+- [Venture silent RIOT IRQ](venture-silent-riot-irq.md) — #63 closed; residual RAM drift from frame 2048 is #271
 - [Zaxxon vblank phase](zaxxon-vblank-phase.md) — #70 residual: one vblank ahead of MAME, demo diverges ~frame 354
 - [DAC width from MAME](dac-width-from-mame.md) — DAC bits come from dac.h DAC_GENERATOR
 - [Scanline interleave limit](scanline-interleave-limit.md) — 69us CPU quantum swallows fine handshakes
@@ -174,3 +174,4 @@
 - [Worktree PR hooks](worktree-pr-hooks.md) — changelog hook checks the session cwd; EnterWorktree before gh pr create
 - [S-DSP silence gaps](sdsp-silence-gaps.md) — devcb offset, space() default, const pointers into tables (#174)
 - [Save-state shared arrays](save-state-shared-arrays.md) — pointer-into-table members save as aliases; tables built first
+- [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabels vpos, timer callbacks see the expiry beam, pc()/chained state_add; SMW exact to 149
