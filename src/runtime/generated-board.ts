@@ -359,6 +359,26 @@ const PRESENT_MARGIN_SECONDS = 1e-9;
  */
 const ROUND_TIMER_SLOP_SECONDS = 1e-9;
 
+/** A Map that counts its changes, so what is derived from it can be kept until it changes. */
+class VersionedMap<K, V> extends Map<K, V> {
+  version = 0;
+
+  override set(key: K, value: V): this {
+    this.version++;
+    return super.set(key, value);
+  }
+
+  override delete(key: K): boolean {
+    this.version++;
+    return super.delete(key);
+  }
+
+  override clear(): void {
+    this.version++;
+    super.clear();
+  }
+}
+
 /** A timer due a rounding error past a whole cycle is due on that cycle. */
 const CYCLE_ROUNDING = 1e-6;
 
@@ -546,7 +566,32 @@ class IrBoard implements Board {
   private readonly preciseTimerMembers = new Set<string>();
   private firingPreciseTimers = false;
   /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
-  private readonly pendingTimers = new Map<string, { at: number; param: number }>();
+  private readonly pendingTimers = new VersionedMap<string, { at: number; param: number }>();
+  /** The soonest round-ending timer's expiry, and the pendingTimers version it was found at. */
+  private soonestEndingAt = Infinity;
+  private soonestEndingVersion = -1;
+
+  /**
+   * The soonest expiry among the timers that end a round (timerEndsRound),
+   * found again only when a timer has been armed, cancelled or fired since:
+   * a perfect quantum asks every round, twelve thousand times a SNES frame.
+   */
+  private soonestRoundEnding(): number {
+    if (this.soonestEndingVersion !== this.pendingTimers.version) {
+      let soonest = Infinity;
+      for (const [member, pending] of this.pendingTimers) {
+        if (pending.at < soonest && this.timerEndsRound(member)) soonest = pending.at;
+      }
+      this.soonestEndingAt = soonest;
+      this.soonestEndingVersion = this.pendingTimers.version;
+    }
+    return this.soonestEndingAt;
+  }
+
+  /** A load writes timers back in place (machine-state.ts), so what was cached of them goes. */
+  stateRestored(): void {
+    this.pendingTimers.version++;
+  }
   private readonly genericTimerFires = new Map<string, () => void>();
   /**
    * The timers a board's rounds end on, as MAME's do on every timer: a
@@ -1913,6 +1958,8 @@ class IrBoard implements Board {
       if (typeof callback !== 'string') return undefined as never;
       const key = `${callback}#${this.genericTimerFires.size}`;
       this.roundTimerMembers.add(key);
+      // Which timers end a round has changed (soonestRoundEnding).
+      this.pendingTimers.version++;
       this.genericTimerFires.set(key, () => {
         const pending = this.pendingTimers.get(key);
         if (!pending) return;
@@ -3394,6 +3441,7 @@ class IrBoard implements Board {
     // fires, the earliest first, and so does any its callback arms for a
     // time already reached.
     const fireRoundTimers = (now: number): void => {
+      if (this.soonestRoundEnding() > now + ROUND_TIMER_SLOP_SECONDS) return;
       for (let fired = 0; fired < 64; fired++) {
         let due: string | undefined;
         let earliest = now + ROUND_TIMER_SLOP_SECONDS;
@@ -3407,13 +3455,7 @@ class IrBoard implements Board {
         this.genericTimerFires.get(due)?.();
       }
     };
-    const soonestRoundTimer = (now: number): number => {
-      let soonest = Infinity;
-      for (const [member, pending] of this.pendingTimers) {
-        if (pending.at - now < soonest && this.timerEndsRound(member)) soonest = pending.at - now;
-      }
-      return soonest;
-    };
+    const soonestRoundTimer = (now: number): number => this.soonestRoundEnding() - now;
     // A round device arms from the round's base, where MAME's machine time
     // stands through the timeslice (timerArmBase).
     const armBase = (): number =>
@@ -3561,7 +3603,12 @@ class IrBoard implements Board {
           if (this.pendingTimers.size) fireRoundTimers(roundSeconds(true));
         },
       } : {}),
-      processors: [...machine.execution.cpus.map(specification => ({
+      processors: [...machine.execution.cpus.map(specification => {
+        // Resolved once for the processor rather than looked up per slice.
+        const activity = this.cpuActivity(specification.tag);
+        let core: { device?: { spaceReads?: number } } | undefined;
+        const spaceReads = (): number => (core ??= this.cpus.get(specification.tag) as typeof core)?.device?.spaceReads ?? 0;
+        return {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
         // Held in RESET or HALT, MAME's timeslice still books the slice to
@@ -3577,7 +3624,7 @@ class IrBoard implements Board {
         // Stopped for an interrupt (stoppedProcessor): only a perfect
         // quantum's rounds are extended for it.
         ...(machine.execution.perfectQuantum === true
-          ? { stopped: () => this.cpuActivity(specification.tag).quietSlices >= 2 }
+          ? { stopped: () => activity.quietSlices >= 2 }
           : {}),
         // A core MAME stops between bus cycles stands, mid-instruction, at
         // the cycles before this instruction and those it has paid for so far
@@ -3600,9 +3647,8 @@ class IrBoard implements Board {
             }
             if (stalled > 0) tickCardDevices(specification.tag, stalled);
             this.coreExecuting = true;
-            const activity = this.cpuActivity(specification.tag);
             const watched = machine.execution.perfectQuantum === true;
-            const readsBefore = watched ? activity.reads + this.processorSpaceReads(specification.tag) : 0;
+            const readsBefore = watched ? activity.reads + spaceReads() : 0;
             const executed = stalled + (cycles > stalled
               ? this.cpus.get(specification.tag)!.run(cycles - stalled)
               : 0);
@@ -3616,8 +3662,7 @@ class IrBoard implements Board {
             // The PC is read only after a quiet slice, which a running core
             // almost never has: two quiet slices in a row ending at one PC.
             if (watched) {
-              const quiet = executed === cycles &&
-                activity.reads + this.processorSpaceReads(specification.tag) === readsBefore;
+              const quiet = executed === cycles && activity.reads + spaceReads() === readsBefore;
               const pc = quiet ? this.processorPc(specification.tag) : undefined;
               activity.quietSlices = pc !== undefined && activity.quietSlices > 0 && activity.quietPc === pc
                 ? activity.quietSlices + 1 : pc !== undefined ? 1 : 0;
@@ -3660,7 +3705,8 @@ class IrBoard implements Board {
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
-      })),
+      };
+      }),
       ...this.roundProcessors.map(processor => ({
         tag: processor.tag, clock: processor.clock, run: processor.run,
         ...(processor.suspended ? { suspended: processor.suspended } : {}),
@@ -4016,10 +4062,6 @@ class IrBoard implements Board {
     return activity;
   }
 
-  /** Reads a compiled core has made through its own spaces (IrDevice.spaceReads). */
-  private processorSpaceReads(tag: string): number {
-    return (this.cpus.get(tag) as { device?: { spaceReads?: number } } | undefined)?.device?.spaceReads ?? 0;
-  }
 
   /** A compiled core's STATE_GENPC, or undefined where it publishes none. */
   private processorPc(tag: string): number | undefined {
