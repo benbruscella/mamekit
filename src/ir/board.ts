@@ -375,8 +375,16 @@ export interface GeneratedHandler {
  */
 export const TILEMAP_SET_FLIP_ALL = 'machine().tilemap().set_flip_all';
 
-/** Board video framework calls reached through a two-call chain. */
-export const VIDEO_FRAMEWORK_CHAIN_CALLS: readonly string[] = [TILEMAP_SET_FLIP_ALL];
+/**
+ * Board framework calls reached through a two-call chain, each bound by the
+ * board under its whole name. `machine().scheduler().perfect_quantum` is the
+ * SNES's every APU port write (snes_w_io); declined, all of the 65C816's I/O
+ * writes stayed interpreted.
+ */
+export const VIDEO_FRAMEWORK_CHAIN_CALLS: readonly string[] = [
+  TILEMAP_SET_FLIP_ALL,
+  'machine().scheduler().perfect_quantum',
+];
 
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',

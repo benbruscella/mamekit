@@ -1,9 +1,9 @@
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { applyGeneratedMacro, DEFAULT_CONSTANTS, isFloatingExpression, isThisDereference, STRING_MUTATORS } from '../ir/execute.ts';
+import { applyGeneratedMacro, DEFAULT_CONSTANTS, deviceLambdaName, isFloatingExpression, isThisDereference, programLambdas, STRING_MUTATORS } from '../ir/execute.ts';
 import { HOST_SERVICE_CALLS, VIDEO_FRAMEWORK_CHAIN_CALLS } from '../ir/board.ts';
 import { cppDefaultArgument } from '../ir/execute.ts';
 import { isNoEffectStatement } from '../ir/framework-calls.ts';
-import { childExpressions as childExpressionsOf, walkExpressions } from '../ir/walk.ts';
+import { childExpressions as childExpressionsOf, walkExpressions, walkOperations, operationExpressions } from '../ir/walk.ts';
 import { TYPE_WORDS } from './handler-ir.ts';
 import type {
   GeneratedDeviceCallback,
@@ -53,6 +53,8 @@ export interface CodegenScope {
 }
 
 interface EmitContext {
+  /** 64-bit locals emitted as two 32-bit halves (splitWideLocals). */
+  splitLocals?: ReadonlySet<string>;
   dereferencedParameters?: Map<string, string>;
   /**
    * Struct-pointer locals only ever set by a plain `=`, each with its pointee
@@ -156,9 +158,14 @@ export function generatedDeviceMethodsSource(
   definition: CodegenScope,
   typescript = false,
 ): { source: string; methods: string[]; links: string[] } {
+  // Each self-contained lambda a device method writes, as a method of its own
+  // (deviceLambdaMethods), numbered on the program as written, as the device
+  // runtime numbers it.
+  const lambdaMethods = definition.boardScope ? [] : deviceLambdaMethods(definition.methods);
   definition = {
     ...definition,
-    methods: definition.methods.map(method => ({
+    hotMethods: [...definition.hotMethods ?? [], ...lambdaMethods.map(method => method.name)],
+    methods: [...definition.methods, ...lambdaMethods].map(method => ({
       ...method,
       program: { ...method.program, operations: withoutDeadBranches(method.program.operations) },
     })),
@@ -306,6 +313,60 @@ export function generatedDeviceMethodsSource(
   // non-enumerable marker, field walks and spreads never see it, and a
   // literal with a prototype costs nothing next to defineProperty.
   const cppStructPrototype = { [Symbol.for('mamekit.struct')]: true };
+  // execute.ts's clearGeneratedStruct, field names read once per struct.
+  const cppUnionElements = Symbol.for('mamekit.unionElements');
+  const cppStructKeys = new WeakMap${typescript ? '<object, string[]>' : ''}();
+  const cppClearStruct = (target${typescript ? ': any' : ''}, value${operand})${typescript ? ': void' : ''} => {
+    let keys = cppStructKeys.get(target);
+    if (!keys) cppStructKeys.set(target, keys = Object.keys(target));
+    for (let index = 0; index < keys.length; index++) {
+      const key = keys[index]${typescript ? '!' : ''};
+      const field = target[key];
+      if (ArrayBuffer.isView(field) || Array.isArray(field)) ${typescript ? '(field as any)' : 'field'}.fill(value);
+      else if (field && typeof field === 'object') cppClearStruct(field, value);
+      else target[key] = value;
+    }
+  };
+  // memset: typed memory fills in place; a plain array of numbers is set
+  // element by element (as the interpreter's fillGeneratedMemory writes it,
+  // count elements from 0); an array holding structs, or a pointer into a
+  // plain array, goes to the interpreter's rule, which clears each struct.
+  const cppMemset = (runtime${typescript ? ': any' : ''}, target${typescript ? ': any' : ''}, value${operand}, count${typescript ? ': any' : ''}) => {
+    const bytes = Number(count);
+    if (Array.isArray(target)) {
+      for (let index = 0; index < bytes; index++) {
+        const element = target[index];
+        if (element !== null && typeof element === 'object') {
+          // A struct element is cleared field by field (cppClearStruct);
+          // anything else array-like takes the interpreter's rule.
+          if (ArrayBuffer.isView(element) || Array.isArray(element) || element[cppUnionElements] === true) {
+            return runtime.macro("memset", target, value, bytes);
+          }
+          cppClearStruct(element, value);
+          continue;
+        }
+        target[index] = value;
+      }
+      return target;
+    }
+    if (Array.isArray(target?.source)) return runtime.macro("memset", target, value, bytes);
+    if (target?.generatedPointer) {
+      const width = target.source.BYTES_PER_ELEMENT ?? 1;
+      target.source.fill(value, target.offset, target.offset + Math.ceil(bytes / width));
+      return target;
+    }
+    target.fill(value, 0, bytes);
+    return target;
+  };
+  // A 64-bit local held as two unsigned 32-bit halves (splitWideLocals):
+  // the halves of any value, and unsigned 64-bit shifts of a pair, exactly as
+  // execute.ts's wide operators answer them (a shift of 64 or more is 0).
+  const cppLo64 = (v${typescript ? ': any' : ''}) => typeof v === 'bigint' ? Number(BigInt.asUintN(32, v)) : (Number(v) >>> 0);
+  const cppHi64 = (v${typescript ? ': any' : ''}) => typeof v === 'bigint' ? Number(BigInt.asUintN(32, v >> 32n)) : (Math.floor(Number(v) / 4294967296) >>> 0);
+  const cppShl64Lo = (lo${operand}, hi${operand}, s${operand})${operand} => s < 0 ? cppShr64Lo(lo, hi, -s) : s === 0 ? lo : s < 32 ? (lo << s) >>> 0 : 0;
+  const cppShl64Hi = (lo${operand}, hi${operand}, s${operand})${operand} => s < 0 ? cppShr64Hi(lo, hi, -s) : s === 0 ? hi : s < 32 ? ((hi << s) | (lo >>> (32 - s))) >>> 0 : s < 64 ? (lo << (s - 32)) >>> 0 : 0;
+  const cppShr64Lo = (lo${operand}, hi${operand}, s${operand})${operand} => s < 0 ? cppShl64Lo(lo, hi, -s) : s === 0 ? lo : s < 32 ? ((lo >>> s) | (hi << (32 - s))) >>> 0 : s < 64 ? hi >>> (s - 32) : 0;
+  const cppShr64Hi = (lo${operand}, hi${operand}, s${operand})${operand} => s < 0 ? cppShl64Hi(lo, hi, -s) : s === 0 ? hi : s < 32 ? hi >>> s : 0;
   const cppStringText = (value${typescript ? ': unknown' : ''}) => typeof value === 'string' ? value
     : typeof value === 'number' || typeof value === 'boolean' ? String(Number(value))
     : value === undefined || value === null ? '' : String(value);
@@ -414,6 +475,31 @@ function constantCondition(expression: GeneratedExpression): number | undefined 
  * a handler the bus runs on every access: the slapstic's tap decodes all of
  * the 68010's, and created by the interpreter it was interpreted each time.
  */
+/**
+ * A device method's self-contained lambdas as methods of their own, named
+ * `<method>__lambda<n>` (deviceLambdaName): no init-captures, no write to
+ * their own parameters. A map entry's lambda is installed by an interpreted
+ * map method that runs once, and then called on every access: the S-SMP's
+ * `lrw8([this](offs_t offset) { return data_read_byte(offset); }, ...)` is
+ * every byte the sound CPU reads, and ran interpreted. The device runtime
+ * hands the compiled one back where the interpreter evaluates the lambda.
+ */
+function deviceLambdaMethods(methods: readonly GeneratedDeviceMethod[]): GeneratedDeviceMethod[] {
+  const counts = new Map<string, number>();
+  for (const method of methods) counts.set(method.name, (counts.get(method.name) ?? 0) + 1);
+  return methods.flatMap(method => counts.get(method.name) !== 1 ? [] : programLambdas(method.program.operations).flatMap((lambda, index) => {
+    if (lambda.captures?.length) return [];
+    const names = lambda.parameters.map((name, position) => name || `__unnamed${position}`);
+    if (names.some(name => assignsIdentifier(lambda.body as GeneratedHandlerOperation[], name))) return [];
+    return [{
+      ...method,
+      name: deviceLambdaName(method.name, index),
+      parameters: names.map(name => `auto ${name}`).join(', '),
+      program: { operations: lambda.body as GeneratedHandlerOperation[], diagnostics: [] },
+    }];
+  }));
+}
+
 function installsLambda(operations: GeneratedHandlerOperation[], memberLambdas = false): boolean {
   let found = false;
   visitOperations(operations, operation => {
@@ -1059,6 +1145,7 @@ function emitMethod(
     !assignsIdentifier(method.program.operations, parameter.name))
     .map(parameter => [parameter.name, `__pointee_${safeName(parameter.name)}`]));
   collectLocals(method.program.operations, context);
+  context.splitLocals = splitWideLocals(method.program.operations);
   context.dereferencedLocals = new Map([...context.locals].filter(([name, valueType]) =>
     !parameters.some(parameter => parameter.name === name) && Boolean(valueType?.includes('*')) &&
     Boolean(definition.structs?.[valueType!.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim()]) &&
@@ -1162,6 +1249,15 @@ function emitOperation(
   indentation: number,
 ): string {
   const pad = ' '.repeat(indentation);
+  if (operation.op === 'declare' && context.splitLocals?.has(operation.name)) {
+    context.locals.set(operation.name, operation.valueType);
+    const annotation = context.typescript ? ': any' : '';
+    return `${pad}let ${localName(operation.name)}$lo${annotation} = 0, ${localName(operation.name)}$hi${annotation} = 0;\n` +
+      emitSplitAssign(operation.name, '=', operation.value, context, pad);
+  }
+  if (operation.op === 'assign' && operation.target.kind === 'identifier' && context.splitLocals?.has(operation.target.name)) {
+    return emitSplitAssign(operation.target.name, operation.operator, operation.value, context, pad);
+  }
   if (operation.op === 'declare') {
     const value = operation.value ? emitExpression(operation.value, context) : '0';
     // From here on the name has this declaration's type. One method can
@@ -1169,7 +1265,7 @@ function emitOperation(
     // `for (uint32_t n ...)`, `for (int n = 31; n >= 0; n--)` and another
     // `uint32_t n` -- and typed by its last declaration throughout, the
     // middle loop's `n--` wrapped to 0xffffffff and never ended.
-    if (operation.valueType && operation.valueType !== 'auto') context.locals.set(operation.name, operation.valueType);
+    if (operation.valueType && !/^auto\s*\*?$/.test(operation.valueType)) context.locals.set(operation.name, operation.valueType);
     const annotation = context.typescript ? ': any' : '';
     // A scalar valueType says nothing about the value: MAME declares local
     // aggregates as `uint8_t protdata[0x1e] = {...}`, and narrowing that to a
@@ -1498,7 +1594,12 @@ function computeStableMemberNames(definition: CodegenScope): Set<string> {
         while (operand?.kind === 'index' || operand?.kind === 'member') {
           operand = operand.object as typeof operand;
         }
-        if (operand?.kind === 'identifier' && operand.name) rebound.add(operand.name);
+        // Only a scalar is copied when hoisted. A struct or a fixed array is
+        // an object, and a write through its address lands in that same
+        // object: the SNES PPU's `memset(&m_oam, ...)` left every
+        // `m_oam.first` of the per-line sprite scan behind a lookup.
+        if (operand?.kind === 'identifier' && operand.name &&
+            !structs.has(operand.name) && !fixedArrays.has(operand.name)) rebound.add(operand.name);
       }
       // `m_x.resize(n)` replaces a typed-array member with a new array.
       const callee = record.callee as { kind?: string; property?: string; object?: { kind?: string; name?: string } } | undefined;
@@ -1657,6 +1758,10 @@ function literalIdentifier(name: string, context: EmitContext): number | undefin
 }
 
 function emitExpression(expression: GeneratedExpression, context: EmitContext): string {
+  if (context.splitLocals?.size && (expression.kind === 'binary' || expression.kind === 'cast')) {
+    const read = emitSplitRead(expression, context);
+    if (read !== undefined) return read;
+  }
   if (expression.kind === 'number') {
     return expression.wide === undefined ? String(expression.value) : `${expression.wide}n`;
   }
@@ -2061,6 +2166,9 @@ function expressionValueType(
     if (member?.bits && (member.arrayLength !== undefined || member.values !== undefined) && !member.fields) {
       return member.signed ? `s${member.bits}` : `u${member.bits}`;
     }
+    // An element of a member array of structs is that struct: the SNES PPU's
+    // `m_scanlines[SNES_MAINSCREEN]`.
+    if (member?.fields && member.arrayLength !== undefined && context.definition.structs?.[member.valueType]) return member.valueType;
     // An element of a vector of pointers is a pointer: discrete's block list
     // is a `std::vector<const discrete_block *>`, read `block_list[i]->type`.
     const container = expressionValueType(expression.object, context)?.replace(/&\s*$/, '').trim();
@@ -2304,11 +2412,7 @@ function emitCall(
       // A plain array is an array of structs (`gen_crc_info crcs[64]`), whose
       // memset clears each struct's fields -- the interpreter's rule. Filled
       // with zeros it lost the structs themselves.
-      return `(() => { const target = ${target}; const bytes = Number(${bytes}); ` +
-        `if (Array.isArray(target) || Array.isArray(target?.source)) return runtime.macro("memset", target, ${value}, bytes); ` +
-        `if (target?.generatedPointer) { const width = target.source.BYTES_PER_ELEMENT ?? 1; ` +
-        `target.source.fill(${value}, target.offset, target.offset + Math.ceil(bytes / width)); ` +
-        `return target; } target.fill(${value}, 0, bytes); return target; })()`;
+      return `cppMemset(runtime, ${target}, ${value}, ${bytes})`;
     }
     if (name === 'pen_color') {
       return `(runtime.palette[${args[0] ?? '0'}] ?? 0xff000000)`;
@@ -3507,9 +3611,16 @@ function collectLocals(
   const others = new Set<string>();
   visitOperations(operations, operation => {
     if (operation.op !== 'declare') return;
+    // `auto *above = &m_scanlines[SNES_MAINSCREEN]`: a pointer to the struct
+    // the member holds, which is what lets dereferencedLocals read its pointee
+    // once rather than on each of the SNES PPU's six stores a pixel.
+    const pointee = /^auto\s*\*$/.test(operation.valueType ?? '') && operation.value?.kind === 'unary' &&
+      operation.value.operator === '&' ? expressionValueType(operation.value.operand, context) : undefined;
     const inferred = operation.valueType === 'auto' && operation.value
       ? expressionValueType(operation.value, context)
-      : undefined;
+      : pointee && context.definition.structs?.[pointee.replace(/\bconst\b/g, '').trim()]
+        ? `${pointee.replace(/\bconst\b/g, '').trim()} *`
+        : undefined;
     context.locals.set(operation.name, inferred ?? operation.valueType);
     (allocatesAggregate(operation.value) ? arrays : others).add(operation.name);
   });
@@ -3799,6 +3910,176 @@ function safeName(name: string): string {
 
 function localName(name: string): string {
   return JAVASCRIPT_RESERVED_WORDS.has(name) ? `$${name}` : name;
+}
+
+const WIDE_LOCAL_TYPE = /^(?:u64|s64|uint64_t|int64_t|unsigned long long|long long)$/;
+const PAIR_BITWISE = new Set(['|', '&', '^']);
+
+function isWideLocalType(valueType: string | undefined): boolean {
+  return WIDE_LOCAL_TYPE.test((valueType ?? '').replace(/\bconst\b/g, '').trim());
+}
+
+/** Whether an expression names any of `names`, anywhere inside it (a lambda body included). */
+function mentionsName(expression: GeneratedExpression, names: ReadonlySet<string>): boolean {
+  if (!names.size) return false;
+  const text = JSON.stringify(expression);
+  for (const name of names) if (text.includes(`"name":${JSON.stringify(name)}`)) return true;
+  return false;
+}
+
+/**
+ * The 64-bit locals a method can hold as two unsigned 32-bit halves: every
+ * value assigned to one is built from bitwise operators and shifts, and every
+ * read narrows at once -- `(v >> s) & mask` with a mask of 32 bits or fewer,
+ * or a cast to 32 bits or fewer. The SNES PPU gathers a tile row into a u64
+ * and pulls each pixel's colour bits out of it; through runtime.wide that was
+ * a BigInt conversion and a dispatch per bit, a third of the machine's time.
+ * Any other use keeps the local on the wide path.
+ */
+function splitWideLocals(operations: GeneratedHandlerOperation[]): Set<string> {
+  const candidates = new Set<string>();
+  const otherwise = new Set<string>();
+  walkOperations(operations, operation => {
+    if (operation.op !== 'declare') return;
+    if (isWideLocalType(operation.valueType) && !operation.static) candidates.add(operation.name);
+    else otherwise.add(operation.name);
+  });
+  for (const name of otherwise) candidates.delete(name);
+  if (!candidates.size) return candidates;
+  const rejected = new Set<string>();
+  const reject = (expression: GeneratedExpression): void => {
+    for (const name of candidates) if (mentionsName(expression, new Set([name]))) rejected.add(name);
+  };
+  const pairable = (expression: GeneratedExpression): boolean => {
+    if (expression.kind === 'identifier' && candidates.has(expression.name)) return true;
+    const mentions = mentionsName(expression, candidates);
+    if (expression.kind === 'cast' && !expression.pointer && isWideLocalType(expression.valueType)) return pairable(expression.operand);
+    if (expression.kind === 'binary' && (mentions || expression.precision === 64)) {
+      if (PAIR_BITWISE.has(expression.operator)) return pairable(expression.left) && pairable(expression.right);
+      if (expression.operator === '<<' || expression.operator === '>>') {
+        return pairable(expression.left) && !mentionsName(expression.right, candidates);
+      }
+      return false;
+    }
+    return !mentions;
+  };
+  const check = (expression: GeneratedExpression): void => {
+    const read = splitReadParts(expression, candidates);
+    if (read) {
+      if (read.shift) check(read.shift);
+      return;
+    }
+    if (expression.kind === 'identifier') {
+      if (candidates.has(expression.name)) rejected.add(expression.name);
+      return;
+    }
+    if (expression.kind === 'call' && expression.callee.kind === 'member') check(expression.callee.object);
+    const children = childExpressionsOf(expression);
+    if (!children.length && expression.kind !== 'number' && expression.kind !== 'string') reject(expression);
+    for (const child of children) check(child);
+  };
+  walkOperations(operations, operation => {
+    // A value that cannot be built in halves rejects its target, and is then
+    // checked like any other expression: `rx *= ry` reads `ry` whole.
+    if (operation.op === 'declare' && candidates.has(operation.name)) {
+      if (operation.value && !pairable(operation.value)) {
+        rejected.add(operation.name);
+        check(operation.value);
+      }
+      return;
+    }
+    if (operation.op === 'assign' && operation.target.kind === 'identifier' && candidates.has(operation.target.name)) {
+      const ok = ['=', '|=', '&=', '^='].includes(operation.operator)
+        ? pairable(operation.value)
+        : ['<<=', '>>='].includes(operation.operator) && !mentionsName(operation.value, candidates);
+      if (!ok) {
+        rejected.add(operation.target.name);
+        check(operation.value);
+      }
+      return;
+    }
+    for (const expression of operationExpressions(operation)) check(expression);
+  });
+  for (const name of rejected) candidates.delete(name);
+  return candidates;
+}
+
+/** `v`, `v >> s` or `v << s` over a split local, read narrowed by `& mask` or a cast. */
+function splitReadParts(expression: GeneratedExpression, names: ReadonlySet<string>):
+  { name: string; operator?: '<<' | '>>'; shift?: GeneratedExpression; mask?: number; castType?: string } | undefined {
+  const source = (value: GeneratedExpression) => {
+    if (value.kind === 'identifier' && names.has(value.name)) return { name: value.name };
+    if (value.kind === 'binary' && (value.operator === '<<' || value.operator === '>>') &&
+        value.left.kind === 'identifier' && names.has(value.left.name) && !mentionsName(value.right, names)) {
+      return { name: value.left.name, operator: value.operator as '<<' | '>>', shift: value.right };
+    }
+    return undefined;
+  };
+  if (expression.kind === 'binary' && expression.operator === '&') {
+    for (const [maskSide, other] of [[expression.right, expression.left], [expression.left, expression.right]] as const) {
+      if (maskSide.kind === 'number' && maskSide.wide === undefined && maskSide.value >= 0 && maskSide.value <= 0xffffffff) {
+        const found = source(other);
+        if (found) return { ...found, mask: maskSide.value };
+      }
+    }
+  }
+  if (expression.kind === 'cast' && !expression.pointer &&
+      /^(?:u?int(?:8|16|32)_t|[us](?:8|16|32)|unsigned|int|u?char|bool)$/.test(expression.valueType.replace(/\bconst\b/g, '').trim())) {
+    const found = source(expression.operand);
+    if (found) return { ...found, castType: expression.valueType };
+  }
+  return undefined;
+}
+
+/** A narrowed read of a split local (splitReadParts), from its two halves. */
+function emitSplitRead(expression: GeneratedExpression, context: EmitContext): string | undefined {
+  const read = splitReadParts(expression, context.splitLocals!);
+  if (!read) return undefined;
+  const lo = `${localName(read.name)}$lo`, hi = `${localName(read.name)}$hi`;
+  const low = read.operator === undefined ? lo
+    : `${read.operator === '>>' ? 'cppShr64Lo' : 'cppShl64Lo'}(${lo}, ${hi}, Number(${emitExpression(read.shift!, context)}))`;
+  return read.mask !== undefined ? `((${low} & ${read.mask}) >>> 0)` : wrapType(low, read.castType!);
+}
+
+/** A value assigned to a split local, as its two halves; the statements computing them go to `out`. */
+function emitSplitPair(expression: GeneratedExpression, context: EmitContext, out: string[]): { lo: string; hi: string } {
+  const names = context.splitLocals!;
+  if (expression.kind === 'identifier' && names.has(expression.name)) {
+    return { lo: `${localName(expression.name)}$lo`, hi: `${localName(expression.name)}$hi` };
+  }
+  if (expression.kind === 'cast' && !expression.pointer && isWideLocalType(expression.valueType)) {
+    return emitSplitPair(expression.operand, context, out);
+  }
+  if (expression.kind === 'binary' && (mentionsName(expression, names) || expression.precision === 64)) {
+    const left = emitSplitPair(expression.left, context, out);
+    const lo = methodTemp(context), hi = methodTemp(context);
+    if (PAIR_BITWISE.has(expression.operator)) {
+      const right = emitSplitPair(expression.right, context, out);
+      out.push(`${lo} = (${left.lo} ${expression.operator} ${right.lo}) >>> 0;`, `${hi} = (${left.hi} ${expression.operator} ${right.hi}) >>> 0;`);
+      return { lo, hi };
+    }
+    const shift = methodTemp(context);
+    out.push(`${shift} = Number(${emitExpression(expression.right, context)});`);
+    const name = expression.operator === '<<' ? 'cppShl64' : 'cppShr64';
+    out.push(`${lo} = ${name}Lo(${left.lo}, ${left.hi}, ${shift});`, `${hi} = ${name}Hi(${left.lo}, ${left.hi}, ${shift});`);
+    return { lo, hi };
+  }
+  const value = methodTemp(context), lo = methodTemp(context), hi = methodTemp(context);
+  out.push(`${value} = ${emitExpression(expression, context)};`, `${lo} = cppLo64(${value});`, `${hi} = cppHi64(${value});`);
+  return { lo, hi };
+}
+
+/** `v = value` (or `v op= value`) on a split local. */
+function emitSplitAssign(name: string, operator: string, value: GeneratedExpression | undefined, context: EmitContext, pad: string): string {
+  const target: GeneratedExpression = { kind: 'identifier', name };
+  const effective: GeneratedExpression | undefined = value === undefined ? undefined
+    : operator === '=' ? value
+    : { kind: 'binary', operator: operator.slice(0, -1), left: target, right: value, precision: 64 } as GeneratedExpression;
+  if (!effective) return `${pad}${localName(name)}$lo = 0; ${localName(name)}$hi = 0;`;
+  const out: string[] = [];
+  const pair = emitSplitPair(effective, context, out);
+  out.push(`${localName(name)}$lo = ${pair.lo};`, `${localName(name)}$hi = ${pair.hi};`);
+  return out.map(line => `${pad}${line}`).join('\n');
 }
 
 /** Whether an expression names a C++ type rather than a value. */

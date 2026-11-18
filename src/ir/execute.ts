@@ -483,6 +483,13 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   // `pc() - 1`, the last one it fetched.
   STATE_GENPC: -1,
   STATE_GENPCBASE: -2,
+  // emu/emumem.h's address space numbers. Unnamed, board codegen declined
+  // every driver handler that says `space(AS_PROGRAM)` -- the SNES scanline,
+  // HBLANK and HDMA timers, hundreds of calls a frame, all interpreted.
+  AS_PROGRAM: 0,
+  AS_DATA: 1,
+  AS_IO: 2,
+  AS_OPCODES: 3,
   // emu/machine.h's machine_phase, which running_machine::phase() answers. A
   // device ignores a port write while MAME is still resetting: the 1541's
   // VIA port B handler drives the spindle motor and stepper only when RUNNING.
@@ -1013,6 +1020,11 @@ export function compiledLambdaKey(ownerClass: string, method: string, index: num
   return `${ownerClass}.${method}__lambda${index}`;
 }
 
+/** The name a device method's emitted lambda is compiled under (device-codegen's deviceLambdaMethods). */
+export function deviceLambdaName(method: string, index: number): string {
+  return `${method}__lambda${index}`;
+}
+
 function machineHandlerBindings(
   machine: BoardIr,
   handler: GeneratedHandler,
@@ -1040,8 +1052,19 @@ function machineHandlerBindings(
   lambdas.forEach((lambda, index) => {
     const compiled = machine.compiledHandlers?.[compiledLambdaKey(handler.ownerClass, handler.method, index)];
     if (!compiled || lambda.captures?.length) return;
-    compiledLambdas.set(lambda, (...args: unknown[]) =>
-      compiled(currentHandlerRuntime(prepared, bindings), ...args.map(argument => isLValue(argument) ? argument.get() : argument)));
+    // Called on every access a tap watches: no array is built per call, and
+    // the runtime is resolved again only when the call links change, as
+    // prepareGeneratedMachineRead keeps it.
+    const value = (argument: unknown): unknown =>
+      typeof argument === 'number' || !isLValue(argument) ? argument : argument.get();
+    let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+    const current = (): GeneratedHandlerRuntime => runtime !== undefined && runtime.linksGeneration === callLinksGeneration
+      ? runtime : (runtime = currentHandlerRuntime(prepared, bindings));
+    compiledLambdas.set(lambda, lambda.parameters.length === 3
+      ? (a: unknown, b: unknown, c: unknown) => compiled(current(), value(a), value(b), value(c))
+      : lambda.parameters.length === 2
+        ? (a: unknown, b: unknown) => compiled(current(), value(a), value(b))
+        : (...args: unknown[]) => compiled(current(), ...args.map(value)));
   });
   if (compiledLambdas.size) created.compiledLambdas = compiledLambdas;
   prepared.handlerBindings.set(handler, created);
@@ -1303,6 +1326,41 @@ export function prepareGeneratedMachineWrite(
       runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
     }
     compiled(runtime, offset, data);
+  };
+}
+
+/**
+ * The read and write fast paths for an emitted handler that also takes its
+ * `address_space &space` first, the space already resolved: every SNES
+ * cartridge access is `snes20_lo_r(address_space &space, offs_t offset)`, and
+ * the general path built an argument record per access to read it back by
+ * name. Undefined when the handler has no emitted body.
+ */
+export function prepareGeneratedMachineSpaceRead(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings, space: unknown,
+): ((offset: number) => unknown) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  return offset => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    return compiled(runtime, space, offset);
+  };
+}
+
+export function prepareGeneratedMachineSpaceWrite(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings, space: unknown,
+): ((offset: number, data: number) => void) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  return (offset, data) => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    compiled(runtime, space, offset, data);
   };
 }
 
@@ -2436,9 +2494,13 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     const { parameters, body } = expression;
     const emitted = context.bindings.compiledLambdas?.get(expression);
     if (emitted) {
-      const call = (...args: unknown[]): unknown => emitted(...args);
-      Object.defineProperty(call, 'declaredParameters', { value: parameters.length });
-      return call;
+      // The emitted function is this lambda's own (compiledLambdas builds one
+      // per lambda), so it carries its declared arity itself: a tap watching
+      // every 65C816 access went through one more closure per call for it.
+      if (!Object.hasOwn(emitted, 'declaredParameters')) {
+        Object.defineProperty(emitted, 'declaredParameters', { value: parameters.length });
+      }
+      return emitted;
     }
     // Init-captures are evaluated here, where the lambda is written, exactly
     // once -- which is what C++ does and what MAME relies on: the captured
@@ -2528,6 +2590,12 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // The comma operator (handler-ir lowers `(a, b)` to COMMA): its operands
   // were evaluated in order as arguments; the value is the last one's.
   if (name === 'COMMA') return args.at(-1) ?? 0;
+  // Asked for first: emitted code reaches it here on every line a renderer
+  // clears its buffers (the SNES PPU's sprite items and tiles).
+  if (name === 'memset') {
+    fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
+    return args[0];
+  }
   // MAME's downcast<T>(x) is a checked static_cast: the object itself.
   if (name === 'downcast' && args.length === 1) return args[0];
   // As the C library and as `std::` spell it: the floppy drive's call_load
@@ -2877,10 +2945,6 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // nothing here.
   if (name === 'malloc') return new Array<unknown>(Math.max(0, toNumber(args[0]))).fill(0);
   if (name === 'free') return 0;
-  if (name === 'memset') {
-    fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
-    return args[0];
-  }
   // A struct built in place: field names and values, interleaved, as the
   // device compiler lowers a brace initialiser (see lowerStructLocals).
   if (name === 'STRUCT') return generatedStruct(args);
@@ -4670,6 +4734,17 @@ export function copyGeneratedBytes(destination: unknown, source: unknown, count:
 }
 
 function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
+  // An array of structs, cleared element by element exactly as the general
+  // path below does it, without first building a memory view of it: the SNES
+  // PPU zeroes its 32 sprite items and 34 tiles this way on every line.
+  if (Array.isArray(destination) && isClearableStruct(destination[0])) {
+    for (let index = 0; index < count; index++) {
+      const element = destination[index];
+      if (isClearableStruct(element)) clearGeneratedStruct(element, value);
+      else destination[index] = value;
+    }
+    return;
+  }
   const cells = nestedCells(destination);
   if (cells) {
     for (const cell of cells.slice(0, count)) cell.row[cell.index] = value;
@@ -4693,9 +4768,18 @@ function fillGeneratedMemory(destination: unknown, value: number, count: number)
   }
 }
 
+/** A struct-shaped element memset clears field by field (fillGeneratedMemory). */
+function isClearableStruct(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !ArrayBuffer.isView(value) && !Array.isArray(value) &&
+    (value as { [UNION_ELEMENTS]?: true })[UNION_ELEMENTS] !== true;
+}
+
 /** Set every field of a struct-shaped object, recursing into nested ones. */
 function clearGeneratedStruct(target: Record<string, unknown>, value: number): void {
-  for (const key of Object.keys(target)) {
+  // A struct's fields never change once built (copyGeneratedStruct's cache).
+  let keys = STRUCT_FIELDS.get(target);
+  if (!keys) STRUCT_FIELDS.set(target, keys = Object.keys(target));
+  for (const key of keys) {
     const field = target[key];
     if (ArrayBuffer.isView(field)) {
       (field as unknown as { fill(value: number): void }).fill(value);

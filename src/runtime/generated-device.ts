@@ -34,7 +34,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
+import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, programLambdas, deviceLambdaName, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
@@ -2325,6 +2325,28 @@ class IrDevice implements Device {
       member: () => 0,
       overrides: {},
     };
+    // A lambda this device's methods write, emitted on its own
+    // (device-codegen's deviceLambdaMethods): where the interpreter evaluates
+    // it -- a map method installing the S-SMP's RAM window -- the emitted one
+    // is what it installs.
+    const compiledLambdas = new Map<object, (...args: unknown[]) => unknown>();
+    const lambdaOwners = new Map<string, number>();
+    for (const method of definition.methods) lambdaOwners.set(method.name, (lambdaOwners.get(method.name) ?? 0) + 1);
+    for (const method of definition.methods) {
+      if (lambdaOwners.get(method.name) !== 1 || !method.program) continue;
+      programLambdas(method.program.operations).forEach((lambda, index) => {
+        const compiled = definition.compiledMethods?.[deviceLambdaName(method.name, index)];
+        if (!compiled || lambda.captures?.length) return;
+        // Fixed arities: the S-SMP's RAM window is called on every byte.
+        type Arg = GeneratedCallArgument;
+        compiledLambdas.set(lambda, lambda.parameters.length === 1
+          ? (a: unknown) => compiled(this.executionContext, a as Arg)
+          : lambda.parameters.length === 2
+            ? (a: unknown, b: unknown) => compiled(this.executionContext, a as Arg, b as Arg)
+            : (...args: unknown[]) => compiled(this.executionContext, ...args as Arg[]));
+      });
+    }
+    if (compiledLambdas.size) Object.assign(this.bindings, { compiledLambdas });
     // A device that executes reaches its own device_execute_interface. A
     // method of its own of the same name is that method: a Z80 CTC channel's
     // `trigger` is its trigger input, not the scheduler's.
@@ -5087,8 +5109,36 @@ function mappedDeviceSpace(
     }
     return -1;
   };
-  const readIndex = (at: number) => readAt ? readAt[at]! : find(at, readable);
-  const writeIndex = (at: number) => writeAt ? writeAt[at]! : find(at, writable);
+  // A sparse space's entries by 4 KB page, the candidates for each page in
+  // the order find tries them, built on first use: the 65C816 checks its
+  // 16 MB internal map on every access before the board's bus, and almost
+  // every one of those is a miss that scanned every entry. The entries are
+  // fixed once the map is built.
+  const pageCount = sparse ? Math.ceil(size / 4096) : 0;
+  const readPages: (Int32Array | undefined)[] = new Array(pageCount);
+  const writePages: (Int32Array | undefined)[] = new Array(pageCount);
+  const candidates = (page: number, test: (entry: Entry) => boolean, pages: (Int32Array | undefined)[]): Int32Array => {
+    let found = pages[page];
+    if (found) return found;
+    const low = page * 4096, high = low + 4095;
+    const list: number[] = [];
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const entry = entries[index]!;
+      if (entry.end >= low && entry.start <= high && test(entry)) list.push(index);
+    }
+    pages[page] = found = Int32Array.from(list);
+    return found;
+  };
+  const findPaged = (at: number, test: (entry: Entry) => boolean, pages: (Int32Array | undefined)[]): number => {
+    const list = candidates(Math.floor(at / 4096), test, pages);
+    for (let position = 0; position < list.length; position++) {
+      const entry = entries[list[position]!]!;
+      if (entry.start <= at && at <= entry.end) return list[position]!;
+    }
+    return -1;
+  };
+  const readIndex = (at: number) => readAt ? readAt[at]! : findPaged(at, readable, readPages);
+  const writeIndex = (at: number) => writeAt ? writeAt[at]! : findPaged(at, writable, writePages);
   // A byte of a wide handler's word: its lane's mask and shift.
   const laneShift = (at: number, entry: Entry) => {
     const lane = (at - entry.start) % wordBytes;

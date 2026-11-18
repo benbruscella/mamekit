@@ -559,6 +559,9 @@ class IrBoard implements Board {
   private readonly roundTimerMembers = new Set<string>();
   /** The board's rounds end at the soonest timer (timerRounds). */
   private roundTimers = false;
+  /** The devices `parked` asks for their next timer (see there), and the device count it was built at. */
+  private parkedTimerDevices: Device[] = [];
+  private parkedTimerDevicesSize = -1;
 
   /**
    * A timer that ends the round it falls due in: a round timer, or a precise
@@ -2560,8 +2563,17 @@ class IrBoard implements Board {
         parked: (elapsed, target) => {
           let soonest = Infinity;
           if (specification.tag === timerClockCpu?.tag) {
-            for (const device of this.devices.values()) {
-              soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            // Asked on every slice a core spends parked -- the SNES's 65C816
+            // waits out most of each frame in WAI -- so the devices that keep
+            // timers are listed once rather than walked through the map.
+            if (this.parkedTimerDevicesSize !== this.devices.size) {
+              this.parkedTimerDevices = [...this.devices.values()].filter(device => typeof device.untilNextTimer === 'function');
+              this.parkedTimerDevicesSize = this.devices.size;
+            }
+            const timed = this.parkedTimerDevices;
+            for (let index = 0; index < timed.length; index++) {
+              const until = timed[index]!.untilNextTimer!() ?? Infinity;
+              if (until < soonest) soonest = until;
             }
             // And the driver's own precise timers, which come due on the same
             // clock (firePreciseTimers): the Spectrum's ULA interrupt is a
