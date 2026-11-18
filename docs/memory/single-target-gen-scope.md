@@ -16,4 +16,12 @@ looks like the change had no effect, which costs a long detour.
 **How to apply:** iterate with `node bin/mamekit.js --build-runtime --build-app`
 (~75s for 49 targets), then re-run the target's probe. Confirmed 2026-08-25.
 
-See [[dist-rebuild-pitfalls]].
+**Gotchas (2026-11-18, #271):** `--build-runtime` is silently ignored when a
+game is named (`mamekit venture --build-runtime` rebuilds nothing). To rebuild
+one target's closure use `node bin/mamekit.js --build-runtime --targets <game>`;
+its app step then refuses a "mixed distribution", but the closure is rebuilt and
+acceptance and `mamekit against` run. Delete `.cache/closure` after a compiler
+change, because its key does not change with the compiler. A fresh worktree has
+no dist, so one bootstrap `gen:all` there is unavoidable.
+
+See [[dist-rebuild-pitfalls]], [[venture-scheduler-time-271]].

@@ -170,3 +170,4 @@
 - [mamekit compare commands](mamekit-compare-commands.md) — #260: `mamekit against|record|compare|show`, no separate mkt, .env paths, MAME cache in .mamekit/mame
 - [Epic 178 closed](epic-178-closed.md) — #266: architecture.spec guards must find nothing; RETIRED_MODULES/RETIRED_NAMES
 - [Closure pool #265](closure-pool-265.md) — closure was serial main-thread lowering; pool + 2 hot spots 564→103 s, verify by byte-diffing a scratch cold build
+- [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
