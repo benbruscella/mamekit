@@ -95,6 +95,12 @@ export interface BoardImage {
   name: string;
   bytes?: Uint8Array;
   software?: SoftwarePart;
+  /**
+   * What the host kept of this image's battery: MAME's battery file, which
+   * device_image_interface::battery_load reads back at call_load. Absent, the
+   * load fills as MAME does with no file.
+   */
+  battery?: Uint8Array;
 }
 
 /** Use resolved executable facts for composition, preserving host mounting options. */

@@ -1345,6 +1345,14 @@ class IrDevice implements Device {
   };
   /** The software-list part the image came from, when it came from one. */
   private softwarePart?: SoftwarePart;
+  /** The battery the host handed with the open image (BoardImage.battery). */
+  private imageBattery?: Uint8Array;
+  /** The open image's name (BoardImage.name), which its kept battery is filed under. */
+  private imageName?: string;
+  /** The open image's call_load asked for its battery: it has one to keep. */
+  private batteryLoaded = false;
+  /** What the last call_unload handed battery_save. */
+  private batterySaved?: Uint8Array;
   /** device_image_interface's m_readonly, which `make_readonly` sets. */
   private imageReadOnly = false;
   private lastImageError?: string;
@@ -3441,6 +3449,9 @@ class IrDevice implements Device {
    * software part it came from, if any.
    */
   private openImage(image: BoardImage): void {
+    this.imageBattery = image.battery;
+    this.imageName = image.name;
+    this.batteryLoaded = false;
     const extension = image.name.includes('.') ? image.name.split('.').pop()!.toLowerCase() : '';
     const file = {
       bytes: image.bytes ?? new Uint8Array(0), name: image.name, filetype: extension, position: 0,
@@ -3554,14 +3565,26 @@ class IrDevice implements Device {
       // loader's `default_nvram`, the list's `bwram` with zeroed mapper RAM
       // behind it -- and every MMC5 battery cartridge reaches it from
       // call_load_pcb before it can boot.
+      //
+      // A battery the host does keep (BoardImage.battery) is read back instead,
+      // when it is the size asked for: MAME refuses a file of another size the
+      // same way, by filling.
       battery_load: (buffer, length, fill) => {
         const count = Math.max(0, Number(length) >>> 0);
-        copyGeneratedBytes(buffer, typeof fill === 'number' ? new Uint8Array(count).fill(fill & 0xff) : fill, count);
+        this.batteryLoaded = true;
+        const kept = this.imageBattery;
+        copyGeneratedBytes(buffer, kept && kept.length === count ? kept
+          : typeof fill === 'number' ? new Uint8Array(count).fill(fill & 0xff) : fill, count);
         return 0;
       },
-      // The machine's write-back on unload: nothing keeps a cartridge's battery
-      // between sessions yet, so what it held lasts while the cartridge is in.
-      battery_save: () => 0,
+      // The machine's write-back on unload, taken by the host (collectBattery).
+      battery_save: (buffer, length) => {
+        const count = Math.max(0, Number(length) >>> 0);
+        const bytes = new Uint8Array(count);
+        copyGeneratedBytes(bytes, buffer, count);
+        this.batterySaved = bytes;
+        return 0;
+      },
       // The software-list half of the interface (diimage.h), over the part the
       // host mounted: the C64 expansion port asks for `roml` and `romh` by
       // name, and for its `exrom` and `game` lines as features.
@@ -3709,6 +3732,20 @@ class IrDevice implements Device {
     // The format stands for itself by name: what the drive keeps of it is
     // only whether there is one a written disk could be saved back in.
     this.invoke('mount_image', stateValue(heldInstanceName(this.definition.floppyImage), image.instance() as object), best.name);
+  }
+
+  /**
+   * The open image's battery as MAME would write it at exit: the device's own
+   * call_unload, which copies its battery-backed memory out and hands it to
+   * battery_save. Asked only of an image whose call_load read a battery, so a
+   * drive's unload (a floppy, a tape) is never run for it. Undefined when
+   * there is none.
+   */
+  collectBattery(): { name: string; bytes: Uint8Array } | undefined {
+    if (!this.batteryLoaded || !this.methods.has('call_unload') || this.imageName === undefined) return undefined;
+    this.batterySaved = undefined;
+    this.invoke('call_unload');
+    return this.batterySaved ? { name: this.imageName, bytes: this.batterySaved } : undefined;
   }
 
   /** Take the disk out (floppy_image_device::call_unload). */

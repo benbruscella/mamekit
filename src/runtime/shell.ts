@@ -28,7 +28,7 @@ import {
 import { openRomStore, sampleSetKey, type RomStore, type StoredZip } from './romstore.ts';
 import { samplePathMembers, type SamplePath } from './sample-path.ts';
 import { openMemoryStore } from './memorystore.ts';
-import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
+import { batteryKey, createMachineMemory, type MachineMemory } from './machine-memory.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
@@ -980,7 +980,21 @@ export async function runShell(
   // A slot whose cards ship as modules of their own (the NES's 390 boards)
   // fetches the one this machine holds before it is built.
   await loadBoardSlotCards({ ...cfg.board, game: cfg.game });
-  const board = createBoard({ ...bootBoard, game: cfg.game }, regions, input, {
+  // An invite in the address bar: this page is joining somebody's game, so it
+  // must not put this browser's own high scores or saves into the machine.
+  const joinCode = inviteCode();
+  // A cartridge's battery goes in as the board is built, because MAME's slot
+  // reads it in its own call_load (battery_load). Only into the board being
+  // built: the boot config is the machine's identity, which a save must not
+  // change.
+  const keptBatteries = joinCode ? {} : (await storedMemory)?.batteries ?? {};
+  let batteriesRestored = false;
+  const images = bootBoard.images && Object.fromEntries(Object.entries(bootBoard.images).map(([tag, image]) => {
+    const battery = keptBatteries[batteryKey(tag, image.name)];
+    if (battery) batteriesRestored = true;
+    return [tag, battery ? { ...image, battery } : image];
+  }));
+  const board = createBoard({ ...bootBoard, ...(images ? { images } : {}), game: cfg.game }, regions, input, {
     soundWrite: (offset, data, frac, method) => {
       soundWrites.total++;
       if (offset >= 0 && data !== 0) soundWrites.nonzero++;
@@ -992,10 +1006,11 @@ export async function runShell(
   // Two browsers that construct the same machine from the same ROM construct
   // the same state, so this is the one place a room can agree to start from
   // (see netplay.ts); it is taken before memory is restored for that reason.
-  const coldMachine = board.save();
-  // An invite in the address bar: this page is joining somebody's game, so it
-  // must not put this browser's own high scores into the machine first.
-  const joinCode = inviteCode();
+  // A board built with a kept battery is not that machine: the cold one is
+  // then built on its own, without it, when a room first asks for it.
+  let coldMachine = batteriesRestored ? undefined : board.save();
+  const coldState = (): MachineState => coldMachine ??=
+    createBoard({ ...bootBoard, game: cfg.game }, regions, input, { soundWrite: () => {} }).save();
 
   // --- memory between sessions (issue #132) ----------------------------------
   // NVRAM and the hiscore.dat table go back into the machine before its first
@@ -1016,7 +1031,7 @@ export async function runShell(
   const restored = joinCode
     ? { nvram: [], hiscorePending: false }
     : memory.restore(await storedMemory);
-  if (restored.nvram.length) ui.toast('Battery-backed memory restored from this browser');
+  if (restored.nvram.length || batteriesRestored) ui.toast('Battery-backed memory restored from this browser');
   let hiscoreRestoreAnnounced = !restored.hiscorePending;
   const flushMemory = (): void => { try { memory.flush(); } catch (error) { console.warn(`${cfg.game}: memory flush failed: ${(error as Error).message}`); } };
   addEventListener('pagehide', flushMemory);
@@ -1143,7 +1158,7 @@ export async function runShell(
     bindings: cfg.bindings,
     identity: { game: cfg.game, identity: machineIdentity(cfg.game, bootBoard, regions) },
     refresh: cfg.board.screen.refresh,
-    coldBoot: () => board.load(coldMachine),
+    coldBoot: () => board.load(coldState()),
     freezeMemory: () => memory.disable(),
     machine: cfg.title,
     toast: ui.toast,

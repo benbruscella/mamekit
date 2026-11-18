@@ -172,6 +172,20 @@ export interface Board {
    * for the CPU. Undefined when the board has no such CPU, space or share.
    */
   memory(row: { cpu: string; space?: string; share?: string }): MemoryAccess | undefined;
+  /**
+   * Each mounted image's battery as MAME writes it at exit
+   * (device_image_interface::battery_save from the device's own call_unload):
+   * a cartridge's save RAM, by the device holding it and the image's name.
+   * Read back at the next boot through BoardImage.battery.
+   */
+  batteries(): BatteryImage[];
+}
+
+/** One image's battery: the device that holds it, the image's name, the bytes battery_save was handed. */
+export interface BatteryImage {
+  tag: string;
+  name: string;
+  bytes: Uint8Array;
 }
 
 /** One battery-backed memory the board composed, by the MAME tag that declared it. */

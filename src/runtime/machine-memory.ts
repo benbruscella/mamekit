@@ -14,6 +14,11 @@
 //   merely equals what the game initialised. This is the plugin's "when
 //   updated" mode; its "on exit" mode is the pagehide flush.
 //
+// - device_image_interface's battery file: a cartridge's save RAM, which the
+//   slot's own call_load read back through battery_load when the board was
+//   built (BoardImage.battery, see batteryKey) and its call_unload hands to
+//   battery_save (board.batteries()). Polled with the NVRAM, flushed with it.
+//
 // Nothing here knows a chip or a game: rows name a CPU tag and an address,
 // devices name a share, and the board resolves both. Issue #132.
 
@@ -22,6 +27,11 @@ import type { MemoryRecord } from './memorystore.ts';
 
 /** The plugin's grace between writes, in emulated seconds. */
 const HISCORE_WRITE_GRACE_SECONDS = 5;
+
+/** Where an image's battery is filed in a MemoryRecord: the device holding it and the image's name. */
+export function batteryKey(tag: string, name: string): string {
+  return `${tag}:${name}`;
+}
 
 export interface MachineMemoryOptions {
   board: Board;
@@ -99,6 +109,20 @@ export function createMachineMemory(options: MachineMemoryOptions): MachineMemor
   let hiscoreCurrent: Uint8Array[] | undefined;
   let armed = false;
   let lastWriteFrame = -Infinity;
+  /** every battery kept, this cartridge's and any other's, as last written or loaded */
+  const batteries: Record<string, Uint8Array> = {};
+  /** The batteries the board would write now, if any differ from what is kept. */
+  const batteriesDue = (): boolean => {
+    let changed = false;
+    for (const battery of board.batteries()) {
+      const key = batteryKey(battery.tag, battery.name);
+      const kept = batteries[key];
+      if (kept && bytesEqual(kept, battery.bytes)) continue;
+      batteries[key] = battery.bytes;
+      changed = true;
+    }
+    return changed;
+  };
 
   const readRows = (): Uint8Array[] => rows.map(row => {
     const bytes = new Uint8Array(row.length);
@@ -128,6 +152,7 @@ export function createMachineMemory(options: MachineMemoryOptions): MachineMemor
     shares: Object.fromEntries(nvram.filter(memory => memory.kind === 'share').map(memory => [memory.tag, memory.bytes.slice()])),
     regions: Object.fromEntries(nvram.filter(memory => memory.kind === 'region').map(memory => [memory.tag, memory.bytes.slice()])),
     ...(hiscoreImage ? { hiscore: hiscoreImage.map(bytes => bytes.slice()) } : {}),
+    ...(Object.keys(batteries).length ? { batteries: { ...batteries } } : {}),
     updatedAt: Date.now(),
   });
   const nvramChanged = (): boolean => nvram.some((memory, index) => !bytesEqual(memory.bytes, nvramWritten[index]!));
@@ -156,7 +181,8 @@ export function createMachineMemory(options: MachineMemoryOptions): MachineMemor
 
   const flush = (): void => {
     if (disabled) return;
-    let due = nvramChanged();
+    let due = batteriesDue();
+    if (nvramChanged()) due = true;
     const now = hiscoreDue();
     if (now) { hiscoreCurrent = now; hiscoreImage = now; lastWriteFrame = frames; due = true; }
     if (due) persist();
@@ -169,6 +195,9 @@ export function createMachineMemory(options: MachineMemoryOptions): MachineMemor
     restore(stored) {
       const summary: RestoreSummary = { nvram: [], hiscorePending: false };
       if (!stored) return summary;
+      // The batteries went in as the board was built; kept here so a write
+      // for this cartridge does not drop another's.
+      Object.assign(batteries, stored.batteries ?? {});
       for (const [index, memory] of nvram.entries()) {
         const bytes = (memory.kind === 'share' ? stored.shares : stored.regions)?.[memory.tag];
         if (!bytes) continue;
@@ -197,7 +226,7 @@ export function createMachineMemory(options: MachineMemoryOptions): MachineMemor
         const now = hiscoreDue();
         if (now) { hiscoreCurrent = now; hiscoreImage = now; lastWriteFrame = frames; due = true; }
       }
-      if (frames % nvramCheckFrames === 0 && nvramChanged()) due = true;
+      if (frames % nvramCheckFrames === 0 && (batteriesDue() || nvramChanged())) due = true;
       if (due) persist();
     },
     hiscoreArmed: () => armed,

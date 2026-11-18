@@ -83,6 +83,7 @@ import type {
   MemoryAccess,
   InputPorts,
   PersistentMemory,
+  BatteryImage,
   Regions,
 } from './types.ts';
 import {
@@ -2682,8 +2683,10 @@ class IrBoard implements Board {
                 `${machine.game}: CPU signal callback "${callback.id}" has no bound effect`,
               );
             }
+            // A read's argument is the offset it asks for, passed on as the
+            // composite path passes it (the S-SMP's `m_dsp_io_r_cb(1)`).
             const value = effect.reads
-              ? effect.run(0)
+              ? effect.run(0, state)
               : effect.run(
                   applyBoardTransforms(state, effect.transforms),
                   state,
@@ -4741,6 +4744,15 @@ class IrBoard implements Board {
     return memory;
   }
 
+  batteries(): BatteryImage[] {
+    const kept: BatteryImage[] = [];
+    for (const [tag, device] of this.devices) {
+      const battery = (device as { collectBattery?: () => { name: string; bytes: Uint8Array } | undefined }).collectBattery?.();
+      if (battery) kept.push({ tag, ...battery });
+    }
+    return kept;
+  }
+
   memory(row: { cpu: string; space?: string; share?: string }): MemoryAccess | undefined {
     if (row.share !== undefined) {
       const bytes = this.shares[row.share];
@@ -6418,9 +6430,16 @@ class IrBoard implements Board {
           // S-SMP $F2/$F3 write to s_dsp_device::dsp_io_w as the register
           // address, so no S-DSP register was ever written.
           const takesOffset = parameters.length >= 2 && /\boffs_t\b/.test(parameters[0] ?? '');
+          // devcb_read8::operator()(offset) to a read8sm target: the offset the
+          // read asked for, when the source passed one. The S-SMP reads S-DSP
+          // register data as `m_dsp_io_r_cb(1)`; with 0 every $F3 read answered
+          // the address register, and Final Fantasy III's sound driver waited
+          // on FLG forever.
+          const readsOffset = parameters.length === 1 && /\boffs_t\b/.test(parameters[0] ?? '');
           return (state, ...sourceArgs) => {
             const args = generatedDeviceCallbackArguments(parameters, state);
             if (takesOffset && sourceArgs.length >= 2) args[0] = Number(sourceArgs[0]) || 0;
+            if (readsOffset && sourceArgs.length >= 1) args[0] = Number(sourceArgs[0]) || 0;
             return device.call(method, ...args);
           };
         }

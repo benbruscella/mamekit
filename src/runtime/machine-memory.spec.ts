@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
-import { createMachineMemory } from './machine-memory.ts';
+import { batteryKey, createMachineMemory } from './machine-memory.ts';
 import type { MemoryRecord } from './memorystore.ts';
 import type { Board, HiscoreTable, MachineState } from './types.ts';
 
 // A board with one NVRAM share and one CPU whose program space is a flat
 // 64 KB of RAM: everything the keeper touches, nothing it must not know.
-function fakeBoard(): Board & { ram: Uint8Array; nvram: Uint8Array } {
+function fakeBoard(): Board & { ram: Uint8Array; nvram: Uint8Array; cartRam?: Uint8Array } {
   const ram = new Uint8Array(0x10000);
   const nvram = new Uint8Array(0x100);
-  return {
+  const board: Board & { ram: Uint8Array; nvram: Uint8Array; cartRam?: Uint8Array } = {
     ram, nvram,
     fbWidth: 1, fbHeight: 1,
     frame() {}, reset() {},
@@ -20,7 +20,10 @@ function fakeBoard(): Board & { ram: Uint8Array; nvram: Uint8Array } {
       : row.cpu === 'maincpu' && row.space === 'program'
         ? { read: address => ram[address] ?? 0, write: (address, value) => { ram[address] = value; } }
         : undefined,
+    // A cartridge slot's call_unload: a copy of the save RAM, as battery_save gets it.
+    batteries: () => board.cartRam ? [{ tag: 'cartslot', name: 'quest', bytes: board.cartRam.slice() }] : [],
   };
+  return board;
 }
 
 const table: HiscoreTable = {
@@ -172,4 +175,25 @@ const REFRESH = 60;
   assert.equal(memory.hiscoreArmed(), true);
 }
 
-console.log('machine-memory.spec: cold boot, warm boot, grace, reset, fit checks and delay passed');
+// --- a cartridge's battery: written when it changes, other carts' kept --------
+{
+  const board = fakeBoard();
+  board.cartRam = new Uint8Array(8);
+  const writes: MemoryRecord[] = [];
+  const memory = createMachineMemory({ board, game: 'fake', refresh: REFRESH, write: record => writes.push(record) });
+  const other = new Uint8Array([9, 9]);
+  memory.restore({ game: 'fake', shares: {}, regions: {}, batteries: { [batteryKey('cartslot', 'other')]: other }, updatedAt: 0 });
+  for (let frame = 0; frame < REFRESH; frame++) memory.tick();
+  assert.equal(writes.length, 1, 'the first battery seen is written');
+  board.cartRam[3] = 0x42;
+  for (let frame = 0; frame < REFRESH; frame++) memory.tick();
+  assert.equal(writes.length, 2, 'a changed battery is written within an emulated second');
+  const last = writes.at(-1)!;
+  assert.equal(last.batteries?.[batteryKey('cartslot', 'quest')]?.[3], 0x42);
+  assert.deepEqual(last.batteries?.[batteryKey('cartslot', 'other')], other, "another cartridge's battery is kept");
+  for (let frame = 0; frame < REFRESH; frame++) memory.tick();
+  memory.flush();
+  assert.equal(writes.length, 2, 'an unchanged battery is not written again');
+}
+
+console.log('machine-memory.spec: cold boot, warm boot, grace, reset, fit checks, delay and batteries passed');
