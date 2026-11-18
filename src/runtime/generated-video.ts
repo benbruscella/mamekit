@@ -425,7 +425,18 @@ export class GeneratedVideoRenderer implements VideoRenderer {
           Math.floor((y - scaledYOffset) / yScale) * this.width +
           Math.floor((x - scaledXOffset) / xScale),
       }),
-      'pix=': (y: number, x: number, color: number) => {
+      // Unscaled, the division is by one: the SNES PPU stores 512 of these a
+      // line, so the common case takes no division at all.
+      'pix=': xScale === 1 && yScale === 1 ? (y: number, x: number, color: number) => {
+        const visibleX = Math.floor(x - scaledXOffset);
+        const visibleY = Math.floor(y - scaledYOffset);
+        if (
+          visibleX >= 0 && visibleX < this.width &&
+          visibleY >= 0 && visibleY < this.height
+        ) {
+          target[visibleY * this.width + visibleX] = color >>> 0;
+        }
+      } : (y: number, x: number, color: number) => {
         const visibleX = Math.floor((x - scaledXOffset) / xScale);
         const visibleY = Math.floor((y - scaledYOffset) / yScale);
         if (
