@@ -32,6 +32,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
+import { ExactAttotime } from '../ir/exact-attotime.ts';
 import { callLinksGeneration, DEFAULT_CONSTANTS, GENERATED_STRUCT, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
@@ -420,6 +421,8 @@ export function pulseGeneratedCpuInputLine(cpu: Cpu, line: number): void {
 const STATE_FACTORIES = new Map<string, (data: Record<string, unknown>) => object>([
   ['attotime', data => generatedAttotime(Number(data.seconds) || 0)],
   ['device-attotime', data => createGeneratedAttotime(Number(data.seconds) || 0)],
+  // An exact device's attotime (src/ir/exact-attotime.ts).
+  ['exact-attotime', data => new ExactAttotime(Number(data.secs) || 0, BigInt((data.attos as bigint | number | string | undefined) ?? 0))],
 ]);
 
 function bytesEqual(left: Uint8Array, right: Uint8Array): boolean {

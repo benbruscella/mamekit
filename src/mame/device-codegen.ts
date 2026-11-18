@@ -1743,6 +1743,12 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     return wrapType(operand, expression.valueType);
   }
   if (expression.kind === 'binary') {
+    // attotime's own operator, in a device that holds attotime exactly
+    // (exact-attotime-marking.ts).
+    if (expression.attotime) {
+      return `runtime.attotimeBinary(${JSON.stringify(expression.operator)}, ` +
+        `${emitExpression(expression.left, context)}, ${emitExpression(expression.right, context)})`;
+    }
     // A 64-bit literal promotes the whole expression around it, exactly as in
     // C. Emitted arithmetic is plain `number`, so the operation is handed to
     // the same exact evaluator the interpreter uses -- only the operands stay
@@ -1903,6 +1909,9 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       `(${emitExpression(expression.whenFalse, context)}))`;
   }
   if (expression.kind === 'member') {
+    if (expression.attotime) {
+      return `runtime.attotimeField(${emitExpression(expression.object, context)}, ${JSON.stringify(expression.property)})`;
+    }
     const pointee = expression.object.kind === 'identifier' &&
       (context.dereferencedParameters?.get(expression.object.name) ?? context.dereferencedLocals?.get(expression.object.name));
     if (pointee) return `${pointee}.${expression.property}`;
@@ -2847,6 +2856,15 @@ function emitAssignment(
   context: EmitContext,
   right = emitExpression(value, context),
 ): string {
+  // One field of an exact attotime: the attotime is rebuilt with it and
+  // stored back where it lives, as the interpreter does.
+  if (expression.kind === 'member' && expression.attotime) {
+    const held = emitExpression(expression.object, context);
+    const property = JSON.stringify(expression.property);
+    const field = operator === '=' ? right
+      : `runtime.attotimeFieldAssignment(${JSON.stringify(operator)}, runtime.attotimeField(${held}, ${property}), ${right})`;
+    return emitAssignment(expression.object, '=', value, context, `runtime.withAttotimeField(${held}, ${property}, ${field})`);
+  }
   if (expression.kind === 'call') {
     // A method returning a reference is assigned through its `name=`, the
     // operator applied to what the getter reads (the 6809's `ireg() += 2`).
