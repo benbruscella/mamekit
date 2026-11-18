@@ -559,6 +559,14 @@ class IrBoard implements Board {
   private readonly roundTimerMembers = new Set<string>();
   /** The board's rounds end at the soonest timer (timerRounds). */
   private roundTimers = false;
+  /**
+   * MAME's perfect-quantum rounds that end at every timer, the precise driver
+   * timers included (timerEndsRound): the round's target is already short of
+   * the next timer, and one armed inside the round ends it, so a core's piece
+   * needs no bounding by the next one (parked). Precise timers are still
+   * looked for at every delivery: skipping that moved the SNES's sound writes.
+   */
+  private perfectTimerRounds = false;
   /** The devices `parked` asks for their next timer (see there), and the device count it was built at. */
   private parkedTimerDevices: Device[] = [];
   private parkedTimerDevicesSize = -1;
@@ -2578,6 +2586,7 @@ class IrBoard implements Board {
         // the machine's quantum bounds: Donkey Kong's Z80 looks again every
         // 16.7 us while the 8257 holds the bus.
         parked: (elapsed, target) => {
+          if (this.perfectTimerRounds) return target - elapsed;
           let soonest = Infinity;
           if (specification.tag === timerClockCpu?.tag) {
             // Asked on every slice a core spends parked -- the SNES's 65C816
@@ -3436,6 +3445,7 @@ class IrBoard implements Board {
     const timerDevices = [...timedDevices, ...cardDeviceSet];
     if (timerRounds) this.deviceClockFollowsProcessors = true;
     this.roundTimers = timerRounds;
+    this.perfectTimerRounds = perfectRounds && timerRounds;
     const soonestTimer = (): number => {
       let soonest = Infinity;
       for (let index = 0; index < timerDevices.length; index++) {

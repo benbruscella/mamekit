@@ -53,6 +53,25 @@ export interface CodegenScope {
 }
 
 interface EmitContext {
+  /**
+   * Local arrays a call can take from one buffer kept for it (scratchArrayLocals),
+   * each name mapped to that buffer's module-level name.
+   */
+  scratchArrays?: Map<string, string>;
+  /** The emitted method's name, for naming what is kept for it. */
+  methodName?: string;
+  /**
+   * Pointer locals set once and never moved (fixedPointerLocals): each one's
+   * source and offset unpacked at its declaration, so an index reads the
+   * memory behind it directly.
+   */
+  fixedPointers?: ReadonlySet<string>;
+  /**
+   * The links a method reads, each held in a local read once at its entry.
+   * Undefined inside a lambda, which runs after the method has returned and
+   * reads the table when it is called.
+   */
+  linkLocals?: Map<string, string>;
   /** 64-bit locals emitted as two 32-bit halves (splitWideLocals). */
   splitLocals?: ReadonlySet<string>;
   dereferencedParameters?: Map<string, string>;
@@ -1137,6 +1156,7 @@ function emitMethod(
     constantTables,
     structCopiers,
     links: new Set<string>(),
+    linkLocals: new Map<string, string>(),
     temps: { count: 0 },
   };
   context.dereferencedParameters = new Map(parameters.filter(parameter =>
@@ -1146,11 +1166,14 @@ function emitMethod(
     .map(parameter => [parameter.name, `__pointee_${safeName(parameter.name)}`]));
   collectLocals(method.program.operations, context);
   context.splitLocals = splitWideLocals(method.program.operations);
+  context.methodName = method.name;
+  context.scratchArrays = scratchArrayLocals(method, definition);
   context.dereferencedLocals = new Map([...context.locals].filter(([name, valueType]) =>
     !parameters.some(parameter => parameter.name === name) && Boolean(valueType?.includes('*')) &&
     Boolean(definition.structs?.[valueType!.replace(/\bconst\b/g, '').replace(/[&*]/g, '').trim()]) &&
     plainlyAssigned(method.program.operations, name))
     .map(([name]) => [name, `__pointee_${safeName(name)}`]));
+  context.fixedPointers = fixedPointerLocals(method.program.operations, context);
   const annotation = typescript ? ': any' : '';
   // A C++ default argument stands in when an emitted caller leaves it out,
   // as the interpreter's own defaults do (see cppDefaultArgument).
@@ -1178,7 +1201,10 @@ function emitMethod(
   // to the raw calls dictionary for a runtime that carries none (a test
   // harness, or an older host), so the emitted code never depends on it.
   for (const name of context.links ?? []) links.add(name);
-  const linked = context.links?.size ? '\n    const __l = runtime.links ?? runtime.calls;' : '';
+  const held = [...context.linkLocals ?? []].map(([name, local]) => `${local}${annotation} = __l[${JSON.stringify(name)}]`);
+  const linked = context.links?.size
+    ? `\n    const __l = runtime.links ?? runtime.calls;${held.length ? `\n    const ${held.join(', ')};` : ''}`
+    : '';
   const temps = context.temps?.count
     ? `\n    let ${Array.from({ length: context.temps.count }, (_unused, index) => `__t${index}${annotation}`).join(', ')};`
     : '';
@@ -1249,6 +1275,18 @@ function emitOperation(
   indentation: number,
 ): string {
   const pad = ' '.repeat(indentation);
+  if (operation.op === 'declare' && context.fixedPointers?.has(operation.name) && operation.value) {
+    const name = localName(operation.name);
+    const annotation = context.typescript ? ': any' : '';
+    // What readIndex answers for the pointer: an array or typed array it is,
+    // or the plain pointer wrapper over one (no union path, no lvalue target),
+    // read at source[offset + index]. Anything else keeps readIndex.
+    return `${pad}let ${name}${annotation} = ${emitExpression(operation.value, context)};` +
+      ` let ${name}$s${annotation} = undefined, ${name}$o${annotation} = 0;` +
+      ` if (ArrayBuffer.isView(${name}) || Array.isArray(${name})) ${name}$s = ${name};` +
+      ` else if (${name} !== null && typeof ${name} === 'object' && ${name}.generatedPointer === true && ${name}.path === undefined &&` +
+      ` ${name}.target === undefined && (ArrayBuffer.isView(${name}.source) || Array.isArray(${name}.source))) { ${name}$s = ${name}.source; ${name}$o = ${name}.offset; }`;
+  }
   if (operation.op === 'declare' && context.splitLocals?.has(operation.name)) {
     context.locals.set(operation.name, operation.valueType);
     const annotation = context.typescript ? ': any' : '';
@@ -1306,6 +1344,15 @@ function emitOperation(
       const link = callLink(context, declared);
       return `${pad}let ${localName(operation.name)}${annotation} = typeof ${link} === 'function' ? ` +
         `Array.from({ length: Math.max(0, Math.trunc(Number(${emitExpression(extents[0]!, context)}))) }, () => ${link}(0, 0, 0, 0)) : ${value};`;
+    }
+    const scratch = context.scratchArrays?.get(operation.name);
+    if (scratch && allocated && context.structCopiers) {
+      // Kept once at module level and zeroed on entry: C's `uint8_t buf[256]`
+      // inside the call, with no allocation per call.
+      if (!context.structCopiers.has(scratch)) {
+        context.structCopiers.set(scratch, `  const ${scratch} = ${wrapAllocatedArray(value, operation.valueType)};`);
+      }
+      return `${pad}let ${localName(operation.name)}${annotation} = ${scratch}.fill(0);`;
     }
     return `${pad}let ${localName(operation.name)}${annotation} = ${
       allocated
@@ -2045,6 +2092,10 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     if (expression.object.kind === 'identifier' && context.arrayLocals?.has(expression.object.name)) {
       return `(${object}[${index}] ?? 0)`;
     }
+    if (context.pointerSafeIndex && expression.object.kind === 'identifier' && context.fixedPointers?.has(expression.object.name)) {
+      const name = localName(expression.object.name);
+      return `(${name}$s !== undefined ? (${name}$s[${name}$o + (${index})] ?? 0) : runtime.readIndex(${object}, ${index}))`;
+    }
     return context.pointerSafeIndex && !isDirectArray(expression.object, context)
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
@@ -2063,6 +2114,7 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       .map((name, index) => `${name || `unused${index}`}${annotation}`);
     const inner: EmitContext = {
       ...context,
+      linkLocals: undefined,
       arrayLocals: new Set([...context.arrayLocals ?? []].filter(name => !expression.parameters.includes(name))),
       plainArrayLocals: new Map([...context.plainArrayLocals ?? []].filter(([name]) => !expression.parameters.includes(name))),
       locals: new Map([
@@ -2196,6 +2248,15 @@ function expressionValueType(
 /** A resolved host call, read from the method's `__l` links table. */
 function callLink(context: EmitContext, name: string): string {
   context.links?.add(name);
+  // Read once at the method's entry (linkLocals): the SNES cartridge read
+  // asks `m_cartslot.get_type` up to five times per access, each a probe of a
+  // string-keyed table.
+  const local = context.linkLocals;
+  if (local) {
+    let held = local.get(name);
+    if (held === undefined) local.set(name, held = `__L${local.size}`);
+    return held;
+  }
   return `__l[${JSON.stringify(name)}]`;
 }
 
@@ -2982,7 +3043,7 @@ function structCopier(
   if (!context.structCopiers.has(name)) {
     const stores = fields.map(field => field.length
       ? `    { const into = t.${field.name}, from = s.${field.name};
-      if (Array.isArray(into) && Array.isArray(from)) { for (let i = 0; i < into.length && i < from.length; i++) into[i] = from[i]; }
+      if ((Array.isArray(into) || ArrayBuffer.isView(into)) && (Array.isArray(from) || ArrayBuffer.isView(from))) { for (let i = 0; i < into.length && i < from.length; i++) into[i] = from[i]; }
       else if (from !== undefined) t.${field.name} = from; }`
       : `    if (s.${field.name} !== undefined) t.${field.name} = s.${field.name};`).join('\n');
     const any = context.typescript ? ': any' : '';
@@ -3951,6 +4012,95 @@ function safeName(name: string): string {
 
 function localName(name: string): string {
   return JAVASCRIPT_RESERVED_WORDS.has(name) ? `$${name}` : name;
+}
+
+/**
+ * Local arrays of a fixed size and no initializer (`uint8_t window_above[256]`)
+ * whose name is only ever indexed or handed to a call: one typed buffer can be
+ * kept for each and zeroed at the declaration, as C's array starts zeroed
+ * here, rather than allocated on every call -- the SNES PPU's line methods
+ * allocated six a line. Never in a method that can call itself, which would
+ * write over its caller's buffer, nor for a name a lambda can see.
+ */
+function scratchArrayLocals(method: GeneratedDeviceMethod, definition: CodegenScope): Map<string, string> {
+  const found = new Map<string, string>();
+  const operations = method.program.operations;
+  const declared = new Map<string, number>();
+  const candidates: string[] = [];
+  walkOperations(operations, operation => {
+    if (operation.op !== 'declare') return;
+    declared.set(operation.name, (declared.get(operation.name) ?? 0) + 1);
+    const value = operation.value;
+    if (value?.kind === 'call' && value.callee.kind === 'identifier' && value.callee.name === 'ALLOC' &&
+        value.args.length === 1 && value.args[0]!.kind === 'number' && value.args[0]!.value > 0 &&
+        !/\*\s*$/.test(operation.valueType ?? '')) candidates.push(operation.name);
+  });
+  if (!candidates.length) return found;
+  // Can the method reach itself through the methods it calls?
+  const byName = new Map(definition.methods.map(candidate => [candidate.name, candidate]));
+  const seen = new Set<string>();
+  const pending = [...calledIdentifiers(operations)];
+  while (pending.length) {
+    const name = pending.pop()!;
+    if (name === method.name) return found;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    const callee = byName.get(name);
+    if (callee) pending.push(...calledIdentifiers(callee.program.operations));
+  }
+  for (const name of candidates) {
+    if (declared.get(name) !== 1 || assignsIdentifier(operations, name)) continue;
+    let safe = true;
+    const check = (expression: GeneratedExpression, allowed: boolean): void => {
+      if (!safe) return;
+      if (expression.kind === 'identifier') {
+        if (expression.name === name && !allowed) safe = false;
+        return;
+      }
+      if (expression.kind === 'lambda') {
+        if (JSON.stringify(expression).includes(`"name":${JSON.stringify(name)}`)) safe = false;
+        return;
+      }
+      if (expression.kind === 'index') {
+        check(expression.object, true);
+        check(expression.index, false);
+        return;
+      }
+      if (expression.kind === 'call') {
+        if (expression.callee.kind === 'member') check(expression.callee.object, false);
+        for (const argument of expression.args) check(argument, true);
+        return;
+      }
+      for (const child of childExpressionsOf(expression)) check(child, false);
+    };
+    walkOperations(operations, operation => {
+      if (operation.op === 'declare' && operation.name === name) return;
+      for (const expression of operationExpressions(operation)) check(expression, false);
+    });
+    if (safe) found.set(name, `cppScratch_${safeName(method.name)}_${safeName(name)}`);
+  }
+  return found;
+}
+
+ /**
+ * Pointer locals declared once with a value, never assigned again, moved or
+ * addressed, and not read through as a struct (dereferencedLocals): the SNES
+ * PPU's `const uint16_t *luma = &m_light_table[brightness][0]`, indexed once
+ * per pixel.
+ */
+function fixedPointerLocals(operations: GeneratedHandlerOperation[], context: EmitContext): Set<string> {
+  const declared = new Map<string, number>();
+  const candidates = new Set<string>();
+  walkOperations(operations, operation => {
+    if (operation.op !== 'declare') return;
+    declared.set(operation.name, (declared.get(operation.name) ?? 0) + 1);
+    if (operation.value && /\*\s*$/.test(operation.valueType ?? '') && !allocatesAggregate(operation.value)) candidates.add(operation.name);
+  });
+  for (const name of [...candidates]) {
+    if (declared.get(name) !== 1 || context.dereferencedLocals?.has(name) || context.arrayLocals?.has(name) ||
+        assignsIdentifier(operations, name)) candidates.delete(name);
+  }
+  return candidates;
 }
 
 const WIDE_LOCAL_TYPE = /^(?:u64|s64|uint64_t|int64_t|unsigned long long|long long)$/;

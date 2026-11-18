@@ -198,6 +198,12 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
         if (isGeneratedStruct(current[index])) copyGeneratedStruct(current[index], next[index]);
         else current[index] = next[index];
       }
+    } else if (ArrayBuffer.isView(current) && (ArrayBuffer.isView(next) || Array.isArray(next))) {
+      // An integer array field is typed memory (structMember): copied element
+      // by element, never shared between the two structs.
+      const into = current as unknown as { [index: number]: number; length: number };
+      const from = next as unknown as ArrayLike<number>;
+      for (let index = 0; index < into.length && index < from.length; index++) into[index] = Number(from[index]) || 0;
     } else target[key] = next;
   }
   return target;

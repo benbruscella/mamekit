@@ -5543,8 +5543,15 @@ function structMember(
         : structMember(nested, structs, field.valueType);
       continue;
     }
+    // An integer array field is memory of its declared width, as a member
+    // array is (integerArray): stores wrap as the C++ element's do, and a
+    // memset of it is a fill. The SNES PPU clears six 256-entry line buffers
+    // on every line, element by element while they were plain arrays.
     if (field.length) {
-      value[field.name] = Array.from({ length: field.length }, () => 0);
+      const integral = field.bits !== undefined && !/\b(?:float|double)\b|\*/.test(field.valueType ?? '');
+      value[field.name] = integral
+        ? integerArray(field.length, field.bits, field.signed)
+        : Array.from({ length: field.length }, () => 0);
       continue;
     }
     value[field.name] = field.initial ?? 0;

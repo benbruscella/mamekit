@@ -698,7 +698,9 @@ assert.equal(
     }],
   };
   const emitted = generatedDeviceMethodsSource(line);
-  assert.match(emitted.source, /__l\["m_write_ba"\] \? __l\["m_write_ba"\]\(Number\(1\)\) : typeof members\.m_write_ba === 'function' \? members\.m_write_ba\(1\) : runtime\.invoke\("m_write_ba", 1\)/);
+  // The link is read once at the method's entry (linkLocals) and called through that local.
+  assert.match(emitted.source, /const __L0 = __l\["m_write_ba"\];/);
+  assert.match(emitted.source, /__L0 \? __L0\(Number\(1\)\) : typeof members\.m_write_ba === 'function' \? members\.m_write_ba\(1\) : runtime\.invoke\("m_write_ba", 1\)/);
   assert.deepEqual(emitted.links, ['m_write_ba']);
   // The board-bound line wins over the device's own emitter, as it does for
   // the interpreter's invoke: a soundlatch's data-pending line is wired by
