@@ -174,4 +174,4 @@
 - [Worktree PR hooks](worktree-pr-hooks.md) — changelog hook checks the session cwd; EnterWorktree before gh pr create
 - [S-DSP silence gaps](sdsp-silence-gaps.md) — devcb offset, space() default, const pointers into tables (#174)
 - [Save-state shared arrays](save-state-shared-arrays.md) — pointer-into-table members save as aliases; tables built first
-- [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabels vpos, timer callbacks see the expiry beam, pc()/chained state_add; SMW exact to 149
+- [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabel, expiry beam, precise timers end rounds, virtual dispatch for config-less bases; SMW RAM exact 1800 frames

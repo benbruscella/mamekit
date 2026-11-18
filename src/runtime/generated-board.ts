@@ -559,6 +559,16 @@ class IrBoard implements Board {
   private readonly roundTimerMembers = new Set<string>();
   /** The board's rounds end at the soonest timer (timerRounds). */
   private roundTimers = false;
+
+  /**
+   * A timer that ends the round it falls due in: a round timer, or a precise
+   * driver timer, since MAME's timeslice ends at every timer's expiry. The
+   * SNES NMI is one, VBLANK plus 12 cycles: run past it, the 65C816's WAI
+   * burned the rest of its round and took the NMI up to 22 cycles late.
+   */
+  private timerEndsRound(member: string): boolean {
+    return this.roundTimerMembers.has(member) || this.preciseTimerMembers.has(member);
+  }
   /** A round timer was armed inside the round for `seconds` from its base. */
   private roundTimerArmed?: (seconds: number) => void;
   /** Where the round in progress began, on the clock `machineSeconds` keeps. */
@@ -1847,7 +1857,7 @@ class IrBoard implements Board {
         }
         const at = this.machineSeconds() + seconds;
         this.pendingTimers.set(timer.member, { at, param: Number(param) || 0 });
-        if (!timer.driver) this.roundTimerArmed?.(at - this.roundBaseSeconds);
+        if (this.timerEndsRound(timer.member)) this.roundTimerArmed?.(at - this.roundBaseSeconds);
         // `adjust(attotime::zero, param)` is MAME's synchronize(): due at the
         // current time, once the processors behind this one catch up -- not at
         // the next line. The Williams ADPCM board's sync_command is one; left
@@ -3350,7 +3360,7 @@ class IrBoard implements Board {
         let due: string | undefined;
         let earliest = now + ROUND_TIMER_SLOP_SECONDS;
         for (const [member, pending] of this.pendingTimers) {
-          if (pending.at <= earliest && this.roundTimerMembers.has(member)) {
+          if (pending.at <= earliest && this.timerEndsRound(member)) {
             due = member;
             earliest = pending.at;
           }
@@ -3362,7 +3372,7 @@ class IrBoard implements Board {
     const soonestRoundTimer = (now: number): number => {
       let soonest = Infinity;
       for (const [member, pending] of this.pendingTimers) {
-        if (pending.at - now < soonest && this.roundTimerMembers.has(member)) soonest = pending.at - now;
+        if (pending.at - now < soonest && this.timerEndsRound(member)) soonest = pending.at - now;
       }
       return soonest;
     };
@@ -3715,7 +3725,7 @@ class IrBoard implements Board {
             for (const [member, pending] of [...this.pendingTimers]) {
               if (pending.at > now + ROUND_TIMER_SLOP_SECONDS) continue;
               // A round's own timer fires where the round ends.
-              if (this.roundTimers && this.roundTimerMembers.has(member)) continue;
+              if (this.roundTimers && this.timerEndsRound(member)) continue;
               this.genericTimerFires.get(member)?.();
             }
           }

@@ -695,7 +695,7 @@
       "palette": "none"
     },
     "snes": {
-      "sha256": "50b1c94956cc7c9fa65b0b4b1be405e5546e0844a9c023191db5c6f2c1db59bb",
+      "sha256": "b4e590daa1332d189cf452e83ece1c88a07ae72f3713740e4fdc6730b0e0f4ff",
       "callbacks": 10,
       "frameEvents": 0,
       "devices": 10,

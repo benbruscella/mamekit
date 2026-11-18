@@ -4089,8 +4089,13 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
     const kept: typeof nodes = [];
     for (const node of nodes) {
       if (node.label !== 'Handler') continue;
-      const baseRank = classRank.get(String(node.props.ownerClass));
-      if (baseRank === undefined) continue;
+      // A base class with no machine config of its own (snes_state, whose
+      // `snes` config is snes_console_state's) ranks below every selected
+      // class: an OVERRIDDEN_BY edge exists only where the override's class
+      // derives from it. Skipped instead, the console's io_read, which polls
+      // the controller ports, never replaced the base one, and no SNES game
+      // saw a button.
+      const baseRank = classRank.get(String(node.props.ownerClass)) ?? Infinity;
       const method = String(node.props.method);
       const ownerClass = String(node.props.ownerClass);
       const callsOwnBase = new RegExp(`\\b${ownerClass}::${method}\\s*\\(`);
