@@ -176,5 +176,5 @@
 - [Save-state shared arrays](save-state-shared-arrays.md) — pointer-into-table members save as aliases; tables built first
 - [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabel, expiry beam, precise timers end rounds, virtual dispatch for config-less bases; SMW RAM exact 1800 frames
 - [gen:all at the end](gen-all-at-end.md) — iterate with single-target gen; one gen:all + sweep when finished
-- [SNES speed #174](snes-speed-174.md) — 18→~48 Node/~58 browser; V8 traps: __proto__ literals, per-object accessor closures (dictionary mode)
+- [SNES speed #174](snes-speed-174.md) — SMW 60 fps in browser (Node ~52); V8 traps: __proto__ literals, accessor closures, >1000-key tables
 - [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272

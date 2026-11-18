@@ -32,3 +32,5 @@ Stopped-CPU round extension DONE: board `cpuActivity` counts host reads + IrDevi
 - std::unique_ptr<T[]> members index in place (ArrayBuffer.isView check); constant 64-bit shifts fold inline.
 - Shell backlog cap 5 -> 2 frames: a machine slower than real time ran 5 frames per rAF and drew 8.5x/s; a flat fps across scenes was this, not a cap.
 Left: memory path ~45% of CPU time (8 layers per ROM read), round bookkeeping ~1/3 of the frame in many 1% pieces; skipping start-of-slice timing(0) changes audio - don't.
+
+2026-11-18 evening: **SMW 57-61 fps in the browser (60 Hz target reached)**, Node ~52. Last steps: CALL_METHOD dispatch tables resolved per entry (cppMethodAt; a >~1000-key method table is dictionary mode), dead cpuSliceCycles removed, cpuStalls written only when owed, firePreciseTimers earliest cached by pendingTimers.version. Browser ≈ Node × 1.15-1.2. gen:all + full sweep still owed before the PR.
