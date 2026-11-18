@@ -1366,7 +1366,12 @@ function emitOperation(
         `Array.from({ length: Math.max(0, Math.trunc(Number(${emitExpression(extents[0]!, context)}))) }, () => ${link}(0, 0, 0, 0)) : ${value};`;
     }
     const scratch = context.scratchArrays?.get(operation.name);
-    if (scratch && allocated && context.structCopiers) {
+    // Only an allocation that stands on its own moves to module level: a
+    // board's ALLOC asks `runtime.overrides` first, and a size may read a
+    // local, neither of which exists there (1942's draw_sprites objdata).
+    const selfContained = !/\bruntime\b/.test(value) &&
+      !/[A-Za-z_$][\w$]*/.test(value.replace(/\b(?:new|Math|max|trunc|Number|(?:Uint|Int)(?:8|16|32)Array|Float(?:32|64)Array|Array|fill|from|length)\b/g, ''));
+    if (scratch && allocated && context.structCopiers && selfContained) {
       // Kept once at module level and zeroed on entry: C's `uint8_t buf[256]`
       // inside the call, with no allocation per call.
       if (!context.structCopiers.has(scratch)) {
@@ -3094,9 +3099,10 @@ function structCopier(
   if (!fields.length || fields.some(field => field.fields || !/^\w+$/.test(field.name))) return undefined;
   const name = `struct_copy_${safeName(member.valueType)}`;
   if (!context.structCopiers.has(name)) {
+    const anyType = context.typescript ? ': any' : '';
     const stores = fields.map(field => field.length
-      ? `    { const into = t.${field.name}, from = s.${field.name};
-      if ((Array.isArray(into) || ArrayBuffer.isView(into)) && (Array.isArray(from) || ArrayBuffer.isView(from))) { for (let i = 0; i < into.length && i < from.length; i++) into[i] = from[i]; }
+      ? `    { const into${anyType} = t.${field.name}, from${anyType} = s.${field.name};
+      if ((Array.isArray(into) || ArrayBuffer.isView(into)) && (Array.isArray(from) || ArrayBuffer.isView(from))) { const a${anyType} = into, b${anyType} = from; for (let i = 0; i < a.length && i < b.length; i++) a[i] = b[i]; }
       else if (from !== undefined) t.${field.name} = from; }`
       : `    if (s.${field.name} !== undefined) t.${field.name} = s.${field.name};`).join('\n');
     const any = context.typescript ? ': any' : '';
@@ -4204,7 +4210,21 @@ function splitWideLocals(operations: GeneratedHandlerOperation[]): Set<string> {
     else otherwise.add(operation.name);
   });
   for (const name of otherwise) candidates.delete(name);
-  if (!candidates.size) return candidates;
+  // To a fixed point: a value judged buildable in halves because it read
+  // another candidate is not, once that candidate is rejected. m68010's ROXR
+  // kept `src` split after `res = src | (x << 32)` was rejected (it is passed
+  // whole to ROR_33_64), and `res`'s initializer read a `src` that no longer
+  // existed.
+  for (;;) {
+    const before = candidates.size;
+    rejectUnsplittable(operations, candidates);
+    if (!candidates.size || candidates.size === before) return candidates;
+  }
+}
+
+/** One pass of splitWideLocals: drops every candidate some use reads whole. */
+function rejectUnsplittable(operations: GeneratedHandlerOperation[], candidates: Set<string>): void {
+  if (!candidates.size) return;
   const rejected = new Set<string>();
   const reject = (expression: GeneratedExpression): void => {
     for (const name of candidates) if (mentionsName(expression, new Set([name]))) rejected.add(name);
@@ -4260,7 +4280,6 @@ function splitWideLocals(operations: GeneratedHandlerOperation[]): Set<string> {
     for (const expression of operationExpressions(operation)) check(expression);
   });
   for (const name of rejected) candidates.delete(name);
-  return candidates;
 }
 
 /** `v`, `v >> s` or `v << s` over a split local, read narrowed by `& mask` or a cast. */
