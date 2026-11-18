@@ -1,0 +1,27 @@
+---
+name: snes-speed-174
+description: "#174 speed push 18->~30 fps (Node steady state), all general codegen/runtime fixes, exact vs MAME; what is left and the WAI round idea"
+metadata:
+  node_type: memory
+  type: project
+  originSessionId: 9e9e69c6-e37f-4806-b877-66271b86f0e4
+  modified: 2026-11-18T02:42:46.609Z
+---
+
+Speed work on branch 174 (2026-11-18, uncommitted), SMW stays byte-identical to MAME (1800 frames RAM+pixels) after each step. Bench: scratchpad bench.ts reports steady fps for frames 100-600 plus CPU-time fps (machine load swings wall-clock a lot).
+
+Fixes (all general):
+- `AS_PROGRAM/AS_DATA/AS_IO/AS_OPCODES` in DEFAULT_CONSTANTS: board codegen declined every handler naming one (SNES scanline/hblank/hdma timers).
+- `machine().scheduler().perfect_quantum` added to the board chain list (VIDEO_FRAMEWORK_CHAIN_CALLS) -> snes_w_io emitted.
+- 64-bit locals used only bitwise + narrowed reads are emitted as `v$lo/v$hi` u32 halves (splitWideLocals in device-codegen; cppShl64/cppShr64 helpers). Rejected-candidate values must still be checked (CX4 `rx *= ry` bug).
+- Device lambdas compiled as `<method>__lambda<i>` (deviceLambdaMethods) and returned by the interpreter via bindings.compiledLambdas (S-SMP RAM window).
+- Handler fast paths for `(address_space &space, offs_t offset[, data])`.
+- Sparse device spaces: per-4KB page candidate lists (5A22 internal map).
+- `cppMemset`/`cppClearStruct` inline; memset answered first in applyGeneratedMacro.
+- `auto *p = &m_arr[i]` typed as struct pointer; struct-array element type inferred -> dereferencedLocals.
+- Struct/fixed-array members hoist even when their address is taken.
+- parked() uses a cached timed-device list.
+
+Profile at ~30 fps: PPU ~32% (update_objects ~3 ms/frame), scheduler rounds ~28% (~8300 rounds/frame under perfect quantum, ~1.1 us each), 65C816 ~20%, S-SMP ~4%. machine_start's install_readwrite_handler mapRange costs ~1.5 s of startup (load time only).
+
+Next idea, not done: while the 65C816 is in WAI, extend perfect rounds to the next timer. Needs a generic "CPU waiting" test (no bus access + unchanged PC over a slice) AND ending the round when another processor changes that CPU's input lines mid-round; otherwise inexact. See [[snes-nmi-scheduler]], [[gen-all-at-end]].
