@@ -195,8 +195,11 @@ export const nes = {
     // one, so this cart runs about 30,000 rounds a frame where other carts
     // run a few hundred. On a CI runner that is about 25 fps, though it plays
     // at 60 in a browser on an M3 Pro. Running the empty rounds as one saves
-    // nothing, because firing the timer is the cost (#226).
-    minimumFps: 20,
+    // nothing, because firing the timer is the cost (#226). By November 2026
+    // CI runners had drifted to ~20 fps (main's runs took 108.7-111.1 s, PR
+    // #273's 19.6 and 20.0 fps with no local difference: 43 fps either way),
+    // so the floor sits below that noise, as #242 did for the others (#247).
+    minimumFps: 18,
     checkpoints: [1, 300, 600, 900, 1200, 1500, 1800],
     actions: [
       { atFrame: 299, code: 'Enter', heldFrames: 6, releasedFrames: 0 },
