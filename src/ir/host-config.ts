@@ -22,7 +22,7 @@ export interface BoardConfig {
   customs?: GeneratedExecutionPlan['customs'];
   inputLatches?: GeneratedExecutionPlan['inputLatches'];
   screen: Pick<GeneratedScreen,
-    'width' | 'height' | 'xOffset' | 'yOffset' | 'refresh' | 'vtotal' | 'vbstart' | 'vbend' | 'rotate'>;
+    'width' | 'height' | 'xOffset' | 'yOffset' | 'refresh' | 'vtotal' | 'vbstart' | 'vbend' | 'rotate' | 'physicalAspect'>;
   clocks: { namco06: number; wsg: number };
   /**
    * Console cartridge metadata, injected at runtime by the console room after

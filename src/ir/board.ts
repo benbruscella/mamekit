@@ -651,6 +651,13 @@ export interface GeneratedScreen {
    * (screen_device::update_partial). The SNES PPU draws its line at row 0.
    */
   variableWidth?: true;
+  /**
+   * screen_device::physical_aspect(): the shape the unrotated picture is
+   * shown at, reduced. `set_physical_aspect(w, h)` where the driver gives one;
+   * otherwise 4:3 for a raster or vector screen (MAME assumes a standard CRT)
+   * and absent for an LCD or SVG screen, whose pixels are square.
+   */
+  physicalAspect?: [number, number];
   rotate: number;
   /** SCREEN, CPU, or video device responsible for producing pixels. */
   ownerTag?: string;

@@ -2181,8 +2181,15 @@ function buildDom(cfg: ShellConfig) {
       canvas.style.height = `${winH}px`;
     } else {
       const displayScale = Math.max(1, Math.floor(availH / dispH));
-      canvas.style.width = `${dispW * displayScale}px`;
-      canvas.style.height = `${dispH * displayScale}px`;
+      const height = dispH * displayScale;
+      // screen_device::physical_aspect(): a CRT shows its raster at 4:3 (or
+      // the driver's set_physical_aspect) whatever its dot count, so a 512x240
+      // SNES picture is not 2.13:1. An LCD has none and keeps square pixels.
+      const aspect = cfg.board.screen.physicalAspect;
+      const shape = aspect ? (rotated ? aspect[1] / aspect[0] : aspect[0] / aspect[1]) : dispW / dispH;
+      const width = Math.min(innerWidth - 32, height * shape);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${width < height * shape ? width / shape : height}px`;
     }
     // The control panel is as wide as the glass above it, so the two read as
     // one cabinet rather than a screen with a widget underneath. Narrow

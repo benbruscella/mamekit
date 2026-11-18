@@ -175,3 +175,4 @@
 - [S-DSP silence gaps](sdsp-silence-gaps.md) — devcb offset, space() default, const pointers into tables (#174)
 - [Save-state shared arrays](save-state-shared-arrays.md) — pointer-into-table members save as aliases; tables built first
 - [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabel, expiry beam, precise timers end rounds, virtual dispatch for config-less bases; SMW RAM exact 1800 frames
+- [gen:all at the end](gen-all-at-end.md) — iterate with single-target gen; one gen:all + sweep when finished
