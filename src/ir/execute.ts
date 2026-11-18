@@ -809,6 +809,8 @@ export function executeGeneratedMachineProgram(
  * precedence: a driver method the emitter chose not to compile must still run,
  * and it must be the same one an interpreted caller would have reached.
  */
+const freshPalette = (): number[] => [];
+
 function preparedHandlerRuntime(
   prepared: PreparedMachineCalls,
   bindings: GeneratedHandlerBindings,
@@ -979,8 +981,14 @@ function preparedHandlerRuntime(
   } satisfies Omit<GeneratedHandlerRuntime, 'palette'> & { linksGeneration?: number };
   // A board handler has no palette of its own: every read is a fresh scratch
   // array, as it always was.
+  //
+  // One getter for every runtime: an accessor defined with a fresh closure on
+  // a second object of the same shape differs from the transition the first
+  // one made, and V8 drops that object to dictionary mode -- two of the SNES
+  // board's three handler runtimes were, and every `runtime.links` read in
+  // every emitted handler was a hash probe.
   prepared.runtime = runtime = Object.defineProperty(fields, 'palette', {
-    get: () => [],
+    get: freshPalette,
     enumerable: true,
   }) as typeof fields & Pick<GeneratedHandlerRuntime, 'palette'>;
   return runtime;
@@ -1067,7 +1075,11 @@ function machineHandlerBindings(
     const current = (): GeneratedHandlerRuntime => runtime !== undefined && runtime.linksGeneration === callLinksGeneration
       ? runtime : (runtime = currentHandlerRuntime(prepared, bindings));
     compiledLambdas.set(lambda, lambda.parameters.length === 3
-      ? (a: unknown, b: unknown, c: unknown) => compiled(current(), value(a), value(b), value(c))
+      // The SNES cartridge tap runs this on every bus access: numbers pass
+      // straight through, and the runtime check is the inline one.
+      ? (a: unknown, b: unknown, c: unknown) => compiled(
+        runtime !== undefined && runtime.linksGeneration === callLinksGeneration ? runtime : current(),
+        typeof a === 'number' ? a : value(a), typeof b === 'number' ? b : value(b), typeof c === 'number' ? c : value(c))
       : lambda.parameters.length === 2
         ? (a: unknown, b: unknown) => compiled(current(), value(a), value(b))
         : (...args: unknown[]) => compiled(current(), ...args.map(value)));

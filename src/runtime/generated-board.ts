@@ -2485,11 +2485,19 @@ class IrBoard implements Board {
         (recorder as unknown as Record<string, (...rest: unknown[]) => void>)[method]!(...args);
         for (const entry of recorder.entries) {
           if (entry.kind !== 'tap') continue;
-          bus.installAccessTap((address, writing) => {
-            if (address < entry.start || address > entry.end) return;
-            const handler = writing ? entry.write : entry.read;
-            handler?.(address - entry.start, 0, 0xff);
-          });
+          const { start, end, read, write } = entry;
+          // A tap over the whole space (the SNES cartridge slot's address
+          // pins) has no range to test.
+          bus.installAccessTap(start <= 0 && end >= bus.addrmask()
+            ? (address, writing) => {
+              const handler = writing ? write : read;
+              if (handler) handler(address - start, 0, 0xff);
+            }
+            : (address, writing) => {
+              if (address < start || address > end) return;
+              const handler = writing ? write : read;
+              if (handler) handler(address - start, 0, 0xff);
+            });
         }
         return 0;
       };
