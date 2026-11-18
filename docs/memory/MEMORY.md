@@ -177,3 +177,4 @@
 - [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabel, expiry beam, precise timers end rounds, virtual dispatch for config-less bases; SMW RAM exact 1800 frames
 - [gen:all at the end](gen-all-at-end.md) — iterate with single-target gen; one gen:all + sweep when finished
 - [SNES speed #174](snes-speed-174.md) — 18→~30 fps via general codegen fixes; stopped-CPU (WAI) rounds extended, A/B exact, DKC +35%
+- [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
