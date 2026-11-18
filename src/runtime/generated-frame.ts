@@ -426,6 +426,16 @@ export class GeneratedFrameRunner {
     return scheduled ? scheduled.local.since(ofTarget ? this.target : this.base) / 1e18 : 0;
   }
 
+  /**
+   * The beam at the scheduler's base, where MAME's `machine().time()` stands
+   * between timeslices: the line a frame event or the presentation falls on,
+   * exactly, whatever fraction of a cycle the processors stopped short of it.
+   */
+  baseBeam(): number {
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    return (this.originLine + this.base.since(this.frameBase) / this.linePeriod.total) % vtotal;
+  }
+
   /** How far a processor stands past the round's base, in its own cycles. */
   get cyclesAhead(): readonly number[] {
     return this.processors.map(entry => entry.local.since(this.base) / entry.cycle.total);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { FieldBinding } from '../../src/runtime/input.ts';
-import { inputTimeline, MEDIA_SWITCH, moveBootEvent, parseRanges, ramFrames, startSchedule } from './plan.ts';
+import { inputTimeline, MEDIA_SWITCH, moveBootEvent, parseIoTap, parseRanges, ramFrames, startSchedule } from './plan.ts';
 import { mameFrames } from './mame-side.ts';
 
 const bindings: FieldBinding[] = [
@@ -92,3 +92,10 @@ assert.deepEqual(mameFrames({ frames: [1, 600], offsets: [-1, 0, 1] } as never, 
   { snapshots: [1, 2, 599, 600, 601], ram: [1, 2, 3] });
 
 console.log('oracle plan.spec: ok');
+
+// A processor's tag is a device path: Venture's sound CPU is
+// `soundbd:audiocpu`, and splitting at the first colon lost the CPU (#271).
+assert.deepEqual(parseIoTap('maincpu:5103-51ff'), { tag: 'maincpu', lo: 0x5103, hi: 0x51ff, read: true, write: true });
+assert.deepEqual(parseIoTap('soundbd:audiocpu:805-fff'), { tag: 'soundbd:audiocpu', lo: 0x805, hi: 0xfff, read: true, write: true });
+assert.deepEqual(parseIoTap('soundbd:audiocpu:io:10-1f:w'), { tag: 'soundbd:audiocpu', space: 'io', lo: 0x10, hi: 0x1f, read: false, write: true });
+assert.deepEqual(parseIoTap('maincpu:program:c000:r'), { tag: 'maincpu', lo: 0xc000, hi: 0xc000, read: true, write: false });

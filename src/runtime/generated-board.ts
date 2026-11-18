@@ -558,6 +558,12 @@ class IrBoard implements Board {
   private roundTimers = false;
   /** A round timer was armed inside the round for `seconds` from its base. */
   private roundTimerArmed?: (seconds: number) => void;
+  /**
+   * MAME's `machine().time()` while a screen timer's work runs between
+   * timeslices -- the presentation, a frame event -- on the processors' clock
+   * (atSchedulerTime); undefined otherwise.
+   */
+  private schedulerSeconds?: number;
   /** Where the round in progress began, on the clock `machineSeconds` keeps. */
   private roundBaseSeconds = 0;
   /** How far the devices stood from the round's base when it began (nextTimerSeconds). */
@@ -1789,7 +1795,12 @@ class IrBoard implements Board {
         // it was armed for, and Neo Geo's vblank callback, re-arming for that
         // line, asked again and again for no time at all.
         const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
-        let lines = target - this.beamPosition();
+        // Measured from the instant machineSeconds() answers, which the
+        // expiry is added to: between timeslices that is the scheduler's base.
+        const beam = this.schedulerSeconds !== undefined && this.runningCpu === undefined
+          ? this.frameRunner.baseBeam()
+          : this.beamPosition();
+        let lines = target - beam;
         lines -= Math.floor(lines / vtotal) * vtotal;
         if (lines <= halfPixel) lines += vtotal;
         return lines * this.lineSeconds();
@@ -3559,7 +3570,7 @@ class IrBoard implements Board {
       // MAME presents at the start of VBLANK, where its devices stand; ours
       // may be a little short of it (held, or behind the processors), so the
       // presentation reads its timers from that instant.
-      aroundPresent: render => withGeneratedPresentTime(this.secondsToPresent(), render),
+      aroundPresent: render => this.atSchedulerTime(() => withGeneratedPresentTime(this.secondsToPresent(), render)),
       onPresented: () => {
         const held = this.heldDeviceSeconds;
         this.heldDeviceSeconds = 0;
@@ -3572,7 +3583,7 @@ class IrBoard implements Board {
           event.state,
           this.state,
         )) return;
-        dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects);
+        this.atSchedulerTime(() => dispatchGeneratedCallback(machine, event.callbackId, event.state, this.effects));
       },
       onLine: (line, phase, framebuffer) => {
         if (phase === 'before-processors') activeFramebuffer = framebuffer;
@@ -4838,6 +4849,11 @@ class IrBoard implements Board {
     // MAME's scheduler has it (see generatedTimerExpiry).
     const expiry = generatedTimerExpiry();
     if (expiry !== undefined) return expiry;
+    // Between timeslices the scheduler stands at its base, not where the
+    // processor stopped a fraction of a cycle short of it (atSchedulerTime).
+    if (this.schedulerSeconds !== undefined && this.runningCpu === undefined && !this.runningRoundDevice) {
+      return this.schedulerSeconds;
+    }
     // A device running in the round stands at its own local time.
     if (this.runningRoundDevice) return this.roundDeviceSeconds(this.runningRoundDevice) ?? 0;
     this.catchUpDeviceTime?.();
@@ -4848,6 +4864,28 @@ class IrBoard implements Board {
     const cpu = this.machine.execution.cpus.find(candidate => candidate.tag === tag);
     if (!cpu) return 0;
     return Math.max(0, this.cpuSeconds(cpu) - generatedTimerBacklog());
+  }
+
+  /**
+   * Run a screen timer's work -- the presentation, a frame event -- with
+   * machine time at the scheduler's base, as MAME's screen_update and
+   * vblank callbacks see it. The processors stop on whole cycles, so the one
+   * the board keeps time by stands up to a cycle short of the event; a
+   * driver timer armed there from `machine().time()` plus a
+   * `time_until_pos` measured from the beam came out that much early.
+   * Exidy's collision timers then raised Venture's IRQ an instruction
+   * before MAME's, and its RAM drifted from frame 2048 (#271).
+   */
+  private atSchedulerTime<T>(run: () => T): T {
+    const cpu = this.machine.execution.cpus[0];
+    if (!cpu || this.runningCpu !== undefined || generatedTimerExpiry() !== undefined) return run();
+    const outer = this.schedulerSeconds;
+    this.schedulerSeconds = Math.max(0, this.cpuSeconds(cpu) - this.frameRunner.secondsAhead(cpu.tag));
+    try {
+      return run();
+    } finally {
+      this.schedulerSeconds = outer;
+    }
   }
 
   /**

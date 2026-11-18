@@ -30,6 +30,15 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Venture stays in step with MAME ([#271](https://github.com/benbruscella/mamekit/issues/271))
+
+**For players:** Venture's attract mode now plays out exactly as MAME's does. With no input its RAM matches MAME's on every one of 6,200 frames, where it used to drift from frame 2048, and every picture checked is pixel-exact.
+
+**Under the hood:**
+- The presentation and frame events run at the scheduler's time. MAME calls `screen_update` and the vblank callbacks from screen timers, so `machine().time()` there is the event instant. Ours answered with the board's first processor, which stops on whole cycles, up to a cycle short of the event. A driver timer armed there (`machine().time()` plus a `time_until_pos` measured from the beam) came out that much early. Exidy's collision timers raised Venture's IRQ an instruction before MAME's. `GeneratedFrameRunner.baseBeam()` gives the beam at that instant.
+- A device timer's `remaining()` and `elapsed()` are read on the reading processor's clock, the lead `adjust()` already takes off when it arms. Venture's sound 6502 polled its 6532 timer up to a quantum short.
+- `mamekit diverge` and `against --io` read a tap from the right, so a processor tag with a colon (`soundbd:audiocpu`) is no longer cut at the first one.
+
 ### Mario's sound circuit plays from MAME's netlist ([#268](https://github.com/benbruscella/mamekit/issues/268))
 
 **For players:** Mario Bros. has sound. Its walk, skid and power-on sounds come from the board's TTL and VCO circuit, compiled from MAME's netlist. Before this, the board was silent. In a started game its level is within 0.2 dB of MAME's for each second of the contract run.
