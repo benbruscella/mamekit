@@ -2109,7 +2109,12 @@ function buildDom(cfg: ShellConfig) {
   canvas.width = dispW; canvas.height = dispH;
   // No cursor over the screen: a spinner's cursor is noise, and an arcade
   // monitor never had one.
-  canvas.style.cssText = 'image-rendering:pixelated;background:#000;cursor:none';
+  // Scaled up smoothly, as MAME's render target is by default (its `filter`
+  // option, bilinear): at a physical aspect the scale is rarely a whole
+  // number, and nearest-neighbour then makes some dots a screen pixel wider
+  // than others -- the SNES's 4:3 picture looked blocky, and its dithered
+  // backgrounds like noise.
+  canvas.style.cssText = 'image-rendering:auto;background:#000;cursor:none';
   canvas.dataset.screen = '1'; // stable handle for browser QA screenshots
 
   // optional cabinet bezel: the game canvas sits inside its transparent
@@ -2155,6 +2160,25 @@ function buildDom(cfg: ShellConfig) {
     // on every deck ever made, so they read as glyphs alone.
     for (const bay of deck.querySelectorAll<HTMLElement>('[data-media-bay]')) compactRow(bay);
   };
+  // Scanlines, as MAME's `-effect scanlines` overlays them: every other line
+  // of the picture's own raster darkened, so they meet its lines at any scale
+  // (and run down a rotated monitor's). A viewer's choice, kept per browser.
+  const scanlinesKey = 'mamekit:scanlines';
+  let scanlinesOn = false;
+  try { scanlinesOn = localStorage.getItem(scanlinesKey) === '1'; } catch { /* not kept */ }
+  const scanlines = document.createElement('div');
+  scanlines.dataset.scanlines = '';
+  scanlines.setAttribute('aria-hidden', 'true');
+  const placeScanlines = (): void => {
+    const width = parseFloat(canvas.style.width) || 0;
+    const height = parseFloat(canvas.style.height) || 0;
+    const period = (rotated ? width : height) / Math.max(1, h);
+    scanlines.style.cssText = `position:absolute;pointer-events:none;
+      left:${canvas.style.left || '0px'};top:${canvas.style.top || '0px'};width:${width}px;height:${height}px;
+      display:${scanlinesOn ? 'block' : 'none'};
+      background:repeating-linear-gradient(${rotated ? 'to right' : 'to bottom'},
+        transparent 0, transparent ${period / 2}px, rgba(0,0,0,.38) ${period / 2}px, rgba(0,0,0,.38) ${period}px)`;
+  };
   const fit = () => {
     // The screen takes what the page leaves it: everything else in the column
     // -- title, status, key hint, and a computer's control decks -- is
@@ -2196,11 +2220,13 @@ function buildDom(cfg: ShellConfig) {
     // screens get a floor, or the buttons would be stacked six deep.
     const glass = parseFloat(bezel ? holder.style.width : canvas.style.width) || 0;
     deck.style.width = `${Math.min(innerWidth - 32, Math.max(360, glass))}px`;
+    placeScanlines();
     compactToolbar();
   };
   fit();
   addEventListener('resize', fit);
   holder.appendChild(canvas);
+  holder.appendChild(scanlines);
   cab.appendChild(holder);
 
   const overlay = document.createElement('div');
@@ -2298,7 +2324,21 @@ function buildDom(cfg: ShellConfig) {
   keysCell.style.cssText = 'display:none;align-items:center;gap:7px';
   const keysButton = titleButton('Keys', 'Show the key legend', 'Show what every key does', 'quiet', 'keys');
   keysButton.setAttribute('aria-expanded', 'false');
-  keysCell.append(toolbarDivider(), keysButton);
+  const scanlinesButton = titleButton('Scanlines', 'Scanlines', 'Darken every other raster line, as a CRT shows them', 'quiet', 'scanlines');
+  scanlinesButton.dataset.scanlinesToggle = '';
+  const paintScanlines = (): void => {
+    scanlinesButton.setAttribute('aria-pressed', String(scanlinesOn));
+    paintTitleButton(scanlinesButton, scanlinesOn);
+  };
+  paintScanlines();
+  scanlinesButton.onclick = () => {
+    scanlinesOn = !scanlinesOn;
+    try { localStorage.setItem(scanlinesKey, scanlinesOn ? '1' : '0'); } catch { /* not kept */ }
+    paintScanlines();
+    placeScanlines();
+    scanlinesButton.blur();
+  };
+  keysCell.append(toolbarDivider(), scanlinesButton, keysButton);
   keysButton.onclick = () => {
     if (popoverFor(keysButton)) { closePopover(); return; }
     showPopover(keysButton, help, () => legendHost.appendChild(help));

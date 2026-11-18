@@ -38,7 +38,7 @@ const TONES: Record<Tone, { body: string; border: string; color: string }> = {
  * and its accessible name regardless.
  */
 export type Glyph = 'twoPlayer' | 'save' | 'load' | 'shelf' | 'eject' | 'broom' | 'keys' | 'back'
-  | 'tape' | 'disk' | 'play' | 'stop' | 'rewind' | 'fastForward' | 'power' | 'paste' | 'joystick' | 'flip';
+  | 'tape' | 'disk' | 'play' | 'stop' | 'rewind' | 'fastForward' | 'power' | 'paste' | 'joystick' | 'flip' | 'scanlines';
 
 const GLYPHS: Record<Glyph, string> = {
   // two arrows passing: one machine, two players
@@ -74,6 +74,8 @@ const GLYPHS: Record<Glyph, string> = {
   joystick: '<circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V14"/><rect x="5" y="14" width="14" height="6" rx="2"/>',
   // over to the other side: the next image of a set
   flip: '<path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/>',
+  // a screen crossed by its raster lines
+  scanlines: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M6 9h12M6 12h12M6 15h12"/>',
 };
 
 /** One glyph, sized for a pill button and coloured by whatever holds it. */
