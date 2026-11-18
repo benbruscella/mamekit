@@ -510,17 +510,6 @@ class IrBoard implements Board {
   /** Device taps on a space whose bus was not built yet (install_readwrite_tap). */
   private pendingSpaceTaps: { cpu: string; tap: (address: number, write: boolean) => void }[] = [];
   /**
-   * Cycles a CPU has run inside the slice it is running now.
-   *
-   * `cpuCycles` is only banked when a slice ends, so on its own it makes
-   * `total_cycles()` a staircase: every access inside one slice reads the same
-   * number and the count then jumps a whole quantum. Hardware that derives a
-   * beam position from it therefore stood still and teleported -- the Atari
-   * 2600's TIA drew one scanline where three belonged, leaving two of every
-   * three lines black and the picture flickering.
-   */
-  private readonly cpuSliceCycles = new Map<string, number>();
-  /**
    * Cycles the running processor's slice has executed, updated between
    * instructions. A field rather than a map entry: every instruction writes
    * it, and only the running processor's count is ever read mid-slice.
@@ -570,6 +559,8 @@ class IrBoard implements Board {
   /** The soonest round-ending timer's expiry, and the pendingTimers version it was found at. */
   private soonestEndingAt = Infinity;
   private soonestEndingVersion = -1;
+  private soonestPreciseAt = Infinity;
+  private soonestPreciseVersion = -1;
 
   /**
    * The soonest expiry among the timers that end a round (timerEndsRound),
@@ -3614,7 +3605,7 @@ class IrBoard implements Board {
       processors: [...machine.execution.cpus.map(specification => {
         // Resolved once for the processor rather than looked up per slice.
         const activity = this.cpuActivity(specification.tag);
-        let core: { device?: { spaceReads?: number } } | undefined;
+        let core: Cpu & { device?: { spaceReads?: number } } | undefined;
         const spaceReads = (): number => (core ??= this.cpus.get(specification.tag) as typeof core)?.device?.spaceReads ?? 0;
         return {
         tag: specification.tag,
@@ -3646,9 +3637,11 @@ class IrBoard implements Board {
           const outerExecuting = this.coreExecuting;
           this.runningCpu = specification.tag;
           try {
+            // Asked every slice -- about 24,000 a frame under the SNES's perfect
+            // quantum -- and almost always nothing owed, so nothing is written.
             const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
-            const stalled = Math.min(cycles, pendingStall);
-            this.cpuStalls.set(specification.tag, pendingStall - stalled);
+            const stalled = pendingStall > 0 ? Math.min(cycles, pendingStall) : 0;
+            if (stalled > 0) this.cpuStalls.set(specification.tag, pendingStall - stalled);
             this.runningStalled = stalled;
             if (specification.tag === timerClockCpu?.tag && stalled > 0) {
               advanceTimedHardware(stalled * timerSecondsPerCycle());
@@ -3658,7 +3651,7 @@ class IrBoard implements Board {
             const watched = machine.execution.perfectQuantum === true;
             const readsBefore = watched ? activity.reads + spaceReads() : 0;
             const executed = stalled + (cycles > stalled
-              ? this.cpus.get(specification.tag)!.run(cycles - stalled)
+              ? (core ??= this.cpus.get(specification.tag))!.run(cycles - stalled)
               : 0);
             this.coreExecuting = outerExecuting;
             this.currentLineFraction = 0;
@@ -3677,7 +3670,6 @@ class IrBoard implements Board {
               activity.quietPc = pc;
             }
             this.runningSliceCycles = 0;
-            this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
               specification.tag,
               (this.cpuCycles.get(specification.tag) ?? 0) + executed,
@@ -4280,7 +4272,6 @@ class IrBoard implements Board {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.observedTransportSeconds.clear();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
-    this.cpuSliceCycles.clear();
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -4453,10 +4444,17 @@ class IrBoard implements Board {
 
   /** Fire every precise driver timer that has come due, earliest first. */
   private firePreciseTimers(): void {
-    let earliest = Infinity;
-    for (const [member, pending] of this.pendingTimers) {
-      if (pending.at < earliest && this.preciseTimerMembers.has(member)) earliest = pending.at;
+    // Asked on every delivery of device time -- each slice -- and found again
+    // only when a timer was armed, cancelled or fired (soonestRoundEnding).
+    if (this.soonestPreciseVersion !== this.pendingTimers.version) {
+      let soonest = Infinity;
+      for (const [member, pending] of this.pendingTimers) {
+        if (pending.at < soonest && this.preciseTimerMembers.has(member)) soonest = pending.at;
+      }
+      this.soonestPreciseAt = soonest;
+      this.soonestPreciseVersion = this.pendingTimers.version;
     }
+    const earliest = this.soonestPreciseAt;
     if (earliest === Infinity) return;
     const now = this.machineSeconds();
     if (earliest > now) return;
@@ -4765,7 +4763,7 @@ class IrBoard implements Board {
   stateKeys(): readonly string[] {
     return [
       'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
-      'cpuSliceCycles', 'runningSliceCycles', 'devices', 'generatedBanks',
+      'runningSliceCycles', 'devices', 'generatedBanks',
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
@@ -5243,9 +5241,8 @@ class IrBoard implements Board {
 
   private totalCycles(cpuTag: string): number {
     return (this.cpuCycles.get(cpuTag) ?? 0)
-      + (cpuTag === this.runningCpu
-        ? this.runningSliceCycles
-        : this.cpuSliceCycles.get(cpuTag) ?? 0)
+      // A processor between slices has booked its whole slice in cpuCycles.
+      + (cpuTag === this.runningCpu ? this.runningSliceCycles : 0)
       // The slice total only moves between instructions. A device read or
       // write happens *inside* one, and MAME counts the cycles the current
       // instruction has already paid for -- so a cycle-accurate core is asked

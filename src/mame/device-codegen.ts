@@ -332,6 +332,26 @@ export function generatedDeviceMethodsSource(
   // non-enumerable marker, field walks and spreads never see it, and a
   // literal with a prototype costs nothing next to defineProperty.
   const cppStructPrototype = { [Symbol.for('mamekit.struct')]: true };
+  // CALL_METHOD through a table of method names: each entry's emitted method,
+  // resolved once and again only if that entry's name changes (see the
+  // CALL_METHOD emission). The last table is held, as a core keeps one until
+  // its mode changes.
+  const cppDispatch = new WeakMap${typescript ? '<object, { names: unknown[]; methods: any[] }>' : ''}();
+  let cppLastTable${typescript ? ': unknown' : ''}, cppLastEntry${typescript ? ': { names: unknown[]; methods: any[] } | undefined' : ''};
+  const cppMethodAt = (table${typescript ? ': any' : ''}, index${operand})${typescript ? ': any' : ''} => {
+    if (!Array.isArray(table)) return undefined;
+    let entry = table === cppLastTable ? cppLastEntry : undefined;
+    if (!entry) {
+      entry = cppDispatch.get(table);
+      if (!entry) cppDispatch.set(table, entry = { names: new Array(table.length), methods: new Array(table.length) });
+      cppLastTable = table;
+      cppLastEntry = entry;
+    }
+    const name = table[index];
+    if (entry.names[index] === name && name !== undefined) return entry.methods[index];
+    entry.names[index] = name;
+    return entry.methods[index] = typeof name === 'string' ? __methodTable[name] : undefined;
+  };
   // execute.ts's clearGeneratedStruct, field names read once per struct.
   const cppUnionElements = Symbol.for('mamekit.unionElements');
   const cppStructKeys = new WeakMap${typescript ? '<object, string[]>' : ''}();
@@ -2569,9 +2589,19 @@ function emitCall(
     // shared path below.
     if (name === 'CALL_METHOD' && args.length >= 1) {
       const rest = args.slice(1);
+      // A dispatch table indexed by a plain value (`m_opcodes[m_ir]`) resolves
+      // each entry's method once: a core's method table past ~1000 entries is
+      // a dictionary-mode object, and the 65C816 hashed a name every
+      // instruction. The name lookup stays the fallback.
+      const pointer = expression.args[0];
+      const pure = (candidate: GeneratedExpression): boolean => candidate.kind === 'number' ||
+        candidate.kind === 'identifier' || (candidate.kind === 'member' && pure(candidate.object));
+      const lookup = pointer?.kind === 'index' && pure(pointer.object) && pure(pointer.index)
+        ? `(cppMethodAt(${emitExpression(pointer.object, context)}, ${emitExpression(pointer.index, context)}) ?? __methodTable[${args[0]}])`
+        : `__methodTable[${args[0]}]`;
       return `((__method) => __method ? __method(runtime${rest.length ? `, ${rest.join(', ')}` : ''}) : ` +
         `(${callLink(context, name)} ? ${callLink(context, name)}(${args.join(', ')}) : ` +
-        `runtime.macro("CALL_METHOD"${args.length ? `, ${args.join(', ')}` : ''})))(__methodTable[${args[0]}])`;
+        `runtime.macro("CALL_METHOD"${args.length ? `, ${args.join(', ')}` : ''})))(${lookup})`;
     }
     // <cmath> answers the same everywhere, so it is spelled directly. The
     // speaker's filter takes `std::abs` of 64 taps for every one of 48,000

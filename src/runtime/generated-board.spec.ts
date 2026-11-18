@@ -506,12 +506,13 @@ screenHostBoard.frame(new Uint32Array(screenHostBoard.fbWidth * screenHostBoard.
 finder.capture_screen();
 assert.ok(timingDevice.get('m_seconds') > 0, 'source as_double() must observe advancing machine time');
 const clockHost = screenHostBoard as unknown as {
-  cpuSliceCycles: Map<string, number>;
+  cpuCycles: Map<string, number>;
 };
-clockHost.cpuSliceCycles.set('maincpu', 10);
+const bankedCycles = clockHost.cpuCycles.get('maincpu') ?? 0;
+clockHost.cpuCycles.set('maincpu', bankedCycles + 10);
 finder.capture_screen();
 const busWriteTime = timingDevice.get('m_seconds');
-clockHost.cpuSliceCycles.set('maincpu', 8);
+clockHost.cpuCycles.set('maincpu', bankedCycles + 8);
 finder.capture_screen();
 // A plain device reads the scheduler, which stands at a timer's own expiry
 // even when the lump that carried the clock past it already exposed a later
@@ -521,7 +522,7 @@ finder.capture_screen();
 // never rewinds, because it differences two readings to move its tape.
 assert.ok(timingDevice.get('m_seconds') < busWriteTime,
   'a plain device observes the scheduler at the expiry, not a clamped later reading');
-clockHost.cpuSliceCycles.set('maincpu', 11);
+clockHost.cpuCycles.set('maincpu', bankedCycles + 11);
 finder.capture_screen();
 assert.ok(timingDevice.get('m_seconds') > busWriteTime);
 screenHostBoard.reset();
