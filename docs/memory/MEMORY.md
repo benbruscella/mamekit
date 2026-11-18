@@ -178,3 +178,4 @@
 - [gen:all at the end](gen-all-at-end.md) — iterate with single-target gen; one gen:all + sweep when finished
 - [SNES speed #174](snes-speed-174.md) — SMW 60 fps in browser (Node ~52); V8 traps: __proto__ literals, accessor closures, >1000-key tables
 - [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
+- [Cart battery saves](cart-battery-saves.md) — every console slot via battery_load/save; devcb reads dropped offsets (FF3 hang)
