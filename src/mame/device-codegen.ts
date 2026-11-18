@@ -2096,6 +2096,11 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
       const name = localName(expression.object.name);
       return `(${name}$s !== undefined ? (${name}$s[${name}$o + (${index})] ?? 0) : runtime.readIndex(${object}, ${index}))`;
     }
+    if (context.pointerSafeIndex && ownedArrayMember(expression.object, context)) {
+      const held = methodTemp(context);
+      const view = context.typescript ? `(${held} as any)` : held;
+      return `(${held} = ${object}, ArrayBuffer.isView(${held}) ? (${view}[${index}] ?? 0) : runtime.readIndex(${held}, ${index}))`;
+    }
     return context.pointerSafeIndex && !isDirectArray(expression.object, context)
       ? `runtime.readIndex(${object}, ${index})`
       : `${object}[${index}]`;
@@ -2387,9 +2392,27 @@ function emitCall(
     // Through runtime.macro, the SNES PPU built 128 of these a line.
     if (name === 'STRUCT' && expression.args.length % 2 === 0 &&
         expression.args.every((argument, index) => index % 2 === 1 || argument.kind === 'string')) {
+      const names: string[] = [];
       const fields = [];
       for (let index = 0; index < expression.args.length; index += 2) {
-        fields.push(`${JSON.stringify((expression.args[index] as { value: string }).value)}: ${args[index + 1]}`);
+        names.push((expression.args[index] as { value: string }).value);
+        fields.push(`${JSON.stringify(names[names.length - 1])}: ${args[index + 1]}`);
+      }
+      // One constructor per field shape, its prototype the struct marker: a
+      // `{ __proto__: ... }` literal takes V8's slow object-creation path, and
+      // update_objects spent 90% of its time on that one line.
+      if (context.structCopiers && names.length) {
+        const shape = `cppStruct_${names.map(safeName).join('_')}`;
+        if (!context.structCopiers.has(shape)) {
+          const any = context.typescript ? ': any' : '';
+          const parameters = names.map((_, index) => `a${index}${any}`).join(', ');
+          const stores = names.map((field, index) => `this[${JSON.stringify(field)}] = a${index};`).join(' ');
+          context.structCopiers.set(shape,
+            `  function ${shape}(${context.typescript ? 'this: any, ' : ''}${parameters}) { ${stores} }\n` +
+            `  ${shape}.prototype = cppStructPrototype;`);
+        }
+        const values = names.map((_, index) => args[index * 2 + 1]).join(', ');
+        return context.typescript ? `new (${shape} as any)(${values})` : `new ${shape}(${values})`;
       }
       return `({ __proto__: cppStructPrototype, ${fields.join(', ')} })`;
     }
@@ -3128,6 +3151,11 @@ function emitAssignment(
     const next = operator === '='
       ? right
       : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
+    if (operator === '=' && ownedArrayMember(expression.object, context)) {
+      const held = methodTemp(context);
+      return `((${held} = members.${(expression.object as { name: string }).name}) && ArrayBuffer.isView(${held}) ` +
+        `? ((${context.typescript ? `${held} as any` : held})[${index}] = ${right}) : runtime.writeIndex(${object}, ${index}, ${right}))`;
+    }
     return `runtime.writeIndex(${object}, ${index}, ${next})`;
   }
   // A PAIR assigned from a PAIR copies the word, as the union is copied:
@@ -3571,6 +3599,16 @@ function isDirectArray(expression: GeneratedExpression, context: EmitContext): b
     !context.locals.has(expression.name) &&
     context.definition.members.some(member =>
       member.name === expression.name && member.arrayLength !== undefined);
+}
+
+// A device's `std::unique_ptr<T[]>` member: an owning array C++ never offsets,
+// allocated as a typed array (make_unique_clear). Read and written in place
+// when it is one, through readIndex/writeIndex otherwise -- the SNES PPU's
+// m_vram took four readIndex calls a tile, every tile of every line.
+function ownedArrayMember(expression: GeneratedExpression, context: EmitContext): boolean {
+  if (context.boardScope || expression.kind !== 'identifier' || context.locals.has(expression.name)) return false;
+  const member = context.definition.members.find(candidate => candidate.name === expression.name);
+  return Boolean(member && !member.arrayLength && /^(?:std::)?unique_ptr\s*<\s*[\w:]+\s*\[\s*\]\s*>$/.test(member.valueType.trim()));
 }
 
 function isStructFieldArray(expression: GeneratedExpression, context: EmitContext): boolean {
@@ -4249,11 +4287,45 @@ function emitSplitPair(expression: GeneratedExpression, context: EmitContext, ou
       out.push(`${lo} = (${left.lo} ${expression.operator} ${right.lo}) >>> 0;`, `${hi} = (${left.hi} ${expression.operator} ${right.hi}) >>> 0;`);
       return { lo, hi };
     }
+    // A constant shift folds to its own half-word expressions: the SNES PPU
+    // assembles every tile's 64 bits from eight `(u64)byte << k` terms.
+    const constant = expression.right.kind === 'number' && expression.right.wide === undefined ? expression.right.value : undefined;
+    if (constant !== undefined && Number.isInteger(constant) && constant >= 0) {
+      const k = constant;
+      const left64 = expression.operator === '<<';
+      const [nextLo, nextHi] = k === 0 ? [left.lo, left.hi]
+        : k >= 64 ? ['0', '0']
+        : left64
+          ? (k < 32
+            ? [`(${left.lo} << ${k}) >>> 0`, `((${left.hi} << ${k}) | (${left.lo} >>> ${32 - k})) >>> 0`]
+            : ['0', `(${left.lo} << ${k - 32}) >>> 0`])
+          : (k < 32
+            ? [`((${left.lo} >>> ${k}) | (${left.hi} << ${32 - k})) >>> 0`, `${left.hi} >>> ${k}`]
+            : [`${left.hi} >>> ${k - 32}`, '0']);
+      out.push(`${lo} = ${nextLo};`, `${hi} = ${nextHi};`);
+      return { lo, hi };
+    }
     const shift = methodTemp(context);
     out.push(`${shift} = Number(${emitExpression(expression.right, context)});`);
     const name = expression.operator === '<<' ? 'cppShl64' : 'cppShr64';
     out.push(`${lo} = ${name}Lo(${left.lo}, ${left.hi}, ${shift});`, `${hi} = ${name}Hi(${left.lo}, ${left.hi}, ${shift});`);
     return { lo, hi };
+  }
+  // A value of an unsigned type no wider than 32 bits has no high half.
+  // An element of an owned array (`std::unique_ptr<u8[]>`) is its element type.
+  const owned = expression.kind === 'index' && ownedArrayMember(expression.object, context)
+    ? /<\s*([\w:]+)\s*\[/.exec(context.definition.members.find(candidate =>
+      candidate.name === (expression.object as { name: string }).name)!.valueType)?.[1]
+    : undefined;
+  const narrow = (owned ?? expressionValueType(expression, context))?.replace(/\b(?:const|volatile)\b/g, '').trim();
+  if (narrow && /^(?:uint(?:8|16|32)_t|u(?:8|16|32)|unsigned(?: int| char| short)?|bool)$/.test(narrow)) {
+    const lo = methodTemp(context);
+    out.push(`${lo} = Number(${emitExpression(expression, context)}) >>> 0;`);
+    return { lo, hi: '0' };
+  }
+  if (expression.kind === 'number' && expression.wide === undefined && Number.isInteger(expression.value) &&
+      expression.value >= 0 && expression.value <= 0xffffffff) {
+    return { lo: String(expression.value >>> 0), hi: '0' };
   }
   const value = methodTemp(context), lo = methodTemp(context), hi = methodTemp(context);
   out.push(`${value} = ${emitExpression(expression, context)};`, `${lo} = cppLo64(${value});`, `${hi} = cppHi64(${value});`);

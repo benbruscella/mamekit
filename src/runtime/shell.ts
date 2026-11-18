@@ -1600,7 +1600,11 @@ export async function runShell(
     updateWarp();
     acc += now - last;
     last = now;
-    if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
+    // Two frames of backlog absorb a late display tick. More only batches: a
+    // machine slower than real time is always that far behind, so every tick
+    // ran the whole backlog back to back and drew once -- SMW at 45 fps ran
+    // five frames a tick and the screen changed 8.5 times a second.
+    if (acc > 2 * frameMs) acc = 2 * frameMs;
     // A pause owes the machine nothing: time that passed while it was stopped
     // is not a backlog of frames to catch up on when it starts again.
     if (paused) acc = 0;

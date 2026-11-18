@@ -2273,7 +2273,12 @@ class IrDevice implements Device {
         return (value as ArrayLike<unknown> | undefined)?.[index] ?? 0;
       },
       writeIndex: (value, index, next) => {
-        if (isGeneratedPointer(value)) {
+        // A typed array first, as readIndex: the pointer probe on one is a
+        // prototype-chain miss, and the SNES PPU's window masks write three
+        // scratch buffers a pixel through here.
+        if (ArrayBuffer.isView(value)) {
+          (value as unknown as Record<number, unknown>)[index] = next;
+        } else if (isGeneratedPointer(value)) {
           setGeneratedPointerElement(value, index, Number(next));
         } else if (value && typeof value === 'object') {
           (value as Record<number, unknown>)[index] = next;
