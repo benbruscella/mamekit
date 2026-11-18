@@ -1,6 +1,6 @@
 ---
 name: snes-speed-174
-description: "#174 speed push 18->~30 fps (Node steady state), all general codegen/runtime fixes, exact vs MAME; what is left and the WAI round idea"
+description: "#174 speed push 18->~48 fps Node / ~58 browser, all general codegen/runtime fixes, exact vs MAME; V8 traps found (proto literals, accessor closures)"
 metadata:
   node_type: memory
   type: project
@@ -25,3 +25,10 @@ Fixes (all general):
 Profile at ~30 fps: PPU ~32% (update_objects ~3 ms/frame), scheduler rounds ~28% (~8300 rounds/frame under perfect quantum, ~1.1 us each), 65C816 ~20%, S-SMP ~4%. machine_start's install_readwrite_handler mapRange costs ~1.5 s of startup (load time only).
 
 Stopped-CPU round extension DONE: board `cpuActivity` counts host reads + IrDevice.spaceReads; a slice with no read, exactly its cycles, and (read lazily) an unchanged STATE_GENPC twice in a row = stopped. Frame runner `stoppedLead()` extends a perfect round to the timer/lines' end when leading processors (configured order) are stopped, runs them last, and on a cut (synchronize) runs them to the end of the MAME quantum the cut falls in (`stoppedTarget`). Line changes already synchronize. A/B on/off identical (fb + 128KB WRAM + ARAM + audio, 1200 frames DKC); DKC 35% faster. SMW never WAIs (polls RAM), so no SMW gain. DKC vs MAME: pixel-exact @600, 1 RAM byte 7e0000 differs from frame 20 (separate gap). A/B harness: scratchpad ab.ts (needs a temporary off switch). See [[snes-nmi-scheduler]], [[gen-all-at-end]].
+
+2026-11-18 later (commits c66ae2dd, a8e6165c): browser 45 -> 54-55 fps, Node ~48.
+- `{ __proto__: X, ... }` literals take V8's slow path: struct literals now emit one constructor per field shape (update_objects was 90% that line).
+- `Object.defineProperty(obj, 'palette', { get: () => [] })` with a FRESH closure per object drops every object after the first to dictionary mode: 2 of 3 board handler runtimes were hash-probe objects. Use one shared getter. Probe with `node --allow-natives-syntax` + `%HasFastProperties` patched temporarily into dist.
+- std::unique_ptr<T[]> members index in place (ArrayBuffer.isView check); constant 64-bit shifts fold inline.
+- Shell backlog cap 5 -> 2 frames: a machine slower than real time ran 5 frames per rAF and drew 8.5x/s; a flat fps across scenes was this, not a cap.
+Left: memory path ~45% of CPU time (8 layers per ROM read), round bookkeeping ~1/3 of the frame in many 1% pieces; skipping start-of-slice timing(0) changes audio - don't.
