@@ -1600,7 +1600,7 @@ class IrDevice implements Device {
     // first use, rather than overload selection on every call.
     for (const method of definition.methods) {
       let call: ((...args: GeneratedCallArgument[]) => unknown) | undefined;
-      self[method.name] = (...args: GeneratedCallArgument[]) => (call ??= this.prepareCall(method.name))(...args);
+      self[method.name] = forwardingCall(() => call ??= this.prepareCall(method.name));
     }
     for (const member of definition.members) Object.defineProperty(self, member.name, {
       // A later lowered declaration may refine a member into a struct array.
@@ -2495,7 +2495,7 @@ class IrDevice implements Device {
         // C64 asks its expansion port's card for the bus on every read.
         const proxy: Record<string, unknown> = Object.fromEntries(child.methodNames().map(name => {
           let call: ((...args: GeneratedCallArgument[]) => unknown) | undefined;
-          return [name, (...args: GeneratedCallArgument[]) => (call ??= child.prepareCall(name))(...args)];
+          return [name, forwardingCall(() => call ??= child.prepareCall(name))];
         }));
         // And its members, as MAME's slot reaches into the card it holds: the
         // C64 expansion port's call_load writes `m_card->m_roml`. Not
@@ -5734,6 +5734,29 @@ function nestedArrayMember(shape: readonly number[]): unknown[] {
     { length: Math.max(0, extent ?? 0) },
     () => inner.length ? nestedArrayMember(inner) : 0,
   );
+}
+
+/**
+ * A call forwarded to a prepared call with exactly the arguments it was
+ * given, without building an array for them: a slot asks its card for
+ * `read_l`, `get_type` and the address on every 65C816 access.
+ */
+function forwardingCall(
+  resolve: () => (...args: GeneratedCallArgument[]) => unknown,
+): (...args: GeneratedCallArgument[]) => unknown {
+  return function forward(this: unknown) {
+    const call = resolve();
+    // eslint-disable-next-line prefer-rest-params
+    const args = arguments as unknown as GeneratedCallArgument[];
+    switch (args.length) {
+      case 0: return call();
+      case 1: return call(args[0]!);
+      case 2: return call(args[0]!, args[1]!);
+      case 3: return call(args[0]!, args[1]!, args[2]!);
+      case 4: return call(args[0]!, args[1]!, args[2]!, args[3]!);
+      default: return call(...args);
+    }
+  };
 }
 
 /**

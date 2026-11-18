@@ -2409,6 +2409,11 @@ function emitCall(
       const target = args[0] ?? '0';
       const value = args[1] ?? '0';
       const bytes = args[2] ?? '0';
+      // `memset(items, 0, sizeof(object_item) * 32)` over a struct of plain
+      // fields: each one cleared by name (structClearer), as the interpreter's
+      // rule clears every field of each struct element.
+      const clearer = structClearer(expression.args[2], context);
+      if (clearer) return `${clearer}(runtime, ${target}, ${value}, ${bytes})`;
       // A plain array is an array of structs (`gen_crc_info crcs[64]`), whose
       // memset clears each struct's fields -- the interpreter's rule. Filled
       // with zeros it lost the structs themselves.
@@ -2915,6 +2920,42 @@ function videoFrameworkChainName(
   const inner = linkedMemberCallName(object);
   const name = inner && `${inner}().${expression.callee.property}`;
   return name && VIDEO_FRAMEWORK_CHAIN_CALLS.includes(name) ? name : undefined;
+}
+
+/**
+ * A clearer for `memset(array, value, sizeof(T) * n)` where T is a struct of
+ * plain fields: each struct element's fields stored by name, anything else in
+ * the array set to the value, `count` elements from 0 as the interpreter's
+ * fillGeneratedMemory writes them. The SNES PPU clears 66 sprite items and
+ * tiles this way on every line. Undefined for any other shape.
+ */
+function structClearer(size: GeneratedExpression | undefined, context: EmitContext): string | undefined {
+  if (!context.structCopiers || !size || size.kind !== 'binary' || size.operator !== '*') return undefined;
+  const sized = [size.left, size.right].find(side => side.kind === 'call' && side.callee.kind === 'identifier' &&
+    side.callee.name === 'sizeof' && side.args[0]?.kind === 'identifier');
+  const type = sized?.kind === 'call' && sized.args[0]?.kind === 'identifier' ? sized.args[0].name : undefined;
+  const fields = type ? context.definition.structs?.[type] : undefined;
+  if (!type || !fields?.length ||
+      fields.some(field => field.length || field.fields || !/^\w+$/.test(field.name) ||
+        (field.valueType && context.definition.structs?.[field.valueType]))) return undefined;
+  const name = `struct_clear_${safeName(type)}`;
+  if (!context.structCopiers.has(name)) {
+    const any = context.typescript ? ': any' : '';
+    const stores = fields.map(field => `e.${field.name} = value;`).join(' ');
+    context.structCopiers.set(name, `  function ${name}(runtime${any}, target${any}, value${any}, count${any}) {
+    if (!Array.isArray(target)) return cppMemset(runtime, target, value, count);
+    const total = Number(count);
+    for (let index = 0; index < total; index++) {
+      const e = target[index];
+      if (e !== null && typeof e === 'object') {
+        if (ArrayBuffer.isView(e) || Array.isArray(e) || e[cppUnionElements] === true) return runtime.macro("memset", target, value, total);
+        ${stores}
+      } else target[index] = value;
+    }
+    return target;
+  }`);
+  }
+  return name;
 }
 
 /**
