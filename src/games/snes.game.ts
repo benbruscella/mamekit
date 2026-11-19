@@ -73,7 +73,9 @@ export const snes = {
       cartridge: 'smkart',
       romEnvironment: 'MAMEKIT_SNES_ROM',
       frames: 3000,
-      minimumFps: 15,
+      // About 26 fps locally and 14 on a CI runner: the floor catches a
+      // collapse, not the runner's speed.
+      minimumFps: 10,
       checkpoints: [1, 600, 1800, 2400, 3000],
       actions: [
         { atFrame: 299, code: 'Enter', heldFrames: 6, releasedFrames: 0 },

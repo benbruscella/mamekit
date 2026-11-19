@@ -56,6 +56,38 @@ export function stereoSideGains(routes: readonly { channel: number; stereo?: rea
   return Array.from(gains, gain => gain ?? 0);
 }
 
+/**
+ * Each side as a multiple of the device's own mono contribution, when its
+ * gains are: a chip routed wholly to one side, or to the centre, or every
+ * output panned alike -- most stereo boards. Its sides are then its mono
+ * samples scaled, with no second resampling. Undefined when outputs pan
+ * apart (a DISCRETE table with one output per side).
+ */
+export function proportionalSides(source: StreamSource): [number, number] | undefined {
+  if (!source.stereo) return undefined;
+  const lengths = [source.outputGains?.length ?? 0, ...source.stereo.map(gains => typeof gains === 'number' ? 0 : gains.length)];
+  // One past the longest table: where a by-output table has stopped and a
+  // gain for every output has not.
+  const outputs = Math.max(1, ...lengths) + 1;
+  const ratios: number[] = [];
+  for (const side of [0, 1] as const) {
+    let ratio: number | undefined;
+    for (let output = 0; output < outputs; output++) {
+      const mono = source.gain * (source.outputGains ? source.outputGains[output] ?? 0 : 1);
+      const weight = sideWeight(source.stereo[side], output);
+      if (mono === 0) {
+        if (weight !== 0) return undefined;
+        continue;
+      }
+      const next = weight / mono;
+      if (ratio === undefined) ratio = next;
+      else if (Math.abs(ratio - next) > 1e-12 * Math.max(1, Math.abs(ratio))) return undefined;
+    }
+    ratios.push(ratio ?? 0);
+  }
+  return [ratios[0]!, ratios[1]!];
+}
+
 /** One side of what a device rendered: its outputs summed at that side's gains. */
 function sideMix(lanes: readonly (ArrayLike<number> | undefined)[], gains: SideGains, count: number, scale: number): Float64Array {
   const out = new Float64Array(count);
@@ -197,8 +229,12 @@ export function createStreamMixer(
   const driverTick = tickState(driver);
   const lastTick = last === driver ? driverTick : tickState(last);
   // `outputGain` is the device's set_output_gain, over its routed gain.
-  const streams = sources.map(source => ({
-    ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
+  const streams = sources.map(source => {
+    const ratio = proportionalSides(source);
+    // Sides kept apart only when they are not the mono samples scaled.
+    const apart = Boolean(source.stereo) && !ratio;
+    return {
+    ...source, ratio, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
     // What a stream routed into another renders before its speaker gain, from
     // absolute sample `rawBase`, kept until every reader has passed it.
     feeds: sources.some(other => other.inputs?.some(input => input.tag === source.tag)), raw: [] as number[][], rawBase: 0,
@@ -206,11 +242,12 @@ export function createStreamMixer(
     resampled: false, channels: [] as StreamChannel[],
     // A chip rendering above the speaker's rate, kept at its own rate for
     // MAME's resampler (see render): its absolute index and recent samples.
-    lofi: { base: 0, rate: 0, history: [] as number[], sides: source.stereo ? [[], []] as number[][] : undefined },
+    lofi: { base: 0, rate: 0, history: [] as number[], sides: apart ? [[], []] as number[][] : undefined },
     // On a stereo board, what it gave the left and the right.
-    sides: source.stereo ? [[], []] as number[][] : undefined,
-  }));
-  const stereo = streams.some(stream => stream.sides);
+    sides: apart ? [[], []] as number[][] : undefined,
+  };
+  });
+  const stereo = sources.some(source => source.stereo);
   const state = { emitted: 0, streams };
   // The devices an acceptance gate watches, each reported as it renders.
   const observed = streams.filter(stream => context.observeStreams?.includes(stream.tag));
@@ -311,7 +348,7 @@ export function createStreamMixer(
       const written = Math.floor(time() * rate) + 1;
       stream.channels.push({
         rate, outputGain: 1, written, base: written, history: [], rendered: stream.rendered, pending: [],
-        ...(stream.stereo ? { sides: [{ history: [], pending: [] }, { history: [], pending: [] }] } : {}),
+        ...(stream.sides ? { sides: [{ history: [], pending: [] }, { history: [], pending: [] }] } : {}),
       });
     }
     return stream.channels;
@@ -689,7 +726,11 @@ export function createStreamMixer(
       let left = centre;
       let right = centre;
       for (const stream of streams) {
-        if (stream.sides) {
+        if (stream.ratio) {
+          const mono = stream.pending[index] ?? 0;
+          left += mono * stream.ratio[0];
+          right += mono * stream.ratio[1];
+        } else if (stream.sides) {
           left += stream.sides[0]![index] ?? 0;
           right += stream.sides[1]![index] ?? 0;
         } else {
