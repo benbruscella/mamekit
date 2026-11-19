@@ -171,3 +171,4 @@
 - [Epic 178 closed](epic-178-closed.md) — #266: architecture.spec guards must find nothing; RETIRED_MODULES/RETIRED_NAMES
 - [Closure pool #265](closure-pool-265.md) — closure was serial main-thread lowering; pool + 2 hot spots 564→103 s, verify by byte-diffing a scratch cold build
 - [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
+- [Exact attotime #272](exact-attotime-272.md) — devices reading attotime fields hold it exactly; Venture music back; `against --audio` is sound truth; residual round at 53.1200

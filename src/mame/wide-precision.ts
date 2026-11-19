@@ -14,7 +14,8 @@ import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board
 import { operationExpressions, walkOperations } from '../ir/walk.ts';
 import { splitMameArgs } from './ast.ts';
 
-const WIDE_TYPE = /^(?:std::)?(?:u?int64_t|u64|s64|(?:unsigned\s+|signed\s+)?long\s+long(?:\s+int)?)$/;
+// attotime.h's `attoseconds_t` is an s64.
+const WIDE_TYPE = /^(?:std::)?(?:u?int64_t|u64|s64|attoseconds_t|(?:unsigned\s+|signed\s+)?long\s+long(?:\s+int)?)$/;
 
 /** A declared type C holds in 64 bits. */
 export function isWideType(valueType: string | undefined): boolean {
@@ -123,7 +124,10 @@ export function markWidePrecision(methods: readonly WideMethod[], scope: WidePre
           return expression.callee.kind === 'identifier' &&
             (scope.calls.has(expression.callee.name) || isWideType(expression.callee.name));
         case 'unary': wide(expression.operand); return false;
-        case 'member': wide(expression.object); return false;
+        // An exact attotime's `m_attoseconds` (exact-attotime-marking.ts) is
+        // attoseconds_t: the 8253 divides two of them, and as doubles near
+        // 1e18 the quotient lost whole cycles.
+        case 'member': wide(expression.object); return expression.attotime === true && expression.property === 'm_attoseconds';
         case 'index': wide(expression.object); wide(expression.index); return false;
         default: return false;
       }

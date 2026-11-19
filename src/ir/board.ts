@@ -460,7 +460,9 @@ export type GeneratedExpression =
       pointer?: boolean;
       operand: GeneratedExpression;
     }
-  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression; precision?: 64; identity?: true }
+  // `attotime`: one of attotime's operators in a device that holds attotime
+  // exactly (exact-attotime.ts), or one of its two public fields.
+  | { kind: 'binary'; operator: string; left: GeneratedExpression; right: GeneratedExpression; precision?: 64; identity?: true; attotime?: true }
   | {
       kind: 'assignment';
       target: GeneratedExpression;
@@ -469,7 +471,7 @@ export type GeneratedExpression =
       postfix?: boolean;
     }
   | { kind: 'conditional'; condition: GeneratedExpression; whenTrue: GeneratedExpression; whenFalse: GeneratedExpression }
-  | { kind: 'member'; object: GeneratedExpression; property: string }
+  | { kind: 'member'; object: GeneratedExpression; property: string; attotime?: true }
   | { kind: 'index'; object: GeneratedExpression; index: GeneratedExpression }
   /**
    * `references` lists the arguments the callee takes by non-const C++
@@ -1388,6 +1390,11 @@ export interface GeneratedHandlerRuntime {
   resize(container: unknown, length: number): unknown;
   /** An attotime accessor on a duration held as seconds. */
   attotime(seconds: number, method: string, ...args: number[]): number;
+  /** attotime's operators and fields, exactly (src/ir/exact-attotime.ts). */
+  attotimeBinary(operator: string, left: unknown, right: unknown): unknown;
+  attotimeField(value: unknown, property: string): number | bigint;
+  withAttotimeField(value: unknown, property: string, field: unknown): unknown;
+  attotimeFieldAssignment(operator: string, current: number | bigint, value: unknown): unknown;
   invoke(name: string, ...args: unknown[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
