@@ -1,4 +1,4 @@
-import type { MachineTargetContract } from '../types.ts';
+import type { MachineTargetContract } from "./types.ts";
 
 export const snes = {
   "target": {
