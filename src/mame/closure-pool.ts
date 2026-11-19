@@ -20,6 +20,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import type { CapabilityArtifact, CapabilityEntry, CapabilityExtraction, HardwareCapability } from '../hardware/contract.ts';
 import { HARDWARE_INDEX_ENV, writeHardwareIndex } from './hardware.ts';
+import { retryableGeneratorSignal } from './worker-crash.ts';
 
 /** What a worker answers for one job: the extraction, less its artifacts. */
 export type ClosureExtraction = Omit<CapabilityExtraction, 'artifacts' | 'artifactGroups' | 'artifactEmitters'> & {
@@ -106,6 +107,11 @@ export async function extractCapabilitiesInPool(
     }
     let next = 0;
     let failure: Error | undefined;
+    // A job whose worker crashed in the runtime (the intermittent SIGILL/SIGBUS
+    // of JIT code on macOS arm64) goes back on the queue for a fresh worker;
+    // an extraction error does not. Its artifacts are rewritten whole.
+    const retries: ClosureJob[] = [];
+    const attempts = new Map<number, number>();
     const runWorker = (index: number): Promise<void> => new Promise((resolveWorker, rejectWorker) => {
       const child = fork(join(import.meta.dirname, 'closure-worker.ts'), [], {
         env,
@@ -116,7 +122,7 @@ export async function extractCapabilitiesInPool(
       let current: ClosureJob | undefined;
       let sent = 0;
       const dispatch = (): void => {
-        current = failure ? undefined : queue[next++];
+        current = failure ? undefined : retries.shift() ?? queue[next++];
         sent = performance.now();
         if (current) child.send(current);
         else child.send({ done: true });
@@ -134,7 +140,14 @@ export async function extractCapabilitiesInPool(
       child.once('error', rejectWorker);
       child.once('exit', (code, signal) => {
         if (failure) rejectWorker(failure);
-        else if (current) {
+        else if (current && retryableGeneratorSignal(signal) && (attempts.get(current.id) ?? 1) < 3) {
+          const attempt = (attempts.get(current.id) ?? 1) + 1;
+          attempts.set(current.id, attempt);
+          console.warn(`closure worker ${index + 1} exited ${signal} during ${current.capability}` +
+            `${current.types ? ` ${current.types.join(', ')}` : ''}; retrying (attempt ${attempt}/3)`);
+          retries.push(current);
+          runWorker(index).then(resolveWorker, rejectWorker);
+        } else if (current) {
           rejectWorker(new Error(`closure worker ${index + 1} exited ${code ?? signal} during ` +
             `${current.capability}${current.types ? ` ${current.types.join(', ')}` : ''}`));
         } else resolveWorker();

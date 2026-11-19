@@ -41,3 +41,14 @@ known-good run. Each run takes 9 s, so a few hundred runs fit in minutes.
   Node.
 
 Related: [[node-rom-inflate-segfault]], [[acceptance-run-flake]], [[node-version-pin]].
+
+## 2026-11-20: the compiler crashes too, so every worker pool retries
+
+The fault isn't only the emulator. The hardware closure's NES board workers
+SIGILL'd in 2 of 7 identical runs (about 1 in 56 worker processes), on a
+different worker each time, with the same `.ips` signature (KERN_PROTECTION_FAILURE,
+no native frames). A closure worker then died on INVADERS_AUDIO the same way.
+Shared rule in `src/mame/worker-crash.ts`: the NES board workers and
+`closure-pool.ts` both retry a runtime-signal death up to 3 attempts on a fresh
+process; an extraction error still fails at once. Fault injection via
+`NODE_OPTIONS=--import <preload>` that SIGILLs the child is how to test it.
