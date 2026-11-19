@@ -13,6 +13,7 @@ import {
   writeHardwareIndex,
   type MameHardwareDefinition,
 } from '../../mame/hardware.ts';
+import { retryableGeneratorSignal, retryableRuntimeCrash } from '../../mame/worker-crash.ts';
 import { shareCardInterface } from '../../ir/card-interface.ts';
 import { nesCartOptions } from './ines-mappers.ts';
 import { softwareListPeripherals } from '../../kg/softlist.ts';
@@ -284,7 +285,34 @@ async function compileCartridgeBoards(
       env[HARDWARE_INDEX_ENV] = join(scratch, 'hardware-index.json');
       writeHardwareIndex(mameSource, env[HARDWARE_INDEX_ENV]);
     }
-    const shares = await Promise.all(Array.from({ length: workers }, (_, worker) => {
+    // A share whose worker crashed in the runtime (the intermittent
+    // SIGILL/SIGBUS of JIT code on macOS arm64) is compiled again; a real
+    // failure is not. Every worker is awaited before the scratch directory
+    // goes, so one failure cannot pull the job files from under the rest.
+    const runShare = (worker: number, job: string, out: string, attempt = 1): Promise<[string, CartridgeBoard][]> =>
+      new Promise((resolveShare, rejectShare) => {
+        const child = spawn(process.execPath, [join(import.meta.dirname, '../../mame/nes-board-worker.ts'), job, out], {
+          env,
+          stdio: ['ignore', 'inherit', 'pipe'],
+        });
+        let stderr = '';
+        child.stderr.on('data', (chunk: Buffer) => {
+          stderr += chunk.toString();
+          process.stderr.write(chunk);
+        });
+        child.once('error', rejectShare);
+        child.once('exit', (code, signal) => {
+          if (code === 0) {
+            resolveShare(JSON.parse(readFileSync(out, 'utf8')) as [string, CartridgeBoard][]);
+          } else if (attempt < 3 && (retryableGeneratorSignal(signal) || retryableRuntimeCrash(stderr))) {
+            console.warn(`NES board worker ${worker + 1}/${workers} exited ${code ?? signal}; retrying (attempt ${attempt + 1}/3)`);
+            runShare(worker, job, out, attempt + 1).then(resolveShare, rejectShare);
+          } else {
+            rejectShare(new Error(`NES board worker ${worker + 1}/${workers} exited ${code ?? signal}`));
+          }
+        });
+      });
+    const settled = await Promise.allSettled(Array.from({ length: workers }, (_, worker) => {
       const job = join(scratch, `job-${worker}.json`);
       const out = join(scratch, `boards-${worker}.json`);
       writeFileSync(job, JSON.stringify({
@@ -292,18 +320,11 @@ async function compileCartridgeBoards(
         hotMethods,
         types: types.filter((_, position) => position % workers === worker),
       }));
-      return new Promise<[string, CartridgeBoard][]>((resolveShare, rejectShare) => {
-        const child = spawn(process.execPath, [join(import.meta.dirname, '../../mame/nes-board-worker.ts'), job, out], {
-          env,
-          stdio: ['ignore', 'inherit', 'inherit'],
-        });
-        child.once('error', rejectShare);
-        child.once('exit', (code, signal) => {
-          if (code === 0) resolveShare(JSON.parse(readFileSync(out, 'utf8')) as [string, CartridgeBoard][]);
-          else rejectShare(new Error(`NES board worker ${worker + 1}/${workers} exited ${code ?? signal}`));
-        });
-      });
+      return runShare(worker, job, out);
     }));
+    const failed = settled.find(share => share.status === 'rejected');
+    if (failed) throw failed.reason;
+    const shares = settled.map(share => (share as PromiseFulfilledResult<[string, CartridgeBoard][]>).value);
     return new Map(shares.flat());
   } finally {
     rmSync(scratch, { recursive: true, force: true });
