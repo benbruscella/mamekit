@@ -30,6 +30,18 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### C64 covers on the shelves, one inbox for `.data`, and a bucket that matches it ([#159](https://github.com/benbruscella/mamekit/issues/159))
+
+**For players:** 1,137 Commodore 64 titles show their real box art in the software room in place of the drawn tape, disk or cartridge: 853 tapes, 181–185 cartridges (PAL/NTSC), 25 VIC-10 cartridges and 23 disks. A cover is shown whole and at its own shape, so a square disk sleeve and a tall tape inlay both stand on the shelf uncropped.
+
+**Under the hood:**
+- `tools/rom-library/covers.ts` replaces `tools/c64-covers.ts`. It matches TOSEC's `Cover.zip` scans to shelf titles by normalised name. Where a title has several scans, the one whose label agrees with MAME's publisher wins, then the plainest name. A scan whose label disagrees is held in `_input/_review/`.
+- Scans wider than 0.7:1 are cropped to their front panel when they show a fold: a column, in the band where a front can start, crossing most rows with a grey edge or a colour change. The right-most strong fold wins, so back, spine and front lose both. Near-square and narrow scans ask for a stronger fold, and a scan with none stays whole, because cutting a title costs more than a spine left on. 631 of 1,137 covers are cropped.
+- Extraction is one batched `unzip` per archive: 71 s for 1,137 covers, against ten minutes with one call per scan.
+- `.data/_input/` is the single inbox. `make import` routes each input by its content: dumps by hash, `.wav` zips as sample sets, `.lay` zips as arcade artwork, image zips in `_input/<system>/` as covers. Outcomes, review, quarantine and reports live in its `_*` folders, and `make status` adds a covers row per computer.
+- `make bucket-tidy` (`DRY=1` first) moves every bucket object with no local file to `_quarantine/<key>` in the bucket. `make sync` never removed anything.
+- `sync-artwork` skips `_*` folders and dot-files.
+
 ### MAME's round rules: the sound manager's timer, line-start screen timers, synced input lines ([#275](https://github.com/benbruscella/mamekit/issues/275))
 
 **For players:** Venture plays a coin-and-play game exactly as MAME does: its RAM matches MAME's on all 6,200 frames, where it used to drift from frame 3900. Centipede, Galaxian, Gyruss, Juno First and Pengo now match MAME's RAM on every frame too.

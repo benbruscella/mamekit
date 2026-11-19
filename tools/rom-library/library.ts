@@ -25,6 +25,8 @@ import {
 
 export interface LibraryOptions {
   romsDir: string;
+  /** where tidying moves what no supported machine claims (default <romsDir>/_quarantine) */
+  quarantineDir?: string;
   mameSrc: string;
   distDir: string;
   dryRun: boolean;

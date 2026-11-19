@@ -29,6 +29,8 @@ interface Shelf {
   list: string; kind: string; catalogUrl: string; availableUrl?: string; mountable: boolean; entries: number; slots?: string[];
   extensions: string[]; imageDevice?: string;
   boot?: { delay: number; command: string; play?: boolean };
+  /** a title's cover, by short name, where .data/artwork/carts/<list>/ has one */
+  art?: Record<string, string>;
 }
 interface MachineConfig { software?: { dumpsKey: string; shelves: Shelf[] }; dipDefaults?: { config?: boolean }[] }
 
@@ -201,6 +203,26 @@ test.describe('software room', () => {
       await expect(page.locator('[data-catalog-set]').first()).toBeVisible();
       await expect(page.locator('[data-catalog-set] [data-fetch]').first()).toBeDisabled();
     }
+    expect(faults.errors).toEqual([]);
+  });
+
+  // A title whose shelf has a cover (artwork/carts/<list>/<name>.webp, from a
+  // cover archive filed by `make import`) shows it over its drawn medium.
+  test('a title with a cover shows the cover in place of its medium', async ({ page }) => {
+    const shelf = shelves.find(candidate => Object.keys(candidate.art ?? {}).length);
+    test.skip(!shelf, 'no shelf has covers (.data is not in this checkout)');
+    const catalog: { entries: { name: string; description: string }[] } =
+      JSON.parse(readFileSync(join(machineDir, shelf!.catalogUrl), 'utf8'));
+    const entry = catalog.entries.find(candidate => shelf!.art![candidate.name])!;
+    const faults = watchFaults(page);
+    await page.goto(`/app/g/${MACHINE}/`);
+    await page.locator('[data-software-room]').waitFor({ state: 'visible' });
+    await page.locator(`[data-media-tab="${shelf!.list}"]`).click();
+    await page.getByPlaceholder(/search titles/i).fill(entry.description.replace(/\s*\(.*\)$/, ''));
+    const cover = page.locator(`[data-catalog-set="${entry.name}"] img[data-cover]`).first();
+    await expect(cover).toBeVisible();
+    await expect.poll(() => cover.evaluate(img => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    expect(await cover.getAttribute('src')).toContain(`carts/${shelf!.list}/${entry.name}.webp`);
     expect(faults.errors).toEqual([]);
   });
 

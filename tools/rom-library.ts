@@ -1,45 +1,52 @@
-// The local ROM library: what each supported system has, what it is missing,
-// and filing whatever is dropped into .data/roms/_new/.
+// The local data library: what each supported system has, what it is missing,
+// and filing whatever is dropped into .data/_input/ -- the one inbox for every
+// kind of thing .data holds.
 //
-//   node tools/rom-library.ts status             per system: every list, BIOS and arcade sets
+//   node tools/rom-library.ts status             per system: every list, BIOS, arcade sets, samples, covers
 //   node tools/rom-library.ts missing            name the gaps (--list nes --region western --limit 40 --csv)
-//   node tools/rom-library.ts import [--dry-run] tidy, then identify and file everything in _new/
+//   node tools/rom-library.ts import [--dry-run] [--only roms|samples|artwork|covers] [--replace]
+//                                                tidy, then file everything in _input/
+//                                                (--replace rewrites covers already filed)
 //   node tools/rom-library.ts tidy [--dry-run]   quarantine what nothing supported claims
-//   node tools/rom-library.ts samples [import [--dry-run]]
-//                                                sample sets: which are filed, or file samples/_new/
+//   node tools/rom-library.ts samples            sample sets: which are filed and what each lacks
 //
 // Supported means generated: the systems, their software lists and their BIOS
 // sets come from the game contracts and each target's config.json (see
 // tools/rom-library/systems.ts), and the lists themselves from MAME's hash/.
-// `.data/Makefile` wraps these as `make roms-status`, `roms-missing`,
-// `roms-import` and `roms-tidy`.
+// `.data/Makefile` wraps these as `make import`, `make status` and the
+// per-kind `roms-*` / `samples-*` targets.
 //
-// Identification is by content: every chip is a size, CRC32 and SHA1 match
-// against the list, so a file's name, folder and download page play no part.
-// Nothing is ever deleted. An input ends up in exactly one place under _new/:
+// Each input in _input/ is routed by what it holds, never by its name:
 //
-//   _imported/      it supplied at least one set the shelf did not have
+//   a zip of .wav files         a sample set, filed by the names it covers (rom-library/samples.ts)
+//   a zip with a .lay           MAME artwork for an arcade machine: artwork/<game>.zip
+//   a zip of images in          a cover archive for that system's software shelves
+//     _input/<system>/            (rom-library/covers.ts): artwork/carts/<list>/<name>.webp
+//   anything else               dumps, identified chip by chip: size, CRC32 and SHA1
+//
+// Nothing is ever deleted. An input ends up in exactly one place under _input/:
+//
+//   _done/          it supplied something the library did not have
 //   _duplicate/     everything it matched is already filed
-//   _unsupported/   it matched only sets MAME marks unsupported
+//   _unsupported/   it matched only sets MAME marks unsupported, or no supported machine
 //   _incomplete/    it matched chips, but no complete part of any set
-//   _unidentified/  it matched nothing a supported list names
+//   _unidentified/  it matched nothing
 //
-// and every run writes _new/_reports/<command>-<time>.json naming each match.
-//
-// Sample sets (.data/samples/<set>.zip) have no CRCs in MAME, so `samples
-// import` files a zip by the .wav names it covers (rom-library/samples.ts),
-// into the same outcome folders under samples/_new/. Tidying asks MAME's own
-// -listxml (MAME_BIN, or its warm cache) which device sets MAME's run of a
-// supported machine needs, so the oracle's Votrax for Q*bert stays filed.
+// beside _review/ (covers held for a person to accept), _quarantine/ (what
+// tidying took off a shelf, logged in quarantine.jsonl) and _reports/ (every
+// run's report, <command>-<time>.json). Tidying asks MAME's own -listxml
+// (MAME_BIN, or its warm cache) which device sets MAME's run of a supported
+// machine needs, so the oracle's Votrax for Q*bert stays filed.
 
 import { appendFileSync, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { crc32 } from 'node:zlib';
 import { checkRomSet, missingRomSets } from '../src/runtime/shell.ts';
 import { mameSourceDir, romsDir as romsRoot, samplesDir as samplesRoot } from '../src/paths.ts';
 import { walkFile, readZipBytes, type Blob } from './rom-library/archives.ts';
 import { identifyBlob, type Piece, type Variant } from './rom-library/identify.ts';
 import { hex8, Library, writeZip, type Outcome, type SetChip, type Verdict } from './rom-library/library.ts';
+import { coverWants, extractScans, planCovers, shelfCovers, writeCover, zipMembers } from './rom-library/covers.ts';
 import { mameRunSets } from './rom-library/mame-run.ts';
 import {
   checkSampleSet, identifySampleZip, rootOnly, sampleNeeds, zipSamples,
@@ -59,14 +66,19 @@ const listFilter = flag('--list');
 const datOut = argv.includes('--dat');
 
 const romsDir = resolve(flag('--roms') ?? romsRoot(projectRoot));
-const inbox = resolve(flag('--inbox') ?? join(romsDir, '_new'));
+const inbox = resolve(flag('--inbox') ?? join(dirname(romsDir), '_input'));
+const quarantineRoot = join(inbox, '_quarantine');
+const reviewRoot = join(inbox, '_review');
 const mameSrc = flag('--mame') ? resolve(flag('--mame')!) : mameSourceDir(projectRoot);
 const distDir = resolve(flag('--dist') ?? join(projectRoot, 'dist'));
 const samplesDir = resolve(flag('--samples') ?? samplesRoot(projectRoot));
-const samplesInbox = join(samplesDir, '_new');
+const artworkDir = resolve(flag('--artwork') ?? join(dirname(romsDir), 'artwork'));
+const coverRoot = join(artworkDir, 'carts');
+const only = flag('--only');
+if (only && !['roms', 'samples', 'artwork', 'covers'].includes(only)) fail(`--only takes roms, samples, artwork or covers, not "${only}"`);
 
 if (!existsSync(join(mameSrc, 'hash'))) fail(`no MAME software lists at ${join(mameSrc, 'hash')} -- pass --mame <checkout>`);
-const library = await Library.open({ romsDir, mameSrc, distDir, dryRun });
+const library = await Library.open({ romsDir, quarantineDir: quarantineRoot, mameSrc, distDir, dryRun });
 for (const list of library.missingLists) console.warn(`note: ${list}.xml is not in ${mameSrc}/hash -- that list is skipped`);
 if (library.systems.ungenerated.length) {
   console.warn(`note: ${library.systems.ungenerated.join(', ')} not generated -- their BIOS and arcade sets cannot be checked (npm run gen:all)`);
@@ -200,6 +212,7 @@ function status(): void {
           (cover.unsupported ? `  (${cover.unsupported} MAME-unsupported not counted)` : ''),
       ]);
     }
+    if (system.category === 'computers') rows.push(coverRow(system));
     const checks = system.machines.map(machine => checkMachine(system, machine)).filter(Boolean) as MachineCheck[];
     if (!checks.length) { rows.push([system.key, 'bios', 'none needed', '', '']); continue; }
     const required = new Set(checks.flatMap(check => check.read.map(path => path.split('/').pop()!.slice(0, -4))));
@@ -213,18 +226,26 @@ function status(): void {
   rows.push(sampleRow());
   printTable(rows);
 
-  const waiting = waitingIn(inbox);
-  const waitingSamples = waitingIn(samplesInbox);
+  const waiting = inboxFiles(inbox);
+  const held = existsSync(reviewRoot) ? inboxFiles(reviewRoot, false).length : 0;
   const quarantine = plan.moves.filter(move => move.kind === 'quarantine');
   console.log('');
-  console.log(`inbox       ${shown(inbox)}/: ${waiting.length ? `${waiting.length} item(s) waiting -- make roms-import` : 'empty'}`);
-  if (waitingSamples.length) console.log(`            ${shown(samplesInbox)}/: ${waitingSamples.length} item(s) waiting -- make samples-import`);
+  console.log(`inbox       ${shown(inbox)}/: ${waiting.length ? `${waiting.length} file(s) waiting -- make import DRY=1, then make import` : 'empty'}`);
+  if (held) console.log(`review      ${shown(reviewRoot)}/: ${held} cover(s) held -- move one into ${shown(coverRoot)}/<list>/ to accept it`);
   console.log(`tidy        ${plan.moves.length ? `${quarantine.length} to quarantine, ${plan.moves.length - quarantine.length} to refile -- make roms-tidy DRY=1 lists them` : 'nothing to do'}`);
   if (regions) console.log(`region      only entries tagged ${flag('--region')}`);
 }
 
-function waitingIn(dir: string): string[] {
-  return existsSync(dir) ? readdirSync(dir).filter(name => !name.startsWith('_') && !name.startsWith('.')) : [];
+/** The status table's covers row: how many of a computer's shelved titles have a cover. */
+function coverRow(system: System): string[] {
+  const wants = coverWants(system, distDir);
+  const lists = [...new Set(wants.map(want => want.list))];
+  const have = new Map(lists.map(list => [list, shelfCovers(coverRoot, list)]));
+  const covered = wants.filter(want => have.get(want.list)!.has(want.name));
+  return [system.key, 'covers', `titles ${covered.length}/${wants.length}`, pct(covered.length, wants.length),
+    wants.length
+      ? lists.map(list => `${list} ${covered.filter(want => want.list === list).length}/${wants.filter(want => want.list === list).length}`).join(', ')
+      : 'no generated shelves'];
 }
 
 /** The status table's samples row: every set a supported machine needs, and how its zip answers. */
@@ -375,8 +396,32 @@ function tidy(): TidyPlan {
 // --- import -----------------------------------------------------------------
 
 const BUCKETS: Record<Verdict | 'unidentified', string> = {
-  imported: '_imported', duplicate: '_duplicate', unsupported: '_unsupported', incomplete: '_incomplete', unidentified: '_unidentified',
+  imported: '_done', duplicate: '_duplicate', unsupported: '_unsupported', incomplete: '_incomplete', unidentified: '_unidentified',
 };
+
+type Route = 'roms' | 'samples' | 'artwork' | 'covers';
+const IMAGE_MEMBER = /\.(jpe?g|png|gif|webp|bmp)$/i;
+/** What a scan archive carries beside its images: a scanner's index, a readme. */
+const IMAGE_SIDECAR = /(^|\/)(thumbs\.db|\.ds_store|[^/]*\.(txt|nfo|diz|htm|html|url))$/i;
+
+/** The system an input's top folder names (`c64/Cover.zip` -> computers/c64), for scoping covers. */
+function systemFolder(rel: string): System | undefined {
+  const top = rel.split(sep)[0]!;
+  if (top === rel) return undefined;
+  return library.systems.systems.find(system => system.category !== 'arcade' && system.key.split('/').pop() === top);
+}
+
+/** Route an input by what it holds; reading a zip's directory, never the whole archive. */
+function routeOf(input: string): Route {
+  if (!/\.zip$/i.test(input)) return 'roms';
+  const members = zipMembers(input)?.filter(member => !member.endsWith('/'));
+  if (!members?.length) return 'roms';
+  if (members.every(member => /\.wav$/i.test(member))) return 'samples';
+  if (members.some(member => /\.lay$/i.test(member))) return 'artwork';
+  const content = members.filter(member => !IMAGE_SIDECAR.test(member));
+  if (content.length && content.every(member => IMAGE_MEMBER.test(member))) return 'covers';
+  return 'roms';
+}
 
 async function importInbox(): Promise<void> {
   // An audit of a mixed C64 inbox, made outside this tool, files through its
@@ -391,11 +436,30 @@ async function importInbox(): Promise<void> {
     });
     return;
   }
-  console.log('== tidy');
-  tidy();
-  if (!existsSync(inbox)) fail(`${inbox} does not exist -- create it and drop dumps in`);
-  const inputs = inboxFiles(inbox);
-  console.log(`\n== import ${shown(inbox)}/: ${inputs.length} input(s)`);
+  if (!only || only === 'roms') {
+    console.log('== tidy');
+    tidy();
+  }
+  if (!existsSync(inbox)) fail(`${inbox} does not exist -- create it and drop things in`);
+  const routed = new Map<Route, string[]>();
+  for (const input of inboxFiles(inbox)) {
+    const route = routeOf(input);
+    routed.set(route, [...(routed.get(route) ?? []), input]);
+  }
+  const take = (route: Route) => !only || only === route ? routed.get(route) ?? [] : [];
+  const counts = [...routed].map(([route, inputs]) => `${inputs.length} ${route}`).join(', ');
+  console.log(`\n== import ${shown(inbox)}/: ${counts || 'nothing waiting'}${only ? ` (only ${only})` : ''}`);
+  const report: Record<string, unknown> = {};
+  if (take('samples').length) report.samples = importSamples(take('samples'));
+  if (take('artwork').length) report.artwork = importArtwork(take('artwork'));
+  if (take('covers').length) report.covers = importCovers(take('covers'));
+  if (take('roms').length) report.roms = await importRoms(take('roms'));
+  const path = writeReport('import', report);
+  console.log(`\nreport: ${relative(process.cwd(), path)}`);
+}
+
+async function importRoms(inputs: string[]): Promise<Record<string, unknown>[]> {
+  console.log(`\n== roms: ${inputs.length} input(s)`);
   const report: Record<string, unknown>[] = [];
   const totals = { imported: 0, duplicate: 0, unsupported: 0, incomplete: 0, unidentified: 0 };
   for (const input of inputs) {
@@ -458,10 +522,135 @@ async function importInbox(): Promise<void> {
     console.log(`  ${summary.join(', ')}`);
     report.push({ input: rel, parked: shown(parked), files, outcomes, unmatched, problems });
   }
-  console.log(`\n${dryRun ? '[dry run] ' : ''}import: ${totals.imported} set(s) imported, ${totals.duplicate} already filed, ` +
+  console.log(`\n${dryRun ? '[dry run] ' : ''}roms: ${totals.imported} set(s) imported, ${totals.duplicate} already filed, ` +
     `${totals.unsupported} MAME-unsupported, ${totals.incomplete} incomplete, ${totals.unidentified} file(s) matched nothing`);
-  const path = writeReport('import', { inputs: report });
-  console.log(`report: ${relative(process.cwd(), path)}`);
+  return report;
+}
+
+/**
+ * MAME artwork: a zip holding a layout, named for the machine it dresses. It
+ * is filed as it is -- artwork/<game>.zip, moved rather than copied, since the
+ * filed zip is the input -- and the build resolves its bezel (src/gen/bezel-artwork.ts).
+ */
+function importArtwork(inputs: string[]): Record<string, unknown>[] {
+  console.log(`\n== artwork: ${inputs.length} input(s)`);
+  const games = new Set([
+    ...library.systems.systems.filter(system => system.category === 'arcade').flatMap(system => system.machines.map(machine => machine.game)),
+    ...library.systems.parked,
+  ]);
+  const report: Record<string, unknown>[] = [];
+  for (const input of inputs) {
+    const rel = relative(inbox, input);
+    const game = basename(input).replace(/\.zip$/i, '').toLowerCase();
+    const filed = join(artworkDir, `${game}.zip`);
+    let outcome: 'filed' | 'duplicate' | 'unsupported';
+    let detail: string;
+    let parked: string | undefined;
+    if (!games.has(game)) {
+      outcome = 'unsupported';
+      detail = `no supported arcade machine is named ${game}; rename it to the machine it dresses`;
+      parked = park(input, rel, '_unsupported');
+    } else if (existsSync(filed)) {
+      outcome = 'duplicate';
+      const same = readFileSync(filed).equals(readFileSync(input));
+      detail = same ? `${shown(filed)} is already filed` : `${shown(filed)} is filed and differs; the filed one is kept (replace it by hand)`;
+      parked = park(input, rel, '_duplicate');
+    } else {
+      outcome = 'filed';
+      detail = `artwork for ${game}`;
+      if (!dryRun) { mkdirSync(artworkDir, { recursive: true }); renameSync(input, filed); }
+    }
+    console.log(`  ${outcome.padEnd(12)} ${rel.padEnd(28)} ${detail}${parked ? `  ->  ${shown(parked)}` : `  ->  ${shown(filed)}`}`);
+    report.push({ input: rel, outcome, detail, ...(parked ? { parked: shown(parked) } : { filed: shown(filed) }) });
+  }
+  return report;
+}
+
+/**
+ * Cover archives: a zip of scans in _input/<system>/, matched by title to the
+ * system's software shelves (rom-library/covers.ts). One that sits in no
+ * system's folder is parked unidentified -- its scans name titles, not machines.
+ */
+function importCovers(inputs: string[]): Record<string, unknown>[] {
+  const report: Record<string, unknown>[] = [];
+  const unscoped = inputs.filter(input => !systemFolder(relative(inbox, input)));
+  for (const input of unscoped) {
+    const rel = relative(inbox, input);
+    const parked = park(input, rel, '_unidentified');
+    const systems = library.systems.systems.filter(system => system.category === 'computers').map(system => system.key.split('/').pop());
+    console.log(`\n== covers ${rel}: a zip of images in no system's folder  ->  ${shown(parked)}\n` +
+      `   move it into ${shown(inbox)}/<system>/ (${systems.join(', ')}) and import again`);
+    report.push({ input: rel, outcome: 'unidentified', parked: shown(parked), detail: 'images in no system folder' });
+  }
+  for (const input of inputs.filter(input => systemFolder(relative(inbox, input)))) {
+    const rel = relative(inbox, input);
+    const system = systemFolder(rel)!;
+    const wanted = coverWants(system, distDir);
+    console.log(`\n== covers ${rel}: for ${system.key}`);
+    if (!wanted.length) {
+      const parked = park(input, rel, '_unsupported');
+      console.log(`   ${system.key} has no generated software shelves (npm run gen:all)  ->  ${shown(parked)}`);
+      report.push({ input: rel, outcome: 'unsupported', parked: shown(parked), detail: `${system.key} has no generated shelves` });
+      continue;
+    }
+    const replace = argv.includes('--replace');
+    const plan = planCovers(zipMembers(input) ?? [], wanted, coverRoot, reviewRoot, replace);
+    const held = replace ? [] : plan.review.filter(item => existsSync(item.dest));
+    const review = replace ? plan.review : plan.review.filter(item => !existsSync(item.dest));
+    for (const list of [...new Set(wanted.map(want => want.list))]) {
+      const of = (items: { list: string }[]) => items.filter(item => item.list === list).length;
+      console.log(`   ${list.padEnd(14)} ${String(of(plan.present.concat(plan.write.map(item => item.want)))).padStart(4)} of ${String(of(wanted)).padStart(4)} titles covered` +
+        `  (${of(plan.write.map(item => item.want))} new, ${of(plan.review.map(item => item.want))} to review, ${of(plan.unmatched)} without a scan)`);
+    }
+    for (const item of plan.write.slice(0, 6)) console.log(`   + ${item.want.list}/${item.want.name}  <-  ${item.scan}`);
+    for (const item of review.slice(0, 6)) console.log(`   ? ${item.want.list}/${item.want.name} (${item.want.publisher})  ~  ${item.scan}`);
+    const problems: { scan: string; message: string }[] = [];
+    let written = 0;
+    let cropped = 0;
+    let bytes = 0;
+    if (!dryRun && (plan.write.length || review.length)) {
+      const scans = extractScans(input, [...plan.write, ...review].map(item => item.scan));
+      for (const item of [...plan.write, ...review]) {
+        try {
+          const out = writeCover(input, item.scan, item.dest, scans.path(item.scan));
+          written++;
+          bytes += out.bytes;
+          if (out.cropped) cropped++;
+        } catch (error) {
+          problems.push({ scan: item.scan, message: error instanceof Error ? error.message.split('\n')[0]! : String(error) });
+        }
+      }
+      scans.done();
+    }
+    const useful = plan.write.length || plan.review.length || plan.present.length;
+    const parked = park(input, rel, useful ? '_done' : '_unidentified');
+    const covers = plan.write.length;
+    console.log(`   ${dryRun ? '[dry run] ' : ''}${covers} cover(s) to ${shown(coverRoot)}/, ${review.length} to ${shown(reviewRoot)}/` +
+      `${held.length ? ` (${held.length} already there)` : ''}, ${plan.present.length} already filed, ${plan.unmatched.length} without a scan` +
+      (dryRun ? '' : `; wrote ${written} (${(bytes / 1e6).toFixed(1)} MB, ${cropped} cropped from an inlay)`) +
+      (problems.length ? `, ${problems.length} unreadable` : '') + `  ->  ${shown(parked)}`);
+    if (!dryRun && covers) recordSource(basename(input), system, plan.write.length);
+    report.push({
+      input: rel, system: system.key, parked: shown(parked),
+      written: plan.write.map(item => ({ list: item.want.list, name: item.want.name, scan: item.scan })),
+      review: plan.review.map(item => ({ list: item.want.list, name: item.want.name, publisher: item.want.publisher, scan: item.scan, file: shown(item.dest) })),
+      unmatched: plan.unmatched.map(want => ({ list: want.list, name: want.name, description: want.description })),
+      problems,
+    });
+  }
+  return report;
+}
+
+/** artwork/SOURCES.md is where every scan's provenance is written down. */
+function recordSource(archive: string, system: System, count: number): void {
+  const path = join(artworkDir, 'SOURCES.md');
+  const day = new Date().toISOString().slice(0, 10);
+  const heading = '## Software shelf covers';
+  let text = existsSync(path) ? readFileSync(path, 'utf8') : '# Local artwork sources\n';
+  if (!text.includes(heading)) {
+    text += `\n${heading}\n\nFiled by \`make import\` from cover archives dropped in \`.data/_input/<system>/\` (tools/rom-library/covers.ts).\n\n| Date | Archive | System | Covers |\n|---|---|---|---:|\n`;
+  }
+  writeFileSync(path, `${text.trimEnd()}\n| ${day} | \`${archive}\` | ${system.key} | ${count} |\n`);
 }
 
 /** Inputs below the inbox, skipping the folders this command parks into. */
@@ -474,12 +663,8 @@ function inboxFiles(dir: string, top = true): string[] {
 
 /** Move an input out of the inbox into its bucket, never over an earlier run's file. */
 function park(input: string, rel: string, bucket: string): string {
-  return parkIn(inbox, input, rel, bucket);
-}
-
-function parkIn(box: string, input: string, rel: string, bucket: string): string {
-  let dest = join(box, bucket, rel);
-  for (let n = 2; existsSync(dest); n++) dest = join(box, bucket, `${rel}.${n}`);
+  let dest = join(inbox, bucket, rel);
+  for (let n = 2; existsSync(dest); n++) dest = join(inbox, bucket, `${rel}.${n}`);
   if (dryRun) return dest;
   mkdirSync(dirname(dest), { recursive: true });
   renameSync(input, dest);
@@ -488,11 +673,7 @@ function parkIn(box: string, input: string, rel: string, bucket: string): string
 }
 
 function writeReport(kind: string, body: Record<string, unknown>): string {
-  return writeReportIn(inbox, kind, body);
-}
-
-function writeReportIn(box: string, kind: string, body: Record<string, unknown>): string {
-  const dir = join(box, '_reports');
+  const dir = join(inbox, '_reports');
   mkdirSync(dir, { recursive: true });
   const path = join(dir, `${kind}${dryRun ? '-dry-run' : ''}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
   writeFileSync(path, `${JSON.stringify({ command: kind, dryRun, at: new Date().toISOString(), ...body }, null, 2)}\n`);
@@ -510,30 +691,25 @@ function samples(): void {
     const state = !check.path || check.missing.length || check.problem ? describeShort(check) : 'ok';
     console.log(`  ${`${check.need.set}.zip`.padEnd(16)} ${String(check.need.names.length).padStart(3)} names  for ${check.need.machines.join(' ').padEnd(16)} ${state}`);
   }
-  const waiting = waitingIn(samplesInbox);
-  console.log(`\ninbox       ${shown(samplesInbox)}/: ${waiting.length ? `${waiting.length} item(s) waiting -- make samples-import` : 'empty'}`);
 }
 
-const SAMPLE_BUCKETS = { imported: '_imported', duplicate: '_duplicate', incomplete: '_incomplete', unidentified: '_unidentified' } as const;
+const SAMPLE_BUCKETS = { imported: '_done', duplicate: '_duplicate', incomplete: '_incomplete', unidentified: '_unidentified' } as const;
 
 /**
- * `samples import`: file every zip in samples/_new/ as the <set>.zip it
- * covers. The input parks in an outcome folder beside the inbox; the filed
- * copy is the input itself when MAME can read it as it is, or a rebuild with
- * the samples moved to the zip's root when they sat in a folder. A filed set
- * that lacked names is replaced, and moves to samples/_quarantine/.
+ * Sample sets: file each zip of .wav files as the <set>.zip it covers. The
+ * input parks in an outcome folder of the inbox; the filed copy is the input
+ * itself when MAME can read it as it is, or a rebuild with the samples moved
+ * to the zip's root when they sat in a folder. A filed set that lacked names
+ * is replaced, and moves to _input/_quarantine/samples/.
  */
-function importSamples(): void {
+function importSamples(inputs: string[]): Record<string, unknown>[] {
   const needs = sampleNeeds(library.systems);
-  if (!existsSync(samplesInbox)) fail(`${samplesInbox} does not exist -- create it and drop sample zips in`);
-  const inputs = readdirSync(samplesInbox, { withFileTypes: true })
-    .filter(entry => entry.isFile() && !entry.name.startsWith('.') && !entry.name.startsWith('_'))
-    .map(entry => entry.name).sort();
-  console.log(`== samples import ${shown(samplesInbox)}/: ${inputs.length} input(s), ${needs.length} set(s) needed`);
+  console.log(`\n== samples: ${inputs.length} input(s), ${needs.length} set(s) needed`);
   const report: Record<string, unknown>[] = [];
   const totals = { imported: 0, duplicate: 0, incomplete: 0, unidentified: 0 };
-  for (const name of inputs) {
-    const input = join(samplesInbox, name);
+  for (const input of inputs) {
+    const name = basename(input);
+    const rel = relative(inbox, input);
     const stem = name.replace(/\.zip$/i, '');
     let held: ReturnType<typeof zipSamples> | undefined;
     let problem: string | undefined;
@@ -563,20 +739,20 @@ function importSamples(): void {
         filed = join(samplesDir, `${verdict.need.set}.zip`);
         detail = `${verdict.need.set}: all ${verdict.need.names.length} sample(s) for ${verdict.need.machines.join(' ')}`;
         if (current.path) {
-          replaced = join(samplesDir, '_quarantine', `${verdict.need.set}.zip`);
+          replaced = join(quarantineRoot, 'samples', `${verdict.need.set}.zip`);
           detail += ` (replaces a set that ${current.problem ? 'could not be read' : `lacked ${current.missing.join(' ')}`})`;
         }
         if (!dryRun) {
-          if (current.path) replaced = quarantineSample(current.path, `replaced by ${name} from samples/_new/: ${current.problem ?? `lacked ${current.missing.join(' ')}`}`);
+          if (current.path) replaced = quarantineSample(current.path, `replaced by ${rel} from _input/: ${current.problem ?? `lacked ${current.missing.join(' ')}`}`);
           fileSampleSet(input, held!, filed);
         }
       }
     }
     totals[outcome]++;
-    const parked = parkIn(samplesInbox, input, name, SAMPLE_BUCKETS[outcome]);
-    console.log(`  ${outcome.padEnd(12)} ${name.padEnd(20)} ${detail}`);
+    const parked = park(input, rel, SAMPLE_BUCKETS[outcome]);
+    console.log(`  ${outcome.padEnd(12)} ${rel.padEnd(20)} ${detail}`);
     report.push({
-      input: name, outcome, detail, parked: relative(samplesDir, parked),
+      input: rel, outcome, detail, parked: shown(parked),
       ...(filed ? { filed: relative(samplesDir, filed) } : {}),
       ...(replaced ? { replaced: relative(samplesDir, replaced) } : {}),
       ...(verdict.kind === 'incomplete' ? { set: verdict.need.set, missing: verdict.missing } : {}),
@@ -584,10 +760,9 @@ function importSamples(): void {
       ...(held ? { samples: [...held.keys()] } : {}),
     });
   }
-  console.log(`\n${dryRun ? '[dry run] ' : ''}samples import: ${totals.imported} imported, ${totals.duplicate} already filed, ` +
+  console.log(`\n${dryRun ? '[dry run] ' : ''}samples: ${totals.imported} imported, ${totals.duplicate} already filed, ` +
     `${totals.incomplete} incomplete, ${totals.unidentified} unidentified`);
-  const path = writeReportIn(samplesInbox, 'samples-import', { inputs: report });
-  console.log(`report: ${relative(process.cwd(), path)}`);
+  return report;
 }
 
 /** Copy a set into place as MAME reads it: samples at the zip's root. */
@@ -604,26 +779,23 @@ function fileSampleSet(input: string, held: ReturnType<typeof zipSamples>, to: s
 }
 
 function quarantineSample(path: string, reason: string): string {
-  const planned = join(samplesDir, '_quarantine', basename(path));
+  const planned = join(quarantineRoot, 'samples', basename(path));
   let to = planned;
   for (let n = 2; existsSync(to); n++) to = `${planned}.${n}`;
   mkdirSync(dirname(to), { recursive: true });
   renameSync(path, to);
-  appendFileSync(join(samplesDir, '_quarantine', 'quarantine.jsonl'), `${JSON.stringify({
-    at: new Date().toISOString(), from: relative(samplesDir, path), to: relative(samplesDir, to), reason,
+  appendFileSync(join(quarantineRoot, 'quarantine.jsonl'), `${JSON.stringify({
+    at: new Date().toISOString(), from: join('samples', relative(samplesDir, path)), to: join(basename(quarantineRoot), relative(quarantineRoot, to)), reason,
   })}\n`);
   return to;
 }
 
 // --- helpers ----------------------------------------------------------------
 
-/** A path as the reader knows it: below .data/roms, else below .data, else absolute. */
+/** A path as the reader knows it: below .data, else absolute. */
 function shown(path: string): string {
-  for (const root of [romsDir, dirname(romsDir)]) {
-    const inside = relative(root, path);
-    if (!inside.startsWith('..')) return inside;
-  }
-  return path;
+  const inside = relative(dirname(romsDir), path);
+  return inside.startsWith('..') ? path : inside;
 }
 
 function printTable(rows: string[][]): void {
@@ -666,5 +838,4 @@ else if (command === 'missing') missing();
 else if (command === 'tidy') tidy();
 else if (command === 'import') await importInbox();
 else if (command === 'samples' && (argv[1] === undefined || argv[1].startsWith('--'))) samples();
-else if (command === 'samples' && argv[1] === 'import') importSamples();
-else fail(`unknown command "${argv.slice(0, command === 'samples' ? 2 : 1).join(' ')}" -- status, missing, import, tidy, samples or samples import`);
+else fail(`unknown command "${command}" -- status, missing, import, tidy or samples`);

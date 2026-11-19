@@ -1,9 +1,9 @@
 // Keep the shelves holding only what a supported machine can use.
 //
 // Nothing is deleted. A file no supported list or machine claims is moved to
-// .data/roms/_quarantine/, at the same relative path, and the move is logged
-// with its reason and any manifest row it carried; dropping it back into
-// roms/_new/ re-identifies it. Besides quarantine, tidying puts misfiled
+// the quarantine (.data/_input/_quarantine/ from the CLI), at the same path it
+// had below .data/roms, and the move is logged with its reason and any
+// manifest row it carried; dropping it back into .data/_input/ re-identifies it. Besides quarantine, tidying puts misfiled
 // things where the app looks for them:
 //
 //   * a console's BIOS set loose in consoles/ moves into consoles/<system>/bios/
@@ -84,7 +84,7 @@ export function planTidy(library: Library, mameRun?: MameRunSets): TidyPlan {
   const moves: Move[] = [];
   const notes: string[] = [];
   const quarantine = (path: string, reason: string, shelf?: string, field?: Move['field']) =>
-    moves.push({ kind: 'quarantine', from: path, to: join(roms, '_quarantine', relative(roms, path)), reason, ...(shelf ? { shelf, field } : {}) });
+    moves.push({ kind: 'quarantine', from: path, to: join(quarantineDir(library), relative(roms, path)), reason, ...(shelf ? { shelf, field } : {}) });
 
   // 1. Category roots: only system folders belong there -- and, for arcade, sets.
   for (const category of ['consoles', 'computers'] as const) {
@@ -213,7 +213,8 @@ function rowFile(row: Record<string, unknown>, field: 'carts' | 'entries'): stri
 /** Carry out a plan. Renames go first so later paths land in the renamed folders. */
 export function applyTidy(library: Library, moves: Move[]): void {
   const roms = library.options.romsDir;
-  const log = join(roms, '_quarantine', 'quarantine.jsonl');
+  const quarantine = quarantineDir(library);
+  const log = join(quarantine, 'quarantine.jsonl');
   const renamed: [string, string][] = [];
   const follow = (path: string) => {
     for (const [from, to] of renamed) if (path === from || path.startsWith(`${from}/`)) return to + path.slice(from.length);
@@ -235,7 +236,7 @@ export function applyTidy(library: Library, moves: Move[]): void {
     }
     const shelf = move.shelf ? follow(move.shelf) : undefined;
     const from = follow(move.from);
-    const planned = move.kind === 'quarantine' ? join(roms, '_quarantine', relative(roms, from)) : move.to;
+    const planned = move.kind === 'quarantine' ? join(quarantine, relative(roms, from)) : move.to;
     let to = planned;
     for (let n = 2; existsSync(to); n++) to = `${planned}.${n}`;
     mkdirSync(dirname(to), { recursive: true });
@@ -245,11 +246,16 @@ export function applyTidy(library: Library, moves: Move[]): void {
       ? library.takeRows(shelf, move.field, row => rowFile(row, move.field!) === basename(from))
       : [];
     appendFileSync(ensureLog(log), `${JSON.stringify({
-      at: new Date().toISOString(), from: relative(roms, from), to: relative(roms, to),
+      at: new Date().toISOString(), from: relative(roms, from), to: join(basename(quarantine), relative(quarantine, to)),
       reason: move.reason, ...(rows.length ? { rows } : {}),
     })}\n`);
   }
   library.flush();
+}
+
+/** Where quarantined dumps go: the inbox's _quarantine/ when the CLI says so, else beside the shelves. */
+export function quarantineDir(library: Library): string {
+  return library.options.quarantineDir ?? join(library.options.romsDir, '_quarantine');
 }
 
 function ensureLog(path: string): string {
