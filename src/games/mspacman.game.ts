@@ -32,8 +32,8 @@ export const mspacman = sourceTarget({
     audio: {
       writes: 950400,
       nonzeroWrites: 693776,
-      writeHash: 'ebe8943e',
-      pcmHash: '6124beba',
+      writeHash: 'b692da6b',
+      pcmHash: 'f57b16c2',
       rms: 0.082267,
     },
   },

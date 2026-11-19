@@ -4,7 +4,7 @@
 // Run with: node src/mame/execute-facts.spec.ts
 
 import assert from 'node:assert/strict';
-import { mameDeviceUpdatesPartially, mameExecuteFacts } from './device-compiler.ts';
+import { mameDeviceUpdatesPartially, mameExecuteFacts, mameStreamsUpdateFrequency } from './device-compiler.ts';
 
 const source = process.env.MAME_SRC ?? '../mame';
 
@@ -57,3 +57,8 @@ assert.equal(mameDeviceUpdatesPartially(source, 'ATARI_MOTION_OBJECTS'), true);
 assert.equal(mameDeviceUpdatesPartially(source, 'Z80'), false);
 assert.equal(mameDeviceUpdatesPartially(source, 'TMS9928A'), false);
 assert.equal(mameDeviceUpdatesPartially(source, 'NO_SUCH_DEVICE'), false);
+
+// The sound manager's update timer, a scheduler timer on every machine
+// (sound.cpp arms it at STREAMS_UPDATE_ATTOTIME), read from sound.h.
+assert.equal(mameStreamsUpdateFrequency(source), 50);
+assert.equal(mameStreamsUpdateFrequency('/no/such/mame'), undefined);

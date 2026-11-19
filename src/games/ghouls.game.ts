@@ -42,8 +42,8 @@ export const ghouls = {
     audio: {
       writes: 1851187,
       nonzeroWrites: 121230,
-      writeHash: '99c6eecf',
-      pcmHash: 'c229cc02',
+      writeHash: '462e5a17',
+      pcmHash: '5622eca5',
       rms: 0.017365,
     },
   },

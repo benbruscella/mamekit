@@ -3349,6 +3349,25 @@ class IrBoard implements Board {
     const timerDevices = [...timedDevices, ...cardDeviceSet];
     if (timerRounds) this.deviceClockFollowsProcessors = true;
     this.roundTimers = timerRounds;
+    // sound_manager's update timer (sound.cpp): armed at power-on for
+    // STREAMS_UPDATE_ATTOTIME and every period after, on every machine. It is
+    // a scheduler timer, so MAME's rounds end on it. Its callback mixes,
+    // which our mixer does on its own cadence; what it changes for the
+    // processors is only where a round ends. Venture's sound CPU read its
+    // PIA's CA1 flag a round early without it (#275).
+    const streamsUpdateHz = machine.execution.streamsUpdateFrequency;
+    if (timerRounds && streamsUpdateHz !== undefined) {
+      const member = 'sound_manager.update';
+      this.roundTimerMembers.add(member);
+      this.genericTimerFires.set(member, () => {
+        const pending = this.pendingTimers.get(member);
+        if (!pending) return;
+        // Counted in periods, so the expiry stays on the 50 Hz grid.
+        const next = pending.param + 1;
+        this.pendingTimers.set(member, { at: next / streamsUpdateHz, param: next });
+      });
+      this.pendingTimers.set(member, { at: 1 / streamsUpdateHz, param: 1 });
+    }
     const soonestTimer = (): number => {
       let soonest = Infinity;
       for (let index = 0; index < timerDevices.length; index++) {
@@ -3476,12 +3495,6 @@ class IrBoard implements Board {
           this.soundRuntime?.cpuTimeMoved?.(specification.tag);
         },
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
-        // A core MAME stops between bus cycles stands, mid-instruction, at
-        // the cycles before this instruction and those it has paid for so far
-        // (the access in progress included, as total_cycles counts it).
-        ...(this.suspendsMidInstruction(specification) ? {
-          position: () => this.runningStalled + this.runningSliceCycles + (this.cpus.get(specification.tag)?.elapsedCycles?.() ?? 0),
-        } : {}),
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
@@ -3870,15 +3883,22 @@ class IrBoard implements Board {
     else apply();
   }
 
-  /** Whether a line on `tag` is driven from another running processor. */
-  private synchronizesLineFrom(tag: string): boolean {
+  /**
+   * Whether a line change goes through the scheduler: from inside any
+   * processor's slice, the processor's own lines included. set_state_synced
+   * synchronizes whoever drives the line, so a processor that clears its own
+   * IRQ ends its slice there and the round's target drops to it. Exidy's
+   * main CPU does on every read of its interrupt latch (exidy_interrupt_r);
+   * applied in place, its round ran on 1,000 cycles MAME's did not, and it
+   * saw a PIA edge Venture's sound CPU raised later in MAME's order (#275).
+   */
+  private synchronizesLineFrom(_tag: string): boolean {
     // A device timer's callback is not the running processor, though ours
     // fire mid-slice: MAME runs them between slices, where a synchronized
     // line takes effect at once. Deferred to the round's end, the SN76489A's
     // READY release (a timer, through an input merger onto the Z80's WAIT)
     // held System 1's sound Z80 170 us per write instead of 16.
-    return this.runningCpu !== undefined && this.runningCpu !== tag && this.schedulerRunning &&
-      generatedTimerExpiry() === undefined;
+    return this.runningCpu !== undefined && this.schedulerRunning && generatedTimerExpiry() === undefined;
   }
 
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {

@@ -40,8 +40,8 @@ export const gberet = sourceTarget({
     audio: {
       writes: 950400,
       nonzeroWrites: 21671,
-      writeHash: '6cfc1ccb',
-      pcmHash: 'de6913ea',
+      writeHash: '6829dab2',
+      pcmHash: 'abdeda43',
       rms: 0.021146,
     },
   },

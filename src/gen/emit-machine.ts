@@ -49,7 +49,7 @@ import type { BoardConfig } from '../ir/host-config.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
 import { analogValue } from '../mame/audio-compiler.ts';
-import { mameExecuteFacts } from '../mame/device-compiler.ts';
+import { mameExecuteFacts, mameStreamsUpdateFrequency } from '../mame/device-compiler.ts';
 import { indexMameHardware } from '../mame/hardware.ts';
 import { deviceTables, sourceFileAggregates } from '../mame/static-aggregate.ts';
 import { walkExpressions } from '../ir/walk.ts';
@@ -704,6 +704,7 @@ export function lowerGeneratedMachine(
   const maximumQuantum = Math.min(...graph.nodes
     .filter(node => node.label === 'MachineConfig' && typeof node.props.maximumQuantum === 'number')
     .map(node => node.props.maximumQuantum as number));
+  const streamsUpdateFrequency = graph.meta.mameSrc ? mameStreamsUpdateFrequency(String(graph.meta.mameSrc)) : undefined;
   const executeDevices = graph.meta.mameSrc ? devices.flatMap(device => {
     const facts = mameExecuteFacts(String(graph.meta.mameSrc), device.type);
     return facts?.executes
@@ -857,6 +858,7 @@ export function lowerGeneratedMachine(
     ...(resetHandlers.length ? { resetHandlers } : {}),
     ...(perfectQuantumBoard ? { perfectQuantum: true } : {}),
     ...(Number.isFinite(maximumQuantum) ? { maximumQuantum } : {}),
+    ...(streamsUpdateFrequency !== undefined ? { streamsUpdateFrequency } : {}),
     ...(executeDevices.length ? { executeDevices } : {}),
     ...(spaceAccessors.length ? { spaceAccessors } : {}),
     ...(memoryBanks.length ? { banks: memoryBanks } : {}),

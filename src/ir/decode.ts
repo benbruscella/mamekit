@@ -466,6 +466,7 @@ function decodeExecution(reader: Reader, value: unknown): void {
   }
 
   reader.optionalNumber(execution.maximumQuantum, 'execution.maximumQuantum');
+  reader.optionalNumber(execution.streamsUpdateFrequency, 'execution.streamsUpdateFrequency');
   if (execution.executeDevices !== undefined) {
     for (const [index, entry] of reader.array(execution.executeDevices, 'execution.executeDevices').entries()) {
       const device = reader.object(entry, `execution.executeDevices[${index}]`);

@@ -64,8 +64,8 @@ export const robotron = sourceTarget({
     audio: {
       writes: 4345034,
       nonzeroWrites: 4344024,
-      writeHash: '1b81bc12',
-      pcmHash: 'ee7ed426',
+      writeHash: 'c4a62cae',
+      pcmHash: 'cb5795e4',
       rms: 0.211933,
     },
   },

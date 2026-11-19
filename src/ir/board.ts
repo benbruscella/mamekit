@@ -799,6 +799,12 @@ export interface GeneratedExecutionPlan {
    */
   maximumQuantum?: number;
   /**
+   * MAME `sound_manager::STREAMS_UPDATE_FREQUENCY`, in Hz: the sound
+   * manager's periodic update timer, armed from power-on on every machine.
+   * MAME's rounds end on it as on any timer.
+   */
+  streamsUpdateFrequency?: number;
+  /**
    * Every device with a device_execute_interface, in configuration order,
    * and its execute_min_cycles() where its source states one. MAME's perfect
    * interleave, the length of a `perfect_quantum` round, is the second

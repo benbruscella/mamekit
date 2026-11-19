@@ -172,3 +172,4 @@
 - [Closure pool #265](closure-pool-265.md) — closure was serial main-thread lowering; pool + 2 hot spots 564→103 s, verify by byte-diffing a scratch cold build
 - [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
 - [Exact attotime #272](exact-attotime-272.md) — devices reading attotime fields hold it exactly; Venture music back; `against --audio` is sound truth; residual round at 53.1200
+- [MAME round rules #275](mame-round-rules-275.md) — 50 Hz sound timer, line-start boundaries, self set_input_line syncs, sync target = stop point; VERBOSE MAME build recipe

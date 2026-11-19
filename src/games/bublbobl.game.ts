@@ -31,10 +31,10 @@ export const bublbobl = sourceTarget({
     },
     checkpoints: {
       1: { video: 'f7e6ac81', state: 'f6df4ee0' },
-      120: { video: '7fa0d66a', state: '14446204' },
-      240: { video: '92a0e754', state: 'f3bad4de' },
-      360: { video: 'b78f3578', state: '4df1c3c6' },
-      600: { video: 'a3959c8a', state: 'b4b0de3e' },
+      120: { video: 'a6b3fa6f', state: '609a8d21' },
+      240: { video: 'e7f73aa2', state: 'f3bad4de' },
+      360: { video: '9d72f94d', state: '4df1c3c6' },
+      600: { video: 'a3959c8a', state: '6cf685ee' },
       900: { video: 'd61320a7', state: 'e775ca59' },
       1200: { video: '188c0ae4', state: 'c9d3664c' },
       1800: { video: 'd473887c', state: '3cec002d' },
@@ -42,9 +42,9 @@ export const bublbobl = sourceTarget({
     audio: {
       writes: 1459814,
       nonzeroWrites: 1436652,
-      writeHash: 'fd3073eb',
-      pcmHash: '4c0fd869',
-      rms: 0.037101,
+      writeHash: 'd9d04a9b',
+      pcmHash: '25707322',
+      rms: 0.037102,
     },
   },
 });

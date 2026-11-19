@@ -42,8 +42,8 @@ export const gng = sourceTarget({
     audio: {
       writes: 2414591,
       nonzeroWrites: 1677470,
-      writeHash: '7bc0be2c',
-      pcmHash: 'cdcb2b1f',
+      writeHash: 'b900d57f',
+      pcmHash: '2c731995',
       rms: 0.067927,
     },
   },

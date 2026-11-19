@@ -34,8 +34,8 @@ export const pengo = sourceTarget({
     audio: {
       writes: 950399,
       nonzeroWrites: 625142,
-      writeHash: 'fe19259b',
-      pcmHash: 'e09f598c',
+      writeHash: 'f32991a0',
+      pcmHash: '6d38b5a2',
       rms: 0.110106,
     },
   },

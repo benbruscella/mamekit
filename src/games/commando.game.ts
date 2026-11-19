@@ -39,8 +39,8 @@ export const commando = sourceTarget({
     audio: {
       writes: 1448755,
       nonzeroWrites: 221860,
-      writeHash: '0de478c9',
-      pcmHash: '9bae200a',
+      writeHash: '36590275',
+      pcmHash: '546af5c0',
       rms: 0.025368,
     },
   },
