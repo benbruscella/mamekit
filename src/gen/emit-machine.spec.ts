@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import {
   generatedBoardSource,
   generatedCpuClock,
@@ -5,7 +6,9 @@ import {
   inferredMemberIndexRank,
   lowerAudioRoutes,
   lowerGeneratedMachine,
+  monoRoutes,
   resolveInputPortTag,
+  speakerChannelSides,
 } from './emit-machine.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 
@@ -416,3 +419,37 @@ if (inferredMemberIndexRank([filterHandlers[1]!], 'm_filter') !== 2) {
 }
 
 console.log('emit-machine.spec: callbacks, provenance, IR and filter rank passed');
+
+// A speaker's channel positions give each route its left and right
+// (speaker.h): `.front()` is left then right, `.rear()` the same behind, and a
+// route that names no channel is on channel 0, as add_route defaults it. The
+// pair's mean is the mono gain, the mean of every speaker channel.
+{
+  const speakerGraph = (...configs: [string, string][]) => ({
+    nodes: configs.map(([tag, config], index) => ({ id: `s${index}`, label: 'Device', props: { type: 'SPEAKER', tag, config: [config] } })),
+    edges: [],
+  }) as unknown as KnowledgeGraph;
+  const front = speakerGraph(['speaker', 'SPEAKER(config, "speaker", 2).front();']);
+  assert.deepEqual([...speakerChannelSides(front).entries()], [['speaker', [-1, 1]]]);
+  assert.deepEqual(monoRoutes(front, [
+    { chip: 0, channel: 0, gain: 0.5, target: 'speaker', targetInput: 0 },
+    { chip: 0, channel: 1, gain: 0.5, target: 'speaker', targetInput: 1 },
+    { chip: 1, channel: -1, gain: 1, target: 'filter' },
+  ]), [
+    { chip: 0, channel: 0, gain: 0.25, target: 'speaker', targetInput: 0, stereo: [0.5, 0] },
+    { chip: 0, channel: 1, gain: 0.25, target: 'speaker', targetInput: 1, stereo: [0, 0.5] },
+    { chip: 1, channel: -1, gain: 1, target: 'filter' },
+  ], 'a front pair is left and right, at the route gain; a route into a device has no side');
+  const four = speakerGraph(['speaker', 'SPEAKER(config, "speaker", 2).front();'], ['rspeaker', 'SPEAKER(config, "rspeaker", 2).rear();']);
+  assert.deepEqual(monoRoutes(four, [{ chip: 0, channel: 2, gain: 0.2, target: 'rspeaker', targetInput: 0 }]),
+    [{ chip: 0, channel: 2, gain: 0.05, target: 'rspeaker', targetInput: 0, stereo: [0.1, 0] }],
+    'four channels fold to two: a rear left is left, at half');
+  assert.deepEqual(monoRoutes(front, [{ chip: 0, channel: -1, gain: 1, target: 'speaker' }]),
+    [{ chip: 0, channel: -1, gain: 1, target: 'speaker', stereo: [1, 0] }],
+    'a route naming no channel is on channel 0');
+  const mono = speakerGraph(['mono', 'SPEAKER(config, "mono").front_center();']);
+  assert.deepEqual(monoRoutes(mono, [{ chip: 0, channel: 0, gain: 1, target: 'mono' }]),
+    [{ chip: 0, channel: 0, gain: 1, target: 'mono' }], 'a centred speaker has no sides');
+  const placed = speakerGraph(['left', 'SPEAKER(config, "left", -0.2, 0.0, 1.0);'], ['right', 'SPEAKER(config, "right").front_right();']);
+  assert.deepEqual([...speakerChannelSides(placed).entries()], [['left', [-1]], ['right', [1]]]);
+}

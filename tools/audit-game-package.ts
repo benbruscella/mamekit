@@ -37,6 +37,13 @@ async function auditGame(game: string): Promise<void> {
     assert.ok(existsSync(join(dataPath, file)), `missing ${join(dataPath, file)}`);
   }
 
+  // A console or computer is presented by a photograph of the machine (the
+  // home page's media/consoles and media/computers trees), not by an arcade
+  // flyer, cabinet, marquee and bezel: it has none of those.
+  if (category !== 'arcade') {
+    requirePng(`${DATA_DIR}/artwork/media/${category}/${game}.png`);
+    return;
+  }
   for (const path of [
     `${DATA_DIR}/artwork/covers/${game}.png`,
     `${DATA_DIR}/artwork/media/cabinets/${game}.png`,

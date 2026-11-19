@@ -14,6 +14,7 @@
 // tile-info callback per tile) — and never of a game or driver name.
 
 import {
+  assignsIdentifier,
   calledIdentifiers,
   codegenWrappedParameters,
   generatedDeviceMethodsSource,
@@ -24,7 +25,7 @@ import type {
   GeneratedHandler,
   GeneratedHandlerOperation,
 } from '../ir/board.ts';
-import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
+import { compiledLambdaKey, DEFAULT_CONSTANTS, programLambdas } from '../ir/execute.ts';
 
 /**
  * The names a board binds into handler state.
@@ -282,7 +283,61 @@ function wiredHotMethods(machine: BoardIr, ownerClass: string): string[] {
       claim(`${callback.targetClass}.${callback.targetMethod}`);
     }
   }
+  // A handler the driver installs at run time is an entry point as well:
+  // `install_readwrite_handler(0x000000, 0x7dffff, read8m_delegate(*this,
+  // FUNC(snes_console_state::snes20_lo_r)), ...)` in the SNES machine_start
+  // is every cartridge access the 65C816 makes, and left out it ran on the
+  // interpreter -- a third of a frame.
+  for (const handler of machine.handlers ?? []) {
+    for (const name of delegatedMethods(handler.program?.operations)) {
+      const separator = name.lastIndexOf('::');
+      if (separator > 0) claim(`${name.slice(0, separator)}.${name.slice(separator + 2)}`);
+    }
+  }
   return [...names];
+}
+
+/**
+ * The `cls::method` names a program installs into an address space,
+ * `install_read_handler(..., read8m_delegate(*this, FUNC(cls::method)))`.
+ * Only those: a FUNC handed elsewhere (a machine configuration's
+ * `PALETTE(config, ..., FUNC(spectrum_state::spectrum_palette))`) is an init
+ * callback run once, and emitting the Spectrum's that way lost the
+ * file-scope pen table the interpreter resolves.
+ */
+function delegatedMethods(operations: unknown): string[] {
+  const names: string[] = [];
+  const collect = (value: unknown): void => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      for (const item of value) collect(item);
+      return;
+    }
+    const node = value as { kind?: string; callee?: { kind?: string; name?: string }; args?: { kind?: string; name?: string }[] };
+    if (node.kind === 'call' && node.callee?.kind === 'identifier' && node.callee.name === 'FUNC' &&
+      node.args?.[0]?.kind === 'identifier' && node.args[0].name) {
+      names.push(node.args[0].name);
+    }
+    for (const child of Object.values(value)) collect(child);
+  };
+  const visit = (value: unknown): void => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+      return;
+    }
+    const node = value as { kind?: string; callee?: { kind?: string; name?: string; property?: string }; args?: unknown[] };
+    const callee = node.kind === 'call'
+      ? node.callee?.kind === 'member' ? node.callee.property : node.callee?.kind === 'identifier' ? node.callee.name : undefined
+      : undefined;
+    if (callee && /^install_\w+$/.test(callee)) {
+      collect(node.args);
+      return;
+    }
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(operations);
+  return names;
 }
 
 /**
@@ -380,8 +435,9 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     ...[...new Set([...assignedMemberNames(handlers), ...declaredMembers, ...cardMembers, ...hostMembers])]
       .map(name => [name, ''] as const),
   ];
+  const lambdas = handlerLambdaMethods([...byMethod.values()].filter(handler => handler.ownerClass === ownerClass));
   return {
-    hotMethods: wiredHotMethods(machine, ownerClass),
+    hotMethods: [...wiredHotMethods(machine, ownerClass), ...lambdas.map(lambda => lambda.name)],
     // Only the interpreter's shared line/IRQ constants live at scope level.
     // A handler's own constants stay on its method entry: template expansions
     // (`videoram_w<Which>` as videoram_w_0/videoram_w_1) give the same name a
@@ -409,7 +465,7 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
     timers: [],
     boardScope: true,
     concreteDeviceMembers: (machine.devices ?? []).flatMap(device => device.member ? [device.member] : []),
-    methods: [...byMethod.values()].map(handler => {
+    methods: [...[...byMethod.values()].map((handler): CodegenScope['methods'][number] => {
       // The interpreter derives Which from the expanded method name's _N
       // suffix, overriding whatever the handler's constant table says; the
       // emitted method must resolve the same value.
@@ -424,8 +480,31 @@ export function boardCodegenScope(machine: BoardIr, ownerClass: string): Codegen
           ...(suffix ? { Which: Number(suffix[1]) } : {}),
         },
       };
-    }),
+    }), ...lambdas],
   };
+}
+
+/**
+ * Each self-contained lambda a driver handler writes, as a method of its own
+ * (compiledLambdaKey names it): no init-captures, and no write to its own
+ * parameters, which a `u8 &data` tap would make through a reference the
+ * emitted ABI cannot carry. A lambda that reads the enclosing handler's
+ * locals fails supportsMethod on the unknown name and stays interpreted.
+ */
+function handlerLambdaMethods(handlers: readonly GeneratedHandler[]): CodegenScope['methods'] {
+  return handlers.flatMap(handler => programLambdas(handler.program?.operations ?? []).flatMap((lambda, index) => {
+    if (lambda.captures?.length) return [];
+    const names = lambda.parameters.map((name, position) => name || `__unnamed${position}`);
+    if (names.some(name => assignsIdentifier(lambda.body, name))) return [];
+    const key = compiledLambdaKey(handler.ownerClass, handler.method, index);
+    return [{
+      name: key.slice(key.indexOf('.') + 1),
+      parameters: names.map(name => `auto ${name}`).join(', '),
+      program: { operations: lambda.body as GeneratedHandlerOperation[], diagnostics: [] },
+      source: handler.source ?? { file: '', line: 0 },
+      constants: { ...handler.constants },
+    }];
+  }));
 }
 
 /**
@@ -457,11 +536,12 @@ export function generatedBoardHandlersSource(
   const links = new Set<string>();
   for (const ownerClass of ownerClasses) {
     const scope = boardCodegenScope(machine, ownerClass);
-    const own = new Set(
-      (machine.handlers ?? [])
+    const own = new Set([
+      ...(machine.handlers ?? [])
         .filter(handler => handler.ownerClass === ownerClass)
         .map(handler => handler.method),
-    );
+      ...scope.methods.filter(method => /__lambda\d+$/.test(method.name)).map(method => method.name),
+    ]);
     const source = generatedDeviceMethodsSource(scope, typescript);
     // Only this class's own handlers are exported. A dependency pulled in from
     // another class is compiled into the same closure, but its board key

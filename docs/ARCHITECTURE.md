@@ -924,12 +924,28 @@ without dividing by their total or by the number of chips. A route through a
 chip's owner takes that device's own route too (the RP2A03's APU through
 `maincpu`'s, the Williams ADPCM board's chips through the board's), and
 `reset_routes` and `add_route` in a derived configuration (`routeEdits` on a
-device patch) replace what the base configured. The browser plays one
-channel, the mean of every speaker channel MAME has, so a route to one channel
-counts that share: half on a stereo speaker, a quarter on Pole Position's
-front and rear pairs. The summed mix clamps to full scale where MAME's speaker
-stage clamps it to 16 bits (`sound.cpp`): on the raw sum, DC and all, with no
-filter in front.
+device patch) replace what the base configured. The mono mix, the one the
+goldens hash and `mamekit compare` measures, is the mean of every speaker
+channel MAME has, so a route to one channel counts that share: half on a stereo
+speaker, a quarter on Pole Position's front and rear pairs. The summed mix
+clamps to full scale where MAME's speaker stage clamps it to 16 bits
+(`sound.cpp`): on the raw sum, DC and all, with no filter in front.
+
+Stereo is a host feature that reaches every board through the routes. Where a
+speaker places a channel off centre (`SPEAKER(config, "speaker", 2).front()`,
+`.rear()`, `.front_left()`, `set_position`; speaker.h), each route into a speaker
+also carries its left and right gains (`stereo` on the route). A left channel
+is left, a right channel right, a centred one both at half, and a route that
+names no channel is on channel 0, as `add_route` defaults it. A rear pair folds
+onto the front, so the two sides' mean is still the mono mix. The mixer renders
+the left and right beside the mono mix, on each render path. A stereo mix
+sample carries all three to the host (`soundWrite`'s `left`/`right`), and the
+stream worklet plays two channels for every board: a mono board plays the same
+sample in both. The acceptance probe writes a stereo board's two channels
+beside its capture (`ours.pcm.stereo.wav`). `mamekit against --audio` sets
+them against MAME's -wavwrite, side by side: the level each side, the width
+(side over mid) and whether each channel's loudness follows MAME's same side
+or the other one.
 
 A `SAMPLES` device is a stream device too, compiled whole from `samples.cpp`,
 because a driver reads it back (`playing` decides whether Zaxxon restarts a

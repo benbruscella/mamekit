@@ -4,6 +4,7 @@
  * without MAME or ROMs (report.spec.ts).
  */
 
+import type { StereoComparison } from './stereo-plan.ts';
 import type { FrameResult, InputsResult, IoResult, RamResult } from './compare.ts';
 import type { InputMode } from './plan.ts';
 
@@ -51,6 +52,8 @@ export interface RunReport {
   /** The two sides' sound over the run (`--audio`), or why there is none. */
   audio?: AudioComparison;
   audioError?: string;
+  /** A stereo board's left and right against MAME's (stereo-plan.ts). */
+  stereo?: StereoComparison;
   grade?: { samples: number; drawn: number; changes: number; colours: number };
   /** How far our side ran; `retried` is a first failure the second run did not repeat. */
   ours?: { frames: number; error?: string; retried?: string };

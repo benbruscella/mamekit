@@ -1,4 +1,4 @@
-// Cartridge artwork for the console shelf, from libretro-thumbnails.
+// Cartridge artwork for a console shelf (any software list REPOS names), from libretro-thumbnails.
 //
 // The console room draws every cartridge itself (an SVG NES shell with a
 // generated label), and composites a real box scan into the label when one
@@ -20,10 +20,10 @@
 //              where only the playable 50 have a box reads as broken art rather
 //              than as a support boundary.
 //
-//   node tools/nes-cart-art.ts                    fetch what the support list is missing
-//   node tools/nes-cart-art.ts --check            report gaps, download nothing
-//   node tools/nes-cart-art.ts --scope shelf      ... for every cart on the shelf
-//   node tools/nes-cart-art.ts --list nes --force
+//   node tools/cart-art.ts                    fetch what the support list is missing
+//   node tools/cart-art.ts --check            report gaps, download nothing
+//   node tools/cart-art.ts --scope shelf      ... for every cart on the shelf
+//   node tools/cart-art.ts --list nes --force
 //
 // What lands is the reduced `<name>.sticker.webp` and nothing else: the label
 // is drawn about 113 CSS px wide, so 200px is already generous, and these ship
@@ -56,7 +56,15 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { join, resolve } from 'node:path';
 import { DATA_DIR } from '../src/paths.ts';
 
-const REPO = 'libretro-thumbnails/Nintendo_-_Nintendo_Entertainment_System';
+/**
+ * The libretro-thumbnails collection for each software list. Its names follow
+ * No-Intro's system names, which nothing in MAME spells, so they are the one
+ * thing this tool is told.
+ */
+const REPOS: Record<string, string> = {
+  nes: 'libretro-thumbnails/Nintendo_-_Nintendo_Entertainment_System',
+  snes: 'libretro-thumbnails/Nintendo_-_Super_Nintendo_Entertainment_System',
+};
 const BOXART_DIR = 'Named_Boxarts';
 /**
  * Parenthetical qualifiers marking a release nobody shipped. They are not
@@ -80,11 +88,14 @@ const ROMAN: Record<string, string> = {
 };
 
 /** Blob host for the scans themselves; the API tree is only used to enumerate. */
-const CDN = 'https://thumbnails.libretro.com/Nintendo - Nintendo Entertainment System';
 
 const root = resolve(import.meta.dirname, '..');
 const argv = process.argv.slice(2);
 const list = flagValue('--list') ?? 'nes';
+const REPO = REPOS[list] ?? (() => { throw new Error(`no libretro-thumbnails collection is known for the ${list} list`); })();
+// The thumbnail host names each collection as the repository does, with
+// spaces for its underscores: "Nintendo - Super Nintendo Entertainment System".
+const CDN = `https://thumbnails.libretro.com/${REPO.split('/')[1]!.replace(/_/g, ' ')}`;
 const checkOnly = argv.includes('--check');
 const force = argv.includes('--force');
 const scope = flagValue('--scope') ?? 'supported';
@@ -120,7 +131,8 @@ const availability = readJson<Availability>(join(machineDir, 'carts.json'),
   'no cart shelf index — .data/roms/consoles/<list>/_manifest.json is missing');
 
 const supported = config.cart?.games ?? [];
-if (!supported.length) fail(`${list}: the machine claims no supported cartridges`);
+// The shelf scope needs no support list: a candidate machine claims none yet.
+if (scope === 'supported' && !supported.length) fail(`${list}: the machine claims no supported cartridges`);
 
 /** softlist short name -> the bucket file the shelf's "⌕ Search" would fetch. */
 const availableDumps = new Map<string, string>();
@@ -460,7 +472,7 @@ function writeMapping(): void {
   writeFileSync(mappingFile, JSON.stringify({
     what_is_here: `Box art for the ${list} ${scope}, fetched from the libretro thumbnail collection and reduced to ${width}px .sticker.webp. One row per cart in scope, including the ones nothing matched.`,
     source: { collection: REPO, cdn: CDN, scans: boxarts.length },
-    join: 'MAME softlist description vs libretro release title; see tools/nes-cart-art.ts for the tiers',
+    join: 'MAME softlist description vs libretro release title; see tools/cart-art.ts for the tiers',
     scope, width, quality, counts, carts: rows,
   }, null, 1));
 }
@@ -567,6 +579,6 @@ function flagValue(flag: string): string | undefined {
 }
 
 function fail(message: string): never {
-  console.error(`nes-cart-art: ${message}`);
+  console.error(`cart-art: ${message}`);
   process.exit(1);
 }

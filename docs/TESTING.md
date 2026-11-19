@@ -360,7 +360,7 @@ issue #85 asked for:
   found in.
 
 The support list, the cartridge scans and the fetchable dumps are one contract:
-`node tools/nes-cart-art.ts --check` (or `make cart-art-check` in `.data/`)
+`node tools/cart-art.ts --check` (or `make cart-art-check` in `.data/`)
 reports any title missing either, and derives its work list from the generated
 machine so the three cannot drift apart.
 

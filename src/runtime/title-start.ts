@@ -64,9 +64,9 @@ export function claimImages<T extends { extensions: readonly string[] }>(
  */
 export function softwarePart(
   members: ReadonlyMap<string, Uint8Array>,
-  entry: Pick<SoftEntry, 'prg' | 'areas' | 'features' | 'slot'>,
+  entry: Pick<SoftEntry, 'prg' | 'areas' | 'features' | 'slot' | 'extra'>,
 ): SoftwarePart | undefined {
-  const chips = entry.prg.roms.filter(rom => rom.area);
+  const chips = [...entry.prg.roms.filter(rom => rom.area), ...entry.extra ?? []];
   if (!chips.length) return undefined;
   const byCrc = new Map([...members.values()].map(bytes => [crc32(bytes).toString(16).padStart(8, '0'), bytes]));
   const areas: Record<string, Uint8Array> = {};

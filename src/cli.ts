@@ -43,6 +43,9 @@ import {
 } from './gen/output-layout.ts';
 import { artworkDir } from './paths.ts';
 
+/** Written by `mamekit build` each time it brings dist's runtime up to date with src. */
+const RUNTIME_BUILT_STAMP = 'runtime/.built-at';
+
 const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, '..');
 
@@ -114,6 +117,11 @@ if (positional[0] === 'build') {
     console.error('mamekit build: tsc failed; dist was not touched');
     process.exit(1);
   }
+  // When the runtime was last brought up to date with src, even if no module
+  // changed: `--no-build` serving compares src against this as well as the
+  // app shell (staleAppSources), so a runtime-only rebuild is not reported as
+  // stale.
+  if (!check) writeFileSync(join(root, RUNTIME_BUILT_STAMP), `${new Date().toISOString()}\n`);
   const listed = [...built.changed.map(path => `  ${check ? 'differs' : 'written'} ${path}`),
     ...built.removed.map(path => `  ${check ? 'stale  ' : 'removed'} ${path}`)];
   if (listed.length) console.log(listed.join('\n'));
@@ -448,7 +456,10 @@ function generateTargetProcess(target: string, attempt = 1): Promise<string> {
  * is serving stale rather than leaving that to be discovered in the browser.
  */
 function staleAppSources(root: string): string {
-  const builtAt = statSync(join(root, 'app/main.js')).mtimeMs;
+  // The app shell or a later `mamekit build` of the runtime, whichever is newer:
+  // the runtime build compiles exactly the trees walked below.
+  const stamp = join(root, RUNTIME_BUILT_STAMP);
+  const builtAt = Math.max(statSync(join(root, 'app/main.js')).mtimeMs, existsSync(stamp) ? statSync(stamp).mtimeMs : 0);
   let newest = '';
   let newestAt = builtAt;
   const stack = ['src/runtime', 'src/ir', 'src/hardware'].map(dir => join(projectRoot, dir));

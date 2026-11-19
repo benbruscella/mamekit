@@ -72,6 +72,7 @@ import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writ
 import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
 import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
 import { boardRam, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
+import { compareStereo, readPcm16WavChannels, type StereoComparison } from './stereo-plan.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
@@ -318,6 +319,8 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
     const audio = compareAudio(dir, imageDir);
     if ('error' in audio) report.audioError = audio.error;
     else report.audio = audio;
+    const stereo = compareStereoCapture(dir);
+    if (stereo) report.stereo = stereo;
   }
   if (!quiet) printRun(key, report);
   if (flag('--keep')) {
@@ -390,6 +393,19 @@ function compareAudio(dir: string, outDir: string): AudioComparison | { error: s
   return JSON.parse(readFileSync(result, 'utf8')) as AudioComparison;
 }
 
+/**
+ * A stereo board's two channels against MAME's, when ours played two
+ * (`ours.pcm.stereo.wav`) and MAME's -wavwrite kept two.
+ */
+function compareStereoCapture(dir: string): StereoComparison | undefined {
+  // The harness's stereoCapturePath of `ours.pcm`.
+  const ours = join(dir, 'ours.pcm.stereo.wav');
+  const mameWav = join(dir, 'mame.wav');
+  if (!existsSync(ours) || !existsSync(mameWav)) return undefined;
+  const mame = readPcm16WavChannels(mameWav);
+  return mame.channels.length === 2 ? compareStereo(readPcm16WavChannels(ours), mame) : undefined;
+}
+
 function printRun(key: string, report: RunReport): void {
   console.log(`${target} ${key} (input ${report.input})`);
   if (report.ours?.error) console.log(`  ours: ${report.ours.error} (after ${report.ours.frames} frames)`);
@@ -432,6 +448,14 @@ function printRun(key: string, report: RunReport): void {
       `onsets ${onsets.ours.toFixed(2)}/${onsets.ref.toFixed(2)} a second`);
   }
   if (report.audioError) console.log(`  audio: ${report.audioError}`);
+  if (report.stereo) {
+    const { leftDb, rightDb, width, envelope } = report.stereo;
+    const db = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}`;
+    console.log(`  stereo: ours/MAME left ${db(leftDb)} dB, right ${db(rightDb)} dB; ` +
+      `width ${width.ours.toFixed(1)}/${width.mame.toFixed(1)} dB; ` +
+      `loudness follows MAME's same side ${envelope.same.toFixed(2)}, other side ${envelope.crossed.toFixed(2)}` +
+      (envelope.crossed > envelope.same ? ' (SWAPPED?)' : ''));
+  }
   if (report.io) {
     const first = report.io.firstDivergence;
     console.log(`  I/O: ${report.io.mame} MAME / ${report.io.ours} ours accesses; ` + (first

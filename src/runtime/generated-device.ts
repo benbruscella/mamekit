@@ -34,7 +34,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
+import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, programLambdas, deviceLambdaName, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { attotimeBinary, attotimeField, attotimeFieldAssignment, ExactAttotime, exactAttotime, exactAttotimeFromHz, withAttotimeField } from '../ir/exact-attotime.ts';
 import { markResizable, stateValue } from './machine-state.ts';
@@ -97,6 +97,8 @@ interface StructField {
   union?: true;
   /** The value its declaration gives a scalar field (`u16 lfsr = 1;`). */
   initial?: number;
+  /** Every bound of a multi-dimensional array field; `length` is the first. */
+  dimensions?: number[];
 }
 
 interface DeviceCallback {
@@ -176,6 +178,11 @@ export interface GeneratedDeviceExecutionContext {
    */
   links?: Record<string, ((...args: any[]) => unknown) | undefined>;
   readonly palette: number[];
+  /**
+   * device_palette_interface's m_indirect_pens and m_indirect_colors, which
+   * MAME saves with the device: the SNES PPU's CGRAM colours.
+   */
+  readonly paletteIndirect: { pens?: number[]; colors: number[] };
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;
   /** C++ struct assignment into an existing struct member (see copyGeneratedStruct). */
@@ -299,6 +306,8 @@ export interface GeneratedDeviceDefinition {
   constants: Record<string, number>;
   /** A core that stops between an instruction's cycles (device-compiler.ts). */
   suspendsMidInstruction?: true;
+  /** The member the core counts cycles in, set_icountptr's (device-compiler.ts). */
+  icountMember?: string;
   /**
    * The device's source reads attotime's fields, so it holds attotime exactly
    * (src/ir/exact-attotime.ts): `machine().time()` and the attotime
@@ -416,6 +425,8 @@ export interface GeneratedDeviceDefinition {
 export type DeviceCallbackListener = (...args: number[]) => number | void;
 
 export interface Device {
+  /** The member an executing core counts its cycles in (`set_icountptr(m_ICount)`). */
+  readonly icountMember?: string;
   findDevice?(role: string): Device | undefined;
   imageExtensions?(): string[];
   /** `features` are the list part's, as `get_feature` answers them, when the image came from one. */
@@ -444,6 +455,8 @@ export interface Device {
    */
   bindAddressSpace?(index: number, read: (address: number) => number,
     write: (address: number, data: number) => void, wide?: WideSpaceAccess): void;
+  /** The owner's installers for one of the device's spaces (CpuBus.installers). */
+  bindSpaceInstallers?(index: number, installers: Readonly<Record<string, (...args: unknown[]) => number>>): void;
   /** The MAME address-space indices the device declares (memory_space_config). */
   spaceIndices?(): readonly number[];
   /** One declared space's config: its width, byte order and address shift. */
@@ -460,6 +473,10 @@ export interface Device {
   untilNextTimer?(): number;
   /** Host a device_execute_interface time slice in device cycles. */
   runCycles?(cycles: number): number;
+  /** device_execute_interface::total_cycles(), mid-slice included. */
+  totalCyclesNow?(): number;
+  /** The processors inside the card a slot mounted (IrDevice.nestedProcessors). */
+  nestedProcessors?(): { tag: string; device: Device }[];
   /** MAME `apply_suspend_changes` for this device, at the start of a round. */
   applySuspendChanges?(): void;
   /** Suspended this round: charged its slice ('eating') or skipped ('waiting'). */
@@ -1349,6 +1366,16 @@ export function generatedInstanceFactories(): Map<string, (data: Record<string, 
 }
 
 class IrDevice implements Device {
+  /**
+   * Reads made through the device's own mapped spaces: a core whose memory is
+   * all its own (the S-SMP's) fetches nothing over the board's bus, and the
+   * board tells a stopped core from a running one by its reads.
+   */
+  spaceReads = 0;
+  /** The member the core counts cycles in (definition.icountMember, set_icountptr's). */
+  get icountMember(): string {
+    return this.definition.icountMember ?? 'm_icount';
+  }
   private readonly definition: GeneratedDeviceDefinition;
   private readonly members: Record<string, unknown> = {};
   private readonly memberBits = new Map<string, 1 | 8 | 16 | 32>();
@@ -1376,6 +1403,14 @@ class IrDevice implements Device {
   };
   /** The software-list part the image came from, when it came from one. */
   private softwarePart?: SoftwarePart;
+  /** The battery the host handed with the open image (BoardImage.battery). */
+  private imageBattery?: Uint8Array;
+  /** The open image's name (BoardImage.name), which its kept battery is filed under. */
+  private imageName?: string;
+  /** The open image's call_load asked for its battery: it has one to keep. */
+  private batteryLoaded = false;
+  /** What the last call_unload handed battery_save. */
+  private batterySaved?: Uint8Array;
   /** device_image_interface's m_readonly, which `make_readonly` sets. */
   private imageReadOnly = false;
   private lastImageError?: string;
@@ -1435,7 +1470,7 @@ class IrDevice implements Device {
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
       // its map tests state the constructor sets (the 68705's port masks).
-      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits), config.addressBits, config));
+      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits, config), config.addressBits, config));
       else if (!config.map) this.spaces.set(config.index, withSpaceConfig(generatedDeviceSpace(config.addressBits), config.addressBits, config));
     }
     const resourceCache = options.resourceCache ?? {};
@@ -1522,8 +1557,15 @@ class IrDevice implements Device {
                 calls[name] = (...args: unknown[]) => device.call(name, ...args as number[]);
               }
               for (const [name, fn] of Object.entries(own)) calls[name] = (fn as (...args: unknown[]) => unknown).bind(this);
+              // Its fields narrow to their declared widths, as an emitted
+              // store does: the uPD7725 status register's `drc = d & 0x0400`
+              // is a bool.
+              const widths = (this as { [GENERATED_FIELD_WIDTHS]?: Record<string, number> })[GENERATED_FIELD_WIDTHS] ?? {};
+              const setters = Object.fromEntries(Object.entries(widths).map(([name, width]) =>
+                [name, (value: number) => { this[name] = generatedFieldWidth(value, width); }]));
               STRUCT_BINDINGS.set(this, bindings = {
                 members: this, constants: device.bindings.constants, calls,
+                ...(Object.keys(setters).length ? { setters } : {}),
               } as GeneratedHandlerBindings);
             }
             return executeGeneratedProgram(method.program, bindings, locals, false).value;
@@ -1535,7 +1577,17 @@ class IrDevice implements Device {
       overloads.push(method);
       this.methods.set(method.name, overloads);
     }
-    for (const member of definition.members) {
+    // A device's constant tables are made first. A save captures an object
+    // shared by two members once, by value at the first and as an alias at
+    // the second, so a pointer into a table (the 65C816's `m_opcodes`, aimed
+    // at one of five mode tables) must come second: it is then restored by
+    // being aimed again, where coming first it was restored by writing the
+    // saved mode's opcodes into whichever table it pointed at.
+    const ordered = [
+      ...definition.members.filter(member => member.valueType === 'table'),
+      ...definition.members.filter(member => member.valueType !== 'table'),
+    ];
+    for (const member of ordered) {
       const inputTag = member.finder?.kind === 'input'
         ? [options.tag, member.finder.tag].filter(Boolean).join(':')
         : undefined;
@@ -1605,7 +1657,7 @@ class IrDevice implements Device {
                 : seedStruct(structMember(member.fields, definition.structs, structTypeName(member.valueType)), member.initialValue))
         : member.memory
         ? memoryMember(member, options, definition.structs, definition.spaces?.some(space => space.map) === true)
-        : member.values ? [...member.values]
+        : member.values ? allocatedArray(member.valueType, member.values as number[])
         // A multi-dimensional array needs its inner rows to exist before the
         // second subscript can store into one: `m_wave_ram[bank][offset] = x`
         // indexes a number otherwise, and the write goes nowhere.
@@ -1633,7 +1685,7 @@ class IrDevice implements Device {
     // first use, rather than overload selection on every call.
     for (const method of definition.methods) {
       let call: ((...args: GeneratedCallArgument[]) => unknown) | undefined;
-      self[method.name] = (...args: GeneratedCallArgument[]) => (call ??= this.prepareCall(method.name))(...args);
+      self[method.name] = forwardingCall(() => call ??= this.prepareCall(method.name));
     }
     for (const member of definition.members) Object.defineProperty(self, member.name, {
       // A later lowered declaration may refine a member into a struct array.
@@ -1873,6 +1925,19 @@ class IrDevice implements Device {
       };
     }
     const palette: number[] = [];
+    // m_indirect_pens and m_indirect_colors, sized from the device's own
+    // palette_entries()/palette_indirect_entries() the first time one is used.
+    const indirect: { pens?: number[]; colors: number[] } = { colors: [] };
+    const indirectPens = (): number[] => {
+      if (!indirect.pens) {
+        const count = (name: string) => this.methodNames().includes(name) ? Number(this.call(name)) || 0 : 0;
+        const entries = count('palette_entries') || palette.length;
+        const colors = count('palette_indirect_entries');
+        indirect.pens = Array.from({ length: entries }, (_unused, pen) => colors ? pen % colors : 0);
+        indirect.colors = new Array<number>(colors).fill(0xff000000);
+      }
+      return indirect.pens;
+    };
     this.bindings = {
       members: this.members,
       pointerMembers: new Set(definition.members.filter(member => /\*\s*$/.test(member.valueType ?? '')).map(member => member.name)),
@@ -2096,7 +2161,7 @@ class IrDevice implements Device {
           return stream as unknown as number;
         },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
-          ? 0 : this.runningCycles - Number(this.members.m_icount)),
+          ? 0 : this.runningCycles - Number(this.members[this.icountMember])),
         clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
         // MAME `device_t::attotime_to_clocks`, the inverse. A chip that
         // measures an interval in its own clocks needs it: the Game Boy APU
@@ -2135,6 +2200,26 @@ class IrDevice implements Device {
           return 0;
         },
         pen_color: entry => palette[entry] ?? 0xff000000,
+        // device_palette_interface's indirection (dipalette.cpp): a pen names
+        // an indirect colour, `pen % indirect_entries` as allocate_palette
+        // starts it, and setting a colour updates every pen naming it. The
+        // SNES PPU is its own palette: 256 pens over 32768 BGR555 colours.
+        set_indirect_color: (index, rgb) => {
+          const color = (rgb! | 0xff000000) >>> 0;
+          const pens = indirectPens();
+          if (indirect.colors[index!] !== color) {
+            indirect.colors[index!] = color;
+            for (let pen = 0; pen < pens.length; pen++) if (pens[pen] === index) palette[pen] = color;
+          }
+          return 0;
+        },
+        set_pen_indirect: (pen, index) => {
+          indirectPens()[pen!] = index!;
+          palette[pen!] = indirect.colors[index!] ?? 0xff000000;
+          return 0;
+        },
+        indirect_color: index => { indirectPens(); return indirect.colors[index!] ?? 0xff000000; },
+        pen_indirect: pen => indirectPens()[pen!] ?? 0,
         // device_palette_interface::pen(i). With no indirection table MAME
         // points m_pens straight at the adjusted entry colours, so the pen a
         // device writes into a bitmap_rgb32 is the colour itself.
@@ -2181,7 +2266,9 @@ class IrDevice implements Device {
         // `space(n)`: the device's own address space, as MAME's
         // device_memory_interface hands it out. Every declared space is flat
         // RAM (the extractor records no other shape), so the map is the buffer.
-        space: index => this.deviceSpace(Number(index)) ?? 0,
+        // `space(int spacenum = 0)`: the S-DSP's `space().cache(m_cache)` names
+        // none, and Number(undefined) left its sample RAM unbound -- silence.
+        space: (index = 0) => this.deviceSpace(Number(index)) ?? 0,
         // device_memory_interface::has_configured_map: whether the owner gave
         // the space a map of its own. Nothing here configures one, so a device
         // maps its regions itself (the YM2610's ADPCM ROM).
@@ -2246,6 +2333,7 @@ class IrDevice implements Device {
       calls: this.bindings.calls!,
       links: undefined,
       palette,
+      paletteIndirect: indirect,
       readIndex: (value, index) => {
         // A typed array first: the pointer probe on one is a prototype-chain
         // miss, and device memory is almost always typed.
@@ -2260,7 +2348,12 @@ class IrDevice implements Device {
         return (value as ArrayLike<unknown> | undefined)?.[index] ?? 0;
       },
       writeIndex: (value, index, next) => {
-        if (isGeneratedPointer(value)) {
+        // A typed array first, as readIndex: the pointer probe on one is a
+        // prototype-chain miss, and the SNES PPU's window masks write three
+        // scratch buffers a pixel through here.
+        if (ArrayBuffer.isView(value)) {
+          (value as unknown as Record<number, unknown>)[index] = next;
+        } else if (isGeneratedPointer(value)) {
           setGeneratedPointerElement(value, index, Number(next));
         } else if (value && typeof value === 'object') {
           (value as Record<number, unknown>)[index] = next;
@@ -2334,6 +2427,28 @@ class IrDevice implements Device {
       member: () => 0,
       overrides: {},
     };
+    // A lambda this device's methods write, emitted on its own
+    // (device-codegen's deviceLambdaMethods): where the interpreter evaluates
+    // it -- a map method installing the S-SMP's RAM window -- the emitted one
+    // is what it installs.
+    const compiledLambdas = new Map<object, (...args: unknown[]) => unknown>();
+    const lambdaOwners = new Map<string, number>();
+    for (const method of definition.methods) lambdaOwners.set(method.name, (lambdaOwners.get(method.name) ?? 0) + 1);
+    for (const method of definition.methods) {
+      if (lambdaOwners.get(method.name) !== 1 || !method.program) continue;
+      programLambdas(method.program.operations).forEach((lambda, index) => {
+        const compiled = definition.compiledMethods?.[deviceLambdaName(method.name, index)];
+        if (!compiled || lambda.captures?.length) return;
+        // Fixed arities: the S-SMP's RAM window is called on every byte.
+        type Arg = GeneratedCallArgument;
+        compiledLambdas.set(lambda, lambda.parameters.length === 1
+          ? (a: unknown) => compiled(this.executionContext, a as Arg)
+          : lambda.parameters.length === 2
+            ? (a: unknown, b: unknown) => compiled(this.executionContext, a as Arg, b as Arg)
+            : (...args: unknown[]) => compiled(this.executionContext, ...args as Arg[]));
+      });
+    }
+    if (compiledLambdas.size) Object.assign(this.bindings, { compiledLambdas });
     // A device that executes reaches its own device_execute_interface. A
     // method of its own of the same name is that method: a Z80 CTC channel's
     // `trigger` is its trigger input, not the scheduler's.
@@ -2476,7 +2591,7 @@ class IrDevice implements Device {
         // C64 asks its expansion port's card for the bus on every read.
         const proxy: Record<string, unknown> = Object.fromEntries(child.methodNames().map(name => {
           let call: ((...args: GeneratedCallArgument[]) => unknown) | undefined;
-          return [name, (...args: GeneratedCallArgument[]) => (call ??= child.prepareCall(name))(...args)];
+          return [name, forwardingCall(() => call ??= child.prepareCall(name))];
         }));
         // And its members, as MAME's slot reaches into the card it holds: the
         // C64 expansion port's call_load writes `m_card->m_roml`. Not
@@ -2559,6 +2674,12 @@ class IrDevice implements Device {
         const self = instance.instance() as Record<string, unknown>;
         for (const [name, value] of Object.entries(self)) {
           if (typeof value === 'function' && !Object.hasOwn(callable, name)) callable[name] = value;
+        }
+        // And device_memory_interface::space(n): the SNES DSP cartridge's
+        // speedup_addon_bios_access installs the firmware into its own
+        // uPD7725's spaces, `m_upd7725->space(AS_PROGRAM).install_rom(...)`.
+        for (const [name, value] of Object.entries(instance.hostedCalls())) {
+          if (!Object.hasOwn(callable, name)) callable[name] = value;
         }
         // An owner reads and writes its children's state as well as calling
         // them: the CTC's daisy-chain methods walk `m_channel[ch]->m_int_state`
@@ -2848,23 +2969,23 @@ class IrDevice implements Device {
 
   /** device_execute_interface::total_cycles(), mid-slice included. */
   totalCyclesNow(): number {
-    return this.executedCycles + (this.runningCycles === undefined ? 0 : this.runningCycles - Number(this.members.m_icount));
+    return this.executedCycles + (this.runningCycles === undefined ? 0 : this.runningCycles - Number(this.members[this.icountMember]));
   }
 
   /** cpu_device::defer_access: the access waits for the next slice. */
   deferAccess(): void {
-    if (Number(this.members.m_icount) > 0) this.members.m_icount = 0;
+    if (Number(this.members[this.icountMember]) > 0) this.members[this.icountMember] = 0;
     this.accessToBeRedone = true;
   }
 
   /** cpu_device::access_before_time: wait until `access`, or defer when the slice cannot. */
   accessBeforeTime(access: number, current: number): boolean {
     const delta = (access - current) | 0;
-    if (Number(this.members.m_icount) <= delta) {
+    if (Number(this.members[this.icountMember]) <= delta) {
       this.deferAccess();
       return true;
     }
-    this.members.m_icount = Number(this.members.m_icount) - delta;
+    this.members[this.icountMember] = Number(this.members[this.icountMember]) - delta;
     return false;
   }
 
@@ -2874,8 +2995,8 @@ class IrDevice implements Device {
       this.accessBeforeDelayTag = undefined;
       return false;
     }
-    this.members.m_icount = Number(this.members.m_icount) - cycles;
-    if (Number(this.members.m_icount) <= 0) {
+    this.members[this.icountMember] = Number(this.members[this.icountMember]) - cycles;
+    if (Number(this.members[this.icountMember]) <= 0) {
       this.accessBeforeDelayTag = tag;
       this.accessToBeRedone = true;
       return true;
@@ -2885,7 +3006,7 @@ class IrDevice implements Device {
 
   /** cpu_device::access_after_delay. */
   accessAfterDelay(cycles: number): void {
-    this.members.m_icount = Number(this.members.m_icount) - cycles;
+    this.members[this.icountMember] = Number(this.members[this.icountMember]) - cycles;
   }
 
   runCycles(cycles: number): number {
@@ -2896,14 +3017,14 @@ class IrDevice implements Device {
       return charged;
     }
     if (!this.executeEntry) this.connectCall('execute_run', call => { this.executeEntry = call; });
-    this.members.m_icount = cycles;
+    this.members[this.icountMember] = cycles;
     this.runningCycles = cycles;
     let ran = cycles;
     try {
       this.executeEntry!();
     } finally {
       // An abort_timeslice took back what was left (runningCycles).
-      ran = this.runningCycles! - Number(this.members.m_icount);
+      ran = this.runningCycles! - Number(this.members[this.icountMember]);
       this.executedCycles += ran;
       this.runningCycles = undefined;
     }
@@ -2927,10 +3048,10 @@ class IrDevice implements Device {
    */
   abortTimeslice(): void {
     if (this.runningCycles === undefined) return;
-    const left = Number(this.members.m_icount);
+    const left = Number(this.members[this.icountMember]);
     if (left > 0) {
       this.runningCycles -= left;
-      this.members.m_icount = 0;
+      this.members[this.icountMember] = 0;
     }
   }
 
@@ -3326,6 +3447,12 @@ class IrDevice implements Device {
     interruptible(space);
   }
 
+  bindSpaceInstallers(index: number, installers: Readonly<Record<string, (...args: unknown[]) => number>>): void {
+    const space = this.deviceSpace(index) as unknown as Record<string, unknown> | undefined;
+    if (!space) return;
+    for (const [name, install] of Object.entries(installers)) space[name] ??= install;
+  }
+
   dataAddressBits(): number | undefined {
     return this.definition.dataAddressBits;
   }
@@ -3335,7 +3462,7 @@ class IrDevice implements Device {
     // through its finder: Neo Geo's init_ym takes `m_ym->space(0)` and
     // installs the cartridge's ADPCM ROM there.
     if (this.definition.spaces?.length && !this.hostedSurface.space) {
-      this.hostedSurface.space = ((index: number) => this.deviceSpace(Number(index)) ?? 0) as (...args: never[]) => unknown;
+      this.hostedSurface.space = ((index = 0) => this.deviceSpace(Number(index)) ?? 0) as (...args: never[]) => unknown;
     }
     return this.hostedSurface;
   }
@@ -3394,6 +3521,31 @@ class IrDevice implements Device {
     return typeof name === 'string' ? name : undefined;
   }
 
+  /**
+   * The processors inside the card this slot mounted: devices of the card's
+   * own machine config that execute (an SNES DSP cartridge's uPD7725). MAME
+   * schedules them like any CPU; the board only knows its machine config's
+   * devices, so it asks the slot for these.
+   */
+  nestedProcessors(): { tag: string; device: Device }[] {
+    const found: { tag: string; device: Device }[] = [];
+    const visit = (device: IrDevice): void => {
+      for (const child of [...device.children, ...device.slotChild ? [device.slotChild] : []]) {
+        if (child.methods.has('execute_run') && child.methods.has('execute_set_input')) {
+          found.push({ tag: child.ownTag, device: child });
+        }
+        visit(child);
+      }
+    };
+    if (this.slotChild) {
+      if (this.slotChild.methods.has('execute_run') && this.slotChild.methods.has('execute_set_input')) {
+        found.push({ tag: this.slotChild.ownTag, device: this.slotChild });
+      }
+      visit(this.slotChild);
+    }
+    return found;
+  }
+
   timerPending(): boolean {
     return this.timerEntries.some(entry => entry.timer.enabled());
   }
@@ -3419,6 +3571,9 @@ class IrDevice implements Device {
    * software part it came from, if any.
    */
   private openImage(image: BoardImage): void {
+    this.imageBattery = image.battery;
+    this.imageName = image.name;
+    this.batteryLoaded = false;
     const extension = image.name.includes('.') ? image.name.split('.').pop()!.toLowerCase() : '';
     const file = {
       bytes: image.bytes ?? new Uint8Array(0), name: image.name, filetype: extension, position: 0,
@@ -3532,14 +3687,26 @@ class IrDevice implements Device {
       // loader's `default_nvram`, the list's `bwram` with zeroed mapper RAM
       // behind it -- and every MMC5 battery cartridge reaches it from
       // call_load_pcb before it can boot.
+      //
+      // A battery the host does keep (BoardImage.battery) is read back instead,
+      // when it is the size asked for: MAME refuses a file of another size the
+      // same way, by filling.
       battery_load: (buffer, length, fill) => {
         const count = Math.max(0, Number(length) >>> 0);
-        copyGeneratedBytes(buffer, typeof fill === 'number' ? new Uint8Array(count).fill(fill & 0xff) : fill, count);
+        this.batteryLoaded = true;
+        const kept = this.imageBattery;
+        copyGeneratedBytes(buffer, kept && kept.length === count ? kept
+          : typeof fill === 'number' ? new Uint8Array(count).fill(fill & 0xff) : fill, count);
         return 0;
       },
-      // The machine's write-back on unload: nothing keeps a cartridge's battery
-      // between sessions yet, so what it held lasts while the cartridge is in.
-      battery_save: () => 0,
+      // The machine's write-back on unload, taken by the host (collectBattery).
+      battery_save: (buffer, length) => {
+        const count = Math.max(0, Number(length) >>> 0);
+        const bytes = new Uint8Array(count);
+        copyGeneratedBytes(bytes, buffer, count);
+        this.batterySaved = bytes;
+        return 0;
+      },
       // The software-list half of the interface (diimage.h), over the part the
       // host mounted: the C64 expansion port asks for `roml` and `romh` by
       // name, and for its `exrom` and `game` lines as features.
@@ -3687,6 +3854,20 @@ class IrDevice implements Device {
     // The format stands for itself by name: what the drive keeps of it is
     // only whether there is one a written disk could be saved back in.
     this.invoke('mount_image', stateValue(heldInstanceName(this.definition.floppyImage), image.instance() as object), best.name);
+  }
+
+  /**
+   * The open image's battery as MAME would write it at exit: the device's own
+   * call_unload, which copies its battery-backed memory out and hands it to
+   * battery_save. Asked only of an image whose call_load read a battery, so a
+   * drive's unload (a floppy, a tape) is never run for it. Undefined when
+   * there is none.
+   */
+  collectBattery(): { name: string; bytes: Uint8Array } | undefined {
+    if (!this.batteryLoaded || !this.methods.has('call_unload') || this.imageName === undefined) return undefined;
+    this.batterySaved = undefined;
+    this.invoke('call_unload');
+    return this.batterySaved ? { name: this.imageName, bytes: this.batterySaved } : undefined;
   }
 
   /** Take the disk out (floppy_image_device::call_unload). */
@@ -3992,6 +4173,27 @@ function asBankBytes(
   }
   if (isGeneratedPointer(value)) return { source: value.source, offset: value.offset };
   return undefined;
+}
+
+/**
+ * A device's own heap array, `std::unique_ptr<uint16_t[]> m_cgram` made by
+ * `std::make_unique<uint16_t[]>(n)`: typed at its element's width, so it
+ * stores the way C++ does and a byte view of it (`(uint8_t *)m_cgram.get()`,
+ * how the SNES PPU writes its palette RAM a byte at a time) reinterprets the
+ * same memory. An element type that is no fixed-width integer stays a list.
+ */
+function allocatedArray(valueType: string | undefined, values: readonly number[]): number[] | ArrayLike<number> {
+  const element = /^std::unique_ptr\s*<\s*(?:const\s+)?([\w:]+)\s*\[\]\s*>$/.exec((valueType ?? '').trim())?.[1];
+  const widths: Record<string, [8 | 16 | 32, boolean]> = {
+    uint8_t: [8, false], u8: [8, false], int8_t: [8, true], s8: [8, true],
+    uint16_t: [16, false], u16: [16, false], int16_t: [16, true], s16: [16, true],
+    uint32_t: [32, false], u32: [32, false], int32_t: [32, true], s32: [32, true],
+  };
+  const width = element ? widths[element] : undefined;
+  if (!width) return [...values];
+  const array = integerArray(values.length, width[0], width[1]) as Uint8Array;
+  array.set(values);
+  return array;
 }
 
 function integerArray(length: number, bits: number | undefined, signed: boolean | undefined): number[] | ArrayLike<number> {
@@ -4987,9 +5189,17 @@ function mappedDeviceSpace(
       },
       // An 8-bit lambda is a byte handler whatever the bus width: the 68000's
       // autovectors answer on one byte lane of its CPU space.
+      // emumem's named overloads put a name after each lambda:
+      // `lrw8(rlambda, "data_r", wlambda, "data_w")` (the S-SMP's RAM window)
+      // beside `lrw8(NAME(rlambda), NAME(wlambda))`.
       lr8: handler => { chain.r!(handler); entry.words = false; return chain; },
       lw8: handler => { chain.w!(handler); entry.words = false; return chain; },
-      lrw8: (read, write) => { chain.rw!(read, write); entry.words = false; return chain; },
+      lrw8: (...handlers: unknown[]) => {
+        const [read, write] = handlers.length >= 4 ? [handlers[0], handlers[2]] : handlers;
+        chain.rw!(read, write);
+        entry.words = false;
+        return chain;
+      },
       ram: () => {
         if (sparse) { entry.storage = new Uint8Array(entry.end - entry.start + 1); entry.storageOffset = 0; }
         else { entry.storage = memory; entry.storageOffset = undefined; }
@@ -5081,8 +5291,36 @@ function mappedDeviceSpace(
     }
     return -1;
   };
-  const readIndex = (at: number) => readAt ? readAt[at]! : find(at, readable);
-  const writeIndex = (at: number) => writeAt ? writeAt[at]! : find(at, writable);
+  // A sparse space's entries by 4 KB page, the candidates for each page in
+  // the order find tries them, built on first use: the 65C816 checks its
+  // 16 MB internal map on every access before the board's bus, and almost
+  // every one of those is a miss that scanned every entry. The entries are
+  // fixed once the map is built.
+  const pageCount = sparse ? Math.ceil(size / 4096) : 0;
+  const readPages: (Int32Array | undefined)[] = new Array(pageCount);
+  const writePages: (Int32Array | undefined)[] = new Array(pageCount);
+  const candidates = (page: number, test: (entry: Entry) => boolean, pages: (Int32Array | undefined)[]): Int32Array => {
+    let found = pages[page];
+    if (found) return found;
+    const low = page * 4096, high = low + 4095;
+    const list: number[] = [];
+    for (let index = entries.length - 1; index >= 0; index--) {
+      const entry = entries[index]!;
+      if (entry.end >= low && entry.start <= high && test(entry)) list.push(index);
+    }
+    pages[page] = found = Int32Array.from(list);
+    return found;
+  };
+  const findPaged = (at: number, test: (entry: Entry) => boolean, pages: (Int32Array | undefined)[]): number => {
+    const list = candidates(Math.floor(at / 4096), test, pages);
+    for (let position = 0; position < list.length; position++) {
+      const entry = entries[list[position]!]!;
+      if (entry.start <= at && at <= entry.end) return list[position]!;
+    }
+    return -1;
+  };
+  const readIndex = (at: number) => readAt ? readAt[at]! : findPaged(at, readable, readPages);
+  const writeIndex = (at: number) => writeAt ? writeAt[at]! : findPaged(at, writable, writePages);
   // A byte of a wide handler's word: its lane's mask and shift.
   const laneShift = (at: number, entry: Entry) => {
     const lane = (at - entry.start) % wordBytes;
@@ -5106,6 +5344,7 @@ function mappedDeviceSpace(
   const space: GeneratedDeviceSpace & WideSpaceAccess & { fallback?: Fallback } = {
     memory,
     read_byte: address => {
+      device.spaceReads++;
       const at = address & mask;
       const index = readIndex(at);
       const entry = index < 0 ? undefined : resolve(index, at, false);
@@ -5277,7 +5516,7 @@ function pair16Value(): Record<string, unknown> {
  * `space(0).install_rom(start, end, base)` puts a region's bytes there, and
  * `read_byte` reads whatever is installed (open bus elsewhere reads 0).
  */
-function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
+function installableDeviceSpace(addressBits: number, config?: { dataBits: number; addressShift?: number }): GeneratedDeviceSpace & {
   install_rom(start: number, end: number, base: unknown): number;
   unmap_readwrite(start: number, end: number): number;
   unmap_read(start: number, end: number): number;
@@ -5304,10 +5543,21 @@ function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
     }
     return 0;
   };
+  // A word-addressed space (addrshift < 0) holds a word per address, and
+  // install_rom hands it a table of them: the SNES DSP cartridge installs its
+  // uPD7725's firmware as `uint32_t m_dsp_prg[0x800]`, and the core fetches
+  // with `m_cache.read_dword(regs.pc)`.
+  const wordMask = config && config.dataBits >= 32 ? 0xffffffff : 2 ** (config?.dataBits ?? 8) - 1;
+  const words = config && (config.addressShift ?? 0) < 0 && config.dataBits > 8
+    ? (config.dataBits >= 32
+      ? { read_dword: (address: number) => (Number(read(address)) & wordMask) >>> 0 }
+      : { read_word: (address: number) => Number(read(address)) & wordMask })
+    : {};
   return {
     memory: new Uint8Array(0),
     read_byte: read,
     write_byte: () => 0,
+    ...words,
     install_rom: (start, end, base) => {
       const pointer = isGeneratedPointer(base) ? base : undefined;
       const bytes = pointer ? pointer.source : base as ArrayLike<number>;
@@ -5468,8 +5718,19 @@ function structMember(
         : structMember(nested, structs, field.valueType);
       continue;
     }
+    // An integer array field is memory of its declared width, as a member
+    // array is (integerArray): stores wrap as the C++ element's do, and a
+    // memset of it is a fill. The SNES PPU clears six 256-entry line buffers
+    // on every line, element by element while they were plain arrays.
     if (field.length) {
-      value[field.name] = Array.from({ length: field.length }, () => 0);
+      // One dimension only: the elements of `int ktable[MAX_K][MAX_SCALE]` are
+      // rows. Typed, each row a TMS5220's coefficient table assigned turned
+      // into 0, and Gauntlet's speech came out garbled (8 dB off MAME).
+      const integral = field.bits !== undefined && !field.dimensions &&
+        !/\b(?:float|double)\b|\*/.test(field.valueType ?? '');
+      value[field.name] = integral
+        ? integerArray(field.length, field.bits, field.signed)
+        : Array.from({ length: field.length }, () => 0);
       continue;
     }
     value[field.name] = field.initial ?? 0;
@@ -5498,6 +5759,16 @@ function structMember(
   const methods = table?.[typeName!] ?? table?.[typeName!.split('::').at(-1)!.trim()];
   for (const [name, method] of Object.entries(methods ?? {})) {
     Object.defineProperty(struct, name, { value: method, enumerable: false, configurable: true, writable: true });
+  }
+  // A struct with a scalar conversion (`operator unsigned()`, compiled as
+  // `__convert`) reads as that number wherever it meets arithmetic: the
+  // uPD7725's `return regs.sr >> 8`.
+  const convert = methods?.__convert;
+  if (convert) {
+    Object.defineProperty(struct, 'valueOf', {
+      value: function (this: Record<string, unknown>) { return Number(convert.call(this)) || 0; },
+      enumerable: false, configurable: true, writable: true,
+    });
   }
   return struct;
 }
@@ -5671,6 +5942,29 @@ function nestedArrayMember(shape: readonly number[]): unknown[] {
     { length: Math.max(0, extent ?? 0) },
     () => inner.length ? nestedArrayMember(inner) : 0,
   );
+}
+
+/**
+ * A call forwarded to a prepared call with exactly the arguments it was
+ * given, without building an array for them: a slot asks its card for
+ * `read_l`, `get_type` and the address on every 65C816 access.
+ */
+function forwardingCall(
+  resolve: () => (...args: GeneratedCallArgument[]) => unknown,
+): (...args: GeneratedCallArgument[]) => unknown {
+  return function forward(this: unknown) {
+    const call = resolve();
+    // eslint-disable-next-line prefer-rest-params
+    const args = arguments as unknown as GeneratedCallArgument[];
+    switch (args.length) {
+      case 0: return call();
+      case 1: return call(args[0]!);
+      case 2: return call(args[0]!, args[1]!);
+      case 3: return call(args[0]!, args[1]!, args[2]!);
+      case 4: return call(args[0]!, args[1]!, args[2]!, args[3]!);
+      default: return call(...args);
+    }
+  };
 }
 
 /**

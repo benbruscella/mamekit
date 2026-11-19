@@ -180,6 +180,31 @@ export function lowerRoms(opts: GenerateOptions, g: Graph, romset: KGNode, devic
         edge.rel === 'CALLS' && edge.to === ownerConfigEdge.from &&
         g.node(edge.from)?.label === 'Device');
       const host = hostEdge && g.node(hostEdge.from);
+      // A host device (a Namco 51xx around its MCU) is covered below, through
+      // the devices its own machine config adds.
+      const hostsConfig = graph.edges.some(edge => edge.rel === 'CALLS' && edge.from === nested.id);
+      // Only a device the driver's own machine config declares: one inside a
+      // device's config whose host the walk above does not find (a board's
+      // mconfig calling its base class's, Q*bert's speech board, which
+      // config.replace()s its SC-01 with an SC-01-A) is not the driver's.
+      const driverDeclared = ownerConfig?.props.name !== 'device_add_mconfig';
+      if (ownerConfig && !host && !hostsConfig && driverDeclared) {
+        // A device the driver itself configures may declare its own set too:
+        // the SNES's S_SMP loads its 64-byte IPL (`spc700.rom`) into
+        // `soundcpu:sound_ipl` through s_smp_device::device_rom_region. MAME
+        // finds it in the machine's own set, or the device's (`s_smp.zip`).
+        const own = ownDeviceRomSet(opts.mameSrc, String(nested.props.type ?? ''));
+        for (const region of own?.regions ?? []) {
+          const regionTag = `${nested.props.tag}:${region.tag}`;
+          if (roms.some(candidate => candidate.region === regionTag)) continue;
+          roms.push({
+            region: regionTag,
+            size: region.size,
+            romSet: own!.romSet,
+            loads: region.loads.map(load => ({ file: load.file, offset: load.offset, size: load.size, crc: load.crc })),
+          });
+        }
+      }
       if (!ownerConfig || !host) continue;
       const sourceFile = String(ownerConfig.props.sourceFile ?? '');
       // The host's own class first: a sub-machine is often declared once on a
@@ -280,7 +305,7 @@ export function slotCardDeviceRoms(
     if (!card) continue;
     const source = readFileSync(join(mameSrc, card.sourceFile), 'utf8');
     const config = new RegExp(`\\b${card.className}::device_add_mconfig\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`).exec(source)?.[1] ?? '';
-    for (const child of config.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)/g)) {
+    for (const child of config.matchAll(/\b([A-Z_][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)/g)) {
       const [, childType, member] = child;
       const own = ownDeviceRomSet(mameSrc, childType!);
       const tag = new RegExp(`\\b${member}\\s*\\(\\s*\\*this\\s*,\\s*"([^"]+)"`).exec(source)?.[1];

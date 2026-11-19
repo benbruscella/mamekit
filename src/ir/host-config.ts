@@ -22,7 +22,7 @@ export interface BoardConfig {
   customs?: GeneratedExecutionPlan['customs'];
   inputLatches?: GeneratedExecutionPlan['inputLatches'];
   screen: Pick<GeneratedScreen,
-    'width' | 'height' | 'xOffset' | 'yOffset' | 'refresh' | 'vtotal' | 'vbstart' | 'vbend' | 'rotate'>;
+    'width' | 'height' | 'xOffset' | 'yOffset' | 'refresh' | 'vtotal' | 'vbstart' | 'vbend' | 'rotate' | 'physicalAspect'>;
   clocks: { namco06: number; wsg: number };
   /**
    * Console cartridge metadata, injected at runtime by the console room after
@@ -95,6 +95,12 @@ export interface BoardImage {
   name: string;
   bytes?: Uint8Array;
   software?: SoftwarePart;
+  /**
+   * What the host kept of this image's battery: MAME's battery file, which
+   * device_image_interface::battery_load reads back at call_load. Absent, the
+   * load fills as MAME does with no file.
+   */
+  battery?: Uint8Array;
 }
 
 /** Use resolved executable facts for composition, preserving host mounting options. */

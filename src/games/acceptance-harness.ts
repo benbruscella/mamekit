@@ -53,6 +53,12 @@ export interface SoundWrite {
   data: number;
   frac?: number;
   method?: string;
+  /**
+   * A stereo board's mix sample: its left and right, played but never
+   * hashed -- the golden's writes stay the mono mix.
+   */
+  left?: number;
+  right?: number;
 }
 
 interface AudioProbe {
@@ -112,7 +118,8 @@ export interface GameAcceptanceOptions {
    * sums each chip's observed stream (`<tag>.stream`, with
    * MAMEKIT_OBSERVE_STREAMS=1) per window of frames.
    */
-  onSoundWrite?: (write: { method?: string; data: number }) => void;
+  /** Every sound write as it happens; a stereo board's mix samples bring their left and right. */
+  onSoundWrite?: (write: { method?: string; data: number; left?: number; right?: number }) => void;
   /** Read-only per-frame diagnostic hook for long-state-transition captures. */
   inspectFrame?: (frame: {
     number: number;
@@ -345,14 +352,15 @@ export async function runGameAcceptance(
     regions,
     input,
     {
-      soundWrite: (offset, data, frac, method) => {
+      soundWrite: (offset, data, frac, method, left, right) => {
         const write = { offset, data, frac, method };
         if (replayWrites) { replayWrites.push(write); return; }
-        options.onSoundWrite?.({ ...(method ? { method } : {}), data: Number(data) || 0 });
+        options.onSoundWrite?.({ ...(method ? { method } : {}), data: Number(data) || 0, ...(left === undefined ? {} : { left, right: right ?? left }) });
+        const played = left === undefined ? write : { ...write, left, right: right ?? left };
         // MAMEKIT_STREAM_WAV=<dir>: each observed chip's own stream, as it
         // reaches the speaker, kept for a WAV of its own (see below).
         if (streamWavDir && method?.endsWith('.stream')) (streamPcm[method] ??= []).push(Number(data) || 0);
-        pendingWrites.push(write);
+        pendingWrites.push(played);
         allWrites.push(write);
       },
       mute: (muted, frac = 0) => {
@@ -383,7 +391,7 @@ export async function runGameAcceptance(
   options.onBoard?.({ board, boardConfig, config, input });
 
   const audio = await createAudioProbe(config, outRoot);
-  const framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
+  let framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
   const checkpoints: GameAcceptanceGolden['checkpoints'] = {};
   const checkpointFrames = new Set(diagnosticCapture ? [] : contract.checkpoints);
   // --- save-state round trip (machine-state.ts) ------------------------------
@@ -481,6 +489,8 @@ export async function runGameAcceptance(
     typing?.tick(1 / config.board.screen.refresh);
     input.advance();
     traceLog.length = 0;
+    // A screen a device reconfigured takes its new visible area here.
+    if (framebuffer.length !== board.fbWidth * board.fbHeight) framebuffer = new Uint32Array(board.fbWidth * board.fbHeight);
     board.frame(framebuffer);
     step++;
     if (input.debug && !input.dump().split(' ').every(value => value.endsWith('=ff'))) {
@@ -1199,16 +1209,22 @@ async function createAudioProbe(
     outputRate: PROBE_OUTPUT_RATE,
   });
   const chunks: Float32Array[] = [];
+  // A stereo board's left and right, as the worklet plays them.
+  const stereoChunks: [Float32Array, Float32Array][] = [];
   let audible = 0;
   let muted = false;
   return {
     render(writes, capture, mutes = []) {
       const samples = renderer.render(writes);
+      const sides = renderer.sides?.();
       // MAME's system mute zeroes the speaker output from where it was set
       // (sound.cpp); the browser applies it as its output gain.
       let from = 0;
       const segment = (to: number) => {
-        if (muted) samples.fill(0, from, Math.max(from, to));
+        if (muted) {
+          samples.fill(0, from, Math.max(from, to));
+          for (const side of sides ?? []) side.fill(0, from, Math.max(from, to));
+        }
         from = Math.max(from, to);
       };
       for (const change of mutes) {
@@ -1217,6 +1233,7 @@ async function createAudioProbe(
       }
       segment(samples.length);
       if (capture) chunks.push(samples);
+      if (capture && sides) stereoChunks.push(sides);
     },
     finish(writes, wavPath) {
       const { result, pcm } = audioResult(writes, chunks);
@@ -1225,6 +1242,11 @@ async function createAudioProbe(
       for (const sample of output) squares += sample * sample;
       audible = Math.sqrt(squares / Math.max(1, output.length));
       if (wavPath) writePcm16Wav(wavPath, output, PROBE_OUTPUT_RATE);
+      // Beside it, a stereo board's two channels: `<capture>.stereo.wav`.
+      if (wavPath && stereoChunks.length === chunks.length && stereoChunks.length) {
+        const side = (index: 0 | 1) => applyBrowserOutputStage(audioResult([], stereoChunks.map(pair => pair[index])).pcm, config.sound, PROBE_OUTPUT_RATE);
+        writePcm16Wav(stereoCapturePath(wavPath), side(0), PROBE_OUTPUT_RATE, side(1));
+      }
       return result;
     },
     audibleRms: () => audible,
@@ -1298,23 +1320,33 @@ function audioResult(
 /** The rate an observed stream reaches the speaker at (the mix's own). */
 const STREAM_WAV_RATE = 48000;
 
-function writePcm16Wav(path: string, pcm: Float32Array, sampleRate: number): void {
-  const bytes = Buffer.alloc(44 + pcm.length * 2);
+/** Where a capture's stereo twin is written: `ours.pcm` -> `ours.pcm.stereo.wav`. */
+export function stereoCapturePath(capture: string): string {
+  return `${capture}.stereo.wav`;
+}
+
+/** A PCM16 WAV of one channel, or of two when `right` is given (interleaved). */
+function writePcm16Wav(path: string, pcm: Float32Array, sampleRate: number, right?: Float32Array): void {
+  const channels = right ? 2 : 1;
+  const frames = right ? Math.min(pcm.length, right.length) : pcm.length;
+  const size = frames * 2 * channels;
+  const bytes = Buffer.alloc(44 + size);
   bytes.write('RIFF', 0);
-  bytes.writeUInt32LE(36 + pcm.length * 2, 4);
+  bytes.writeUInt32LE(36 + size, 4);
   bytes.write('WAVEfmt ', 8);
   bytes.writeUInt32LE(16, 16);
   bytes.writeUInt16LE(1, 20);
-  bytes.writeUInt16LE(1, 22);
+  bytes.writeUInt16LE(channels, 22);
   bytes.writeUInt32LE(sampleRate, 24);
-  bytes.writeUInt32LE(sampleRate * 2, 28);
-  bytes.writeUInt16LE(2, 32);
+  bytes.writeUInt32LE(sampleRate * 2 * channels, 28);
+  bytes.writeUInt16LE(2 * channels, 32);
   bytes.writeUInt16LE(16, 34);
   bytes.write('data', 36);
-  bytes.writeUInt32LE(pcm.length * 2, 40);
-  for (let index = 0; index < pcm.length; index++) {
-    const sample = Math.max(-1, Math.min(1, pcm[index]!));
-    bytes.writeInt16LE(Math.round(sample * 32767), 44 + index * 2);
+  bytes.writeUInt32LE(size, 40);
+  const pcm16 = (value: number) => Math.round(Math.max(-1, Math.min(1, value)) * 32767);
+  for (let index = 0; index < frames; index++) {
+    bytes.writeInt16LE(pcm16(pcm[index]!), 44 + index * 2 * channels);
+    if (right) bytes.writeInt16LE(pcm16(right[index]!), 44 + index * 4 + 2);
   }
   writeFileSync(path, bytes);
 }

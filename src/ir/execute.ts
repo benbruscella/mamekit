@@ -176,6 +176,12 @@ export function isGeneratedStruct(value: unknown): value is Record<string, unkno
  * element by element. Returns the target.
  */
 export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
+  // A scalar stored into a struct with `operator=(unsigned)` (compiled as
+  // `__assign`) runs it: the uPD7725's `regs.sr = 0x0000` sets its flags.
+  if ((typeof source === 'number' || typeof source === 'boolean') && structAssigns(target)) {
+    target.__assign(Number(source));
+    return target;
+  }
   if (isPairValue(target) && isPairValue(source) && target !== source) {
     target.word[0] = source.word[0]!;
     return target;
@@ -199,6 +205,12 @@ export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
         if (isGeneratedStruct(current[index])) copyGeneratedStruct(current[index], next[index]);
         else current[index] = next[index];
       }
+    } else if (ArrayBuffer.isView(current) && (ArrayBuffer.isView(next) || Array.isArray(next))) {
+      // An integer array field is typed memory (structMember): copied element
+      // by element, never shared between the two structs.
+      const into = current as unknown as { [index: number]: number; length: number };
+      const from = next as unknown as ArrayLike<number>;
+      for (let index = 0; index < into.length && index < from.length; index++) into[index] = Number(from[index]) || 0;
     } else target[key] = next;
   }
   return target;
@@ -223,7 +235,16 @@ function isPairValue(value: unknown): value is { word: Uint32Array | Uint16Array
     (word instanceof Uint16Array && 'w' in (value as object));
 }
 
+/** A struct whose `operator=` takes a scalar (`__assign`). */
+function structAssigns(target: unknown): target is { __assign(value: number): unknown } {
+  return isGeneratedStruct(target) && typeof (target as { __assign?: unknown }).__assign === 'function';
+}
+
 function copiesStruct(target: unknown, value: unknown): boolean {
+  if (structAssigns(target)) {
+    const source = isLValue(value) ? value.get() : value;
+    if (typeof source === 'number' || typeof source === 'boolean') return true;
+  }
   if (isPairValue(target)) {
     const source = isLValue(value) ? value.get() : value;
     return isPairValue(source) && source !== target;
@@ -269,6 +290,9 @@ export function attotimeSecondsMethod(seconds: number, method: string, args: rea
     case 'as_double': return seconds;
     case 'as_ticks': return Math.floor(seconds * Math.max(1, args[0] ?? 1));
     case 'as_attoseconds': return seconds * 1e18;
+    // The frequency the period is: the SNES PPU's device_reset reads its
+    // frame rate as `screen().frame_period().as_hz()`. Never is 0 Hz.
+    case 'as_hz': return seconds === Infinity || seconds === 0 ? 0 : 1 / seconds;
     case 'seconds': return Math.floor(seconds);
     case 'attoseconds': return (seconds - Math.floor(seconds)) * 1e18;
     default: return undefined;
@@ -300,6 +324,11 @@ export interface IrInputPorts {
 export interface GeneratedHandlerBindings {
   /** MAME member names, including the leading m_ used in the source. */
   members?: Record<string, unknown>;
+  /**
+   * The emitted bodies of this handler's lambdas, by lambda node: an
+   * interpreted handler still installs emitted code (see compiledLambdaKey).
+   */
+  compiledLambdas?: ReadonlyMap<object, (...args: unknown[]) => unknown>;
   /**
    * Members declared as pointers (`PAIR16 *m_reg16`): assigning one aims it,
    * never copies into what it points at, though that is a struct.
@@ -471,6 +500,18 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   'filter_rc_device::AC': 4,
   INPUT_LINE_IRQ0: 0,
   ...HOST_INPUT_LINES,
+  // emu/distate.h's generic state indices: device_state_interface::pc() is
+  // state_int(STATE_GENPC). The SNES open bus is the byte at the 65C816's
+  // `pc() - 1`, the last one it fetched.
+  STATE_GENPC: -1,
+  STATE_GENPCBASE: -2,
+  // emu/emumem.h's address space numbers. Unnamed, board codegen declined
+  // every driver handler that says `space(AS_PROGRAM)` -- the SNES scanline,
+  // HBLANK and HDMA timers, hundreds of calls a frame, all interpreted.
+  AS_PROGRAM: 0,
+  AS_DATA: 1,
+  AS_IO: 2,
+  AS_OPCODES: 3,
   // emu/machine.h's machine_phase, which running_machine::phase() answers. A
   // device ignores a port write while MAME is still resetting: the 1541's
   // VIA port B handler drives the spindle motor and stepper only when RUNNING.
@@ -784,6 +825,8 @@ export function executeGeneratedMachineProgram(
  * precedence: a driver method the emitter chose not to compile must still run,
  * and it must be the same one an interpreted caller would have reached.
  */
+const freshPalette = (): number[] => [];
+
 function preparedHandlerRuntime(
   prepared: PreparedMachineCalls,
   bindings: GeneratedHandlerBindings,
@@ -958,8 +1001,14 @@ function preparedHandlerRuntime(
   } satisfies Omit<GeneratedHandlerRuntime, 'palette'> & { linksGeneration?: number };
   // A board handler has no palette of its own: every read is a fresh scratch
   // array, as it always was.
+  //
+  // One getter for every runtime: an accessor defined with a fresh closure on
+  // a second object of the same shape differs from the transition the first
+  // one made, and V8 drops that object to dictionary mode -- two of the SNES
+  // board's three handler runtimes were, and every `runtime.links` read in
+  // every emitted handler was a hash probe.
   prepared.runtime = runtime = Object.defineProperty(fields, 'palette', {
-    get: () => [],
+    get: freshPalette,
     enumerable: true,
   }) as typeof fields & Pick<GeneratedHandlerRuntime, 'palette'>;
   return runtime;
@@ -974,6 +1023,42 @@ function preparedHandlerRuntime(
  * the first handlers have already run, and a copy would freeze every later
  * handler on the pre-merge view.
  */
+/**
+ * A program's lambdas, in one fixed order (depth first, fields in order), so
+ * the board emitter and the interpreter number them alike.
+ */
+export function programLambdas(operations: readonly unknown[]): Extract<GeneratedExpression, { kind: 'lambda' }>[] {
+  const found: Extract<GeneratedExpression, { kind: 'lambda' }>[] = [];
+  const visit = (value: unknown): void => {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) {
+      for (const item of value) visit(item);
+      return;
+    }
+    if ((value as { kind?: string }).kind === 'lambda') found.push(value as Extract<GeneratedExpression, { kind: 'lambda' }>);
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(operations);
+  return found;
+}
+
+/**
+ * The name an emitted lambda of a driver handler is compiled under:
+ * `snes_console_state.machine_start__lambda1` is the cartridge tap
+ * machine_start installs on every 65C816 access. The handler itself may stay
+ * interpreted (a lifecycle method runs once); what it installs runs millions
+ * of times, and is emitted on its own when its body needs nothing of the
+ * enclosing scope.
+ */
+export function compiledLambdaKey(ownerClass: string, method: string, index: number): string {
+  return `${ownerClass}.${method}__lambda${index}`;
+}
+
+/** The name a device method's emitted lambda is compiled under (device-codegen's deviceLambdaMethods). */
+export function deviceLambdaName(method: string, index: number): string {
+  return `${method}__lambda${index}`;
+}
+
 function machineHandlerBindings(
   machine: BoardIr,
   handler: GeneratedHandler,
@@ -996,6 +1081,30 @@ function machineHandlerBindings(
       concreteDeviceMembers: prepared.concreteDeviceMembers,
     },
   );
+  const lambdas = handler.program ? programLambdas(handler.program.operations) : [];
+  const compiledLambdas = new Map<object, (...args: unknown[]) => unknown>();
+  lambdas.forEach((lambda, index) => {
+    const compiled = machine.compiledHandlers?.[compiledLambdaKey(handler.ownerClass, handler.method, index)];
+    if (!compiled || lambda.captures?.length) return;
+    // Called on every access a tap watches: no array is built per call, and
+    // the runtime is resolved again only when the call links change, as
+    // prepareGeneratedMachineRead keeps it.
+    const value = (argument: unknown): unknown =>
+      typeof argument === 'number' || !isLValue(argument) ? argument : argument.get();
+    let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+    const current = (): GeneratedHandlerRuntime => runtime !== undefined && runtime.linksGeneration === callLinksGeneration
+      ? runtime : (runtime = currentHandlerRuntime(prepared, bindings));
+    compiledLambdas.set(lambda, lambda.parameters.length === 3
+      // The SNES cartridge tap runs this on every bus access: numbers pass
+      // straight through, and the runtime check is the inline one.
+      ? (a: unknown, b: unknown, c: unknown) => compiled(
+        runtime !== undefined && runtime.linksGeneration === callLinksGeneration ? runtime : current(),
+        typeof a === 'number' ? a : value(a), typeof b === 'number' ? b : value(b), typeof c === 'number' ? c : value(c))
+      : lambda.parameters.length === 2
+        ? (a: unknown, b: unknown) => compiled(current(), value(a), value(b))
+        : (...args: unknown[]) => compiled(current(), ...args.map(value)));
+  });
+  if (compiledLambdas.size) created.compiledLambdas = compiledLambdas;
   prepared.handlerBindings.set(handler, created);
   return created;
 }
@@ -1255,6 +1364,41 @@ export function prepareGeneratedMachineWrite(
       runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
     }
     compiled(runtime, offset, data);
+  };
+}
+
+/**
+ * The read and write fast paths for an emitted handler that also takes its
+ * `address_space &space` first, the space already resolved: every SNES
+ * cartridge access is `snes20_lo_r(address_space &space, offs_t offset)`, and
+ * the general path built an argument record per access to read it back by
+ * name. Undefined when the handler has no emitted body.
+ */
+export function prepareGeneratedMachineSpaceRead(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings, space: unknown,
+): ((offset: number) => unknown) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  return offset => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    return compiled(runtime, space, offset);
+  };
+}
+
+export function prepareGeneratedMachineSpaceWrite(
+  machine: BoardIr, handler: GeneratedHandler, bindings: GeneratedHandlerBindings, space: unknown,
+): ((offset: number, data: number) => void) | undefined {
+  const compiled = machine.compiledHandlers?.[`${handler.ownerClass}.${handler.method}`];
+  if (!compiled) return undefined;
+  let runtime: (GeneratedHandlerRuntime & { linksGeneration?: number }) | undefined;
+  return (offset, data) => {
+    if (runtime === undefined || runtime.linksGeneration !== callLinksGeneration) {
+      runtime = currentHandlerRuntime(preparedMachineCalls(machine, bindings, handler.ownerClass), bindings);
+    }
+    compiled(runtime, space, offset, data);
   };
 }
 
@@ -2393,6 +2537,16 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
     // resolvable there -- with its parameters bound over the top. An unnamed
     // parameter keeps its position and binds nothing.
     const { parameters, body } = expression;
+    const emitted = context.bindings.compiledLambdas?.get(expression);
+    if (emitted) {
+      // The emitted function is this lambda's own (compiledLambdas builds one
+      // per lambda), so it carries its declared arity itself: a tap watching
+      // every 65C816 access went through one more closure per call for it.
+      if (!Object.hasOwn(emitted, 'declaredParameters')) {
+        Object.defineProperty(emitted, 'declaredParameters', { value: parameters.length });
+      }
+      return emitted;
+    }
     // Init-captures are evaluated here, where the lambda is written, exactly
     // once -- which is what C++ does and what MAME relies on: the captured
     // pointer is taken before the loop that calls the lambda begins.
@@ -2481,6 +2635,12 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // The comma operator (handler-ir lowers `(a, b)` to COMMA): its operands
   // were evaluated in order as arguments; the value is the last one's.
   if (name === 'COMMA') return args.at(-1) ?? 0;
+  // Asked for first: emitted code reaches it here on every line a renderer
+  // clears its buffers (the SNES PPU's sprite items and tiles).
+  if (name === 'memset') {
+    fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
+    return args[0];
+  }
   // MAME's downcast<T>(x) is a checked static_cast: the object itself.
   if (name === 'downcast' && args.length === 1) return args[0];
   // As the C library and as `std::` spell it: the floppy drive's call_load
@@ -2830,10 +2990,6 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // nothing here.
   if (name === 'malloc') return new Array<unknown>(Math.max(0, toNumber(args[0]))).fill(0);
   if (name === 'free') return 0;
-  if (name === 'memset') {
-    fillGeneratedMemory(args[0], toNumber(args[1]), toNumber(args[2]));
-    return args[0];
-  }
   // A struct built in place: field names and values, interleaved, as the
   // device compiler lowers a brace initialiser (see lowerStructLocals).
   if (name === 'STRUCT') return generatedStruct(args);
@@ -3054,6 +3210,15 @@ function applyIdentifierCall(
     const operand = args[0];
     if (isIndexableMemory(operand)) {
       return (operand as { byteLength?: number }).byteLength ?? operand.length;
+    }
+    // An element's size is its container's element width: `sizeof(sprite_list[0])`
+    // over a `u16 *` into a typed array is 2.
+    const indexed = expression.args[0];
+    if (indexed?.kind === 'index') {
+      const container = evaluate(indexed.object, context) as { BYTES_PER_ELEMENT?: number; generatedPointer?: boolean; source?: { BYTES_PER_ELEMENT?: number } };
+      const width = ArrayBuffer.isView(container) ? container.BYTES_PER_ELEMENT
+        : container?.generatedPointer ? container.source?.BYTES_PER_ELEMENT : undefined;
+      if (width) return width;
     }
     return typeByteWidth(generatedExpressionName(expression.args[0]!));
   }
@@ -3445,6 +3610,10 @@ function assign(
       throw new Error(`generated member assignment has no object for "${target.property}"`);
     }
     const record = object as Record<string, unknown>;
+    if (operator === '=' && copiesStruct(record[target.property], value) && structAssigns(record[target.property])) {
+      copyGeneratedStruct(record[target.property], isLValue(value) ? value.get() : value);
+      return;
+    }
     const next = assignmentValue(operator, record[target.property], value);
     // A struct field carries the width MAME declared. Emitted code narrows to
     // it inline; an interpreted store narrows through the shape the host
@@ -4622,6 +4791,17 @@ export function copyGeneratedBytes(destination: unknown, source: unknown, count:
 }
 
 function fillGeneratedMemory(destination: unknown, value: number, count: number): void {
+  // An array of structs, cleared element by element exactly as the general
+  // path below does it, without first building a memory view of it: the SNES
+  // PPU zeroes its 32 sprite items and 34 tiles this way on every line.
+  if (Array.isArray(destination) && isClearableStruct(destination[0])) {
+    for (let index = 0; index < count; index++) {
+      const element = destination[index];
+      if (isClearableStruct(element)) clearGeneratedStruct(element, value);
+      else destination[index] = value;
+    }
+    return;
+  }
   const cells = nestedCells(destination);
   if (cells) {
     for (const cell of cells.slice(0, count)) cell.row[cell.index] = value;
@@ -4645,9 +4825,18 @@ function fillGeneratedMemory(destination: unknown, value: number, count: number)
   }
 }
 
+/** A struct-shaped element memset clears field by field (fillGeneratedMemory). */
+function isClearableStruct(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !ArrayBuffer.isView(value) && !Array.isArray(value) &&
+    (value as { [UNION_ELEMENTS]?: true })[UNION_ELEMENTS] !== true;
+}
+
 /** Set every field of a struct-shaped object, recursing into nested ones. */
 function clearGeneratedStruct(target: Record<string, unknown>, value: number): void {
-  for (const key of Object.keys(target)) {
+  // A struct's fields never change once built (copyGeneratedStruct's cache).
+  let keys = STRUCT_FIELDS.get(target);
+  if (!keys) STRUCT_FIELDS.set(target, keys = Object.keys(target));
+  for (const key of keys) {
     const field = target[key];
     if (ArrayBuffer.isView(field)) {
       (field as unknown as { fill(value: number): void }).fill(value);
@@ -5266,13 +5455,20 @@ function memoryDelegate(
   // otherwise every Game Boy MBC read an address where it wanted a bank number.
   const declared = context.bindings.callParameters?.[method];
   const dataOnly = declared?.length === 1;
+  // Or one that takes the space first, `u8 snes20_lo_r(address_space &space,
+  // offs_t offset)`: MAME hands it the space it is installed in, then the
+  // offset. Handed the offset first, the SNES's cartridge read saw every
+  // address as 0xffff.
+  const spaced = /\baddress_space\s*&/.test(String(declared?.[0] ?? ''));
   // Named by the handler it binds, `cls.method`, so a board installing it
   // into a processor's space can decode it exactly as its address map would.
   const apply = (
     callee: (...values: number[]) => unknown,
   ): ((...values: number[]) => number) => Object.assign(
     (...values: number[]) =>
-      Number(callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0,
+      Number(spaced
+        ? callee(...([context.bindings.addressSpace?.() ?? 0, ...values] as number[]))
+        : callee(...(dataOnly && values.length > 1 ? values.slice(1) : values))) || 0,
     { delegateHandler: qualified.name.replace('::', '.') },
   );
   const bound = target && typeof target === 'object'

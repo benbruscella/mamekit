@@ -176,7 +176,7 @@ const HOST_MODELS = [
 ];
 const SAVED_BOARD_FIELDS = [
   'bankDeviceBuses', 'cpuBuses', 'cpuCycles', 'cpuHeld', 'cpuReportedSuspended',
-  'cpuSliceCycles', 'cpuStalls', 'cpus', 'currentLine', 'currentLineFraction',
+  'cpuStalls', 'cpus', 'currentLine', 'currentLineFraction',
   'declarativeEeprom', 'devices', 'frameRunner', 'generatedBanks', 'generatedResources',
   'heldDeviceSeconds', 'hostState', 'inFrame', 'inputLatchPrevious', 'observedTransportSeconds',
   'pendingBankEntry', 'pendingTimers', 'runningSliceCycles',

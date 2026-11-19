@@ -3,7 +3,7 @@ import { lowerTopology } from './lower-topology.ts';
 import { lowerScreen } from './lower-screen.ts';
 import { lowerSound } from './lower-sound.ts';
 import { lowerRoms, slotCardDeviceRoms } from './lower-roms.ts';
-import { nesCartOptions } from '../hardware/nes/ines-mappers.ts';
+import { SELF_MOUNTING_SLOTS } from './self-mounting-slots.ts';
 import { lowerInputs } from './lower-inputs.ts';
 import { lowerMedia } from './lower-media.ts';
 
@@ -66,8 +66,10 @@ export async function lowerMachine(graph: KnowledgeGraph, opts: GenerateOptions)
   const { title, cart, software, cartEntries } = lowerMedia(game, kind, opts, devices, softlistNodes, category, family, g, dipDefaults as ShelfSwitch[]);
   // A slot that mounts its own cards also needs the firmware their chips
   // carry (the VRC7's DS1001), loaded only when one of those cards is in it.
-  const slotDevice = (cart as { slotDevice?: { tag: string } } | undefined)?.slotDevice;
-  if (slotDevice) roms.push(...slotCardDeviceRoms(opts.mameSrc, slotDevice.tag, nesCartOptions(opts.mameSrc)));
+  // Each slot's own boards: the NES's VRC7, never the NES's boards in a SNES.
+  const slotDevice = (cart as { slotDevice?: { tag: string; type: string } } | undefined)?.slotDevice;
+  const slotOptions = slotDevice ? SELF_MOUNTING_SLOTS[slotDevice.type] : undefined;
+  if (slotDevice && slotOptions) roms.push(...slotCardDeviceRoms(opts.mameSrc, slotDevice.tag, slotOptions(opts.mameSrc)));
 
   // driver-init ROM byte patches (rocnrope's one-instruction fix), applied by
   // the shell after region assembly

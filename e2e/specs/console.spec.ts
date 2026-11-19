@@ -96,7 +96,7 @@ test.describe('console room', () => {
       if (!cartArt[entry.dump.name]) withoutArt.push(entry.dump.name);
     }
     // Reported as whole lists rather than one failing title at a time: a gap
-    // here is a data gap, and the fix is `node tools/nes-cart-art.ts`.
+    // here is a data gap, and the fix is `node tools/cart-art.ts`.
     expect(withoutDump, 'supported titles the web search cannot fetch').toEqual([]);
     expect(withoutArt, 'supported titles with no cartridge scan').toEqual([]);
 

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createStreamMixer } from './runtime.ts';
+import { createStreamMixer, proportionalSides } from './runtime.ts';
 import { STREAM_AUDIO_RATE } from './definition.ts';
 import type { SoundRuntimeContext } from '../sound-runtime.ts';
 
@@ -110,6 +110,16 @@ const mixer = (
   assert.equal(pokey.emitted.length, 3);
 }
 
+// A device's sides are its mono samples scaled whenever every output pans
+// alike, so they are not resampled a second time; outputs panned apart keep
+// sides of their own.
+assert.deepEqual(proportionalSides({ tag: 'ay', gain: 0.25, stereo: [0.5, 0] }), [2, 0], 'wholly left');
+assert.deepEqual(proportionalSides({ tag: 'ay', gain: 0.25, stereo: [0.25, 0.25] }), [1, 1], 'centred');
+assert.deepEqual(proportionalSides({ tag: 'd', gain: 1, outputGains: [0.5, 0.5], stereo: [[1, 1], [0, 0]] }), [2, 0], 'every output panned alike');
+assert.equal(proportionalSides({ tag: 'd', gain: 1, outputGains: [0.5, 0.5], stereo: [[1, 0], [0, 1]] }), undefined, 'outputs panned apart');
+assert.equal(proportionalSides({ tag: 'd', gain: 1, outputGains: [0.5], stereo: [0.5, 0.5] }), undefined, 'a side gain for an output the mono mix routes nowhere');
+assert.equal(proportionalSides({ tag: 'mono', gain: 1 }), undefined, 'a mono board has no sides');
+
 console.log('speaker/runtime.spec: speaker-rate and native-rate streams mix at their route gains');
 
 // A chip below the speaker's rate that only feeds another stream device --
@@ -173,4 +183,31 @@ console.log('speaker/runtime.spec: speaker-rate and native-rate streams mix at t
   settled = 600 / STREAM_AUDIO_RATE;
   hooks.tickCpu!('soundcpu', 1);
   assert.equal(emitted.length, 600, 'the last processor\'s slice mixes the round');
+}
+
+// A stereo board mixes each device's outputs into a left and a right at its
+// side gains, beside the mono mix, which keeps its own gains.
+{
+  let seconds = 0;
+  const emitted: [number, number | undefined, number | undefined][] = [];
+  const hooks = createStreamMixer({
+    board: { execution: { cpus: [{ tag: 'cpu' }] } },
+    calls: {},
+    time: () => seconds,
+    fraction: () => 0,
+    bindDeviceCall: () => undefined,
+    deviceStreamRate: () => STREAM_AUDIO_RATE,
+    callDevice: (_tag: string, _method: string, surface: Surface) => {
+      for (let index = 0; index < surface.samples(); index++) {
+        surface.put(0, index, 0.5);
+        surface.put(1, index, -0.25);
+      }
+      return 0;
+    },
+  } as unknown as SoundRuntimeContext, [{ tag: 'dsp', gain: 1, outputGains: [0.5, 0.5], stereo: [[1, 0], [0, 1]] }],
+  (sample, _frac, left, right) => emitted.push([sample, left, right]));
+  seconds = 4 / STREAM_AUDIO_RATE;
+  hooks.tickCpu!('cpu', 1);
+  hooks.endFrame!();
+  assert.deepEqual(emitted, Array(4).fill([0.125, 0.5, -0.25]), 'output 0 is the left, output 1 the right, the mono their mean');
 }

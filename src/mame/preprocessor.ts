@@ -280,6 +280,25 @@ export function collectMemberExpressionMacros(source: string): MemberAliasMacro[
   });
 }
 
+/**
+ * Function-like `#define`s that name a member element, as a member alias does
+ * but indexed by their argument: the SNES's `#define SNES_CPU_REG(a)
+ * m_cpu_regs[a - 0x4200]`, assigned through as `SNES_CPU_REG(TIMEUP) = 0x80`.
+ * Left as a call, that assignment had no target. Each parameter appears at
+ * most once, so the expansion evaluates every argument as often as the macro.
+ */
+export function collectMemberAliasFunctionMacros(source: string): FunctionMacro[] {
+  const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');
+  return [...joined.matchAll(/^[ \t]*#define[ \t]+([A-Za-z_]\w*)\(([^)]*)\)[ \t]+(.+)$/gm)].flatMap(match => {
+    const body = match[3]!.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '').trim();
+    const parameters = match[2]!.split(',').map(parameter => parameter.trim()).filter(Boolean);
+    if (INTRINSICS.has(match[1]!) || TRACING.test(match[1]!) || !parameters.length || !MEMBER_ALIAS.test(body)) return [];
+    if (parameters.some(parameter => !/^\w+$/.test(parameter) ||
+      (body.match(new RegExp(`\\b${parameter}\\b`, 'g'))?.length ?? 0) > 1)) return [];
+    return [{ name: match[1]!, parameters, body }];
+  });
+}
+
 /** Object-like BIT aliases may read a handler parameter, so cannot be constants. */
 export function collectBitAliasMacros(source: string): MemberAliasMacro[] {
   const joined = source.replace(/\\[ \t]*\r?\n/g, ' ');

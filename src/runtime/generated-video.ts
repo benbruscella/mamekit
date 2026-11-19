@@ -138,6 +138,21 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     if (this.indexed) this.penBuffer = new Uint32Array(this.width * this.height);
   }
 
+  /**
+   * screen_device::configure with a visible area of another size: the SNES
+   * PPU's dynamic_res_change shows 240 lines when the game turns overscan on.
+   * Applied between frames, so the frame drawn is the shape it was drawn in.
+   */
+  resize(width: number, height: number): void {
+    (this as { width: number }).width = width;
+    (this as { height: number }).height = height;
+    (this.primitives as { width: number }).width = width;
+    (this.primitives as { height: number }).height = height;
+    if (this.indexed) (this as unknown as { penBuffer?: Uint32Array }).penBuffer = new Uint32Array(width * height);
+    this.partialNextY = this.machine.execution.screen.yOffset ?? 0;
+    this.nowNextY = this.partialNextY;
+  }
+
   vblank(): void {
     this.primitives.vblank();
   }
@@ -291,7 +306,15 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     maxY: number,
     minX = this.machine.execution.screen.xOffset ?? 0,
     maxX = (this.machine.execution.screen.xOffset ?? 0) + this.width - 1,
+    scanline?: number,
   ): void {
+    // VIDEO_VARIABLE_WIDTH: MAME calls the update once a line, each with a
+    // bitmap of that line alone, whose row 0 is the line (screen.cpp's
+    // m_scan_bitmaps). The SNES PPU writes `bitmap.pix(0, x)`.
+    if (scanline === undefined && this.machine.execution.screen.variableWidth) {
+      for (let y = minY; y <= maxY; y++) this.renderRegion(frame, y, y, minX, maxX, y);
+      return;
+    }
     const xOffset = this.machine.execution.screen.xOffset ?? 0;
     const yOffset = this.machine.execution.screen.yOffset ?? 0;
     const xScale = this.machine.video?.renderScale?.x ?? 1;
@@ -304,7 +327,8 @@ export class GeneratedVideoRenderer implements VideoRenderer {
     );
     const target = this.penBuffer ?? frame;
     const scaledXOffset = xOffset * xScale;
-    const scaledYOffset = yOffset * yScale;
+    // A line's own bitmap: row 0 is that line.
+    const scaledYOffset = scanline === undefined ? yOffset * yScale : (yOffset - scanline) * yScale;
     const bitmap = {
       bpp: () => this.indexed ? 16 : 32,
       direct: {
@@ -366,8 +390,8 @@ export class GeneratedVideoRenderer implements VideoRenderer {
         }
         const firstX = Math.floor((x - xOffset * xScale) / xScale);
         const lastX = Math.floor((x + pixelWidth - 1 - xOffset * xScale) / xScale);
-        const firstY = Math.floor((y - yOffset * yScale) / yScale);
-        const lastY = Math.floor((y + pixelHeight - 1 - yOffset * yScale) / yScale);
+        const firstY = Math.floor((y - scaledYOffset) / yScale);
+        const lastY = Math.floor((y + pixelHeight - 1 - scaledYOffset) / yScale);
         const clippedFirstX = Math.max(0, firstX);
         const clippedLastX = Math.min(this.width - 1, lastX);
         const clippedFirstY = Math.max(0, firstY);
@@ -401,9 +425,20 @@ export class GeneratedVideoRenderer implements VideoRenderer {
           Math.floor((y - scaledYOffset) / yScale) * this.width +
           Math.floor((x - scaledXOffset) / xScale),
       }),
-      'pix=': (y: number, x: number, color: number) => {
-        const visibleX = Math.floor((x - xOffset * xScale) / xScale);
-        const visibleY = Math.floor((y - yOffset * yScale) / yScale);
+      // Unscaled, the division is by one: the SNES PPU stores 512 of these a
+      // line, so the common case takes no division at all.
+      'pix=': xScale === 1 && yScale === 1 ? (y: number, x: number, color: number) => {
+        const visibleX = Math.floor(x - scaledXOffset);
+        const visibleY = Math.floor(y - scaledYOffset);
+        if (
+          visibleX >= 0 && visibleX < this.width &&
+          visibleY >= 0 && visibleY < this.height
+        ) {
+          target[visibleY * this.width + visibleX] = color >>> 0;
+        }
+      } : (y: number, x: number, color: number) => {
+        const visibleX = Math.floor((x - scaledXOffset) / xScale);
+        const visibleY = Math.floor((y - scaledYOffset) / yScale);
         if (
           visibleX >= 0 && visibleX < this.width &&
           visibleY >= 0 && visibleY < this.height

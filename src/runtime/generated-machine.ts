@@ -52,13 +52,17 @@ export function wireDeviceCallbacks(
       continue;
     }
     // Read effects (set_ioport) pull a value FROM the port: the device calls
-    // with no data and the transform applies to the value read back. Write
+    // with no data and the transform applies to the value read back. What it
+    // does call with -- devcb_read8's offset -- goes on as the source's
+    // arguments, as the composite and CPU-signal paths pass it: the S-SMP
+    // reads S-DSP register data as `m_dsp_io_r_cb(1)`, and dropped, every $F3
+    // read answered the address register. Write
     // effects push data TO the target, so the transform applies to the
     // emitted argument.
     device.on(
       signal,
       effect.reads
-        ? () => applyBoardTransforms(Number(effect.run(0)) || 0, effect.transforms)
+        ? (...args) => applyBoardTransforms(Number(effect.run(0, ...args)) || 0, effect.transforms)
         : (...args) => {
             // MAME devcb_write{8,16,32} emits (offset, data, mask), while
             // devcb_write_line emits only state. The effect consumes

@@ -33,6 +33,6 @@ metadata:
   task per frame -> 136 fps in headless Chrome (Node 143). 3x needs ~6.6 ms/frame.
 - e2e: `computer.spec.ts` tape + disk self-start tests use local sets from the available index.
   Local env gaps (not ours): `.data/roms/arcade/puckman.zip` missing breaks pacman e2e; NES dumps
-  added 2026-10-18 (smb, mario, ...) lack cart art -> console.spec fails until tools/nes-cart-art.ts.
+  added 2026-10-18 (smb, mario, ...) lack cart art -> console.spec fails until tools/cart-art.ts.
 
 See [[c64-speed-161]], [[media-slots-on-demand]], [[frame-boundary-input]].

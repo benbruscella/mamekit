@@ -46,7 +46,7 @@ function readMixerChildren(mameSrc: string, type: string): MixerChild[] {
   if (!mconfig) return [];
   const all = sources.map(({ source }) => source).join('\n');
   const children: MixerChild[] = [];
-  for (const created of mconfig.matchAll(/\b([A-Z][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)\b/g)) {
+  for (const created of mconfig.matchAll(/\b([A-Z_][A-Z0-9_]{2,})\s*\(\s*config\s*,\s*(m_\w+)\b/g)) {
     const [, childType, member] = created;
     const route = new RegExp(String.raw`\b${member}\s*->\s*add_route\s*\(\s*\w+\s*,\s*\*\s*this\s*,\s*([\d.]+)`).exec(mconfig);
     if (!route) continue;
