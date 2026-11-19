@@ -135,7 +135,7 @@
 - [NES #171 part 2](nes-171-part2.md) — MMC5 speed, frame offset, 5B audible via 7 AY gaps, APU is the…
 - [NES #184 part 3](nes-184-part3.md) — MAME origin board-wide (user-approved), 6502 reset/timer/arg fixes…
 - [VRC7/ymfm #188](vrc7-ymfm-188.md) — ymfm OPLL compiled bit-exact (native clang oracle recipe)
-- [Host machine faults](host-machine-faults.md) — #190: crashes/divergences follow the user's M3 Pro (Linux VM on it…
+- [Host machine faults](host-machine-faults.md) — #190: SIGILL/SIGBUS crashes follow the user's M3 Pro; compiler pools hit it too, all retry via src/mame/worker-crash.ts
 - [Sound fidelity #194](sound-fidelity-194.md) — PR #196: CPU-stamped writes (one-line rounds too), shared LOFI…
 - [Z80 CTC + daisy chain #181](z80ctc-daisy-181.md) — CTC compiled whole
 - [Oracle input mirroring #198](oracle-input-mirroring-198.md) — analog values mirrored, per-frame input read-back
@@ -182,3 +182,4 @@
 - [Exact attotime #272](exact-attotime-272.md) — devices reading attotime fields hold it exactly; Venture music back; `against --audio` is sound truth; residual round at 53.1200
 - [SNES DSP-1 #174](snes-dsp1-174.md) — addon areas, struct operators, card processors on a leader clock, indirect palette saves
 - [MAME round rules #275](mame-round-rules-275.md) — 50 Hz sound timer, line-start boundaries, self set_input_line syncs, sync target = stop point; VERBOSE MAME build recipe
+- [Data inbox #159](data-inbox-159.md) — everything new goes in .data/_input; make import / bucket-tidy; cover fold-crop lessons
