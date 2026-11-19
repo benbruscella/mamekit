@@ -8,6 +8,8 @@ import {
   prepareGeneratedMachineHandler,
   prepareGeneratedMachineRead,
   prepareGeneratedMachineWrite,
+  prepareGeneratedMachineSpaceRead,
+  prepareGeneratedMachineSpaceWrite,
   type GeneratedHandlerBindings,
 } from '../ir/execute.ts';
 import { wireDeviceCallbacks, type CallbackDevice } from './generated-machine.ts';
@@ -157,6 +159,31 @@ export function generatedHandlerRegistry(
 }
 
 /**
+ * A registry entry for a driver handler the machine installs at run time,
+ * `install_read_handler(..., read8m_delegate(*this, FUNC(cls::method)))`,
+ * built exactly as a map range's is -- so an emitted handler runs emitted. The
+ * SNES installs every cartridge window this way in machine_start, and wrapping
+ * the interpreter's delegate instead ran each cartridge read interpreted.
+ */
+export function installedHandlerEntry(
+  machine: BoardIr,
+  registry: HandlerRegistry,
+  direction: 'read' | 'write',
+  key: string,
+  bindings: GeneratedHandlerBindings,
+  cpuTag: string | undefined,
+): boolean {
+  if (registry[direction][key]) return true;
+  const handler = machine.handlers?.find(candidate =>
+    `${candidate.ownerClass}.${candidate.method}` === key &&
+    candidate.program && candidate.program.diagnostics.length === 0);
+  if (!handler) return false;
+  if (direction === 'read') registry.read[key] = makeReadHandler(machine, handler, bindings, cpuTag);
+  else registry.write[key] = makeWriteHandler(machine, handler, bindings, cpuTag);
+  return true;
+}
+
+/**
  * MAME's `address_space &space` handler parameter, when the source declares
  * one. Congo Bongo's sprite DMA reads its source list straight out of the
  * program space through it.
@@ -219,6 +246,9 @@ export function dispatchGeneratedCallback(
 }
 
 
+const SPACE_OFFSET = /^address_space\s*&\s*space\s*,\s*(?:offs_t|u?int(?:8|16|32)_t|[us](?:8|16|32))\s+offset$/;
+const SPACE_OFFSET_DATA = /^address_space\s*&\s*space\s*,\s*(?:offs_t|u?int(?:8|16|32)_t|[us](?:8|16|32))\s+offset\s*,\s*(?:u?int(?:8|16|32)_t|[us](?:8|16|32))\s+data$/;
+
 function makeReadHandler(
   machine: BoardIr,
   handler: GeneratedHandler,
@@ -231,6 +261,11 @@ function makeReadHandler(
     return (_address, offset) => Number(read(offset) ?? 0xff);
   }
   const space = handlerSpace(handler, bindings, cpuTag);
+  // `(address_space &space, offs_t offset)`: the space is resolved once.
+  const spaceRead = SPACE_OFFSET.test((handler.parameters ?? '').trim()) && 'space' in space
+    ? prepareGeneratedMachineSpaceRead(machine, handler, bindings, space.space)
+    : undefined;
+  if (spaceRead) return (_address, offset) => Number(spaceRead(offset) ?? 0xff);
   const execute = prepareGeneratedMachineHandler(machine, handler, bindings);
   return (addr, offset, memMask) => execute(
     {
@@ -258,6 +293,10 @@ function makeWriteHandler(
     : undefined;
   if (write) return (_addr, offset, data) => write(offset, data);
   const space = handlerSpace(handler, bindings, cpuTag);
+  const spaceWrite = SPACE_OFFSET_DATA.test((handler.parameters ?? '').trim()) && 'space' in space
+    ? prepareGeneratedMachineSpaceWrite(machine, handler, bindings, space.space)
+    : undefined;
+  if (spaceWrite) return (_addr, offset, data) => spaceWrite(offset, data);
   return (addr, offset, data, memMask) => {
     executeGeneratedMachineHandler(
       machine,

@@ -59,6 +59,8 @@ export interface SoftEntry {
   start?: string;
   /** each cartridge dataarea's declared size ("roml": 8192) */
   areas?: Record<string, number>;
+  /** chips of a side dataarea the slot reads by name (an SNES DSP's `addon`), after the program in a flat image */
+  extra?: SoftRom[];
   /** the part's other features: a C64 cartridge's `exrom` and `game` */
   features?: Record<string, string>;
   /** configuration switches the title's note asks for (software-shelves usageSwitches) */

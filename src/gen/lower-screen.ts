@@ -166,8 +166,35 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
         || devices.some(device => mameDeviceUpdatesPartially(opts.mameSrc, String(device.props.type ?? '')))
         ? 'partial' as const
         : 'frame' as const,
+    ...((screenDev?.props.screenVideoAttributes as string[] | undefined)?.includes('VIDEO_VARIABLE_WIDTH')
+      ? { variableWidth: true as const } : {}),
+    ...(physicalAspect(screenDev) ? { physicalAspect: physicalAspect(screenDev)! } : {}),
     rotate: monitor === 'ROT90' ? 90 : monitor === 'ROT270' ? 270 : monitor === 'ROT180' ? 180 : 0,
   };
 
   return { screen };
+}
+
+/**
+ * screen_device::physical_aspect() for the screen device: the driver's
+ * `set_physical_aspect(w, h)`, else MAME's default by screen type -- 4:3 for
+ * SCREEN_TYPE_RASTER and a VECTOR device, square pixels (undefined) for
+ * SCREEN_TYPE_LCD and SCREEN_TYPE_SVG. Shown as square pixels instead, the
+ * SNES's 512-dot lines made a 2.13:1 picture.
+ */
+function physicalAspect(screen: KGNode | undefined): [number, number] | undefined {
+  if (!screen) return undefined;
+  const calls = (screen.props.configCalls as string[] | undefined) ?? [];
+  const set = calls.map(call => /^set_physical_aspect\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)$/.exec(call.trim())).find(Boolean);
+  let aspect: [number, number] | undefined;
+  if (set) aspect = [Number(set[1]), Number(set[2])];
+  else if (screen.props.type === 'VECTOR') aspect = [4, 3];
+  else {
+    const type = String(screen.props.clockExpr ?? '').split('::').at(-1);
+    if (type === 'SCREEN_TYPE_RASTER' || type === 'SCREEN_TYPE_VECTOR') aspect = [4, 3];
+  }
+  if (!aspect || !(aspect[0] > 0 && aspect[1] > 0)) return undefined;
+  const divisor = (a: number, b: number): number => (b ? divisor(b, a % b) : a);
+  const common = divisor(aspect[0], aspect[1]);
+  return [aspect[0] / common, aspect[1] / common];
 }

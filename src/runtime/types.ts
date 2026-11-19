@@ -51,8 +51,11 @@ export interface BoardSinks {
    * frame (0..1, e.g. scanline/vtotal): boards emulate a whole frame in one
    * burst, so without it every write lands at the same instant and fast SFX
    * sweeps quantize into chirpy stair-steps. Pass it whenever known.
+   *
+   * On a stereo board each mixed sample (`stream.pcm`) also carries its left
+   * and right: `data` stays the mono mix, the mean of MAME's speaker channels.
    */
-  soundWrite: (offset: number, data: number, frac?: number, method?: string) => void;
+  soundWrite: (offset: number, data: number, frac?: number, method?: string, left?: number, right?: number) => void;
   /**
    * Stream devices whose own rendered samples are also reported, one
    * `<tag>.stream` write a sample: an acceptance gate on one chip of a mix (a
@@ -172,6 +175,20 @@ export interface Board {
    * for the CPU. Undefined when the board has no such CPU, space or share.
    */
   memory(row: { cpu: string; space?: string; share?: string }): MemoryAccess | undefined;
+  /**
+   * Each mounted image's battery as MAME writes it at exit
+   * (device_image_interface::battery_save from the device's own call_unload):
+   * a cartridge's save RAM, by the device holding it and the image's name.
+   * Read back at the next boot through BoardImage.battery.
+   */
+  batteries(): BatteryImage[];
+}
+
+/** One image's battery: the device that holds it, the image's name, the bytes battery_save was handed. */
+export interface BatteryImage {
+  tag: string;
+  name: string;
+  bytes: Uint8Array;
 }
 
 /** One battery-backed memory the board composed, by the MAME tag that declared it. */

@@ -217,4 +217,25 @@ assert.equal(cartImageFromSoftlistSet(new Map([
 assert.equal(cartImageFromSoftlistSet(new Map(), catalog), null);
 assert.equal(cartImageFromSoftlistSet(new Map([['a', first]]), null), null);
 
+// Two sets with one program and different side-area chips (Super Mario Kart's
+// DSP1 and DSP1B revisions) are told apart by the side chip, which a flat
+// image carries after the program, as MAME's setup_addon_from_fullpath reads.
+{
+  const program = chip(0x11, 0x2000);
+  const dsp1 = chip(0x51, 0x400);
+  const dsp1b = chip(0x61, 0x400);
+  const entry = (name: string, addon: Uint8Array): SoftEntry => ({
+    name, description: name, year: '1992', publisher: 'Nintendo', slot: 'hirom_dsp',
+    prg: { size: program.length, roms: [{ size: program.length, crc: hex8(crc32(program)), offset: 0, area: 'rom' }] },
+    extra: [{ size: addon.length, crc: hex8(crc32(addon)), offset: 0, area: 'addon' }],
+  });
+  const dspCatalog: SoftCatalog = { list: 'snes', description: '', interface: 'snes_cart', entries: [entry('smkarta', dsp1), entry('smkart', dsp1b)], crcIndex: {} };
+  const set = cartImageFromSoftlistSet(new Map([['spal-mk-0.u1', program], ['dsp1b.u3', dsp1b]]), dspCatalog);
+  assert.equal(set?.entry.name, 'smkart', 'the side chip picks the revision');
+  assert.deepEqual([...set!.bytes], [...image(program, dsp1b)], 'the side chip follows the program');
+  assert.equal(identifyCartImage(set!.bytes, dspCatalog)?.entry.name, 'smkart');
+  assert.equal(identifyCartImage(set!.bytes, dspCatalog)?.verified, true);
+  assert.equal(identifyCartImage(program, dspCatalog)?.verified, false, 'a program without its DSP data is not the catalogued set');
+}
+
 console.log('cart-identify.spec: flat cartridge identification, grading and chip-set assembly passed');

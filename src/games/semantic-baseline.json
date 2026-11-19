@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "targets": {
     "1942": {
-      "sha256": "ad2ffdcbc9da08022918fa5a33f3a381d64a7764544ac4eca3693f9259135455",
+      "sha256": "c9c6508f4687759ad725cf4bf4f1428cbc3d4beab080c4b3e5ab9e23490669d9",
       "callbacks": 3,
       "frameEvents": 262,
       "devices": 19,
@@ -11,7 +11,7 @@
       "palette": "none"
     },
     "a2600": {
-      "sha256": "c38585ce4088a3a6263a16e57009c9e3e889e7699f131c3b5b8a0ac9fbddb136",
+      "sha256": "1c82dfcc743acc0ae0fdd79171f71493ca41aeb114f92dfc25032246f6da708d",
       "callbacks": 9,
       "frameEvents": 0,
       "devices": 9,
@@ -20,7 +20,7 @@
       "palette": "none"
     },
     "arkanoid": {
-      "sha256": "a4e3e877177c547112c317c1760c4c7e7197670e1358ddf5f865fd2b683c73e3",
+      "sha256": "716f855dccc86b593c065880a275116bf2d934d1793e9ffa4f945db10dda0f27",
       "callbacks": 9,
       "frameEvents": 1,
       "devices": 9,
@@ -29,7 +29,7 @@
       "palette": "prom:proms"
     },
     "asteroid": {
-      "sha256": "6841db42660ab6bef4aa986869c4382322e41cd8e0cfe155495dccc4575b9783",
+      "sha256": "3c985a1175de707ad750ff672cee910465a6b1c8edf5d01759d7ff5ca45619ba",
       "callbacks": 12,
       "frameEvents": 4,
       "devices": 10,
@@ -38,7 +38,7 @@
       "palette": "none"
     },
     "bankp": {
-      "sha256": "b72cb0f83c9f00f94ee19aead3bb90ee37036056760455aff57bc4dd4e7b44c4",
+      "sha256": "7f25cbaddc9bdb122e23f46aac52399577e1d720628134668efca710da1ddeb5",
       "callbacks": 3,
       "frameEvents": 1,
       "devices": 8,
@@ -47,7 +47,7 @@
       "palette": "none"
     },
     "berzerk": {
-      "sha256": "b3fc788094a4bb083db0af88dc9eeda0e31599c95bab635d030d233732ae15c7",
+      "sha256": "29a1fceedf5e77bd07727fabca4184946681d85e24f0395495daed5c08cb0efb",
       "callbacks": 4,
       "frameEvents": 10,
       "devices": 9,
@@ -56,7 +56,7 @@
       "palette": "none"
     },
     "bnj": {
-      "sha256": "f4e7751180c21ebd8dbb7832e78829130844607ed8282128dda8d900450681f3",
+      "sha256": "48ce889e7289c5a84aaf7b40c274d9094877b2c3c63e4023ee4d5045fcd8474f",
       "callbacks": 6,
       "frameEvents": 34,
       "devices": 12,
@@ -65,7 +65,7 @@
       "palette": "ram:palette:-:native:16:1"
     },
     "bombjack": {
-      "sha256": "c94f7c436c5babcdc74e96b86e4784834059a5bb96a2ba338dfaa6aed3087d3e",
+      "sha256": "beafbcdb7f7b513cc545c7822d7cff8264347e8c6fa796c3a404ba6c33f887b2",
       "callbacks": 9,
       "frameEvents": 4,
       "devices": 11,
@@ -74,7 +74,7 @@
       "palette": "ram:palette:-:native:128:2"
     },
     "btime": {
-      "sha256": "8089806dc316b42660333cf08cc0234bdba1eecce2a866384866d09cbf05c70b",
+      "sha256": "a4d3727ab9becf52651e18bf7e0e602daf1f266bdbbe82816c2d077ee6461d08",
       "callbacks": 6,
       "frameEvents": 34,
       "devices": 12,
@@ -83,7 +83,7 @@
       "palette": "ram:palette:-:native:16:1"
     },
     "bublbobl": {
-      "sha256": "627dbb5ad0d0da95b0151bd86c49cf912a4f9cfdbf49dc2e78500192b5f4ac4d",
+      "sha256": "aff8e4fdf8e1a447ae265be13223cbda1386b341972cd7d8492630ffec442759",
       "callbacks": 15,
       "frameEvents": 3,
       "devices": 15,
@@ -92,7 +92,7 @@
       "palette": "ram:palette:-:big:256:2"
     },
     "bzone": {
-      "sha256": "2eb471164e1bc633809ddb99f34e94f9f153487be24661a243bcaa81c517b40c",
+      "sha256": "a80fa00e1a0e0193d3f57661e7898804252edd208508f6cf8e7738a33071806a",
       "callbacks": 3,
       "frameEvents": 6,
       "devices": 9,
@@ -101,7 +101,7 @@
       "palette": "none"
     },
     "c64": {
-      "sha256": "f10f25ee1dac9b35d1b752c7f3b1259e6cf0300a1a03a93c6dea70154c1fd909",
+      "sha256": "b5083b55e4be651fcca4e7d9eac02fde7367d0c6274a2b52ed44a63fc02db74e",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -110,7 +110,7 @@
       "palette": "none"
     },
     "c64p": {
-      "sha256": "05143db73a65902329366053c88c53cd00529eea601eeaa66572c3e413165a46",
+      "sha256": "d3b7171fdf7a0e577fe641d2b5b09bc8b07ed9e685d050e8dd4510262d93f33d",
       "callbacks": 65,
       "frameEvents": 0,
       "devices": 30,
@@ -119,7 +119,7 @@
       "palette": "none"
     },
     "carnival": {
-      "sha256": "086cace73eaf8d4dc14eebcd8b28c7b5636e32494b1b12cf9d5ff4850c2d0d21",
+      "sha256": "da39ca9f16ceb0aad775a861bb7f714c976e4105738055e957c0ce59d2c9966f",
       "callbacks": 5,
       "frameEvents": 0,
       "devices": 7,
@@ -128,7 +128,7 @@
       "palette": "none"
     },
     "cavenger": {
-      "sha256": "3a4ce0e6195ef2f01f87d4803891849f5ac04be1e3236362611ed3f575a4ea66",
+      "sha256": "705ea3726bc6d4b5b6dbbc89a36821dc636c15c5b3555d1e16be3788688b0ade",
       "callbacks": 3,
       "frameEvents": 0,
       "devices": 9,
@@ -137,7 +137,7 @@
       "palette": "none"
     },
     "centiped": {
-      "sha256": "97eee1d814a97254c1c4e5139bb68d963b79e055ce368defc5fd52746e0d43ee",
+      "sha256": "e0ee3ae7dcaa16a734bfa20d076eb1aaea794c37da3969656f6990940c1e0a78",
       "callbacks": 6,
       "frameEvents": 16,
       "devices": 10,
@@ -146,7 +146,7 @@
       "palette": "ram:palette:-:native:260:2"
     },
     "coleco": {
-      "sha256": "b5361e6ed86025540fff45cfefe9b7cd432c691680289d97cefd1f5b76b8e7a9",
+      "sha256": "45120b2df11eb5ff608c85bdf4294b1282b62faf1c784e74a692eec9446c4c0a",
       "callbacks": 5,
       "frameEvents": 0,
       "devices": 8,
@@ -155,7 +155,7 @@
       "palette": "none"
     },
     "commando": {
-      "sha256": "bb97b0cddd8f17d40e146588b5b3b1307b791dfe1f46080d73038be233aa67d1",
+      "sha256": "3cffaf67847d7b5cda7acecefecf2eee8981d89e76735a3942d6f2aad8b38fd9",
       "callbacks": 2,
       "frameEvents": 262,
       "devices": 11,
@@ -164,7 +164,7 @@
       "palette": "prom:proms"
     },
     "congo": {
-      "sha256": "30410a758afc01c8354b25fcf7d8e035b88f2097ea23af2af845c672172c1a68",
+      "sha256": "7aebe82be7b55c52a9cb7fc7ed423d0df32c90a4e0d300eadcbcbda30a0b5d51",
       "callbacks": 24,
       "frameEvents": 6,
       "devices": 13,
@@ -173,7 +173,7 @@
       "palette": "none"
     },
     "crush": {
-      "sha256": "acfa32c8c6e451cb1e2015dc76fe1a3b038a55cf5260464a43e17db7b9ecba5b",
+      "sha256": "57ab3d155368f15940d8399505b2aabe47f4a882fe7936bdd1ab94e5d5203c58",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 8,
@@ -182,7 +182,7 @@
       "palette": "none"
     },
     "ddragon": {
-      "sha256": "aef6ff3826d8492cea3b4abf626edc8dcac1b3f488ed5f6f2ea882a3d896013e",
+      "sha256": "dc1860f5c81a108a480fd54be87668a7c38b01be9229f5d1e11cc2fd2dab30c6",
       "callbacks": 7,
       "frameEvents": 272,
       "devices": 12,
@@ -191,7 +191,7 @@
       "palette": "ram:palette:palette_ext:native:512:2"
     },
     "defender": {
-      "sha256": "117f65df368a0d12a37c6a6ebdb97b0ca5b2838e2d426ce8432540fbab3cdca4",
+      "sha256": "67cddd5a908f5cb3d25fb47a3410d99e89de5dee2449f3411b9aa0bb6b5c02d3",
       "callbacks": 15,
       "frameEvents": 11,
       "devices": 15,
@@ -200,16 +200,16 @@
       "palette": "none"
     },
     "digdug": {
-      "sha256": "f426b215e256be42e97c3d0a1c15394be070d36d5b180380098ceb9dd57be485",
+      "sha256": "012c6a60c1db66bf31b531f9a298257aea57ac71f0a47e271615376d70d1e152",
       "callbacks": 50,
       "frameEvents": 6,
       "devices": 17,
-      "handlers": 76,
+      "handlers": 77,
       "maps": 1,
       "palette": "none"
     },
     "dkong": {
-      "sha256": "498cf57dd3b01f04e6a52ff8dd86b1e1f5b2159cf5b3f8fe6d7ace5f28417c55",
+      "sha256": "c3c59506b78ef3e34ef5481cb6764f65be118dd11d28afd21b03da60af1755e4",
       "callbacks": 23,
       "frameEvents": 2,
       "devices": 12,
@@ -218,7 +218,7 @@
       "palette": "none"
     },
     "dkongjr": {
-      "sha256": "24c28f39c7248dae0f32224762af6619be5ad5893394e9a9d9f0bacbf7ac480b",
+      "sha256": "dc763d77e9696990be375b5f02832f818bc0d7fab5725e4aa4ec139810460eb9",
       "callbacks": 23,
       "frameEvents": 2,
       "devices": 14,
@@ -227,7 +227,7 @@
       "palette": "none"
     },
     "elevator": {
-      "sha256": "df9ae79f12f5215c17599305b3d3063958c35fb71d2ef51486699a6d57f8b3a9",
+      "sha256": "468bf18e2cae205c801b2bdb58f788b16889bf9f602bfcd23e5f152874eeb06c",
       "callbacks": 20,
       "frameEvents": 2,
       "devices": 17,
@@ -236,7 +236,7 @@
       "palette": "ram:palette:-:native:64:2"
     },
     "ffight": {
-      "sha256": "ef13275b38d5cf8037776e313a252c575c5d7e1fc3af12740fac0f02abdc2b83",
+      "sha256": "e323730d5b5dbdc9c1fe0aea7d79427548d3c175388ae21c381bd28eed47f376",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -245,7 +245,7 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "friskyt": {
-      "sha256": "cdb3b1c49fa14bbbbb0cbb6f9f8cba25bd1721b6676cfbd667e1183f18e414f9",
+      "sha256": "7b975cccb245f701d85d588679a680f8b870743aa56953c459aa1d240e019077",
       "callbacks": 5,
       "frameEvents": 1,
       "devices": 10,
@@ -254,7 +254,7 @@
       "palette": "none"
     },
     "frogger": {
-      "sha256": "f0a14a734b9fefe20735b4c4840904acc0e6099c7bf73e9e27ec606782336b7d",
+      "sha256": "44bc6d07f200cecca8faaf8c443f5d24a91662d4439703fccab67ac6076721f8",
       "callbacks": 13,
       "frameEvents": 2,
       "devices": 22,
@@ -263,7 +263,7 @@
       "palette": "none"
     },
     "galaga": {
-      "sha256": "aec436a564bfce6f1ee70e8a675dd5d9255554c24a1138d8dfd89a182514c1ec",
+      "sha256": "62fd87fed1edb7536b166928b03ab1e17eb00440767c55377836888ac926518b",
       "callbacks": 38,
       "frameEvents": 8,
       "devices": 18,
@@ -272,7 +272,7 @@
       "palette": "none"
     },
     "galaxian": {
-      "sha256": "307e329c8746558dd02234fa082fb01fd793c753db381830cbc254c9aa54dfa3",
+      "sha256": "000f725fcefad6096f421c33984490bb1c3136aab45ea169b1036c17ec29a7e9",
       "callbacks": 3,
       "frameEvents": 2,
       "devices": 8,
@@ -281,16 +281,16 @@
       "palette": "none"
     },
     "gameboy": {
-      "sha256": "b830ab8d8f8835585a890d054d7018e50c4be399b0b18bc0b0d1cca39563e100",
+      "sha256": "348417b587a4b586c674f9f21d800e1b46df275e4ec6e4a7899bc2a09edee6b9",
       "callbacks": 3,
       "frameEvents": 0,
       "devices": 8,
-      "handlers": 26,
+      "handlers": 28,
       "maps": 1,
       "palette": "none"
     },
     "gauntlet": {
-      "sha256": "eb204821e0d6f69a1bf709ecb5ade6d6da7c59117a8ed8c9a1f90642c468b219",
+      "sha256": "0f154cac10c330a335503da04b7bbf082864e7a1e543f79e698af0db05678022",
       "callbacks": 15,
       "frameEvents": 10,
       "devices": 20,
@@ -299,7 +299,7 @@
       "palette": "ram:palette:-:native:1024:2"
     },
     "gberet": {
-      "sha256": "5c674ec929fe23582576fe2d593d460caf80e472531854e8376dca67fe3f4a3c",
+      "sha256": "500a77c655821d5b4293211505a5134c28cab1d400dd945f6be24ad19e52592e",
       "callbacks": 7,
       "frameEvents": 0,
       "devices": 9,
@@ -308,7 +308,7 @@
       "palette": "none"
     },
     "ghouls": {
-      "sha256": "c3beb592ee4e15dfcdfe34045bd3b01af55647e26ea4f122cb4b58c21f42991c",
+      "sha256": "3868ce7f287e1aa4f46bde239ec9bec3fc2c9e6a30fadc3df222d4c9aa3cb75d",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -317,7 +317,7 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "gng": {
-      "sha256": "35f87ab999be477f96971b829031926f0a152b5411f67faac9fb666583f18fed",
+      "sha256": "6e8ebe549975e56aa6b9bedc4b0ab1500e04797df0f81f61598e49ddb89a94a9",
       "callbacks": 6,
       "frameEvents": 5,
       "devices": 11,
@@ -326,7 +326,7 @@
       "palette": "ram:palette:palette_ext:native:256:2"
     },
     "gunsmoke": {
-      "sha256": "d69eb7bac5710d42c5c1569ab69ea10b4e8f38ee5f55ee9f52c3e0906134b9c0",
+      "sha256": "43ae9c67fa3212d594bbba0db0abda9d82da996405ab46f1e2dded388e568d98",
       "callbacks": 4,
       "frameEvents": 5,
       "devices": 10,
@@ -335,7 +335,7 @@
       "palette": "none"
     },
     "gyruss": {
-      "sha256": "80f04b76ff0b83aac4249f622ed5a2498c39d32fe11c435b65840a8655388159",
+      "sha256": "9cde7286911478c741d6811bf3d87d6e82885f3de3add67bbc108db03483f6e3",
       "callbacks": 12,
       "frameEvents": 2,
       "devices": 17,
@@ -344,7 +344,7 @@
       "palette": "none"
     },
     "hyperspt": {
-      "sha256": "296e58e240699101641b820c99d7ad38d5b00cc23e422cdb5dea653dc6442b9a",
+      "sha256": "d83b1b3669759097c9a6c1427ff33e6e7c89448272adbe86c68bf7a901a95dfc",
       "callbacks": 10,
       "frameEvents": 2,
       "devices": 14,
@@ -353,7 +353,7 @@
       "palette": "none"
     },
     "invaders": {
-      "sha256": "3fe993526f7d99cdeea18634b453f44aadf8fc63ba91f2eb0e446e655855619d",
+      "sha256": "062fdcd056d6f3b82eb7872f9169f662e840f97a7e6ea8c9e0c02911fd501bb6",
       "callbacks": 4,
       "frameEvents": 2,
       "devices": 8,
@@ -362,7 +362,7 @@
       "palette": "none"
     },
     "joust": {
-      "sha256": "5f6c70f010a4859c5dae4884fc757dab36c7eb66b2c84328d89d70cdbf2e62e6",
+      "sha256": "f43e862632de0709192c3ddb32612532664cf7dba62d96a081130d817ed1aaa4",
       "callbacks": 24,
       "frameEvents": 11,
       "devices": 18,
@@ -371,7 +371,7 @@
       "palette": "none"
     },
     "jumpbug": {
-      "sha256": "bbc4704bcdd7fad8e287d24cb64401ab4a280e150f25d6416333af0a9cb95f8b",
+      "sha256": "e98e0015ad31a109a6383ddbdfca212978791c98e5d63ee033846ca3f3f42459",
       "callbacks": 3,
       "frameEvents": 2,
       "devices": 6,
@@ -380,7 +380,7 @@
       "palette": "none"
     },
     "junglek": {
-      "sha256": "19a58f832d697db7d60bff9af9bc8d7caff449e5de3e6d573bd31ef41b464f67",
+      "sha256": "f32d5beb880444e09f039736176caf7e4f239bae4b547a066a7b72a73c47230a",
       "callbacks": 11,
       "frameEvents": 2,
       "devices": 15,
@@ -389,7 +389,7 @@
       "palette": "ram:palette:-:native:64:2"
     },
     "junofrst": {
-      "sha256": "c920d4a596919a9d8d6a8d6c0fdd6bb02cfaee91ae6ac7910d8217d30d268b61",
+      "sha256": "644453e8c68c4a7260f025bd380b351444aa868a9d9f800bde8376a4f09a59e4",
       "callbacks": 12,
       "frameEvents": 2,
       "devices": 15,
@@ -398,7 +398,7 @@
       "palette": "none"
     },
     "kungfum": {
-      "sha256": "e2a96b97b40608ce22072d63fd0c162665c0bc97112c968b8c906346b86029d7",
+      "sha256": "af3daf1e0bdeb3a934f2c096ee123837e19d5fa6e41830157dbbcccee0f615bc",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 28,
@@ -407,7 +407,7 @@
       "palette": "none"
     },
     "ladybug": {
-      "sha256": "b3ecbd9448d6968960e5e30ba9a9cacd3435404bf23be8d2e03cff0f915724d0",
+      "sha256": "1746d65365dc29dc83953bfde93d5b0563b754e19e8656fcd624231850539b6f",
       "callbacks": 3,
       "frameEvents": 0,
       "devices": 9,
@@ -416,7 +416,7 @@
       "palette": "none"
     },
     "marble": {
-      "sha256": "a5a8202c0e3f0ca176cbcb09f70751394bf3c62472086dfac789bec1ff20d4c8",
+      "sha256": "d9423c2be5bdc98e52c5778ee1bbdae8559bd149f00d890acee1247f7584887e",
       "callbacks": 14,
       "frameEvents": 1,
       "devices": 20,
@@ -425,7 +425,7 @@
       "palette": "ram:palette:-:native:1024:2"
     },
     "mario": {
-      "sha256": "e83971a95f8034bececd1b898e9c7f21a8d1179ea308ede508b62ba8936ee092",
+      "sha256": "84927c7aa514171a0a6f76f411eebb02a61dea09e0ed4318e4a0ad6e533e8f21",
       "callbacks": 21,
       "frameEvents": 2,
       "devices": 19,
@@ -434,7 +434,7 @@
       "palette": "none"
     },
     "matmania": {
-      "sha256": "1fe109b535b3d6eef7ae11d46f56eefbe8649cdcf0c118baad7037dabbf642c9",
+      "sha256": "db630738c2c6d5407803da4764d3ec4ab51d44dcb7fb547d585bec47b3d62eb6",
       "callbacks": 5,
       "frameEvents": 18,
       "devices": 11,
@@ -443,7 +443,7 @@
       "palette": "none"
     },
     "missile": {
-      "sha256": "b2a40e2ca30baa94c7ede8e5e2e26379b19f981f49d4bfe3507c04fd7aed230f",
+      "sha256": "071fd514cbb92f1ad384f9a7fe4db5312187ca32bc7b553b9eaf4ce97f0ff97b",
       "callbacks": 3,
       "frameEvents": 0,
       "devices": 7,
@@ -452,7 +452,7 @@
       "palette": "ram:palette:-:native:8:2"
     },
     "mk": {
-      "sha256": "b1f3130d08140c733ea06a57b62c1397be5a365259d31eda9353dd2b1678cc27",
+      "sha256": "a37032488f8f93fd54dd094abd52871e6d6833157331c8bf36404a2aae33373e",
       "callbacks": 7,
       "frameEvents": 0,
       "devices": 14,
@@ -461,7 +461,7 @@
       "palette": "ram:palette:-:native:32768:2"
     },
     "mpatrol": {
-      "sha256": "f9805e3b2fec74eea1d091c368533ea0da1e6268219c51af7d78d374304b0b3e",
+      "sha256": "74af85e732426ec3b0cddec6fe1bfdfb7812d2f8b0f6b52ed1681e7f644aac56",
       "callbacks": 10,
       "frameEvents": 1,
       "devices": 15,
@@ -470,7 +470,7 @@
       "palette": "none"
     },
     "mrdo": {
-      "sha256": "93454135587ac2b0d00725b150e3184fbf0f961f5594da6468bce76d238956b1",
+      "sha256": "bcc890f30312ba0975e025e973394460cffe3047d2c3d10993d13bebea12b9d5",
       "callbacks": 3,
       "frameEvents": 1,
       "devices": 7,
@@ -479,16 +479,16 @@
       "palette": "none"
     },
     "mslug": {
-      "sha256": "d2c3d7b68a7945dd4d59b69b9f0d2fce050be1efd04f216becd5d4e30337467d",
+      "sha256": "2828c468f113558f95b0fc0e440f33fac00377f42fd31eddeb768f2e05dd4078",
       "callbacks": 12,
       "frameEvents": 0,
       "devices": 19,
-      "handlers": 105,
+      "handlers": 106,
       "maps": 4,
       "palette": "none"
     },
     "mspacman": {
-      "sha256": "bff60c7d24868deb61ce64d62381b79ccd01d4d271f8bbc088bf8ab70d0e2f22",
+      "sha256": "70ad9799b78d4449e867b31448045309b25dc6608abcfa67cc4ef5039a653dd5",
       "callbacks": 9,
       "frameEvents": 2,
       "devices": 8,
@@ -497,7 +497,7 @@
       "palette": "none"
     },
     "nbajam": {
-      "sha256": "167d11a7583793be4852ff535daac96f80762d3ed00983e2bd2953e4df7c260d",
+      "sha256": "cfc35e0934d5d2690946c765256b751b5d40e446cbbf158fdfd641d5e2cf5703",
       "callbacks": 7,
       "frameEvents": 0,
       "devices": 14,
@@ -506,7 +506,7 @@
       "palette": "ram:palette:-:native:32768:2"
     },
     "nes": {
-      "sha256": "f342fb7fb7caeea4f41f8df7dc07dfa016d28be1612f78027d61374daf436ac4",
+      "sha256": "dbd028ef63ec622bc7900b07fed5eae8285864be7b1f91b5c2f9ae3eaa552d0f",
       "callbacks": 3,
       "frameEvents": 2,
       "devices": 8,
@@ -515,7 +515,7 @@
       "palette": "none"
     },
     "pacman": {
-      "sha256": "9d7a4ff44c84228ff503b806f16197a30acc72732a3e831d274bdca5998e4ca8",
+      "sha256": "32d06aea2c5f49a59969825b65822fc477cbd06a542d1910b29bc2557336f62f",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 8,
@@ -524,7 +524,7 @@
       "palette": "none"
     },
     "panic": {
-      "sha256": "3536b41aea678ed62765188d4ad3d8074094fb79f792d4f77321f5ff4c957219",
+      "sha256": "f75be50288a320d8d77cac6127ab889d2fee4d76134521901359796bab9a6a89",
       "callbacks": 3,
       "frameEvents": 2,
       "devices": 8,
@@ -533,7 +533,7 @@
       "palette": "none"
     },
     "pengo": {
-      "sha256": "4ced1120b5faa20c8376e16b2c7c56549e6f336816cbec4aab116c1b4304c111",
+      "sha256": "f0ecd7e21b1fa8ec379c40eb54961c8511d43d324111a6ca53ddafeeaab95c82",
       "callbacks": 12,
       "frameEvents": 2,
       "devices": 8,
@@ -542,7 +542,7 @@
       "palette": "none"
     },
     "phoenix": {
-      "sha256": "0299faf6d1cc50526bead9e57f117e64cfda8395e378bf6da49ee7bd2cbdaec8",
+      "sha256": "6ab0dd5c9e92327eed87326a87a15c91e5ad308000960bfd0de99047a08de1d5",
       "callbacks": 2,
       "frameEvents": 0,
       "devices": 8,
@@ -551,7 +551,7 @@
       "palette": "none"
     },
     "polepos": {
-      "sha256": "c41ffec68959b7b7df929cb4d8b4212c9d0e15bc0fce8bbd6c6389503ac180bd",
+      "sha256": "f400f22efd715c7e7ddc6f4b3437f8751f6e604846d63e718044ff712b9256f9",
       "callbacks": 67,
       "frameEvents": 5,
       "devices": 25,
@@ -560,7 +560,7 @@
       "palette": "none"
     },
     "pooyan": {
-      "sha256": "01c1c54d2ae28b2cdc3b5eb16582b02cbf8eb5fa89d51f629897d4d3f9b06000",
+      "sha256": "9c420a6afe554e5826d88757499ba7e05a3d2092d83b6f15bfba5c42c9e05efa",
       "callbacks": 12,
       "frameEvents": 2,
       "devices": 18,
@@ -569,7 +569,7 @@
       "palette": "none"
     },
     "popeye": {
-      "sha256": "107bad16de81626889f848b02b44ae60b351e99aab60519431600c88054b8794",
+      "sha256": "0c4d34e43eafc6c59a04a34ea7a721a572ee5b8c06d90007ef4f57c4cc606e32",
       "callbacks": 6,
       "frameEvents": 2,
       "devices": 11,
@@ -578,7 +578,7 @@
       "palette": "none"
     },
     "qbert": {
-      "sha256": "f1c68c15a0134984ffef6ef4ca61bfee86af263339d70aeeec491ba3a62b7957",
+      "sha256": "d115c9e0bbd72e431dd0869d8e6f122e0d88739d8ff898c4a6f36dd4e60bb7b3",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 15,
@@ -587,7 +587,7 @@
       "palette": "ram:palette:-:native:16:2"
     },
     "qix": {
-      "sha256": "a0213c0ee69b90170acb12bbdd719e62d5437df2a57c74b5cc2818ddfaec0015",
+      "sha256": "ac39ae7f8837cec58a113869807520a2db4c7aff7a536370293b2bc5b97c5d7d",
       "callbacks": 31,
       "frameEvents": 0,
       "devices": 17,
@@ -596,7 +596,7 @@
       "palette": "none"
     },
     "rampage": {
-      "sha256": "04d6ce179f2a1550a4d4a2bf859ff338419ced3a9175724bffece16b3bcf271d",
+      "sha256": "8f4d403b8954ed847db1814b569406224fbbae2de53b32249de70257cb966245",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 16,
@@ -605,7 +605,7 @@
       "palette": "ram:paletteram:-:native:64:1"
     },
     "robotron": {
-      "sha256": "e19ed84e5f5b254fa3e48851180d2aa92e4745a9d432722f8beb6154299e3bef",
+      "sha256": "1ae5a2f05363e8b5bf03375cd0bc3c713a745341f1801d0895177566d55585fc",
       "callbacks": 15,
       "frameEvents": 11,
       "devices": 16,
@@ -614,7 +614,7 @@
       "palette": "none"
     },
     "rocnrope": {
-      "sha256": "86c33950bfa9aed7d152198a364bb0c12b910233cec5f1fc77465677f99ff906",
+      "sha256": "52f6496fe7a26098895d3c06982be699b5d9b8eca4cb403e2b1c73ea8bada4ba",
       "callbacks": 11,
       "frameEvents": 2,
       "devices": 18,
@@ -623,7 +623,7 @@
       "palette": "none"
     },
     "rtype": {
-      "sha256": "ea3aad4bba2015001f7e20cf696de00eb07426e49a70b2a465ae673f5d7c7662",
+      "sha256": "de5437d4246e573ff1a8d041873d6be78d039c65f4107f9f248d77827e521228",
       "callbacks": 8,
       "frameEvents": 284,
       "devices": 11,
@@ -632,7 +632,7 @@
       "palette": "ram:palette:-:native:512:2"
     },
     "rygar": {
-      "sha256": "c829c00b9dcd83196a8b5798c9873de7cf1564823cbbe0ea1a83ab449725c8cb",
+      "sha256": "99fdfff64e818db0b24725ccc45ef83c033a9f12cf2aca14a8bd9eece2ee99e4",
       "callbacks": 6,
       "frameEvents": 1,
       "devices": 11,
@@ -641,7 +641,7 @@
       "palette": "ram:palette:-:big:1024:2"
     },
     "scramble": {
-      "sha256": "e604b05fa47cbf67991e99a95bfba9f5edc1e5f6cd9442d004a7a30c4feeec5f",
+      "sha256": "29096d6e7efe3ad67f0d296d89df4b6ed2721fec7a4a4a8103e2cc06b6b6d483",
       "callbacks": 13,
       "frameEvents": 2,
       "devices": 33,
@@ -650,7 +650,7 @@
       "palette": "none"
     },
     "sf2": {
-      "sha256": "ac27dd27c8b84a0f8d7f3137ee01fc5c09b541adc0478344a3bce9ade2c17739",
+      "sha256": "3084f2144c7ddba25361e335afc95e8f16dc7f9188238ed32a359e795c9fba7a",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -659,7 +659,7 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "sf2ce": {
-      "sha256": "edd6836fcd1b0057ec1d9354a96f014d9408f7f5fca3c90a96e45477c78c4bec",
+      "sha256": "abdbedb93b893d57c52665482ec5af2a4c39dd0e8077257653efcb8af72a99bd",
       "callbacks": 5,
       "frameEvents": 5,
       "devices": 10,
@@ -668,7 +668,7 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "shinobi": {
-      "sha256": "f5c582cdfe07efe7167aca7a831410dc8777e7556dcab03cc0c8dd62aeddee3f",
+      "sha256": "64b166d5eee95896e519671a8e504b1ce3c286d9ebe3fbfc7d5d2959f227113f",
       "callbacks": 19,
       "frameEvents": 1,
       "devices": 16,
@@ -677,7 +677,7 @@
       "palette": "ram:paletteram:-:big:4096:2"
     },
     "simpsons": {
-      "sha256": "1186cf5e23ae1c0c8be8048fb7915cce7aed733d6bc5a025f9938c9387bce800",
+      "sha256": "e77810d498991771d9ee861c8d182b53d5e7be22bd89436bc95354962fd000a9",
       "callbacks": 7,
       "frameEvents": 1,
       "devices": 12,
@@ -686,7 +686,7 @@
       "palette": "ram:palette:-:native:2048:2"
     },
     "sinistar": {
-      "sha256": "452f47930f394c50cc2ea4753ab31e7a9c986a3bcccb56d8ef0169e1e7cdd83e",
+      "sha256": "c5da57a3e454e02af3bfadb2a8463b755d5b061793ee44f52627431a45871598",
       "callbacks": 17,
       "frameEvents": 11,
       "devices": 17,
@@ -694,8 +694,17 @@
       "maps": 4,
       "palette": "none"
     },
+    "snes": {
+      "sha256": "5c19a3c6c7e4b3eb1004c6e03bc28dff1d5ce19315c3c8f2d89dad160a0807f0",
+      "callbacks": 10,
+      "frameEvents": 0,
+      "devices": 10,
+      "handlers": 135,
+      "maps": 2,
+      "palette": "none"
+    },
     "spec128": {
-      "sha256": "604f5312ed8270f8e8084a70f0370b50db3efd5f4eb37414fbbf3cf2461d6a4c",
+      "sha256": "1df91947f3c10935674a35fc8eb0e83604b7d86fbc334c28a460e9201b22f81d",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 17,
@@ -704,7 +713,7 @@
       "palette": "none"
     },
     "spectrum": {
-      "sha256": "4841b645918f7a6df0d954484695ef789e4e27cc10ad3342ce33d4850d0289f2",
+      "sha256": "128a34da03aa14f2ec31777798603ebc55335984391f3530285acf498293a99f",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 14,
@@ -713,7 +722,7 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "a3683af659dbf2051d079929074a671643468ddcb603bc9445fa4ad12f3e8ecb",
+      "sha256": "d636329a0220ce4fa71e46baad5f71c6bc3700684dbe800305df4331d023c0ba",
       "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,
@@ -722,7 +731,7 @@
       "palette": "ram:paletteram:-:native:68:1"
     },
     "timeplt": {
-      "sha256": "b7ad76ca1106f6a51aea7594e19e943e8a88fb8e578a8558d68ff20372da35da",
+      "sha256": "e763e76a8f992cd91620ed789e1496041d9d5c89bafb7a00e43099634cf16d70",
       "callbacks": 13,
       "frameEvents": 2,
       "devices": 18,
@@ -731,7 +740,7 @@
       "palette": "none"
     },
     "tmnt": {
-      "sha256": "7c0038660e1128fa233eda67a41d6a678b40570ffc8b6c171f94c062e61cabfd",
+      "sha256": "c2dca8ecd8d8890b4d5c6e391bf13b7b2192f24eadb9a4344473ccfe308ffb16",
       "callbacks": 5,
       "frameEvents": 2,
       "devices": 13,
@@ -740,7 +749,7 @@
       "palette": "ram:palette:-:native:1024:2"
     },
     "trackfld": {
-      "sha256": "e5813d157566659ef225e6289f3d617c913674b3f3efc0d5c1b1eda627ed96ce",
+      "sha256": "242d2359c2c39d63afbe29c9af72c901843e197ca7b7eceab1b0526e0ef56dfd",
       "callbacks": 11,
       "frameEvents": 2,
       "devices": 14,
@@ -749,7 +758,7 @@
       "palette": "none"
     },
     "travrusa": {
-      "sha256": "0c386b0b2b857bf7e7462f87cc26d2ce72021a7b6769cd31df13f69fbcccb250",
+      "sha256": "1768c695c437b5c3edb5329bf61cda6d85c0369b3017e607d9feb838a98a7313",
       "callbacks": 11,
       "frameEvents": 2,
       "devices": 11,
@@ -758,7 +767,7 @@
       "palette": "none"
     },
     "tutankhm": {
-      "sha256": "fef892428e84924117a3a53e689e63ccdd0b6ee129beeeaae553c12b4b3320a0",
+      "sha256": "d7e1d8b94be0f6f0f8c699ae7dcfcf9f9cd3b068ea13347649ae337cf7ade57b",
       "callbacks": 12,
       "frameEvents": 2,
       "devices": 18,
@@ -767,7 +776,7 @@
       "palette": "none"
     },
     "upndown": {
-      "sha256": "d667b58640441cab23ee246b660ce714ac7ab4d3f4e878a4747dc5f55bba7157",
+      "sha256": "93fa3701cf408d3da2a5c9aa8a2411b0d72c1b51ce3bb5f01d082952390ebc26",
       "callbacks": 14,
       "frameEvents": 5,
       "devices": 12,
@@ -776,7 +785,7 @@
       "palette": "none"
     },
     "venture": {
-      "sha256": "6329ede6afab8a0cb49d66c144017662b1eeb1914f09b9c3a702530ee7b1b183",
+      "sha256": "e9bf3277da55f3cc2dc146c959ea0a5d758ef7b7da090f048605ba12d2536a2b",
       "callbacks": 20,
       "frameEvents": 1,
       "devices": 12,
@@ -785,16 +794,16 @@
       "palette": "ram:palette:-:native:8:2"
     },
     "wardner": {
-      "sha256": "037e55323936c07a84d61bc978bf51b9cf2c4d874591bd06530487995b899bb7",
+      "sha256": "63a317b3af4326957738522a1917d4841e290cdac7708b8653716958562db458",
       "callbacks": 20,
       "frameEvents": 4,
       "devices": 14,
-      "handlers": 63,
+      "handlers": 64,
       "maps": 6,
       "palette": "ram:palette:-:native:2048:2"
     },
     "wboy": {
-      "sha256": "c23b67395798237921e272862a6a8d31e2a8a21c1dba100ba012ec60a0eb8a1c",
+      "sha256": "5c6b8f48145f685ad78aa47c1359d43ec9fb23f6ebdf152427e4bb9ecd18ce12",
       "callbacks": 11,
       "frameEvents": 5,
       "devices": 12,
@@ -803,7 +812,7 @@
       "palette": "none"
     },
     "xevious": {
-      "sha256": "20af4f9c2ffba91af14d9dcceb386ca2c219b1775a199940975928628b515aca",
+      "sha256": "b6e14d3164657a62eaf7d7e82bd6ae51b2d1b50275cccbe4692c56ebfabecd94",
       "callbacks": 45,
       "frameEvents": 6,
       "devices": 18,
@@ -812,7 +821,7 @@
       "palette": "none"
     },
     "zaxxon": {
-      "sha256": "d5044276a5791e372d148da70a455270a0d5cfc257ac989899680854f27523cd",
+      "sha256": "7f198434cd6562d55a6ba1946d110127c52cdd2b4c73ae7a3543610007c8df0c",
       "callbacks": 19,
       "frameEvents": 2,
       "devices": 9,
@@ -821,7 +830,7 @@
       "palette": "none"
     },
     "zigzagb": {
-      "sha256": "69d6acf1e480f2cc973c89f47365c8e386550d6202e0d98f9f406266f051027a",
+      "sha256": "72da70db0d2c5d9840f31badc147131794bf2fe0dbf0bb1a0d546a0ceefc2480",
       "callbacks": 3,
       "frameEvents": 2,
       "devices": 7,

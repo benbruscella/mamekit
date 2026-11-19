@@ -113,6 +113,7 @@ export class DeviceCpu implements Cpu {
         device.bindAddressSpace?.(space, read, write, wide(space));
       }
     }
+    if (bus.installers) device.bindSpaceInstallers?.(AS_PROGRAM, bus.installers);
     device.bindCall?.('standard_irq_callback', line => this.acknowledge(Number(line)));
     // The core raising one of its own lines (the RP2A03's APU IRQ) goes
     // through the board's device_input, as a driver's set_input_line does.
@@ -176,7 +177,7 @@ export class DeviceCpu implements Cpu {
     // chip then stamped its busy flag from that clock: 2.6 ms ahead in a
     // round of 240 lines, so the 6502 waited that long on a chip that was idle.
     if (this.target !== undefined) {
-      const left = this.device.get('m_icount');
+      const left = this.device.get(this.device.icountMember ?? 'm_icount');
       if (left > 0) this.target -= left;
     }
     this.device.abortTimeslice?.();
@@ -184,7 +185,7 @@ export class DeviceCpu implements Cpu {
 
   /** total_cycles inside a slice: what execute_run has spent of it so far. */
   elapsedCycles(): number {
-    return this.target === undefined ? 0 : this.target - this.device.get('m_icount');
+    return this.target === undefined ? 0 : this.target - this.device.get(this.device.icountMember ?? 'm_icount');
   }
 
   /**
@@ -197,7 +198,7 @@ export class DeviceCpu implements Cpu {
 
   set stallCycles(cycles: number) {
     if (cycles > 0 && this.target !== undefined) {
-      this.device.set('m_icount', this.device.get('m_icount') - cycles);
+      this.device.set(this.device.icountMember ?? 'm_icount', this.device.get(this.device.icountMember ?? 'm_icount') - cycles);
     }
   }
 

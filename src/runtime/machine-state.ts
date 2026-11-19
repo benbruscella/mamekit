@@ -263,7 +263,16 @@ class Capture {
       case 'skip': return undefined;
       case 'ref': return { $function: functionName(value)! } satisfies FunctionReference;
       case 'bytes': return this.bytes(value as TypedArray);
-      case 'array': return this.container(value as object, path, () =>
+      case 'array': {
+        // An array two slots share is one array too: the 65C816's `m_opcodes`
+        // points at one of its five mode tables. Copied twice, the restore
+        // (which enters each container once) left the pointer at whatever
+        // table the machine had moved on to; as an alias it is aimed again.
+        const first = this.captured.get(value as object);
+        if (first !== undefined) return { $alias: first } satisfies AliasReference;
+        this.captured.set(value as object, path);
+      }
+      return this.container(value as object, path, () =>
         (value as unknown[]).map((item, index) => {
           const kind = kindOf(item, this.options);
           if (kind === 'skip' || this.cyclic(item)) return null;
@@ -484,6 +493,8 @@ class Restore {
 
   private array(live: unknown[], saved: StateNode, path: string): void {
     if (!Array.isArray(saved)) return this.report(path, 'expected an array');
+    // An alias may name it (see Capture's array case).
+    this.objects.set(path, live);
     if (!this.enter(live)) return;
     try {
       for (let index = 0; index < saved.length; index++) {

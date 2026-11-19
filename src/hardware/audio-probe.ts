@@ -14,11 +14,16 @@ export interface ProbeSoundWrite {
   frac?: number;
   /** Source method name, for backends that route by name. */
   method?: string;
+  /** A stereo board's mix sample: its left and right (`data` is their mono mix). */
+  left?: number;
+  right?: number;
 }
 
 /** Renders one video frame's worth of samples from the writes it received. */
 export interface AudioFrameRenderer {
   render(writes: readonly ProbeSoundWrite[]): Float32Array;
+  /** The left and right of the frame just rendered, on a stereo board; undefined otherwise. */
+  sides?(): [Float32Array, Float32Array] | undefined;
 }
 
 /**

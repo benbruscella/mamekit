@@ -44,6 +44,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   const ioFile = join(plan.dir, 'ours-io.txt');
   if (plan.ram) writeFileSync(ramFile, '');
   if (plan.io) writeFileSync(ioFile, '');
+  let liveBoard: { fbWidth: number; fbHeight: number } | undefined;
   let framesRun = 0;
   /** Per chip, per window of `plan.levels` frames: the sum of its stream's squared samples and their count. */
   const levelSums: Record<string, { squares: number; count: number }[]> = {};
@@ -106,7 +107,24 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
     for (const [keyed, taps] of byTag) {
       const tag = taps[0]!.tap.tag;
       const ports = keyed !== tag;
-      const bus = (cpus?.get(tag)?.bus ?? buses?.get(tag)) as Record<string, unknown> | undefined;
+      // A core compiled whole decodes its own internal map before the board's
+      // bus: the S-SMP's I/O registers at $f0-$ff never reach the bus, so the
+      // tap goes on the core's own program space, which every access it makes
+      // passes through (and which falls through to the bus for the rest).
+      const core = (cpus?.get(tag) as { device?: { hostedCalls?(): { space?: (index: number) => unknown } } } | undefined)?.device;
+      const ownSpace = !ports ? core?.hostedCalls?.().space?.(0) as Record<string, unknown> | undefined : undefined;
+      const coreSpace = ownSpace && typeof ownSpace.read_byte === 'function' && typeof ownSpace.write_byte === 'function'
+        ? { read: ownSpace.read_byte, write: ownSpace.write_byte, target: ownSpace } : undefined;
+      const bus = coreSpace
+        ? new Proxy(coreSpace.target, {
+            get: (target, name) => name === 'read' ? target.read_byte : name === 'write' ? target.write_byte : undefined,
+            set: (target, name, value) => {
+              if (name === 'read') target.read_byte = value;
+              else if (name === 'write') target.write_byte = value;
+              return true;
+            },
+          }) as Record<string, unknown>
+        : (cpus?.get(tag)?.bus ?? buses?.get(tag)) as Record<string, unknown> | undefined;
       if (!bus) throw new Error(`the board has no CPU bus ${tag}`);
       // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
       const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tag);
@@ -217,6 +235,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       // What MAME must be given to boot the same machine: the cards in its
       // slots, the media slots left empty, the title and the input timeline.
       onBoard: ({ board, boardConfig, config, input }) => {
+        liveBoard = board;
         const shelf = title && 'software' in title
           ? config.software?.shelves.find(candidate => candidate.list === title.software.list)
           : undefined;
@@ -265,6 +284,9 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         recorder?.frame(number);
         if (snapshotFrames.has(number)) {
           writeFileSync(join(plan.dir, `ours-${number}.rgba`), new Uint8Array(frame.framebuffer.buffer.slice(0)));
+          // Its own size: a screen a device reconfigures changes shape (the
+          // SNES shows 240 lines once a game turns overscan on).
+          if (liveBoard) writeFileSync(join(plan.dir, `ours-${number}.size`), `${liveBoard.fbWidth} ${liveBoard.fbHeight}\n`);
         }
         if (dumpFrames.has(number)) {
           appendFileSync(ramFile, presented ?? readRam(frame.buses));

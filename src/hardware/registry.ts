@@ -58,6 +58,8 @@ import {
   GAMEBOY_PORTS,
 } from './gameboy/definition.ts';
 import { extractGameboy } from './gameboy/extract.ts';
+import { SNES_ID, SNES_MAME_TYPES, SNES_PORTS } from './snes/definition.ts';
+import { extractSnes } from './snes/extract.ts';
 import {
   POKEY_ID,
   POKEY_MAME_TYPES,
@@ -137,6 +139,7 @@ export const HARDWARE_CAPABILITIES: readonly HardwareCapability[] = [
     ports: GAMEBOY_PORTS,
     extract: extractGameboy,
   },
+  { id: SNES_ID, mameTypes: SNES_MAME_TYPES, ports: SNES_PORTS, extract: extractSnes },
   // Audio
   { id: SOUND_DEVICE_ID, mameTypes: SOUND_DEVICE_MAME_TYPES, ports: SOUND_DEVICE_PORTS, extract: extractSoundDevices, extractsPerType: true },
   {

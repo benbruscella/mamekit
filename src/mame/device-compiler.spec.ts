@@ -145,6 +145,29 @@ assert.equal(
   'dynamic MAME device arrays must lower to fixed generated storage',
 );
 
+// A struct's scalar conversion and assignment operators are methods its
+// values run: the uPD7725's status register is `operator unsigned()` over its
+// flag bits and `unsigned operator=(unsigned)` back into them, so `regs.sr =
+// 0x0000` sets the flags and `regs.sr >> 8` reads them (the SNES DSP-1).
+{
+  const upd7725 = hardware.get('UPD7725');
+  assert.ok(upd7725, 'MAME hardware index should resolve UPD7725');
+  const compiled = compileMameDevice(mameSrc, upd7725);
+  for (const type of ['Status', 'Flag']) {
+    const names = (compiled.structMethods?.[type] ?? []).map(method => method.name).sort();
+    assert.deepEqual(names, ['__assign', '__convert'], `${type} keeps its conversion and assignment, and no method named unsigned`);
+  }
+  registerGeneratedDevice(compiled);
+  const dsp = createDevice('UPD7725', { clock: 8_000_000 }) as unknown as { members: Record<string, any> };
+  const status = dsp.members.regs.sr;
+  status.__assign(0x8400);
+  assert.equal(status.rqm, 1, 'operator= narrows each flag to a bool');
+  assert.equal(status.drc, 1);
+  assert.equal(Number(status), 0x8400, 'operator unsigned() is the value the struct reads as');
+  assert.equal(status >> 8, 0x84, 'arithmetic on the struct converts it');
+  clearGeneratedDevices();
+}
+
 const mb8844Definition = hardware.get('MB8844');
 assert.ok(mb8844Definition, 'MAME hardware index should resolve MB8844');
 const generatedMb8844 = compileMameDevice(mameSrc, mb8844Definition);

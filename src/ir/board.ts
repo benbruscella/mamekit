@@ -375,8 +375,16 @@ export interface GeneratedHandler {
  */
 export const TILEMAP_SET_FLIP_ALL = 'machine().tilemap().set_flip_all';
 
-/** Board video framework calls reached through a two-call chain. */
-export const VIDEO_FRAMEWORK_CHAIN_CALLS: readonly string[] = [TILEMAP_SET_FLIP_ALL];
+/**
+ * Board framework calls reached through a two-call chain, each bound by the
+ * board under its whole name. `machine().scheduler().perfect_quantum` is the
+ * SNES's every APU port write (snes_w_io); declined, all of the 65C816's I/O
+ * writes stayed interpreted.
+ */
+export const VIDEO_FRAMEWORK_CHAIN_CALLS: readonly string[] = [
+  TILEMAP_SET_FLIP_ALL,
+  'machine().scheduler().perfect_quantum',
+];
 
 export const HOST_SERVICE_CALLS: readonly string[] = [
   'machine().sample_rate',
@@ -647,6 +655,19 @@ export interface GeneratedScreen {
    * on the screen, `frame` otherwise.
    */
   updateMode?: 'frame' | 'scanline' | 'partial';
+  /**
+   * MAME's VIDEO_VARIABLE_WIDTH: the screen update is called once per
+   * scanline, with a bitmap of that one line and a clip of that line
+   * (screen_device::update_partial). The SNES PPU draws its line at row 0.
+   */
+  variableWidth?: true;
+  /**
+   * screen_device::physical_aspect(): the shape the unrotated picture is
+   * shown at, reduced. `set_physical_aspect(w, h)` where the driver gives one;
+   * otherwise 4:3 for a raster or vector screen (MAME assumes a standard CRT)
+   * and absent for an LCD or SVG screen, whose pixels are square.
+   */
+  physicalAspect?: [number, number];
   rotate: number;
   /** SCREEN, CPU, or video device responsible for producing pixels. */
   ownerTag?: string;
@@ -792,6 +813,12 @@ export interface GeneratedExecutionPlan {
    * through a handshake nothing coarser survives.
    */
   perfectQuantum?: boolean;
+  /**
+   * The processor `set_perfect_quantum` names. MAME's quantum is its
+   * minimum_quantum(): one of its cycles times its execute_min_cycles(), and
+   * each round every processor runs the whole cycles of its own that fit.
+   */
+  perfectQuantumTag?: string;
   /**
    * MAME `machine_config::set_maximum_quantum`, in seconds: no timeslice is
    * longer. Read where a processor waits on the next timeslice (a core
@@ -1236,6 +1263,15 @@ export interface GeneratedAudioRoute {
   target: string;
   targetInput?: number;
   filter?: { index: number; bank: number; channel: number };
+  /**
+   * On a board whose speakers have a left and a right (a speaker channel
+   * placed off centre, `SPEAKER(config, "speaker", 2).front()`): this route's
+   * gain into the host's left and right outputs, apart from the mono `gain`.
+   * A channel left of centre is left, right of it right, a centred one both
+   * at half; the pair is scaled so their mean is MAME's mean of every speaker
+   * channel, which is what `gain` already is.
+   */
+  stereo?: [number, number];
 }
 
 /**
@@ -1271,6 +1307,20 @@ export interface GeneratedStateMember {
    * (`m_nbajam_prot_table = nbajam_prot_values;`), element by element.
    */
   initialValues?: number[];
+  /**
+   * A struct member, each element an object of these fields at their declared
+   * widths: the SNES's `struct { uint8_t dmap; uint16_t src_addr; ... }
+   * m_dma_channel[8];`. `bits` is absent on one.
+   */
+  fields?: GeneratedStateField[];
+}
+
+/** One field of a struct state member: `uint16_t src_addr = 0;`. */
+export interface GeneratedStateField {
+  name: string;
+  bits: 1 | 8 | 16 | 32;
+  signed?: boolean;
+  initial?: number;
 }
 
 export interface BoardIr {

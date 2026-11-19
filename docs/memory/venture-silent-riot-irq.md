@@ -1,11 +1,13 @@
 ---
 name: venture-silent-riot-irq
-description: Issue #63 — venture silent because the RIOT's m_ie_timer reads 0 at every timer expiry; unexplained, plus the ASSERT_LINE constants fix
+description: (#63 since CLOSED; RAM drift now #271) Issue #63 — venture silent because the RIOT's m_ie_timer reads 0 at every timer expiry; unexplained, plus the ASSERT_LINE constants fix
 metadata:
   type: project
 ---
 
-**Issue #63 (venture, no sound) is NOT fixed as of 2026-08-22.** One real bug was
+**Update 2026-11-18:** #63 is closed. On main c1444662 venture's pixels are exact and its RAM first differs at frame 2048 (`maincpu:1f5`), 2,158 bytes over 6,200 frames. That residual drift is tracked in #271 (#247 §2). The text below is history.
+
+**Issue #63 (venture, no sound) was NOT fixed as of 2026-08-22.** One real bug was
 found and fixed on the way; the remaining fault is localised but unexplained.
 
 **Fixed: generated devices could never assert an interrupt line.**

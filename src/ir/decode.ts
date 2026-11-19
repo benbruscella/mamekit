@@ -163,6 +163,17 @@ function decodeStateMembers(reader: Reader, value: unknown): void {
     reader.string(member.name, `${path}.name`);
     if (member.delegate !== undefined && member.delegate !== true) reader.fail(`${path}.delegate`, 'is true when present');
     if (member.delegate === true) continue;
+    if (member.fields !== undefined) {
+      for (const [position, raw] of reader.array(member.fields, `${path}.fields`).entries()) {
+        const field = reader.object(raw, `${path}.fields[${position}]`);
+        reader.string(field.name, `${path}.fields[${position}].name`);
+        const width = reader.number(field.bits, `${path}.fields[${position}].bits`);
+        if (![1, 8, 16, 32].includes(width)) reader.fail(`${path}.fields[${position}].bits`, `declares ${width}, which is not a C integer width`);
+        reader.optionalNumber(field.initial, `${path}.fields[${position}].initial`);
+      }
+      reader.optionalNumber(member.arrayLength, `${path}.arrayLength`);
+      continue;
+    }
     const bits = reader.number(member.bits, `${path}.bits`);
     if (![1, 8, 16, 32].includes(bits)) {
       reader.fail(`${path}.bits`, `declares ${bits}, which is not a C integer width`);
@@ -374,6 +385,11 @@ function decodeSound(reader: Reader, value: unknown): void {
     const route = reader.object(entry, path);
     for (const field of ['chip', 'channel', 'gain']) reader.number(route[field], `${path}.${field}`);
     reader.string(route.target, `${path}.target`);
+    if (route.stereo !== undefined) {
+      const stereo = reader.array(route.stereo, `${path}.stereo`);
+      if (stereo.length !== 2) reader.fail(`${path}.stereo`, 'a stereo route has a left and a right gain');
+      stereo.forEach((gain, side) => reader.number(gain, `${path}.stereo[${side}]`));
+    }
   }
 }
 

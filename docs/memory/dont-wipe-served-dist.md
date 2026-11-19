@@ -15,3 +15,5 @@ Use the user's own tree, not scratchpad side trees, worktrees or `.cache/dev` co
 Then clarified: "YOU CAN DO IT JUST LET ME KNOW" and "use my code, not a copy for yourself" (no git worktrees of main, no copied runtime modules, no scratch checkouts to test against).
 
 **How to apply:** Make fixes in the user's tree. Before a gen:all or any rebuild of `dist`, say so ("dist is down for ~N minutes"), and say when it is back. Whenever anything runs in the background, say so up front in plain words (what it is, whether it touches dist, roughly how long), and say again when it finishes — the user said "if you do it in the background let me know FFS". See [[serve-from-dist]].
+
+Exception: when the user explicitly asks for a worktree (#268, "do this in a worktree"), use one; see [[worktree-pr-hooks]].

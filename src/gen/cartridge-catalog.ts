@@ -53,7 +53,7 @@ export const CART_SLOT_SUPPORT: Record<string, string[]> = {
 //
 // Each also has to be a title the console room can actually get hold of: a
 // verified dump the "⌕ Search" button can fetch, and a cartridge scan.
-// `node tools/nes-cart-art.ts --check` is that audit, and it derives its work
+// `node tools/cart-art.ts --check` is that audit, and it derives its work
 // list from this one — so adding a title here is the only edit a new game
 // needs.
 export const CART_GAME_SUPPORT: Record<string, string[]> = {
@@ -86,6 +86,20 @@ export const CART_GAME_SUPPORT: Record<string, string[]> = {
   a2600: [
     'adventure', 'pacman', 'pitfall', 'combat', 'spaceinv',
     'breakout', 'frogger', 'defender', 'asteroid',
+  ],
+  // Each checked against MAME 0.289 with `mamekit against snes <title>` and
+  // pixel-exact at the frames compared (#174): Super Mario World's work RAM is
+  // identical for 1,800 frames and Final Fantasy III's for 3,600; Donkey Kong
+  // Country's picture matches though one RAM byte ($7E0000) drifts from frame
+  // 20; the two DSP-1 titles run the cartridge's own uPD7725 and match in a
+  // race and in flight; the rest at frames 600 and 1800 with Start pressed.
+  snes: [
+    // LoROM
+    'smw', 'zelda3', 'smetroid', 'fzero', 'megamnx', 'scvania4',
+    // HiROM
+    'ffant3', 'dkongc', 'ctrigger',
+    // DSP-1 (LoROM and HiROM)
+    'pilotwin', 'smkart',
   ],
 };
 

@@ -31,6 +31,71 @@ export interface StreamSource {
    * reads them with `stream.get(input, sample)` over the window it renders.
    */
   inputs?: readonly StreamInput[];
+  /**
+   * On a stereo board, this device's gains into the host's left and right
+   * outputs: one gain for every output, or one per output. Absolute, unlike
+   * `gain`/`outputGains`, which stay the mono mix they always were.
+   */
+  stereo?: readonly [SideGains, SideGains];
+}
+
+/** One side's gains: the same for every output, or by output. */
+export type SideGains = number | readonly number[];
+
+const sideWeight = (gains: SideGains, output: number): number =>
+  typeof gains === 'number' ? gains : gains[output] ?? 0;
+
+/**
+ * A device's routes into one side, as `streamRouteGains` sums them for the
+ * mono mix: by output when any route names one, else one gain for all.
+ */
+export function stereoSideGains(routes: readonly { channel: number; stereo?: readonly [number, number] }[], side: 0 | 1): SideGains {
+  if (!routes.some(route => route.channel >= 0)) return routes.reduce((sum, route) => sum + (route.stereo?.[side] ?? 0), 0);
+  const gains: number[] = [];
+  for (const route of routes) if (route.channel >= 0) gains[route.channel] = (gains[route.channel] ?? 0) + (route.stereo?.[side] ?? 0);
+  return Array.from(gains, gain => gain ?? 0);
+}
+
+/**
+ * Each side as a multiple of the device's own mono contribution, when its
+ * gains are: a chip routed wholly to one side, or to the centre, or every
+ * output panned alike -- most stereo boards. Its sides are then its mono
+ * samples scaled, with no second resampling. Undefined when outputs pan
+ * apart (a DISCRETE table with one output per side).
+ */
+export function proportionalSides(source: StreamSource): [number, number] | undefined {
+  if (!source.stereo) return undefined;
+  const lengths = [source.outputGains?.length ?? 0, ...source.stereo.map(gains => typeof gains === 'number' ? 0 : gains.length)];
+  // One past the longest table: where a by-output table has stopped and a
+  // gain for every output has not.
+  const outputs = Math.max(1, ...lengths) + 1;
+  const ratios: number[] = [];
+  for (const side of [0, 1] as const) {
+    let ratio: number | undefined;
+    for (let output = 0; output < outputs; output++) {
+      const mono = source.gain * (source.outputGains ? source.outputGains[output] ?? 0 : 1);
+      const weight = sideWeight(source.stereo[side], output);
+      if (mono === 0) {
+        if (weight !== 0) return undefined;
+        continue;
+      }
+      const next = weight / mono;
+      if (ratio === undefined) ratio = next;
+      else if (Math.abs(ratio - next) > 1e-12 * Math.max(1, Math.abs(ratio))) return undefined;
+    }
+    ratios.push(ratio ?? 0);
+  }
+  return [ratios[0]!, ratios[1]!];
+}
+
+/** One side of what a device rendered: its outputs summed at that side's gains. */
+function sideMix(lanes: readonly (ArrayLike<number> | undefined)[], gains: SideGains, count: number, scale: number): Float64Array {
+  const out = new Float64Array(count);
+  lanes.forEach((values, output) => {
+    const weight = sideWeight(gains, output) * scale;
+    if (weight && values) for (let index = 0; index < count; index++) out[index]! += values[index]! * weight;
+  });
+  return out;
 }
 
 /** One route into a stream device's input: which feeder output (-1, all of them), at what gain. */
@@ -68,6 +133,8 @@ interface StreamChannel {
   /** How far this channel has reached the speaker, and what it gave it. */
   rendered: number;
   pending: number[];
+  /** On a stereo board, `history` and `pending` for the left and the right. */
+  sides?: { history: number[]; pending: number[] }[];
 }
 
 /**
@@ -140,7 +207,7 @@ export interface StreamNetlist {
 export function createStreamMixer(
   context: SoundRuntimeContext,
   allSources: readonly StreamSource[],
-  emit: (sample: number, frac: number) => void,
+  emit: (sample: number, frac: number, left?: number, right?: number) => void,
   netlist?: StreamNetlist,
 ): SoundRuntimeHooks & { renderTo?: (seconds: number) => void } {
   if (!context.time || !context.bindDeviceCall) throw new Error('stream sound requires scheduler and stream services');
@@ -162,8 +229,12 @@ export function createStreamMixer(
   const driverTick = tickState(driver);
   const lastTick = last === driver ? driverTick : tickState(last);
   // `outputGain` is the device's set_output_gain, over its routed gain.
-  const streams = sources.map(source => ({
-    ...source, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
+  const streams = sources.map(source => {
+    const ratio = proportionalSides(source);
+    // Sides kept apart only when they are not the mono samples scaled.
+    const apart = Boolean(source.stereo) && !ratio;
+    return {
+    ...source, ratio, outputGain: 1, rendered: 0, native: 0, pending: [] as number[],
     // What a stream routed into another renders before its speaker gain, from
     // absolute sample `rawBase`, kept until every reader has passed it.
     feeds: sources.some(other => other.inputs?.some(input => input.tag === source.tag)), raw: [] as number[][], rawBase: 0,
@@ -171,8 +242,12 @@ export function createStreamMixer(
     resampled: false, channels: [] as StreamChannel[],
     // A chip rendering above the speaker's rate, kept at its own rate for
     // MAME's resampler (see render): its absolute index and recent samples.
-    lofi: { base: 0, rate: 0, history: [] as number[] },
-  }));
+    lofi: { base: 0, rate: 0, history: [] as number[], sides: apart ? [[], []] as number[][] : undefined },
+    // On a stereo board, what it gave the left and the right.
+    sides: apart ? [[], []] as number[][] : undefined,
+  };
+  });
+  const stereo = sources.some(source => source.stereo);
   const state = { emitted: 0, streams };
   // The devices an acceptance gate watches, each reported as it renders.
   const observed = streams.filter(stream => context.observeStreams?.includes(stream.tag));
@@ -271,7 +346,10 @@ export function createStreamMixer(
       // been. One sample short, a sample started in this same instant ran it at
       // the old rate and held a fractional position for the rest of its length.
       const written = Math.floor(time() * rate) + 1;
-      stream.channels.push({ rate, outputGain: 1, written, base: written, history: [], rendered: stream.rendered, pending: [] });
+      stream.channels.push({
+        rate, outputGain: 1, written, base: written, history: [], rendered: stream.rendered, pending: [],
+        ...(stream.sides ? { sides: [{ history: [], pending: [] }, { history: [], pending: [] }] } : {}),
+      });
     }
     return stream.channels;
   };
@@ -283,6 +361,7 @@ export function createStreamMixer(
     if (last - channel.written + 1 > due) {
       // A stall: what it skipped is silence, not a burst to catch up on.
       channel.history.length = 0;
+      for (const side of channel.sides ?? []) side.history.length = 0;
       channel.written = last - due + 1;
       channel.base = channel.written;
     }
@@ -310,6 +389,10 @@ export function createStreamMixer(
       const weight = (stream.outputGains ? stream.outputGains[output] ?? 0 : 1) * channel.outputGain;
       if (weight) for (let at = 0; at < due; at++) channel.history[from + at]! += values[at]! * weight;
     });
+    channel.sides?.forEach((side, index) => {
+      side.history.length = from;
+      for (const value of sideMix(lanes, stream.stereo![index]!, due, channel.outputGain)) side.history.push(value);
+    });
     if (stream.feeds) {
       channel.lanes ??= [];
       for (let output = 0; output < Math.max(lanes.length, channel.lanes.length); output++) {
@@ -335,6 +418,7 @@ export function createStreamMixer(
       const count = target - channel.rendered;
       if (count <= 0) { firstOutput += outputs; continue; }
       resampleChannel(channel, channel.rendered, count, stream.gain, channel.pending);
+      for (const side of channel.sides ?? []) resampleChannel({ ...channel, history: side.history }, channel.rendered, count, 1, side.pending);
       if (stream.feeds && target > stream.rendered) {
         const shift = channel.rendered - stream.rendered;
         channel.lanes?.forEach((history, output) => {
@@ -351,6 +435,7 @@ export function createStreamMixer(
       if (keep > RATE_CHANGE_HISTORY) {
         channel.history.splice(0, keep - RATE_CHANGE_HISTORY);
         for (const lane of channel.lanes ?? []) lane.splice(0, keep - RATE_CHANGE_HISTORY);
+        for (const side of channel.sides ?? []) side.history.splice(0, keep - RATE_CHANGE_HISTORY);
         channel.base += keep - RATE_CHANGE_HISTORY;
       }
     }
@@ -360,6 +445,14 @@ export function createStreamMixer(
       for (const channel of channels) sum += channel.pending[index - stream.rendered] ?? 0;
       stream.pending.push(sum);
     }
+    stream.sides?.forEach((pending, index) => {
+      for (let at = stream.rendered; at < target; at++) {
+        let sum = 0;
+        for (const channel of channels) sum += channel.sides?.[index]?.pending[at - stream.rendered] ?? 0;
+        pending.push(sum);
+      }
+      for (const channel of channels) channel.sides?.[index]?.pending.splice(0, target - stream.rendered);
+    });
     for (const channel of channels) channel.pending.splice(0, target - stream.rendered);
     stream.rendered = Math.max(stream.rendered, target);
   };
@@ -387,6 +480,7 @@ export function createStreamMixer(
       if (stream.lofi.rate) stream.native = Math.floor(stream.rendered * native / STREAM_AUDIO_RATE);
       stream.lofi.rate = native;
       stream.lofi.history.length = 0;
+      for (const side of stream.lofi.sides ?? []) side.length = 0;
     }
     while (stream.rendered < target) {
       const due = Math.min(MAX_SAMPLES_PER_UPDATE, target - stream.rendered);
@@ -394,6 +488,9 @@ export function createStreamMixer(
         const gain = stream.gain * stream.outputGain;
         const { mixed, lanes } = update(stream.tag, due, STREAM_AUDIO_RATE, stream.outputGains, stream.inputs, stream.rendered);
         for (const sample of mixed) stream.pending.push(sample * gain);
+        stream.sides?.forEach((pending, side) => {
+          for (const sample of sideMix(lanes, stream.stereo![side]!, due, stream.outputGain)) pending.push(sample);
+        });
         if (stream.feeds) keep(stream, lanes, due, values => values);
         stream.rendered += due;
         continue;
@@ -424,10 +521,16 @@ export function createStreamMixer(
       resampleChannel({ rate: native, outputGain: 1, written: end, base: lofi.base, history: lofi.history, rendered: stream.rendered, pending: out },
         stream.rendered, due, stream.gain, out);
       for (const sample of out) stream.pending.push(sample);
+      lofi.sides?.forEach((history, side) => {
+        for (const sample of sideMix(lanes, stream.stereo![side]!, mixed.length, stream.outputGain)) history.push(sample);
+        resampleChannel({ rate: native, outputGain: 1, written: end, base: lofi.base, history, rendered: stream.rendered, pending: stream.sides![side]! },
+          stream.rendered, due, 1, stream.sides![side]!);
+      });
       // Nothing behind the resampler's window is read again.
       const behind = end - 8 * (2 + Math.floor(native / STREAM_AUDIO_RATE)) - lofi.base;
       if (behind > RATE_CHANGE_HISTORY) {
         lofi.history.splice(0, behind - RATE_CHANGE_HISTORY);
+        for (const side of lofi.sides ?? []) side.splice(0, behind - RATE_CHANGE_HISTORY);
         lofi.base += behind - RATE_CHANGE_HISTORY;
       }
       if (stream.feeds) keep(stream, lanes, due, mean);
@@ -547,12 +650,14 @@ export function createStreamMixer(
       const channel = channels[index]!;
       updateChannel(stream, index, Math.floor(time() * channel.rate));
       const written = Math.floor(time() * next);
-      const history = Array.from({ length: Math.min(written, RATE_CHANGE_HISTORY) }, (_unused, at) => {
+      const interpolated = (past: readonly number[]) => Array.from({ length: Math.min(written, RATE_CHANGE_HISTORY) }, (_unused, at) => {
         const position = (written - Math.min(written, RATE_CHANGE_HISTORY) + at) * channel.rate / next - channel.base;
         const whole = Math.floor(position);
-        const near = channel.history[whole] ?? 0;
-        return near + (position - whole) * ((channel.history[whole + 1] ?? 0) - near);
+        const near = past[whole] ?? 0;
+        return near + (position - whole) * ((past[whole + 1] ?? 0) - near);
       });
+      const history = interpolated(channel.history);
+      for (const side of channel.sides ?? []) side.history = interpolated(side.history);
       channel.rate = next;
       channel.history = history;
       channel.written = written;
@@ -608,13 +713,38 @@ export function createStreamMixer(
     for (let index = 0; index < target - state.emitted; index++) {
       let sum = 0;
       for (const stream of streams) sum += stream.pending[index] ?? 0;
-      if (netlistNode) sum += netlistNode.pending[index] ?? 0;
+      const centre = netlistNode ? netlistNode.pending[index] ?? 0 : 0;
+      sum += centre;
       // MAME's speaker stage clamps the summed mix to 16 bits (sound.cpp), on
       // the raw sum, DC and all: boards that sum past full scale clip as
       // MAME's do (bankp's three SN76489As).
-      emit(muted ? 0 : Math.max(-1, Math.min(1, sum)), frac);
+      if (!stereo) {
+        emit(muted ? 0 : Math.max(-1, Math.min(1, sum)), frac);
+        continue;
+      }
+      // A netlist's one output, and a device on no side, are in the centre.
+      let left = centre;
+      let right = centre;
+      for (const stream of streams) {
+        if (stream.ratio) {
+          const mono = stream.pending[index] ?? 0;
+          left += mono * stream.ratio[0];
+          right += mono * stream.ratio[1];
+        } else if (stream.sides) {
+          left += stream.sides[0]![index] ?? 0;
+          right += stream.sides[1]![index] ?? 0;
+        } else {
+          left += stream.pending[index] ?? 0;
+          right += stream.pending[index] ?? 0;
+        }
+      }
+      if (muted) emit(0, frac, 0, 0);
+      else emit(Math.max(-1, Math.min(1, sum)), frac, Math.max(-1, Math.min(1, left)), Math.max(-1, Math.min(1, right)));
     }
-    for (const stream of streams) stream.pending.splice(0, target - state.emitted);
+    for (const stream of streams) {
+      stream.pending.splice(0, target - state.emitted);
+      for (const side of stream.sides ?? []) side.splice(0, target - state.emitted);
+    }
     netlistNode?.pending.splice(0, target - state.emitted);
     state.emitted = target;
     // A feeder's samples are read again only by readers that have not passed them.
@@ -652,6 +782,8 @@ export function createStreamMixer(
         stream.lofi.base = 0;
         stream.lofi.rate = 0;
         stream.lofi.history.length = 0;
+        for (const side of stream.lofi.sides ?? []) side.length = 0;
+        for (const side of stream.sides ?? []) side.length = 0;
       }
     },
     // After the first processor's slice, and after the last one's, which is
@@ -691,6 +823,7 @@ export function installStreamAudioRuntime(context: SoundRuntimeContext): SoundRu
   const { sound } = context;
   const tags = soundTags(sound);
   const netlistTag = sound.netlist ? sound.netlistTag : undefined;
+  const stereo = (sound.routes ?? []).some(route => route.stereo);
   const sources = tags.map((tag, chip): StreamSource => {
     // A route into another of the streams (POKEY into Battlezone's DISCRETE)
     // is that device's input, not the speaker's; one into the netlist is the
@@ -698,21 +831,30 @@ export function installStreamAudioRuntime(context: SoundRuntimeContext): SoundRu
     const routes = (sound.routes ?? []).filter(route => route.chip === chip && !tags.includes(route.target) && route.target !== netlistTag);
     const inputs = (sound.routes ?? []).filter(route => route.target === tag && tags[route.chip] !== undefined)
       .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain }));
-    const source = routes.length
+    const source: StreamSource = routes.length
       ? { tag, ...streamRouteGains(routes) }
       : { tag, gain: sound.routes?.some(route => route.chip === chip) ? 0 : 1 };
+    // On a stereo board every device has its sides; one routed to no
+    // speaker is silent on both, as it is in the mono mix.
+    if (stereo) source.stereo = routes.length
+      ? [stereoSideGains(routes, 0), stereoSideGains(routes, 1)]
+      : [source.gain, source.gain];
     return inputs.length ? { ...source, inputs } : source;
   });
   // A slot card's own chips (an NES cartridge's VRC6), at their routes' gains.
   for (const descendant of context.streamDescendants?.() ?? []) {
-    if (!sources.some(source => source.tag === descendant.tag)) sources.push({ tag: descendant.tag, gain: descendant.gain });
+    if (!sources.some(source => source.tag === descendant.tag)) {
+      sources.push({ tag: descendant.tag, gain: descendant.gain, ...(stereo ? { stereo: [descendant.gain, descendant.gain] as const } : {}) });
+    }
   }
   const netlist = sound.netlist && netlistTag ? {
     solver: new GeneratedNetlistSolver(sound.netlist, STREAM_AUDIO_RATE),
     feeds: (sound.routes ?? []).filter(route => route.target === netlistTag && tags[route.chip] !== undefined)
       .map(route => ({ tag: tags[route.chip]!, output: route.channel, input: route.targetInput ?? 0, gain: route.gain })),
   } : undefined;
-  const mixer = createStreamMixer(context, sources, (sample, frac) => context.soundWrite(0, sample, frac, 'stream.pcm'), netlist);
+  const mixer = createStreamMixer(context, sources, (sample, frac, left, right) => (left === undefined
+    ? context.soundWrite(0, sample, frac, 'stream.pcm')
+    : context.soundWrite(0, sample, frac, 'stream.pcm', left, right)), netlist);
   // The lines a driver writes into the netlist (`NETLIST_LOGIC_INPUT`), each
   // landing once the netlist has caught up to the write's time. A finder is
   // live once it is bound, which is what `if (m_audio_BD)` asks.

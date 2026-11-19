@@ -631,7 +631,7 @@ function configuredGfxDeviceStart(
   }
   for (const config of configFunctions) {
     for (const match of config.body.matchAll(
-      /\b([A-Z][A-Z0-9_]*)\s*\(\s*config\s*,\s*(m_\w+)[^;\n]*?\)\s*\.\s*set_gfxdecode_tag\s*\(\s*"[^"]+"\s*\)/g,
+      /\b([A-Z_][A-Z0-9_]*)\s*\(\s*config\s*,\s*(m_\w+)[^;\n]*?\)\s*\.\s*set_gfxdecode_tag\s*\(\s*"[^"]+"\s*\)/g,
     )) {
       const [, type, member] = match;
       if (!screen.body.includes(`${member}->`)) continue;
@@ -1582,7 +1582,7 @@ function deviceGfxInterfaceBinding(
   if (!device) return undefined;
   const raw = ((device.props.config as string[] | undefined) ?? []).join('\n');
   const args = new RegExp(
-    `\\b[A-Z][A-Z0-9_]+\\s*\\(\\s*config\\s*,\\s*(m_\\w+)\\s*,\\s*(m_\\w+)\\s*,\\s*(\\w+)`,
+    `\\b[A-Z_][A-Z0-9_]+\\s*\\(\\s*config\\s*,\\s*(m_\\w+)\\s*,\\s*(m_\\w+)\\s*,\\s*(\\w+)`,
   ).exec(raw);
   if (!args) return undefined;
   return { decodeMember: args[1]!, paletteMember: args[2]! };

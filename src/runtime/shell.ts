@@ -28,7 +28,7 @@ import {
 import { openRomStore, sampleSetKey, type RomStore, type StoredZip } from './romstore.ts';
 import { samplePathMembers, type SamplePath } from './sample-path.ts';
 import { openMemoryStore } from './memorystore.ts';
-import { createMachineMemory, type MachineMemory } from './machine-memory.ts';
+import { batteryKey, createMachineMemory, type MachineMemory } from './machine-memory.ts';
 
 export interface RomLoad {
   file: string; offset: number; size: number; crc: string;
@@ -980,11 +980,25 @@ export async function runShell(
   // A slot whose cards ship as modules of their own (the NES's 390 boards)
   // fetches the one this machine holds before it is built.
   await loadBoardSlotCards({ ...cfg.board, game: cfg.game });
-  const board = createBoard({ ...bootBoard, game: cfg.game }, regions, input, {
-    soundWrite: (offset, data, frac, method) => {
+  // An invite in the address bar: this page is joining somebody's game, so it
+  // must not put this browser's own high scores or saves into the machine.
+  const joinCode = inviteCode();
+  // A cartridge's battery goes in as the board is built, because MAME's slot
+  // reads it in its own call_load (battery_load). Only into the board being
+  // built: the boot config is the machine's identity, which a save must not
+  // change.
+  const keptBatteries = joinCode ? {} : (await storedMemory)?.batteries ?? {};
+  let batteriesRestored = false;
+  const images = bootBoard.images && Object.fromEntries(Object.entries(bootBoard.images).map(([tag, image]) => {
+    const battery = keptBatteries[batteryKey(tag, image.name)];
+    if (battery) batteriesRestored = true;
+    return [tag, battery ? { ...image, battery } : image];
+  }));
+  const board = createBoard({ ...bootBoard, ...(images ? { images } : {}), game: cfg.game }, regions, input, {
+    soundWrite: (offset, data, frac, method, left, right) => {
       soundWrites.total++;
       if (offset >= 0 && data !== 0) soundWrites.nonzero++;
-      audio.write(offset, data, frac, method);
+      audio.write(offset, data, frac, method, left, right);
     },
     mute: muted => audio.setSystemMute(muted),
   });
@@ -992,10 +1006,11 @@ export async function runShell(
   // Two browsers that construct the same machine from the same ROM construct
   // the same state, so this is the one place a room can agree to start from
   // (see netplay.ts); it is taken before memory is restored for that reason.
-  const coldMachine = board.save();
-  // An invite in the address bar: this page is joining somebody's game, so it
-  // must not put this browser's own high scores into the machine first.
-  const joinCode = inviteCode();
+  // A board built with a kept battery is not that machine: the cold one is
+  // then built on its own, without it, when a room first asks for it.
+  let coldMachine = batteriesRestored ? undefined : board.save();
+  const coldState = (): MachineState => coldMachine ??=
+    createBoard({ ...bootBoard, game: cfg.game }, regions, input, { soundWrite: () => {} }).save();
 
   // --- memory between sessions (issue #132) ----------------------------------
   // NVRAM and the hiscore.dat table go back into the machine before its first
@@ -1016,7 +1031,7 @@ export async function runShell(
   const restored = joinCode
     ? { nvram: [], hiscorePending: false }
     : memory.restore(await storedMemory);
-  if (restored.nvram.length) ui.toast('Battery-backed memory restored from this browser');
+  if (restored.nvram.length || batteriesRestored) ui.toast('Battery-backed memory restored from this browser');
   let hiscoreRestoreAnnounced = !restored.hiscorePending;
   const flushMemory = (): void => { try { memory.flush(); } catch (error) { console.warn(`${cfg.game}: memory flush failed: ${(error as Error).message}`); } };
   addEventListener('pagehide', flushMemory);
@@ -1081,9 +1096,18 @@ export async function runShell(
       mine.length && typing ? cfg.boot?.command : undefined));
   });
 
-  const fb = new Uint32Array(board.fbWidth * board.fbHeight);
-  const image = new ImageData(
+  let fb = new Uint32Array(board.fbWidth * board.fbHeight);
+  let image = new ImageData(
     new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+  // A screen a device reconfigures (screen_device::configure: the SNES PPU
+  // shows 240 lines with overscan on) takes its new visible area at a frame
+  // boundary; the picture is reallocated to it.
+  const fitFramebuffer = (): void => {
+    if (fb.length === board.fbWidth * board.fbHeight && image.width === board.fbWidth) return;
+    fb = new Uint32Array(board.fbWidth * board.fbHeight);
+    image = new ImageData(new Uint8ClampedArray(fb.buffer), board.fbWidth, board.fbHeight);
+    ui.setNative(board.fbWidth, board.fbHeight);
+  };
 
   // One-click play (issue #161): a title the room booted starts itself with
   // its shelf's command, typed once the machine is up, then PLAY on the tape
@@ -1134,7 +1158,7 @@ export async function runShell(
     bindings: cfg.bindings,
     identity: { game: cfg.game, identity: machineIdentity(cfg.game, bootBoard, regions) },
     refresh: cfg.board.screen.refresh,
-    coldBoot: () => board.load(coldMachine),
+    coldBoot: () => board.load(coldState()),
     freezeMemory: () => memory.disable(),
     machine: cfg.title,
     toast: ui.toast,
@@ -1180,6 +1204,7 @@ export async function runShell(
     // frame that runs; what it presses lands in the next one.
     typing?.tick(1 / cfg.board.screen.refresh);
     input.advance(netplay.take());
+    fitFramebuffer();
     board.frame(fb);
     start?.advance();
     memory.tick();
@@ -1590,7 +1615,11 @@ export async function runShell(
     updateWarp();
     acc += now - last;
     last = now;
-    if (acc > 5 * frameMs) acc = 5 * frameMs; // don't spiral after a tab pause
+    // Two frames of backlog absorb a late display tick. More only batches: a
+    // machine slower than real time is always that far behind, so every tick
+    // ran the whole backlog back to back and drew once -- SMW at 45 fps ran
+    // five frames a tick and the screen changed 8.5 times a second.
+    if (acc > 2 * frameMs) acc = 2 * frameMs;
     // A pause owes the machine nothing: time that passed while it was stopped
     // is not a backlog of frames to catch up on when it starts again.
     if (paused) acc = 0;
@@ -2099,7 +2128,12 @@ function buildDom(cfg: ShellConfig) {
   canvas.width = dispW; canvas.height = dispH;
   // No cursor over the screen: a spinner's cursor is noise, and an arcade
   // monitor never had one.
-  canvas.style.cssText = 'image-rendering:pixelated;background:#000;cursor:none';
+  // Scaled up smoothly, as MAME's render target is by default (its `filter`
+  // option, bilinear): at a physical aspect the scale is rarely a whole
+  // number, and nearest-neighbour then makes some dots a screen pixel wider
+  // than others -- the SNES's 4:3 picture looked blocky, and its dithered
+  // backgrounds like noise.
+  canvas.style.cssText = 'image-rendering:auto;background:#000;cursor:none';
   canvas.dataset.screen = '1'; // stable handle for browser QA screenshots
 
   // optional cabinet bezel: the game canvas sits inside its transparent
@@ -2145,6 +2179,25 @@ function buildDom(cfg: ShellConfig) {
     // on every deck ever made, so they read as glyphs alone.
     for (const bay of deck.querySelectorAll<HTMLElement>('[data-media-bay]')) compactRow(bay);
   };
+  // Scanlines, as MAME's `-effect scanlines` overlays them: every other line
+  // of the picture's own raster darkened, so they meet its lines at any scale
+  // (and run down a rotated monitor's). A viewer's choice, kept per browser.
+  const scanlinesKey = 'mamekit:scanlines';
+  let scanlinesOn = false;
+  try { scanlinesOn = localStorage.getItem(scanlinesKey) === '1'; } catch { /* not kept */ }
+  const scanlines = document.createElement('div');
+  scanlines.dataset.scanlines = '';
+  scanlines.setAttribute('aria-hidden', 'true');
+  const placeScanlines = (): void => {
+    const width = parseFloat(canvas.style.width) || 0;
+    const height = parseFloat(canvas.style.height) || 0;
+    const period = (rotated ? width : height) / Math.max(1, h);
+    scanlines.style.cssText = `position:absolute;pointer-events:none;
+      left:${canvas.style.left || '0px'};top:${canvas.style.top || '0px'};width:${width}px;height:${height}px;
+      display:${scanlinesOn ? 'block' : 'none'};
+      background:repeating-linear-gradient(${rotated ? 'to right' : 'to bottom'},
+        transparent 0, transparent ${period / 2}px, rgba(0,0,0,.38) ${period / 2}px, rgba(0,0,0,.38) ${period}px)`;
+  };
   const fit = () => {
     // The screen takes what the page leaves it: everything else in the column
     // -- title, status, key hint, and a computer's control decks -- is
@@ -2171,19 +2224,28 @@ function buildDom(cfg: ShellConfig) {
       canvas.style.height = `${winH}px`;
     } else {
       const displayScale = Math.max(1, Math.floor(availH / dispH));
-      canvas.style.width = `${dispW * displayScale}px`;
-      canvas.style.height = `${dispH * displayScale}px`;
+      const height = dispH * displayScale;
+      // screen_device::physical_aspect(): a CRT shows its raster at 4:3 (or
+      // the driver's set_physical_aspect) whatever its dot count, so a 512x240
+      // SNES picture is not 2.13:1. An LCD has none and keeps square pixels.
+      const aspect = cfg.board.screen.physicalAspect;
+      const shape = aspect ? (rotated ? aspect[1] / aspect[0] : aspect[0] / aspect[1]) : dispW / dispH;
+      const width = Math.min(innerWidth - 32, height * shape);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${width < height * shape ? width / shape : height}px`;
     }
     // The control panel is as wide as the glass above it, so the two read as
     // one cabinet rather than a screen with a widget underneath. Narrow
     // screens get a floor, or the buttons would be stacked six deep.
     const glass = parseFloat(bezel ? holder.style.width : canvas.style.width) || 0;
     deck.style.width = `${Math.min(innerWidth - 32, Math.max(360, glass))}px`;
+    placeScanlines();
     compactToolbar();
   };
   fit();
   addEventListener('resize', fit);
   holder.appendChild(canvas);
+  holder.appendChild(scanlines);
   cab.appendChild(holder);
 
   const overlay = document.createElement('div');
@@ -2281,7 +2343,21 @@ function buildDom(cfg: ShellConfig) {
   keysCell.style.cssText = 'display:none;align-items:center;gap:7px';
   const keysButton = titleButton('Keys', 'Show the key legend', 'Show what every key does', 'quiet', 'keys');
   keysButton.setAttribute('aria-expanded', 'false');
-  keysCell.append(toolbarDivider(), keysButton);
+  const scanlinesButton = titleButton('Scanlines', 'Scanlines', 'Darken every other raster line, as a CRT shows them', 'quiet', 'scanlines');
+  scanlinesButton.dataset.scanlinesToggle = '';
+  const paintScanlines = (): void => {
+    scanlinesButton.setAttribute('aria-pressed', String(scanlinesOn));
+    paintTitleButton(scanlinesButton, scanlinesOn);
+  };
+  paintScanlines();
+  scanlinesButton.onclick = () => {
+    scanlinesOn = !scanlinesOn;
+    try { localStorage.setItem(scanlinesKey, scanlinesOn ? '1' : '0'); } catch { /* not kept */ }
+    paintScanlines();
+    placeScanlines();
+    scanlinesButton.blur();
+  };
+  keysCell.append(toolbarDivider(), scanlinesButton, keysButton);
   keysButton.onclick = () => {
     if (popoverFor(keysButton)) { closePopover(); return; }
     showPopover(keysButton, help, () => legendHost.appendChild(help));

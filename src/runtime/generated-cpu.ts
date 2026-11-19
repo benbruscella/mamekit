@@ -5,6 +5,13 @@
 
 export interface CpuBus {
   read(address: number): number;
+  /**
+   * MAME's installers on the processor's program space (address_space's
+   * install_read_handler and kin), for a core that installs into its own
+   * space at run time: the 5A22's set_5a22_map, which the SNES driver's
+   * machine_start calls after installing the cartridge's windows.
+   */
+  installers?: Readonly<Record<string, (...args: unknown[]) => number>>;
   /** Atomic big-endian word access for native 16-bit address-map handlers. */
   read16be?(address: number): number;
   /** A 68000 long access, which MAME performs as two word accesses. */

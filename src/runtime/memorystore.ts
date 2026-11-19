@@ -22,6 +22,11 @@ export interface MemoryRecord {
   regions: Record<string, Uint8Array>;
   /** the hiscore.dat rows' bytes, in row order (the plugin's .hi file) */
   hiscore?: Uint8Array[];
+  /**
+   * Mounted images' batteries (MAME's battery files), by `<device tag>:<image
+   * name>`: every cartridge this machine has saved in, not only the one in now.
+   */
+  batteries?: Record<string, Uint8Array>;
   updatedAt: number;
 }
 

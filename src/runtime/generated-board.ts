@@ -51,6 +51,7 @@ import {
   generatedReferent,
   prepareGeneratedMachineHandler,
   generatedHandlerRegistry,
+  installedHandlerEntry,
   wireGeneratedDevice,
   type GeneratedHandlerBindings,
 } from './generated-handler.ts';
@@ -83,6 +84,7 @@ import type {
   MemoryAccess,
   InputPorts,
   PersistentMemory,
+  BatteryImage,
   Regions,
 } from './types.ts';
 import {
@@ -359,6 +361,26 @@ const PRESENT_MARGIN_SECONDS = 1e-9;
  */
 const ROUND_TIMER_SLOP_SECONDS = 1e-9;
 
+/** A Map that counts its changes, so what is derived from it can be kept until it changes. */
+class VersionedMap<K, V> extends Map<K, V> {
+  version = 0;
+
+  override set(key: K, value: V): this {
+    this.version++;
+    return super.set(key, value);
+  }
+
+  override delete(key: K): boolean {
+    this.version++;
+    return super.delete(key);
+  }
+
+  override clear(): void {
+    this.version++;
+    super.clear();
+  }
+}
+
 /** A timer due a rounding error past a whole cycle is due on that cycle. */
 const CYCLE_ROUNDING = 1e-6;
 
@@ -439,13 +461,15 @@ function generatedCallValue(value: unknown): unknown {
 }
 
 class IrBoard implements Board {
-  readonly fbWidth: number;
+  fbWidth: number;
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
   private screenUpdateNow?: () => void;
   /** screen_device::update_partial(line), once video is composed. */
   private screenUpdatePartial?: (line: number, beam: number) => void;
   private screenPixel?: (x: number, y: number) => number;
-  readonly fbHeight: number;
+  fbHeight: number;
+  /** A visible area a device configured this frame, applied when it ends. */
+  private pendingScreenArea?: { x: number; y: number; width: number; height: number };
 
   private readonly machine: BoardIr;
   private readonly cpus = new Map<string, Cpu>();
@@ -489,17 +513,6 @@ class IrBoard implements Board {
   private installedHandlerCount = 0;
   /** Device taps on a space whose bus was not built yet (install_readwrite_tap). */
   private pendingSpaceTaps: { cpu: string; tap: (address: number, write: boolean) => void }[] = [];
-  /**
-   * Cycles a CPU has run inside the slice it is running now.
-   *
-   * `cpuCycles` is only banked when a slice ends, so on its own it makes
-   * `total_cycles()` a staircase: every access inside one slice reads the same
-   * number and the count then jumps a whole quantum. Hardware that derives a
-   * beam position from it therefore stood still and teleported -- the Atari
-   * 2600's TIA drew one scanline where three belonged, leaving two of every
-   * three lines black and the picture flickering.
-   */
-  private readonly cpuSliceCycles = new Map<string, number>();
   /**
    * Cycles the running processor's slice has executed, updated between
    * instructions. A field rather than a map entry: every instruction writes
@@ -546,7 +559,34 @@ class IrBoard implements Board {
   private readonly preciseTimerMembers = new Set<string>();
   private firingPreciseTimers = false;
   /** Driver-armed one-shots awaiting their expiry; see genericTimers. */
-  private readonly pendingTimers = new Map<string, { at: number; param: number }>();
+  private readonly pendingTimers = new VersionedMap<string, { at: number; param: number }>();
+  /** The soonest round-ending timer's expiry, and the pendingTimers version it was found at. */
+  private soonestEndingAt = Infinity;
+  private soonestEndingVersion = -1;
+  private soonestPreciseAt = Infinity;
+  private soonestPreciseVersion = -1;
+
+  /**
+   * The soonest expiry among the timers that end a round (timerEndsRound),
+   * found again only when a timer has been armed, cancelled or fired since:
+   * a perfect quantum asks every round, twelve thousand times a SNES frame.
+   */
+  private soonestRoundEnding(): number {
+    if (this.soonestEndingVersion !== this.pendingTimers.version) {
+      let soonest = Infinity;
+      for (const [member, pending] of this.pendingTimers) {
+        if (pending.at < soonest && this.timerEndsRound(member)) soonest = pending.at;
+      }
+      this.soonestEndingAt = soonest;
+      this.soonestEndingVersion = this.pendingTimers.version;
+    }
+    return this.soonestEndingAt;
+  }
+
+  /** A load writes timers back in place (machine-state.ts), so what was cached of them goes. */
+  stateRestored(): void {
+    this.pendingTimers.version++;
+  }
   private readonly genericTimerFires = new Map<string, () => void>();
   /**
    * The timers a board's rounds end on, as MAME's do on every timer: a
@@ -559,6 +599,27 @@ class IrBoard implements Board {
   private readonly roundTimerMembers = new Set<string>();
   /** The board's rounds end at the soonest timer (timerRounds). */
   private roundTimers = false;
+  /**
+   * MAME's perfect-quantum rounds that end at every timer, the precise driver
+   * timers included (timerEndsRound): the round's target is already short of
+   * the next timer, and one armed inside the round ends it, so a core's piece
+   * needs no bounding by the next one (parked). Precise timers are still
+   * looked for at every delivery: skipping that moved the SNES's sound writes.
+   */
+  private perfectTimerRounds = false;
+  /** The devices `parked` asks for their next timer (see there), and the device count it was built at. */
+  private parkedTimerDevices: Device[] = [];
+  private parkedTimerDevicesSize = -1;
+
+  /**
+   * A timer that ends the round it falls due in: a round timer, or a precise
+   * driver timer, since MAME's timeslice ends at every timer's expiry. The
+   * SNES NMI is one, VBLANK plus 12 cycles: run past it, the 65C816's WAI
+   * burned the rest of its round and took the NMI up to 22 cycles late.
+   */
+  private timerEndsRound(member: string): boolean {
+    return this.roundTimerMembers.has(member) || this.preciseTimerMembers.has(member);
+  }
   /** A round timer was armed inside the round for `seconds` from its base. */
   private roundTimerArmed?: (seconds: number) => void;
   /**
@@ -662,6 +723,11 @@ class IrBoard implements Board {
    * or `lag` cycles short of it: 1 leaves the cycle it is on to it.
    */
   private catchUpDeviceTime?: (lag?: number) => void;
+  /**
+   * Run the processors inside a mounted card (IrDevice.nestedProcessors) up to
+   * where the board's first processor stands, mid-instruction included.
+   */
+  private syncNestedProcessors?: () => void;
   /**
    * Device time a catch-up delivered past the running slice's target. A
    * lockstep slice's booked overrun pays only the rest; any other slice's
@@ -802,7 +868,7 @@ class IrBoard implements Board {
           time_until_pos: (position: number, hpos = 0) => {
             this.deviceClockFollowsProcessors = true;
             const vtotal = Math.max(1, machine.execution.screen.vtotal);
-            const target = ((Math.floor(position) % vtotal) + vtotal) % vtotal + this.lineFractionAt(hpos);
+            const target = this.rasterTarget(position, hpos);
             // Answered in the clock the device timers themselves run on, not
             // in whole beam lines. MAME measures the beam to the attosecond,
             // so a scanline callback re-arming for "one line further on"
@@ -827,7 +893,7 @@ class IrBoard implements Board {
             // callback re-arming for the position it fired at waits a frame.
             // Without it, Metal Slug's auto-animation timer, firing at
             // VSSTART a hair short of it, re-armed for no time 65536 times.
-            const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
+            const halfPixel = this.halfPixelLines() * vtotal / this.rasterHeight();
             let lines = target - this.deviceBeamPosition();
             lines -= Math.floor(lines / vtotal) * vtotal;
             if (lines <= halfPixel) lines += vtotal;
@@ -845,7 +911,7 @@ class IrBoard implements Board {
           vblank: () => {
             const line = this.beamLine();
             const screen = machine.execution.screen;
-            return line >= screen.vbstart || line < (screen.vbend ?? 0) ? 1 : 0;
+            return line >= (this.configuredRaster()?.vbstart ?? screen.vbstart) || line < (screen.vbend ?? 0) ? 1 : 0;
           },
           // update_now() and pixel(x, y): the picture composed up to the
           // beam and read back as an rgb_t, which is how the NES Zapper's
@@ -867,11 +933,18 @@ class IrBoard implements Board {
           // TMS34010 from HEBLNK/HSBLNK: Mortal Kombat moves its window ten
           // pixels left of the set_raw one). The framebuffer keeps its size,
           // so a window of the same size moves and any other shape is left.
-          configure: (_width: number, _height: number, visarea: unknown) => {
+          configure: (width: number, height: number, visarea: unknown) => {
             const area = visarea as { min_x?: number; max_x?: number; min_y?: number; max_y?: number } | undefined;
             const screen = machine.execution.screen;
             if (!area || area.min_x === undefined || area.max_x === undefined || area.min_y === undefined || area.max_y === undefined) return 0;
-            if (area.max_x - area.min_x + 1 !== screen.width || area.max_y - area.min_y + 1 !== screen.height) return 0;
+            this.configureRaster(Number(width), Number(height), area.max_y + 1);
+            // Another shape: the SNES PPU shows 240 lines with overscan on.
+            // The picture takes it at the end of this frame (applyScreenArea),
+            // so the frame in progress keeps the shape it is drawn in.
+            if (area.max_x - area.min_x + 1 !== screen.width || area.max_y - area.min_y + 1 !== screen.height) {
+              this.pendingScreenArea = { x: area.min_x, y: area.min_y, width: area.max_x - area.min_x + 1, height: area.max_y - area.min_y + 1 };
+              return 0;
+            }
             screen.xOffset = area.min_x;
             screen.yOffset = area.min_y;
             return 0;
@@ -896,6 +969,9 @@ class IrBoard implements Board {
             (machine.execution.screen.xOffset ?? 0) + machine.execution.screen.width),
           height: () => Math.max(1, machine.execution.screen.vtotal),
           frame_number: () => this.frameRunner?.frameCount ?? 0,
+          // screen_device::frame_period(), in the seconds an attotime is held
+          // in: the SNES PPU's device_reset times its first frame by it.
+          frame_period: () => this.lineSeconds() * Math.max(1, machine.execution.screen.vtotal),
           priority: () => this.videoPrimitives?.screenPriority?.() ?? 0,
           // MAME `screen_device::visible_area()`: the window inside the raster
           // that reaches the display, in the same coordinates a device plots.
@@ -1605,7 +1681,8 @@ class IrBoard implements Board {
           entry.port === port) ?? []) {
           let line = 0;
           if (custom.source === 'screen-vblank') {
-            const { vbstart, vbend = 0 } = machine.execution.screen;
+            const { vbend = 0 } = machine.execution.screen;
+            const vbstart = this.configuredRaster()?.vbstart ?? machine.execution.screen.vbstart;
             const beam = this.beamLine();
             const inVblank = vbstart > vbend
               ? beam >= vbstart || beam < vbend
@@ -1791,16 +1868,17 @@ class IrBoard implements Board {
       calls[`${screenMember}.time_until_pos`] ??= (position, hpos) => {
         // MAME targets `vpos * scantime + hpos * pixeltime`: the Spectrum
         // raises its interrupt 48 pixels (24 T-states) into line 0.
-        const target = ((Math.floor(Number(position)) % vtotal) + vtotal) % vtotal +
-          this.lineFractionAt(Number(hpos ?? 0));
+        const target = this.rasterTarget(Number(position), Number(hpos ?? 0));
         // Within half a pixel of the target counts as past it, as the device
         // screen's does: a precise driver timer fires a hair short of the line
         // it was armed for, and Neo Geo's vblank callback, re-arming for that
         // line, asked again and again for no time at all.
-        const halfPixel = 0.5 / Math.max(1, machine.execution.screen.htotal ?? machine.execution.screen.width);
+        const halfPixel = this.halfPixelLines() * vtotal / this.rasterHeight();
         // Measured from the instant machineSeconds() answers, which the
-        // expiry is added to: between timeslices that is the scheduler's base.
-        const beam = this.schedulerSeconds !== undefined && this.runningCpu === undefined
+        // expiry is added to: inside a timer's callback the expiry itself
+        // (expiryBeam, which beamPosition answers), between timeslices the
+        // scheduler's base.
+        const beam = this.expiryBeam === undefined && this.schedulerSeconds !== undefined && this.runningCpu === undefined
           ? this.frameRunner.baseBeam()
           : this.beamPosition();
         let lines = target - beam;
@@ -1835,7 +1913,7 @@ class IrBoard implements Board {
         // expiry, and a round's timer once the processors have run to it,
         // the first of them usually an instruction past; MAME's callback
         // sees the expiry itself.
-        if (timer.driver || this.roundTimers) withGeneratedTimerExpiry(pending.at, run);
+        if (timer.driver || this.roundTimers) this.atTimerExpiry(pending.at, run);
         else run();
       };
       this.genericTimerFires.set(timer.member, fire);
@@ -1848,7 +1926,7 @@ class IrBoard implements Board {
         }
         const at = this.machineSeconds() + seconds;
         this.pendingTimers.set(timer.member, { at, param: Number(param) || 0 });
-        if (!timer.driver) this.roundTimerArmed?.(at - this.roundBaseSeconds);
+        if (this.timerEndsRound(timer.member)) this.roundTimerArmed?.(at - this.roundBaseSeconds);
         // `adjust(attotime::zero, param)` is MAME's synchronize(): due at the
         // current time, once the processors behind this one catch up -- not at
         // the next line. The Williams ADPCM board's sync_command is one; left
@@ -1880,6 +1958,8 @@ class IrBoard implements Board {
       if (typeof callback !== 'string') return undefined as never;
       const key = `${callback}#${this.genericTimerFires.size}`;
       this.roundTimerMembers.add(key);
+      // Which timers end a round has changed (soonestRoundEnding).
+      this.pendingTimers.version++;
       this.genericTimerFires.set(key, () => {
         const pending = this.pendingTimers.get(key);
         if (!pending) return;
@@ -1887,7 +1967,7 @@ class IrBoard implements Board {
         const handler = machine.handlers?.find(candidate =>
           `${candidate.ownerClass}.${candidate.method}` === callback);
         if (!handler?.program || handler.program.diagnostics.length) return;
-        withGeneratedTimerExpiry(pending.at, () =>
+        this.atTimerExpiry(pending.at, () =>
           executeGeneratedMachineHandler(machine, handler, this.bindings, { param: pending.param }));
       });
       return {
@@ -1976,7 +2056,34 @@ class IrBoard implements Board {
           calls[`${name}.${method}`] ??= call as (...args: number[]) => unknown;
         }
       }
+      // A call through a slot's card member reaches the card mounted there:
+      // the SNES driver's `m_cartslot->m_cart->get_rom_size()`. The member
+      // itself stays hidden from the referent (see below), so a driver's
+      // `if (m_cartslot->m_cart)` keeps the answer it has always had.
+      const slot = specification ? generatedDeviceDefinition(generatedDeviceKey(specification))?.slot : undefined;
+      if (slot) {
+        const cardMethods = new Set(Object.values(slot.options).flatMap(card => card.methods.map(method => method.name)));
+        for (const method of slot.cardInterface?.methods ?? []) cardMethods.add(method.name);
+        const card = () => (device.instance?.() as Record<string, unknown> | undefined)?.[slot.member] as
+          Record<string, unknown> | undefined;
+        for (const method of cardMethods) {
+          const viaCard = (...args: unknown[]) => {
+            const target = card()?.[method];
+            if (typeof target !== 'function') {
+              noteUnresolvedCall(`${slot.member}.${method}`);
+              return 0;
+            }
+            return (target as (...values: unknown[]) => unknown)(...args);
+          };
+          for (const name of [tag, `m_${tag}`, ...(flatMember ? [flatMember] : [])]) {
+            calls[`${name}.${slot.member}.${method}`] ??= viaCard as (...args: number[]) => unknown;
+          }
+        }
+      }
       const lag = this.deviceAccessLag(device);
+      // A slot whose card holds processors: they stand where the leader does
+      // before it reaches the card (syncNestedProcessors).
+      const hostsNested = (device.nestedProcessors?.().length ?? 0) > 0;
       for (const method of device.methodNames()) {
         const accessed = lag !== undefined && (method === 'read' || method === 'write');
         const synced = <T extends (...args: never[]) => unknown>(call: T): T => accessed
@@ -1984,7 +2091,12 @@ class IrBoard implements Board {
             this.catchUpDeviceTime?.(lag);
             return call(...args);
           }) as T
-          : call;
+          : hostsNested
+            ? ((...args: Parameters<T>) => {
+              this.syncNestedProcessors?.();
+              return call(...args);
+            }) as T
+            : call;
         const invoke = synced(device.prepareCall?.(method) ?? ((...args: unknown[]) =>
           device.invoke(method, ...args as Parameters<typeof device.invoke>[1][])));
         calls[`${tag}.${method}`] = invoke;
@@ -2331,6 +2443,13 @@ class IrBoard implements Board {
             if (!delegate) return undefined;
             const named = (delegate as { delegateHandler?: string }).delegateHandler;
             if (named && registry[direction][named]) return named;
+            // A driver handler (not a device's own method, which its device
+            // instance answers) gets the entry its map range would have had.
+            const handler = named && !named.split('.')[0]!.endsWith('_device')
+              ? machine.handlers?.find(candidate => `${candidate.ownerClass}.${candidate.method}` === named)
+              : undefined;
+            if (handler && installedHandlerEntry(machine, registry, direction, named!,
+              this.deviceHandlerBindings(handler), specification.tag)) return named;
             const key = `installed:${specification.tag}:${this.installedHandlerCount++}`;
             if (direction === 'read') registry.read[key] = (_address, offset, mask) => Number(delegate(offset, mask ?? 0xffff)) || 0;
             else registry.write[key] = (_address, offset, data, mask) => void delegate(offset, data, mask ?? 0xffff);
@@ -2374,11 +2493,19 @@ class IrBoard implements Board {
         (recorder as unknown as Record<string, (...rest: unknown[]) => void>)[method]!(...args);
         for (const entry of recorder.entries) {
           if (entry.kind !== 'tap') continue;
-          bus.installAccessTap((address, writing) => {
-            if (address < entry.start || address > entry.end) return;
-            const handler = writing ? entry.write : entry.read;
-            handler?.(address - entry.start, 0, 0xff);
-          });
+          const { start, end, read, write } = entry;
+          // A tap over the whole space (the SNES cartridge slot's address
+          // pins) has no range to test.
+          bus.installAccessTap(start <= 0 && end >= bus.addrmask()
+            ? (address, writing) => {
+              const handler = writing ? write : read;
+              if (handler) handler(address - start, 0, 0xff);
+            }
+            : (address, writing) => {
+              if (address < start || address > end) return;
+              const handler = writing ? write : read;
+              if (handler) handler(address - start, 0, 0xff);
+            });
         }
         return 0;
       };
@@ -2437,28 +2564,38 @@ class IrBoard implements Board {
       const busAddress = (address: number) =>
         byteAddress(address, specification.space?.addressShift ?? 0) & mask;
       const timing = this.hostModel(`${specification.tag}.timing`, { previousCycles: 0 });
+      // Every read the processor makes, opcode fetches included (see
+      // stoppedProcessor): a core that reads nothing over a slice fetched no
+      // instruction in it.
+      const activity = this.cpuActivity(specification.tag);
       let sliceTarget = 0;
       const signalCallbackCache = new Map<string, BoardIr['callbacks']>();
       const screenSpec = machine.execution.screen;
       const cpuBus: CpuBus = {
+        installers: {
+          ...installers(),
+          unmap_read: (...args: unknown[]) => unmapFrom(true, false)(Number(args[0]), Number(args[1]), Number(args[2] ?? 0)),
+          unmap_write: (...args: unknown[]) => unmapFrom(false, true)(Number(args[0]), Number(args[1]), Number(args[2] ?? 0)),
+          unmap_readwrite: (...args: unknown[]) => unmapFrom(true, true)(Number(args[0]), Number(args[1]), Number(args[2] ?? 0)),
+        },
         // Exactly the callbacks `signal` below would run for this processor.
         boundSignals: new Set(machine.callbacks
           .filter(callback => callback.ownerTag === specification.tag)
           .map(callback => callback.signal)),
-        read: address => bus.read(busAddress(address)),
+        read: address => { activity.reads++; return bus.read(busAddress(address)); },
         // Keep native 16-bit address-map handlers atomic. In particular,
         // Neo Geo's palette RAM self-test writes complete 68000 words; losing
         // these methods here makes the CPU fall back to two byte transactions
         // and the second byte overwrites the first handler value.
-        read16be: address => bus.read16be(busAddress(address)),
+        read16be: address => { activity.reads++; return bus.read16be(busAddress(address)); },
         // A 68000 long access is two word accesses on the real bus, so keep
         // it that way: address-space taps must see the same two.
-        read32be: address => bus.read32be(busAddress(address)),
-        read16le: address => bus.read16le(busAddress(address)),
+        read32be: address => { activity.reads++; return bus.read32be(busAddress(address)); },
+        read16le: address => { activity.reads++; return bus.read16le(busAddress(address)); },
         write16le: (address, data) => bus.write16le(busAddress(address), data),
         ...(bus.readOpcode ? {
           // AS_OPCODES has its own global mask; do not inherit AS_PROGRAM's.
-          readOpcode: address => bus.readOpcode!(address),
+          readOpcode: address => { activity.reads++; return bus.readOpcode!(address); },
         } : {}),
         write: (address, data) => bus.write(busAddress(address), data),
         // The core's own memory_view: the MCS-48's internal ROM, which its
@@ -2512,10 +2649,20 @@ class IrBoard implements Board {
         // the machine's quantum bounds: Donkey Kong's Z80 looks again every
         // 16.7 us while the 8257 holds the bus.
         parked: (elapsed, target) => {
+          if (this.perfectTimerRounds) return target - elapsed;
           let soonest = Infinity;
           if (specification.tag === timerClockCpu?.tag) {
-            for (const device of this.devices.values()) {
-              soonest = Math.min(soonest, device.untilNextTimer?.() ?? Infinity);
+            // Asked on every slice a core spends parked -- the SNES's 65C816
+            // waits out most of each frame in WAI -- so the devices that keep
+            // timers are listed once rather than walked through the map.
+            if (this.parkedTimerDevicesSize !== this.devices.size) {
+              this.parkedTimerDevices = [...this.devices.values()].filter(device => typeof device.untilNextTimer === 'function');
+              this.parkedTimerDevicesSize = this.devices.size;
+            }
+            const timed = this.parkedTimerDevices;
+            for (let index = 0; index < timed.length; index++) {
+              const until = timed[index]!.untilNextTimer!() ?? Infinity;
+              if (until < soonest) soonest = until;
             }
             // And the driver's own precise timers, which come due on the same
             // clock (firePreciseTimers): the Spectrum's ULA interrupt is a
@@ -2552,8 +2699,10 @@ class IrBoard implements Board {
                 `${machine.game}: CPU signal callback "${callback.id}" has no bound effect`,
               );
             }
+            // A read's argument is the offset it asks for, passed on as the
+            // composite path passes it (the S-SMP's `m_dsp_io_r_cb(1)`).
             const value = effect.reads
-              ? effect.run(0)
+              ? effect.run(0, state)
               : effect.run(
                   applyBoardTransforms(state, effect.transforms),
                   state,
@@ -2709,6 +2858,11 @@ class IrBoard implements Board {
       // MAME's device_state_interface, by the state index the CPU's own lowered
       // enum gives the driver (`m_maincpu->state_int(Z80_HL)`).
       calls[`m_${specification.tag}.state_int`] = state => cpu.stateInt(state);
+      // device_state_interface::pc() and pcbase(): the same table at its
+      // generic indices. Unbound, the SNES's open bus (`read_byte(pc() - 1)`)
+      // read the byte at -1 instead of the operand the 65C816 last fetched.
+      calls[`m_${specification.tag}.pc`] = () => cpu.stateInt(DEFAULT_CONSTANTS.STATE_GENPC!);
+      calls[`m_${specification.tag}.pcbase`] = () => cpu.stateInt(DEFAULT_CONSTANTS.STATE_GENPCBASE!);
       // And its write half: a snapshot loader restores every register this
       // way, and the core's state_import settles what the write implies.
       calls[`m_${specification.tag}.set_state_int`] = (state, value) => {
@@ -2735,7 +2889,7 @@ class IrBoard implements Board {
       const cpuMethodNames = [
         'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
         'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
-        'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
+        'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time', 'pc', 'pcbase',
       ];
       this.deviceReferents.set(specification.tag, Object.fromEntries(cpuMethodNames.map(name => [
         name,
@@ -2763,7 +2917,7 @@ class IrBoard implements Board {
         const cpuMethods = [
           'set_input_line', 'set_input_line_and_vector', 'pulse_input_line', 'total_cycles',
           'suspended', 'state_int', 'set_state_int', 'adjust_icount', 'found', 'set_unscaled_clock',
-          'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time',
+          'clocks_to_attotime', 'cycles_to_attotime', 'attotime_to_cycles', 'local_time', 'pc', 'pcbase',
         ];
         for (const name of cpuMethods) {
           calls[`${member}.${name}`] = calls[`m_${specification.tag}.${name}`]!;
@@ -2833,9 +2987,9 @@ class IrBoard implements Board {
       ...(device.runCycles ? { direct: device as Device & { runCycles(cycles: number): number } } : {}),
       run: (cycles: number) => {
         if (device.runCycles) return device.runCycles(cycles);
-        device.set('m_icount', cycles);
+        device.set(device.icountMember ?? 'm_icount', cycles);
         device.call('execute_run');
-        return cycles - device.get('m_icount');
+        return cycles - device.get(device.icountMember ?? 'm_icount');
       },
     });
     const executionCpuTags = new Set(machine.execution.cpus.map(cpu => cpu.tag));
@@ -2885,6 +3039,39 @@ class IrBoard implements Board {
         ...processorRunner(device),
       }];
     });
+    // And the processors inside a card a slot mounted (an SNES DSP
+    // cartridge's uPD7725): the card is chosen from the image, so the machine
+    // config does not name them, but MAME schedules them like any CPU.
+    // They exchange data with the board's first processor through the card
+    // (the uPD7725's data register), and a host that reads four results back
+    // to back without polling, as Super Mario Kart's raster command does,
+    // needs the DSP where MAME's stands at each access. So they keep a clock
+    // of their own: run up to the first processor's time, mid-instruction
+    // included, at every delivery and before every access to their card.
+    const leader = machine.execution.cpus[0];
+    const nested = [...this.devices.values()].flatMap(device => device.nestedProcessors?.() ?? []).map(entry => ({
+      ...entry, clock: entry.device.cycleClock(), runner: processorRunner(entry.device),
+    }));
+    if (nested.length && leader) {
+      // Where their cycle counts start, on the leader's clock: built with the
+      // board, so a board built to load a state into starts from the same
+      // point, and each device saves its own count (executedCycles).
+      const origin = this.cpuSeconds(leader);
+      let syncing = false;
+      this.syncNestedProcessors = () => {
+        if (syncing) return;
+        syncing = true;
+        try {
+          const now = this.cpuSeconds(leader);
+          for (const entry of nested) {
+            const owed = Math.floor((now - origin) * entry.clock) - (entry.device.totalCyclesNow?.() ?? 0);
+            if (owed > 0) entry.runner.run(owed);
+          }
+        } finally {
+          syncing = false;
+        }
+      };
+    }
     // Standalone bus masters expose MAME's execute_run/m_icount pair but have
     // no firmware host: the Intel 8257 on Donkey Kong, a POKEY, the C64's
     // VIC-II and CIAs. MAME schedules them in the round beside the CPUs,
@@ -2986,9 +3173,10 @@ class IrBoard implements Board {
         carries[index] = hostedCarry.get(processor.tag) ?? 0;
       }),
     });
-    hostsProcessors = synchronizedProcessors.length > 0;
+    hostsProcessors = synchronizedProcessors.length > 0 || this.syncNestedProcessors !== undefined;
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
+      this.syncNestedProcessors?.();
       for (let index = 0; index < synchronizedProcessors.length; index++) {
         const processor = synchronizedProcessors[index]!;
         if (processor.enabled && !processor.enabled()) {
@@ -3305,11 +3493,12 @@ class IrBoard implements Board {
     // fires, the earliest first, and so does any its callback arms for a
     // time already reached.
     const fireRoundTimers = (now: number): void => {
+      if (this.soonestRoundEnding() > now + ROUND_TIMER_SLOP_SECONDS) return;
       for (let fired = 0; fired < 64; fired++) {
         let due: string | undefined;
         let earliest = now + ROUND_TIMER_SLOP_SECONDS;
         for (const [member, pending] of this.pendingTimers) {
-          if (pending.at <= earliest && this.roundTimerMembers.has(member)) {
+          if (pending.at <= earliest && this.timerEndsRound(member)) {
             due = member;
             earliest = pending.at;
           }
@@ -3318,13 +3507,7 @@ class IrBoard implements Board {
         this.genericTimerFires.get(due)?.();
       }
     };
-    const soonestRoundTimer = (now: number): number => {
-      let soonest = Infinity;
-      for (const [member, pending] of this.pendingTimers) {
-        if (pending.at - now < soonest && this.roundTimerMembers.has(member)) soonest = pending.at - now;
-      }
-      return soonest;
-    };
+    const soonestRoundTimer = (now: number): number => this.soonestRoundEnding() - now;
     // A round device arms from the round's base, where MAME's machine time
     // stands through the timeslice (timerArmBase).
     const armBase = (): number =>
@@ -3342,7 +3525,14 @@ class IrBoard implements Board {
       if (now === undefined) return 0;
       return this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - now;
     };
-    const timerRounds = roundQuantum && machine.execution.perfectQuantum !== true;
+    // A perfect quantum whose processor the board names runs MAME's own rounds
+    // (frame runner perfectRounds), and those end at the soonest timer too.
+    // ... where every device that executes runs in the round, so MAME's
+    // rounds are modelled whole (roundQuantum); the C64's VIC-II and CIAs run
+    // on device time instead, and keep the lockstep that matches MAME there.
+    const perfectRounds = machine.execution.perfectQuantum === true && machine.execution.perfectQuantumTag !== undefined &&
+      machine.execution.cpus.length > 1 && roundQuantum;
+    const timerRounds = roundQuantum && (machine.execution.perfectQuantum !== true || perfectRounds);
     // Asked every round, so only the devices that own a timer: the ones the
     // device clock ticks. Walking every device cost Lagrange Point a fifth
     // of its frame.
@@ -3368,6 +3558,7 @@ class IrBoard implements Board {
       });
       this.pendingTimers.set(member, { at: 1 / streamsUpdateHz, param: 1 });
     }
+    this.perfectTimerRounds = perfectRounds && timerRounds;
     const soonestTimer = (): number => {
       let soonest = Infinity;
       for (let index = 0; index < timerDevices.length; index++) {
@@ -3401,6 +3592,7 @@ class IrBoard implements Board {
       // MAME's screen starts at the beginning of VBLANK (#184).
       origin: 'vbstart',
       perfectInterleave,
+      perfectRounds,
       ...(roundQuantum && machine.execution.maximumQuantum !== undefined
         ? { maximumQuantum: machine.execution.maximumQuantum }
         : {}),
@@ -3482,7 +3674,12 @@ class IrBoard implements Board {
           if (this.pendingTimers.size) fireRoundTimers(roundSeconds(true));
         },
       } : {}),
-      processors: [...machine.execution.cpus.map(specification => ({
+      processors: [...machine.execution.cpus.map(specification => {
+        // Resolved once for the processor rather than looked up per slice.
+        const activity = this.cpuActivity(specification.tag);
+        let core: Cpu & { device?: { spaceReads?: number } } | undefined;
+        const spaceReads = (): number => (core ??= this.cpus.get(specification.tag) as typeof core)?.device?.spaceReads ?? 0;
+        return {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
         // Held in RESET or HALT, MAME's timeslice still books the slice to
@@ -3495,29 +3692,50 @@ class IrBoard implements Board {
           this.soundRuntime?.cpuTimeMoved?.(specification.tag);
         },
         abort: () => this.cpus.get(specification.tag)?.abortTimeslice?.(),
+        // Stopped for an interrupt (stoppedProcessor): only a perfect
+        // quantum's rounds are extended for it.
+        ...(machine.execution.perfectQuantum === true
+          ? { stopped: () => activity.quietSlices >= 2 }
+          : {}),
         run: (cycles: number) => {
           const outerCpu = this.runningCpu;
           const outerFraction = this.currentLineFraction;
           const outerExecuting = this.coreExecuting;
           this.runningCpu = specification.tag;
           try {
+            // Asked every slice -- about 24,000 a frame under the SNES's perfect
+            // quantum -- and almost always nothing owed, so nothing is written.
             const pendingStall = this.cpuStalls.get(specification.tag) ?? 0;
-            const stalled = Math.min(cycles, pendingStall);
-            this.cpuStalls.set(specification.tag, pendingStall - stalled);
+            const stalled = pendingStall > 0 ? Math.min(cycles, pendingStall) : 0;
+            if (stalled > 0) this.cpuStalls.set(specification.tag, pendingStall - stalled);
             this.runningStalled = stalled;
             if (specification.tag === timerClockCpu?.tag && stalled > 0) {
               advanceTimedHardware(stalled * timerSecondsPerCycle());
             }
             if (stalled > 0) tickCardDevices(specification.tag, stalled);
             this.coreExecuting = true;
+            const watched = machine.execution.perfectQuantum === true;
+            const readsBefore = watched ? activity.reads + spaceReads() : 0;
             const executed = stalled + (cycles > stalled
-              ? this.cpus.get(specification.tag)!.run(cycles - stalled)
+              ? (core ??= this.cpus.get(specification.tag))!.run(cycles - stalled)
               : 0);
             this.coreExecuting = outerExecuting;
             this.currentLineFraction = 0;
             this.soundRuntime?.tickCpu?.(specification.tag, executed);
+            // A slice of exactly its cycles with no read and the PC where it
+            // was is a core stopped for an interrupt: MAME's 65C816 in WAI
+            // returns every clock it is given and fetches nothing. Two in a
+            // row, so that the slice which executed the WAI does not count.
+            // The PC is read only after a quiet slice, which a running core
+            // almost never has: two quiet slices in a row ending at one PC.
+            if (watched) {
+              const quiet = executed === cycles && activity.reads + spaceReads() === readsBefore;
+              const pc = quiet ? this.processorPc(specification.tag) : undefined;
+              activity.quietSlices = pc !== undefined && activity.quietSlices > 0 && activity.quietPc === pc
+                ? activity.quietSlices + 1 : pc !== undefined ? 1 : 0;
+              activity.quietPc = pc;
+            }
             this.runningSliceCycles = 0;
-            this.cpuSliceCycles.set(specification.tag, 0);
             this.cpuCycles.set(
               specification.tag,
               (this.cpuCycles.get(specification.tag) ?? 0) + executed,
@@ -3553,7 +3771,8 @@ class IrBoard implements Board {
             if (outerCpu) this.currentLineFraction = outerFraction;
           }
         },
-      })),
+      };
+      }),
       ...this.roundProcessors.map(processor => ({
         tag: processor.tag, clock: processor.clock, run: processor.run,
         ...(processor.suspended ? { suspended: processor.suspended } : {}),
@@ -3670,11 +3889,16 @@ class IrBoard implements Board {
           // beam one line ahead and every Missile Command IRQ landed a line
           // early.
           if (this.pendingTimers.size) {
-            const now = this.machineSeconds();
+            // Due by the boundary itself, on the frame's clock: the processor
+            // can stand an instruction short of it, and a timer aimed at this
+            // line's start (time_until_pos(v), now armed from its callback's
+            // expiry) then waited a whole line more. The SNES scanline tick
+            // read line 241 for its VBLANK line 240 and raised no NMI.
+            const now = Math.max(this.machineSeconds(), this.lineBoundarySeconds());
             for (const [member, pending] of [...this.pendingTimers]) {
-              if (pending.at > now) continue;
+              if (pending.at > now + ROUND_TIMER_SLOP_SECONDS) continue;
               // A round's own timer fires where the round ends.
-              if (this.roundTimers && this.roundTimerMembers.has(member)) continue;
+              if (this.roundTimers && this.timerEndsRound(member)) continue;
               this.genericTimerFires.get(member)?.();
             }
           }
@@ -3878,9 +4102,37 @@ class IrBoard implements Board {
    *   slice, the MCU never saw it, and no voice sample ever played.
    */
   private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
-    const apply = () => applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+    const apply = () => {
+      // A line that changes may wake a stopped core (stoppedProcessor).
+      const activity = this.cpuActivity(tag);
+      activity.quietSlices = 0;
+      activity.quietPc = undefined;
+      applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+    };
     if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
     else apply();
+  }
+
+  /**
+   * Per processor, the reads it has made and how many slices in a row it has
+   * been stopped for an interrupt: no read, its cycles exactly, its PC
+   * unmoved. A perfect quantum's rounds are extended while the processors
+   * that lead them are (the frame runner's stoppedLead). Kept out of the save
+   * state: it only decides how rounds are cut, never what they compute.
+   */
+  private readonly cpuActivities = new Map<string, { reads: number; quietSlices: number; quietPc?: number }>();
+
+  private cpuActivity(tag: string): { reads: number; quietSlices: number; quietPc?: number } {
+    let activity = this.cpuActivities.get(tag);
+    if (!activity) this.cpuActivities.set(tag, activity = { reads: 0, quietSlices: 0 });
+    return activity;
+  }
+
+
+  /** A compiled core's STATE_GENPC, or undefined where it publishes none. */
+  private processorPc(tag: string): number | undefined {
+    const device = (this.cpus.get(tag) as { device?: { stateInt?(index: number): number | undefined } } | undefined)?.device;
+    return device?.stateInt?.(DEFAULT_CONSTANTS.STATE_GENPC!);
   }
 
   /**
@@ -4013,6 +4265,25 @@ class IrBoard implements Board {
     return () => !model.resetHeld && !this.cpuHeld.get(tag);
   }
 
+  /**
+   * screen_device::configure's new visible area, between frames: the screen
+   * IR, the picture's size the host allocates (fbWidth/fbHeight) and the
+   * renderer all take it before the next frame is drawn.
+   */
+  private applyScreenArea(): void {
+    const area = this.pendingScreenArea;
+    if (!area) return;
+    this.pendingScreenArea = undefined;
+    const screen = this.machine.execution.screen;
+    screen.xOffset = area.x;
+    screen.yOffset = area.y;
+    screen.width = area.width;
+    screen.height = area.height;
+    this.fbWidth = area.width;
+    this.fbHeight = area.height;
+    this.video?.resize(area.width, area.height);
+  }
+
   frame(framebuffer: Uint32Array): void {
     this.pollInputLatches();
     this.inFrame = true;
@@ -4022,6 +4293,7 @@ class IrBoard implements Board {
     } finally {
       this.inFrame = false;
     }
+    this.applyScreenArea();
     if (this.softResetPending) {
       this.softResetPending = false;
       this.softReset();
@@ -4073,7 +4345,6 @@ class IrBoard implements Board {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.observedTransportSeconds.clear();
     for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
-    this.cpuSliceCycles.clear();
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -4184,8 +4455,7 @@ class IrBoard implements Board {
    * screen_device::vpos() derives it from emulated time.
    */
   private deviceBeamLine(): number {
-    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
-    return Math.floor(this.deviceBeamPosition() + this.halfPixelLines()) % vtotal;
+    return Math.floor(this.rasterLabel(this.deviceBeamPosition()) + this.halfPixelLines()) % this.rasterHeight();
   }
 
   private deviceBeamPosition(): number {
@@ -4198,17 +4468,66 @@ class IrBoard implements Board {
       : undefined;
     // Inside a slice the beam is the processor's, which the devices' clock
     // trails by whatever is held for the frame's presentation.
+    if (this.expiryBeam !== undefined) return this.expiryBeam;
     if (running !== undefined) return running - (generatedTimerBacklog() + this.heldDeviceSeconds) / this.lineSeconds();
     return this.currentLine +
       (this.timedHardwareDelivered - generatedTimerBacklog()) / this.lineSeconds();
   }
 
+  /**
+   * Run a driver timer's callback at its expiry, as MAME's scheduler does:
+   * machine().time() answers the expiry (withGeneratedTimerExpiry), and so
+   * does the beam. This schedule fires a timer at the line boundary after it
+   * falls due, or a precise one an instruction past it; measured from where
+   * the beam had got to, the SNES scanline tick read line 241 for the 240 it
+   * was armed for, so no VBLANK and no NMI that frame, and every timer a
+   * callback re-armed with time_until_pos came early by the lateness.
+   */
+  private atTimerExpiry<T>(at: number, run: () => T): T {
+    const outer = this.expiryBeam;
+    // Where the expiry falls in the frame, on the frame's own clock (the
+    // processor's can stand a round ahead of the beam).
+    const start = this.frameRunner?.frameStartSeconds;
+    const position = start === undefined ? undefined
+      : (this.frameRunner?.originLine ?? 0) + (at - start) / this.lineSeconds();
+    this.expiryBeam = position !== undefined && Number.isFinite(position) ? position : undefined;
+    try {
+      return withGeneratedTimerExpiry(at, run);
+    } finally {
+      this.expiryBeam = outer;
+    }
+  }
+
+  /** The beam position at the expiry of the driver timer whose callback is running (atTimerExpiry). */
+  private expiryBeam?: number;
+
+  /**
+   * When the beam reached the start of the line it stands on, on the frame's
+   * clock. On the frame's last boundary, the wrap to its origin line, the
+   * frame in progress has not been closed yet and the line is its vtotal-th.
+   */
+  private lineBoundarySeconds(): number {
+    const runner = this.frameRunner;
+    if (!runner) return 0;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    let lines = ((this.currentLine - runner.originLine) % vtotal + vtotal) % vtotal;
+    if (lines === 0 && this.machineSeconds() - runner.frameStartSeconds > runner.frameSeconds / 2) lines = vtotal;
+    return runner.frameStartSeconds + lines * this.lineSeconds();
+  }
+
   /** Fire every precise driver timer that has come due, earliest first. */
   private firePreciseTimers(): void {
-    let earliest = Infinity;
-    for (const [member, pending] of this.pendingTimers) {
-      if (pending.at < earliest && this.preciseTimerMembers.has(member)) earliest = pending.at;
+    // Asked on every delivery of device time -- each slice -- and found again
+    // only when a timer was armed, cancelled or fired (soonestRoundEnding).
+    if (this.soonestPreciseVersion !== this.pendingTimers.version) {
+      let soonest = Infinity;
+      for (const [member, pending] of this.pendingTimers) {
+        if (pending.at < soonest && this.preciseTimerMembers.has(member)) soonest = pending.at;
+      }
+      this.soonestPreciseAt = soonest;
+      this.soonestPreciseVersion = this.pendingTimers.version;
     }
+    const earliest = this.soonestPreciseAt;
     if (earliest === Infinity) return;
     const now = this.machineSeconds();
     if (earliest > now) return;
@@ -4230,30 +4549,99 @@ class IrBoard implements Board {
     return this.runningSliceCycles + (tag ? this.cpus.get(tag)?.elapsedCycles?.() ?? 0 : 0);
   }
 
-  /** Pixel `hpos` of a line as a fraction of that line, for `time_until_pos(vpos, hpos)`. */
-  private lineFractionAt(hpos: number): number {
+  /**
+   * `time_until_pos(vpos, hpos)`'s target as a beam position: MAME aims at
+   * `vpos * scantime + hpos * pixeltime` in the screen's own labels.
+   */
+  private rasterTarget(position: number, hpos: number): number {
+    const height = this.rasterHeight();
+    const line = ((Math.floor(Number(position) || 0) % height) + height) % height;
+    const label = line + Math.max(0, Math.floor(Number(hpos) || 0)) / this.rasterWidth();
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    return ((this.rasterPosition(label) % vtotal) + vtotal) % vtotal;
+  }
+
+  /** The raster screen_device::configure set (GeneratedFrameRunner.screenRaster), or undefined while it is set_raw's. */
+  private configuredRaster(): { height: number; width: number; vbstart: number } | undefined {
+    const raster = this.frameRunner?.screenRaster;
+    return raster && raster.height > 0 ? raster : undefined;
+  }
+
+  /**
+   * screen_device::configure(width, height, visarea, period): the new raster
+   * takes effect at once. MAME keeps m_vblank_start_time, so vpos() and
+   * hpos() count from the same instant with the new visarea bottom and line
+   * length: the SNES PPU's overscan makes the instant its VBLANK tick fired
+   * at line 225 read 240, and its 341-dot configure halves hpos's unit.
+   * (The frame period is taken as set_raw's; a configure that changes it
+   * would also move VBLANK, which this does not model.)
+   */
+  private configureRaster(width: number, height: number, vbstart: number): void {
+    const raster = this.frameRunner?.screenRaster;
+    if (!raster) return;
     const screen = this.machine.execution.screen;
-    return Math.max(0, Math.floor(Number(hpos) || 0)) / Math.max(1, screen.htotal ?? screen.width);
+    const own = height === screen.vtotal && width === (screen.htotal ?? screen.width) && vbstart === screen.vbstart;
+    const valid = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0;
+    raster.height = own || !valid ? 0 : height;
+    raster.width = own || !valid ? 0 : width;
+    raster.vbstart = own || !valid ? 0 : ((vbstart % height) + height) % height;
+  }
+
+  /** Lines a frame has in the screen's own labels. */
+  private rasterHeight(): number {
+    return Math.max(1, this.configuredRaster()?.height ?? this.machine.execution.screen.vtotal);
+  }
+
+  /** Pixels a line has in the screen's own labels. */
+  private rasterWidth(): number {
+    const screen = this.machine.execution.screen;
+    return Math.max(1, this.configuredRaster()?.width ?? screen.htotal ?? screen.width);
+  }
+
+  /**
+   * A beam position (frame-runner lines, VBLANK at the screen IR's vbstart)
+   * as the configured screen labels it: the time since VBLANK start, in the
+   * configured line length, from the configured VBLANK line.
+   */
+  private rasterLabel(position: number): number {
+    const raster = this.configuredRaster();
+    if (!raster) return position;
+    const screen = this.machine.execution.screen;
+    const vtotal = Math.max(1, screen.vtotal);
+    const since = (((position - screen.vbstart) % vtotal) + vtotal) % vtotal;
+    return raster.vbstart + since * raster.height / vtotal;
+  }
+
+  /** rasterLabel's inverse: the beam position at which the screen reads `label`. */
+  private rasterPosition(label: number): number {
+    const raster = this.configuredRaster();
+    if (!raster) return label;
+    const screen = this.machine.execution.screen;
+    const since = (((label - raster.vbstart) % raster.height) + raster.height) % raster.height;
+    return screen.vbstart + since * Math.max(1, screen.vtotal) / raster.height;
   }
 
   /** The beam's pixel within its line: MAME's `screen_device::hpos()`. */
   private beamHpos(): number {
-    const screen = this.machine.execution.screen;
-    const htotal = Math.max(1, screen.htotal ?? screen.width);
+    const htotal = this.rasterWidth();
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
-    const beam = (running ?? this.currentLineFraction) + this.halfPixelLines();
+    const beam = this.rasterLabel(this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
   }
 
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
   private beamLine(): number {
-    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const vtotal = this.rasterHeight();
     const running = this.runningCpu
       ? this.frameRunner?.runningBeam(this.runningCycles())
       : undefined;
-    const line = running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
+    const line = this.expiryBeam !== undefined
+      ? Math.floor(this.rasterLabel(this.expiryBeam) + this.halfPixelLines())
+      : this.configuredRaster()
+        ? Math.floor(this.rasterLabel(running ?? this.currentLine) + this.halfPixelLines())
+        : running === undefined ? this.currentLine : Math.floor(running + this.halfPixelLines());
     return ((line % vtotal) + vtotal) % vtotal;
   }
 
@@ -4263,8 +4651,7 @@ class IrBoard implements Board {
    * m_scantime, so a processor a few attoseconds short of a line reads that line.
    */
   private halfPixelLines(): number {
-    const screen = this.machine.execution.screen;
-    return 0.5 / Math.max(1, screen.htotal ?? screen.width);
+    return 0.5 / this.rasterWidth();
   }
 
   /** One scanline of emulated wall time — the unit both clocks settle in. */
@@ -4427,6 +4814,15 @@ class IrBoard implements Board {
     return memory;
   }
 
+  batteries(): BatteryImage[] {
+    const kept: BatteryImage[] = [];
+    for (const [tag, device] of this.devices) {
+      const battery = (device as { collectBattery?: () => { name: string; bytes: Uint8Array } | undefined }).collectBattery?.();
+      if (battery) kept.push({ tag, ...battery });
+    }
+    return kept;
+  }
+
   memory(row: { cpu: string; space?: string; share?: string }): MemoryAccess | undefined {
     if (row.share !== undefined) {
       const bytes = this.shares[row.share];
@@ -4449,7 +4845,7 @@ class IrBoard implements Board {
   stateKeys(): readonly string[] {
     return [
       'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
-      'cpuSliceCycles', 'runningSliceCycles', 'devices', 'generatedBanks',
+      'runningSliceCycles', 'devices', 'generatedBanks',
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
@@ -4920,16 +5316,15 @@ class IrBoard implements Board {
     const round = this.roundDevices.get(tag);
     if (!round) return undefined;
     const running = round.running
-      ? round.running.target - Number(round.running.device.get('m_icount'))
+      ? round.running.target - Number(round.running.device.get(round.running.device.icountMember ?? 'm_icount'))
       : 0;
     return (round.cycles + running) / Math.max(1, this.devices.get(tag)!.cycleClock());
   }
 
   private totalCycles(cpuTag: string): number {
     return (this.cpuCycles.get(cpuTag) ?? 0)
-      + (cpuTag === this.runningCpu
-        ? this.runningSliceCycles
-        : this.cpuSliceCycles.get(cpuTag) ?? 0)
+      // A processor between slices has booked its whole slice in cpuCycles.
+      + (cpuTag === this.runningCpu ? this.runningSliceCycles : 0)
       // The slice total only moves between instructions. A device read or
       // write happens *inside* one, and MAME counts the cycles the current
       // instruction has already paid for -- so a cycle-accurate core is asked
@@ -5173,7 +5568,8 @@ class IrBoard implements Board {
         let value = base(address, offset);
         for (const custom of customs) {
           if (custom.source === 'screen-vblank') {
-            const { vbstart, vbend = 0 } = this.machine.execution.screen;
+            const { vbend = 0 } = this.machine.execution.screen;
+            const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
             const beam = this.beamLine();
             const inVblank = vbstart > vbend
               ? beam >= vbstart || beam < vbend
@@ -5642,8 +6038,9 @@ class IrBoard implements Board {
       sound: machine.sound,
       calls: this.bindings.calls!,
       state: this.state,
-      soundWrite: (offset, data, frac, method) =>
-        sinks.soundWrite(offset, data, frac, method),
+      soundWrite: (offset, data, frac, method, left, right) => (left === undefined
+        ? sinks.soundWrite(offset, data, frac, method)
+        : sinks.soundWrite(offset, data, frac, method, left, right)),
       ...(sinks.observeStreams?.length ? { observeStreams: sinks.observeStreams } : {}),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),
@@ -6098,10 +6495,24 @@ class IrBoard implements Board {
       deviceMethod: (tag, method, ownerClass) => {
         const device = this.devices.get(tag);
         if (device?.methodNames().includes(method)) {
-          return state => device.call(
-            method,
-            ...generatedDeviceCallbackArguments(device.parameters(method), state),
-          );
+          const parameters = device.parameters(method);
+          // devcb_write8::operator()(offset, data, mem_mask) hands its offset
+          // to an (offs_t offset, u8 data) target. Supplying 0 here sent every
+          // S-SMP $F2/$F3 write to s_dsp_device::dsp_io_w as the register
+          // address, so no S-DSP register was ever written.
+          const takesOffset = parameters.length >= 2 && /\boffs_t\b/.test(parameters[0] ?? '');
+          // devcb_read8::operator()(offset) to a read8sm target: the offset the
+          // read asked for, when the source passed one. The S-SMP reads S-DSP
+          // register data as `m_dsp_io_r_cb(1)`; with 0 every $F3 read answered
+          // the address register, and Final Fantasy III's sound driver waited
+          // on FLG forever.
+          const readsOffset = parameters.length === 1 && /\boffs_t\b/.test(parameters[0] ?? '');
+          return (state, ...sourceArgs) => {
+            const args = generatedDeviceCallbackArguments(parameters, state);
+            if (takesOffset && sourceArgs.length >= 2) args[0] = Number(sourceArgs[0]) || 0;
+            if (readsOffset && sourceArgs.length >= 1) args[0] = Number(sourceArgs[0]) || 0;
+            return device.call(method, ...args);
+          };
         }
         // A composite MAME device (timeplt_audio) is not instantiated; its
         // methods are the generated handlers for its class.
@@ -6435,6 +6846,27 @@ export function generatedStateSetters(
   for (const member of members) {
     if (member.delegate) {
       state[member.name] ??= null;
+      continue;
+    }
+    // A struct member: each element an object whose fields keep their
+    // declared widths, as C++ stores them (a DMA channel's uint16_t
+    // src_addr wraps as it counts).
+    if (member.fields) {
+      const fields = member.fields;
+      const element = (): Record<string, number> => {
+        const values: Record<string, number> = {};
+        const object: Record<string, number> = {};
+        for (const field of fields) {
+          values[field.name] = generatedStateWidth(field.initial ?? 0, field.bits, field.signed);
+          Object.defineProperty(object, field.name, {
+            enumerable: true,
+            get: () => values[field.name]!,
+            set: (value: number) => { values[field.name] = generatedStateWidth(Number(value) || 0, field.bits, field.signed); },
+          });
+        }
+        return object;
+      };
+      state[member.name] ??= member.arrayLength ? Array.from({ length: member.arrayLength }, element) : element();
       continue;
     }
     // C++ fixed arrays exist zero-initialized before their first write. A

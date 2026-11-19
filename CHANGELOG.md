@@ -40,6 +40,17 @@ MAMEDEV's release notes (see the README).
 - `set_input_line` synchronizes whoever drives the line (`set_state_synced`), including a processor's own lines. Exidy's main CPU clears its own IRQ on every read of its interrupt latch, and that read ended MAME's round there.
 - A processor that synchronizes ends the round where it stopped (`target = max(m_localtime, m_basetime)`), not at the access that posted the work. The 6502 `position` hook from #213 is gone.
 
+### The Super Nintendo ([#174](https://github.com/benbruscella/mamekit/issues/174), [#269](https://github.com/benbruscella/mamekit/pull/269))
+
+**For players:** The Super Nintendo is a new console, generated from MAME's `snes.cpp` with its cartridge shelf. Super Mario World plays at full speed in the browser, in stereo, and matches MAME pixel for pixel. Eleven titles are verified against MAME: Super Mario World, Zelda: A Link to the Past, Super Metroid, F-Zero, Mega Man X, Super Castlevania IV, Final Fantasy III, Donkey Kong Country, Chrono Trigger, Pilotwings and Super Mario Kart. The last two run the cartridge's own DSP-1 chip. Battery saves are kept per cartridge on every console. Every board with an off-centre speaker channel now plays in stereo: Gauntlet, Marble Madness, Metal Slug, Qix, Gyruss, Pole Position, Rampage, The Simpsons, Spy Hunter and the Game Boy.
+
+**Under the hood:**
+- The 65C816/5A22, SPC700, S-DSP and PPU are compiled whole from MAME, with no hand-written hardware. The compiler learned g65816's per-mode build units, token-pasted opcode tables, devcb offsets, struct scalar operators (`operator unsigned()` and `operator=(unsigned)`), and run-time cartridge installs.
+- The scheduler gained screen reconfiguration, timer-expiry beam positions and precise driver timers. Processors inside a cartridge a slot mounts (the DSP-1's uPD7725) are scheduled on a clock of their own, run up to the main CPU's time before every access to their card.
+- Software lists keep a cartridge's side areas, such as an SNES DSP's `addon` firmware. Identification counts them, so two revisions with one program ROM are told apart.
+- Stereo is a host feature for every board: each speaker route carries left and right gains from MAME's speaker positions, and the mono mix is unchanged.
+- The game-package audit knows consoles and computers.
+
 ### Venture's music plays: the 8253 counts in exact attotime ([#272](https://github.com/benbruscella/mamekit/issues/272), [#274](https://github.com/benbruscella/mamekit/issues/274))
 
 **For players:** Venture's music is back. Its tones come from the sound board's 8253 timer, which never toggled, so only the sound effects played. Its sound now matches MAME's within 0.3 dB in attract and in play, every band within 1.5 dB. With a coin and a game played, its RAM follows MAME's to frame 3900, where it used to leave at 3184.

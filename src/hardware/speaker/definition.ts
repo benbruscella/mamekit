@@ -35,6 +35,8 @@ export const STREAM_SOUND_TYPES: readonly string[] = [
   // the consoles' sound chips, each compiled by its console's capability:
   // the TIA's sound half, the C64's SID and the Game Boy's APU.
   'NES_APU', 'APU_2A03', 'TIA', 'MOS6581', 'MOS8580', 'DMG_APU',
+  // The SNES's S-DSP, which the S-SMP reads back through its DSP port.
+  'S_DSP',
   ...SOUND_DEVICE_MAME_TYPES,
 ];
 

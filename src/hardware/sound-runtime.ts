@@ -30,8 +30,8 @@ export interface SoundRuntimeContext {
   calls: Record<string, (...args: number[]) => unknown>;
   /** Driver state members. */
   state: Record<string, unknown>;
-  /** Forward a register write to the generated worklet. */
-  soundWrite(offset: number, data: number, frac?: number, method?: string): void;
+  /** Forward a register write to the generated worklet; a stereo sample brings its left and right. */
+  soundWrite(offset: number, data: number, frac?: number, method?: string, left?: number, right?: number): void;
   /** Stream devices whose own samples are reported as `<tag>.stream` (acceptance gates). */
   observeStreams?: readonly string[];
   /** Position within the current video frame, so writes keep their timing. */

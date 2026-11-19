@@ -13,7 +13,7 @@
 - [Frame render point](frame-render-point.md) — frame-mode video must present at vbstart like MAME, not end-of-frame
 - [Artwork CDN bucket](artwork-cdn-bucket.md) — metadata-REPLACE wipes Content-Type
 - [Defender attract trap](defender-attract-trap.md) — needs ~6 Start presses
-- [Venture silent RIOT IRQ](venture-silent-riot-irq.md) — #63 unfixed
+- [Venture silent RIOT IRQ](venture-silent-riot-irq.md) — #63 closed; residual RAM drift from frame 2048 is #271
 - [Zaxxon vblank phase](zaxxon-vblank-phase.md) — #70 residual: one vblank ahead of MAME, demo diverges ~frame 354
 - [DAC width from MAME](dac-width-from-mame.md) — DAC bits come from dac.h DAC_GENERATOR
 - [Scanline interleave limit](scanline-interleave-limit.md) — 69us CPU quantum swallows fine handshakes
@@ -170,6 +170,15 @@
 - [mamekit compare commands](mamekit-compare-commands.md) — #260: `mamekit against|record|compare|show`, no separate mkt, .env paths, MAME cache in .mamekit/mame
 - [Epic 178 closed](epic-178-closed.md) — #266: architecture.spec guards must find nothing; RETIRED_MODULES/RETIRED_NAMES
 - [Closure pool #265](closure-pool-265.md) — closure was serial main-thread lowering; pool + 2 hot spots 564→103 s, verify by byte-diffing a scratch cold build
+- [SNES #174 decisions](snes-174-decisions.md) — ONE PR, stereo in phase 2, IPL at consoles/snes/bios/spc700.rom
+- [Worktree PR hooks](worktree-pr-hooks.md) — changelog hook checks the session cwd; EnterWorktree before gh pr create
+- [S-DSP silence gaps](sdsp-silence-gaps.md) — devcb offset, space() default, const pointers into tables (#174)
+- [Save-state shared arrays](save-state-shared-arrays.md) — pointer-into-table members save as aliases; tables built first
+- [SNES NMI scheduler](snes-nmi-scheduler.md) — configure relabel, expiry beam, precise timers end rounds, virtual dispatch for config-less bases; SMW RAM exact 1800 frames
+- [gen:all at the end](gen-all-at-end.md) — iterate with single-target gen; one gen:all + sweep when finished
+- [SNES speed #174](snes-speed-174.md) — SMW 60 fps in browser (Node ~52); V8 traps: __proto__ literals, accessor closures, >1000-key tables
 - [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
+- [Cart battery saves](cart-battery-saves.md) — every console slot via battery_load/save; devcb reads dropped offsets (FF3 hang)
 - [Exact attotime #272](exact-attotime-272.md) — devices reading attotime fields hold it exactly; Venture music back; `against --audio` is sound truth; residual round at 53.1200
+- [SNES DSP-1 #174](snes-dsp1-174.md) — addon areas, struct operators, card processors on a leader clock, indirect palette saves
 - [MAME round rules #275](mame-round-rules-275.md) — 50 Hz sound timer, line-start boundaries, self set_input_line syncs, sync target = stop point; VERBOSE MAME build recipe
