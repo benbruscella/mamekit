@@ -385,6 +385,11 @@ function decodeSound(reader: Reader, value: unknown): void {
     const route = reader.object(entry, path);
     for (const field of ['chip', 'channel', 'gain']) reader.number(route[field], `${path}.${field}`);
     reader.string(route.target, `${path}.target`);
+    if (route.stereo !== undefined) {
+      const stereo = reader.array(route.stereo, `${path}.stereo`);
+      if (stereo.length !== 2) reader.fail(`${path}.stereo`, 'a stereo route has a left and a right gain');
+      stereo.forEach((gain, side) => reader.number(gain, `${path}.stereo[${side}]`));
+    }
   }
 }
 

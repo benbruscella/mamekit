@@ -26,7 +26,7 @@ export async function createStreamWorkletProbe(
       rate: number,
       outputRate: number,
       refresh: number,
-    ) => { write(write: ProbeSoundWrite): void; render(): Float32Array };
+    ) => { write(write: ProbeSoundWrite): void; render(): Float32Array; sides?: [Float32Array, Float32Array] };
   };
   assert.ok(module.GeneratedStreamFrameRenderer, `${artifact} exports no stream frame renderer`);
   // audio.ts posts `clock: core.clock ?? core.sampleRate` as the stream's rate.
@@ -35,10 +35,16 @@ export async function createStreamWorkletProbe(
     context.outputRate,
     context.refresh,
   );
+  // A board is stereo once a mix sample has brought its left and right.
+  let stereo = false;
   return {
     render(writes: readonly ProbeSoundWrite[]): Float32Array {
-      for (const write of writes) renderer.write(write);
+      for (const write of writes) {
+        if (write.left !== undefined) stereo = true;
+        renderer.write(write);
+      }
       return renderer.render();
     },
+    sides: () => (stereo && renderer.sides ? [renderer.sides[0], renderer.sides[1]] : undefined),
   };
 }

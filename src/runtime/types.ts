@@ -51,8 +51,11 @@ export interface BoardSinks {
    * frame (0..1, e.g. scanline/vtotal): boards emulate a whole frame in one
    * burst, so without it every write lands at the same instant and fast SFX
    * sweeps quantize into chirpy stair-steps. Pass it whenever known.
+   *
+   * On a stereo board each mixed sample (`stream.pcm`) also carries its left
+   * and right: `data` stays the mono mix, the mean of MAME's speaker channels.
    */
-  soundWrite: (offset: number, data: number, frac?: number, method?: string) => void;
+  soundWrite: (offset: number, data: number, frac?: number, method?: string, left?: number, right?: number) => void;
   /**
    * Stream devices whose own rendered samples are also reported, one
    * `<tag>.stream` write a sample: an acceptance gate on one chip of a mix (a

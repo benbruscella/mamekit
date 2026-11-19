@@ -1257,6 +1257,15 @@ export interface GeneratedAudioRoute {
   target: string;
   targetInput?: number;
   filter?: { index: number; bank: number; channel: number };
+  /**
+   * On a board whose speakers have a left and a right (a speaker channel
+   * placed off centre, `SPEAKER(config, "speaker", 2).front()`): this route's
+   * gain into the host's left and right outputs, apart from the mono `gain`.
+   * A channel left of centre is left, right of it right, a centred one both
+   * at half; the pair is scaled so their mean is MAME's mean of every speaker
+   * channel, which is what `gain` already is.
+   */
+  stereo?: [number, number];
 }
 
 /**

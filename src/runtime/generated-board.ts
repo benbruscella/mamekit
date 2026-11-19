@@ -5971,8 +5971,9 @@ class IrBoard implements Board {
       sound: machine.sound,
       calls: this.bindings.calls!,
       state: this.state,
-      soundWrite: (offset, data, frac, method) =>
-        sinks.soundWrite(offset, data, frac, method),
+      soundWrite: (offset, data, frac, method, left, right) => (left === undefined
+        ? sinks.soundWrite(offset, data, frac, method)
+        : sinks.soundWrite(offset, data, frac, method, left, right)),
       ...(sinks.observeStreams?.length ? { observeStreams: sinks.observeStreams } : {}),
       fraction: () => this.soundFraction(),
       time: () => this.machineSeconds(),

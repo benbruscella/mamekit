@@ -995,10 +995,10 @@ export async function runShell(
     return [tag, battery ? { ...image, battery } : image];
   }));
   const board = createBoard({ ...bootBoard, ...(images ? { images } : {}), game: cfg.game }, regions, input, {
-    soundWrite: (offset, data, frac, method) => {
+    soundWrite: (offset, data, frac, method, left, right) => {
       soundWrites.total++;
       if (offset >= 0 && data !== 0) soundWrites.nonzero++;
-      audio.write(offset, data, frac, method);
+      audio.write(offset, data, frac, method, left, right);
     },
     mute: muted => audio.setSystemMute(muted),
   });

@@ -25,6 +25,9 @@ interface PendingWrite {
   frac?: number;
   /** Target device write method; worklets route by name, never by offset math. */
   method?: string;
+  /** A stereo sample's left and right; `data` is then their mono mix. */
+  left?: number;
+  right?: number;
 }
 
 export class AudioOutput {
@@ -55,7 +58,9 @@ export class AudioOutput {
     const node = new AudioWorkletNode(ctx, processorName, {
       numberOfInputs: 0,
       numberOfOutputs: 1,
-      outputChannelCount: [1],
+      // Two channels for every board: a mono one plays the same sample in
+      // both, a stereo one (an off-centre speaker channel) its left and right.
+      outputChannelCount: [2],
     });
     const gain = ctx.createGain();
     gain.gain.value = this.systemMuted ? 0 : this.volume;
@@ -115,9 +120,13 @@ export class AudioOutput {
    * scheduler under main-thread jank. Complete frames produced before
    * start() finishes remain separate in `pendingFrames`.
    */
-  write(offset: number, data: number, frac?: number, method?: string): void {
+  write(offset: number, data: number, frac?: number, method?: string, left?: number, right?: number): void {
     const write: PendingWrite = { offset, data, frac };
     if (method !== undefined) write.method = method;
+    if (left !== undefined) {
+      write.left = left;
+      write.right = right ?? left;
+    }
     this.pending.push(write);
   }
 

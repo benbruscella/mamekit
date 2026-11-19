@@ -1415,23 +1415,68 @@ function lowerMemoryBanks(
 }
 
 /**
+ * Where each channel of each speaker sits, left to right, from the speaker's
+ * own configuration (speaker.h): -1 left of centre, 1 right, 0 centred. A
+ * channel nothing places is MAME's default position, the centre.
+ */
+export function speakerChannelSides(graph: KnowledgeGraph): Map<string, number[]> {
+  const sides = new Map<string, number[]>();
+  for (const node of graph.nodes) {
+    if (node.label !== 'Device' || node.props.type !== 'SPEAKER') continue;
+    const config = Array.isArray(node.props.config) ? node.props.config.join('\n') : '';
+    // SPEAKER(config, tag, n) is n channels; SPEAKER(config, tag, x, y, z) one at x.
+    const args = (/SPEAKER\s*\(([^)]*)\)/.exec(config)?.[1] ?? '').split(',').slice(2).map(arg => arg.trim());
+    const xyz = args.length === 3;
+    const count = xyz ? 1 : Math.max(1, Number(args[0] ?? 1) || 1);
+    const channel = Array.from({ length: count }, () => 0);
+    const side = (x: number) => (x < 0 ? -1 : x > 0 ? 1 : 0);
+    if (xyz) channel[0] = side(Number(args[0]));
+    const place = (index: number, x: number) => { if (index < count) channel[index] = side(x); };
+    for (const call of config.matchAll(/\.\s*(\w+)\s*\(([^)]*)\)/g)) {
+      const name = call[1]!;
+      const args = call[2]!.split(',').map(arg => arg.trim()).filter(Boolean);
+      const at = Number(args[0] ?? 0) || 0;
+      // osd::channel_position: FL/RL/HL at x -0.2, FR/RR at 0.2. headrest_right
+      // is RC in MAME's own header, so it sits in the centre.
+      if (name === 'front' || name === 'rear') { place(0, -1); place(1, 1); }
+      else if (name === 'corners') { place(0, -1); place(1, 1); place(2, -1); place(3, 1); }
+      else if (/^(front|rear|headrest)_left$/.test(name)) place(at, -1);
+      else if (/^(front|rear)_right$/.test(name)) place(at, 1);
+      else if (name === 'set_position' && args.length >= 2) place(at, Number(args[1]));
+    }
+    sides.set(String(node.props.tag), channel);
+  }
+  return sides;
+}
+
+/**
  * Routes as the browser hears them: one channel, the average of a stereo
  * target's. A route into one input of a two-channel speaker counts half --
  * Qix's DISCRETE puts its left and right volumes on the speaker's two
  * inputs, and MAME's mono mix is their mean.
+ *
+ * On a board with a speaker channel off centre each route into a speaker
+ * also carries its left and right gains (`stereo`), for a host that plays
+ * two channels.
  */
 export function monoRoutes(graph: KnowledgeGraph, routes: GeneratedAudioRoute[]): GeneratedAudioRoute[] {
   // The mono mix is the mean of every speaker channel the machine has (front
   // and rear pairs count four), so a route to one channel is that share of it.
-  const channels = graph.nodes
-    .filter(node => node.label === 'Device' && node.props.type === 'SPEAKER')
-    .reduce((sum, node) => sum + Number(/SPEAKER\s*\(\s*config\s*,[^,]+,\s*(\d+)/
-      .exec(Array.isArray(node.props.config) ? node.props.config.join('\n') : '')?.[1] ?? 1), 0);
-  const speakers = new Set(graph.nodes.filter(node => node.label === 'Device' && node.props.type === 'SPEAKER')
-    .map(node => String(node.props.tag)));
-  return channels > 1
-    ? routes.map(route => route.targetInput !== undefined && speakers.has(route.target) ? { ...route, gain: route.gain / channels } : route)
-    : routes;
+  const sides = speakerChannelSides(graph);
+  const channels = [...sides.values()].reduce((sum, channel) => sum + channel.length, 0);
+  const stereo = [...sides.values()].some(channel => channel.some(side => side !== 0));
+  return routes.map(route => {
+    const speaker = sides.get(route.target);
+    if (!speaker) return route;
+    const mono = channels > 1 && route.targetInput !== undefined ? { ...route, gain: route.gain / channels } : route;
+    if (!stereo) return mono;
+    // add_route's channel defaults to 0 (disound.h): MAME puts a route that
+    // names none on the speaker's first channel.
+    const side = speaker[route.targetInput ?? 0] ?? 0;
+    const share = (own: number) => (side === 0 ? 0.5 : side === own ? 1 : 0);
+    const scale = 2 / channels;
+    return { ...mono, stereo: [route.gain * scale * share(-1), route.gain * scale * share(1)] };
+  });
 }
 
 export function lowerAudioRoutes(
