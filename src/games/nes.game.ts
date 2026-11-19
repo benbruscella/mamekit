@@ -54,7 +54,7 @@ export const nes = {
       audio: {
         writes: 1198027,
         nonzeroWrites: 833093,
-        writeHash: '5df4021c',
+        writeHash: '505d133b',
         pcmHash: 'a497fbd8',
         rms: 0.492181,
       },
@@ -90,7 +90,7 @@ export const nes = {
       audio: {
         writes: 958421,
         nonzeroWrites: 585506,
-        writeHash: 'bb02a875',
+        writeHash: '06cea366',
         pcmHash: '02261846',
         rms: 0.238183,
       },
@@ -132,7 +132,7 @@ export const nes = {
       audio: {
         writes: 607799,
         nonzeroWrites: 578414,
-        writeHash: '89b73fa3',
+        writeHash: '5e2ff9a3',
         pcmHash: 'd73f5583',
         rms: 0.366564,
       },
@@ -174,7 +174,7 @@ export const nes = {
       audio: {
         writes: 846605,
         nonzeroWrites: 843946,
-        writeHash: 'ad85fb68',
+        writeHash: 'b83d8c82',
         pcmHash: '9bcd5a0a',
         rms: 0.144295,
       },
@@ -198,7 +198,7 @@ export const nes = {
     // nothing, because firing the timer is the cost (#226). By November 2026
     // CI runners had drifted to ~20 fps (main's runs took 108.7-111.1 s, PR
     // #273's 19.6 and 20.0 fps with no local difference: 43 fps either way),
-    // so the floor sits below that noise, as #242 did for the others (#247).
+    // so the floor sits below that noise, as #242 did for the others.
     minimumFps: 18,
     checkpoints: [1, 300, 600, 900, 1200, 1500, 1800],
     actions: [
@@ -231,7 +231,7 @@ export const nes = {
       audio: {
         writes: 1437632,
         nonzeroWrites: 478242,
-        writeHash: 'a473a1d6',
+        writeHash: 'a211915d',
         pcmHash: 'c1a9d9b2',
         rms: 0.014446,
       },

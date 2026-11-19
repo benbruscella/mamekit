@@ -31,8 +31,8 @@ export const pacman = sourceTarget({
     audio: {
       writes: 475200,
       nonzeroWrites: 219781,
-      writeHash: '531d7bd4',
-      pcmHash: 'e3ce3978',
+      writeHash: 'aca182bd',
+      pcmHash: 'd81c842a',
       rms: 0.169598,
     },
   },

@@ -30,6 +30,16 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### MAME's round rules: the sound manager's timer, line-start screen timers, synced input lines ([#275](https://github.com/benbruscella/mamekit/issues/275))
+
+**For players:** Venture plays a coin-and-play game exactly as MAME does: its RAM matches MAME's on all 6,200 frames, where it used to drift from frame 3900. Centipede, Galaxian, Gyruss, Juno First and Pengo now match MAME's RAM on every frame too.
+
+**Under the hood:** four places where our scheduler ended rounds differently from MAME's, each found in the round log of a diagnostic MAME 0.289 build (`schedule.cpp` with `VERBOSE`):
+- `sound_manager`'s update timer runs at `STREAMS_UPDATE_FREQUENCY` (50 Hz) on every machine and ends MAME's rounds. The compiler reads the rate from `sound.h` (`execution.streamsUpdateFrequency`) and the board runs it as a round timer.
+- MAME's screen timers fire at the start of their line. A line carrying one also ended our round at its end. Rounds now end only at the line's start, scanline 0's timer is line 0, and each frame closes at its end.
+- `set_input_line` synchronizes whoever drives the line (`set_state_synced`), including a processor's own lines. Exidy's main CPU clears its own IRQ on every read of its interrupt latch, and that read ended MAME's round there.
+- A processor that synchronizes ends the round where it stopped (`target = max(m_localtime, m_basetime)`), not at the access that posted the work. The 6502 `position` hook from #213 is gone.
+
 ### The Super Nintendo ([#174](https://github.com/benbruscella/mamekit/issues/174), [#269](https://github.com/benbruscella/mamekit/pull/269))
 
 **For players:** The Super Nintendo is a new console, generated from MAME's `snes.cpp` with its cartridge shelf. Super Mario World plays at full speed in the browser, in stereo, and matches MAME pixel for pixel. Eleven titles are verified against MAME: Super Mario World, Zelda: A Link to the Past, Super Metroid, F-Zero, Mega Man X, Super Castlevania IV, Final Fantasy III, Donkey Kong Country, Chrono Trigger, Pilotwings and Super Mario Kart. The last two run the cartridge's own DSP-1 chip. Battery saves are kept per cartridge on every console. Every board with an off-centre speaker channel now plays in stereo: Gauntlet, Marble Madness, Metal Slug, Qix, Gyruss, Pole Position, Rampage, The Simpsons, Spy Hunter and the Game Boy.

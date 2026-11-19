@@ -38,7 +38,7 @@ export const travrusa = sourceTarget({
     audio: {
       writes: 1522799,
       nonzeroWrites: 1522799,
-      writeHash: 'e98669a3',
+      writeHash: 'cd7c673a',
       pcmHash: '8fa5c20d',
       rms: 0.082202,
     },

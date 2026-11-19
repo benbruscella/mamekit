@@ -181,3 +181,4 @@
 - [Cart battery saves](cart-battery-saves.md) — every console slot via battery_load/save; devcb reads dropped offsets (FF3 hang)
 - [Exact attotime #272](exact-attotime-272.md) — devices reading attotime fields hold it exactly; Venture music back; `against --audio` is sound truth; residual round at 53.1200
 - [SNES DSP-1 #174](snes-dsp1-174.md) — addon areas, struct operators, card processors on a leader clock, indirect palette saves
+- [MAME round rules #275](mame-round-rules-275.md) — 50 Hz sound timer, line-start boundaries, self set_input_line syncs, sync target = stop point; VERBOSE MAME build recipe

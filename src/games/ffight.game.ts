@@ -7,7 +7,7 @@ export const ffight = sourceTarget({
   screen: { width: 384, height: 224 },
   soundKind: 'stream',
   // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 36.2 fps against the old floor of 50 (issue #247, 4.5).
+  // 36.2 fps against the old floor of 50, so the floor is about 80% of that.
   minimumFps: 28,
   // CPS1 is still in its power-on RAM test when the standard schedule tries
   // to start. Exercise Final Fight after the test and keep the run long enough
@@ -43,9 +43,9 @@ export const ffight = sourceTarget({
     audio: {
       writes: 2897510,
       nonzeroWrites: 1607028,
-      writeHash: '5091e791',
-      pcmHash: '155b57ab',
-      rms: 0.07953,
+      writeHash: '6a75040f',
+      pcmHash: '91d5aadc',
+      rms: 0.079501,
     },
   },
 });

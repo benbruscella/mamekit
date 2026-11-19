@@ -63,7 +63,9 @@ assert.equal(renders, 1);
 // from vbstart (2 here) to vtotal still run their CPU slices after the frame is
 // drawn. Deferring the render to the frame boundary samples a game that erases
 // and redraws sprites in its VBLANK handler halfway through the update.
-assert.deepEqual(timeline, ['cpu', 'cpu', 'render', 'cpu']);
+// Lines 0 and 1 are one round: MAME's timers fall at the start of a line
+// (scanline 0, VBLANK at 2), and none at line 1 (#275).
+assert.deepEqual(timeline, ['cpu', 'render', 'cpu']);
 assert.equal(runner.frameCount, 1);
 
 const scanlines: number[] = [];
@@ -153,7 +155,8 @@ const offscreenRunner = new GeneratedFrameRunner({
   },
 });
 offscreenRunner.frame(new Uint32Array(1));
-assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
+// No timer falls inside the frame, only scanline 0's at its start: one round.
+assert.deepEqual(offscreenTimeline, ['cpu', 'render']);
 
 // MAME scheduler().synchronize() from inside a slice. The posting processor
 // stops after its instruction, the processors behind it run only up to where
@@ -198,10 +201,11 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   assert.equal(runner.requestSynchronize(), false, 'outside a slice the work is already due');
   runner.frame(new Uint32Array(1));
   // 60 kHz across three lines at 10 Hz is 2000 cycles per processor per line.
+  // Lines 0 and 1 are one round (timers at scanline 0 and VBLANK, line 2).
   assert.deepEqual(
     order,
-    ['maincpu:2000', 'sound:500', 'sync', 'maincpu:1500', 'sound:1500',
-      'maincpu:2000', 'sound:2000', 'maincpu:2000', 'sound:2000'],
+    ['maincpu:4000', 'sound:500', 'sync', 'maincpu:3500', 'sound:3500',
+      'maincpu:2000', 'sound:2000'],
     'the other processor catches up to the synchronize, then the round resumes',
   );
   assert.equal(ran.maincpu, 6000, 'the posting processor keeps its own budget');
@@ -248,19 +252,18 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   });
   runner.frame(new Uint32Array(1));
   // 60 kHz over six lines at 10 Hz is 1000 cycles per line. Events sit on
-  // lines 0, 2 and 4, vbstart on 5, and the last line always closes the frame.
+  // lines 0, 2 and 4 and vbstart on 5, each a timer at the start of its line;
+  // the frame closes at the next frame's line 0 (#275).
   assert.deepEqual(order, [
-    'maincpu:1000', 'sound:1000',   // line 0: its own event line
-    'maincpu:1000', 'sound:1000',   // line 2: backlog of line 1
-    'maincpu:1000', 'sound:1000',   // line 2 itself
-    'maincpu:1000', 'sound:1000',   // line 4: backlog of line 3
-    'maincpu:1000', 'sound:1000',   // line 4 itself
-    'maincpu:1000', 'sound:1000',   // line 5: vbstart and last line
+    'maincpu:2000', 'sound:2000',   // lines 0-1, up to line 2's timer
+    'maincpu:2000', 'sound:2000',   // lines 2-3, up to line 4's
+    'maincpu:1000', 'sound:1000',   // line 4, up to VBLANK at 5
+    'maincpu:1000', 'sound:1000',   // line 5, up to the next frame's line 0
   ], 'processors hand over at scheduled events, not at every scanline');
   assert.equal(
     order.filter(entry => entry.startsWith('maincpu')).length,
-    6,
-    'six hand-overs across six lines, all of them at a boundary',
+    4,
+    'four hand-overs across six lines, each at a timer',
   );
 }
 
@@ -287,11 +290,12 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   runner.frame(new Uint32Array(1));
   // 1,584,000 Hz over 264 lines at 60 Hz is 100 cycles a line, and a line is
   // 63 us. This board reports no timer of its own, so a round runs to the
-  // screen's next one, as MAME's does: VBLANK end (line 0), VBLANK start
-  // (line 240) and scanline 0 again, which the frame's last line closes.
+  // screen's next one, as MAME's does: VBLANK end and scanline 0 (line 0),
+  // VBLANK start (line 240) and the next frame's line 0. Each fires at the
+  // start of its line, so a round ends there and not at the line's end.
   assert.deepEqual(
     slices,
-    [100, 23_900, 100, 2200, 100],
+    [24_000, 2400],
     'a board with no timers runs from one of the screen\'s timers to the next',
   );
   assert.equal(
@@ -339,9 +343,9 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     onRound: () => order.push('round'),
   });
   runner.frame(new Uint32Array(1));
-  // 100 truncated cycles stop a few attoseconds short of the line, which ends
-  // the round there, and the next is under a cycle long: nothing runs in it.
-  assert.deepEqual(order.slice(0, 5), ['round', 'run 100', 'round', 'round', 'run 23900'], 'a round starts each slice');
+  // 24,000 truncated cycles stop a few attoseconds short of VBLANK, which
+  // ends the round there, and the next is under a cycle long: nothing runs in it.
+  assert.deepEqual(order.slice(0, 5), ['round', 'run 24000', 'round', 'round', 'run 2400'], 'a round starts each slice');
   order.length = 0;
   runner.quantumWindow(0.0001);
   runner.frame(new Uint32Array(1));
@@ -480,9 +484,8 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
 // The running processor's place in the frame is its own position, measured
 // from the origin. 4-cycle instructions against 10-cycle lines overrun every
 // round, and the next slice starts where that one stopped, so each instruction
-// lands 0.4 lines after the last: across rounds of 10 lines, the one-line
-// boundary rounds (lines 300 and 399) and the wrap from 399 to 0, never
-// backwards. Stamped with the round's progress instead, Mat Mania's DAC writes
+// lands 0.4 lines after the last: across the seam at line 0 (the screen's
+// timers there) and the wrap from 399 to 0, never backwards. Stamped with the round's progress instead, Mat Mania's DAC writes
 // bunched into a round's last line and jumped, and Gyruss's i8039 stepped back
 // at every seam into a one-line round (#194).
 {
@@ -508,8 +511,8 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
     } }],
   });
   runner.frame(new Uint32Array(1));
-  assert.ok(budgets.some(budget => budget >= 96), 'rounds of 10 lines');
-  assert.ok(budgets.some(budget => budget <= 10), 'one-line rounds');
+  // From VBLANK (300) to line 0, then line 0 to the next VBLANK.
+  assert.deepEqual(budgets, [1000, 3000], 'rounds run from one screen timer to the next');
   assert.equal(stamps.length, 1000);
   stamps.forEach((at, index) => {
     assert.ok(at !== undefined && Math.abs(at - index * 0.4) < 1e-9, `instruction ${index} at ${at}`);
@@ -536,10 +539,11 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'cpu', 'cpu', 'render']);
   runner.frame(new Uint32Array(1));
   runner.frame(new Uint32Array(1));
   // Nothing fires on the origin line at time zero; a frame later VBLANK comes
-  // first, at the frame's start.
+  // first, at the frame's start. A frame is two rounds: VBLANK's line, up to
+  // scanline 0's timer, then lines 0 and 1 up to the next VBLANK.
   assert.deepEqual(timeline, [
-    'cpu 0', 'cpu 1', 'cpu 2',
-    'callback:vblank', 'cpu 0', 'cpu 1', 'cpu 2',
+    'cpu 0', 'cpu 1',
+    'callback:vblank', 'cpu 0', 'cpu 1',
   ]);
 }
 

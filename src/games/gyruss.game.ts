@@ -8,7 +8,7 @@ export const gyruss = sourceTarget({
   soundKind: 'stream',
   frames: 1800,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
-  // CI measured 27.7 fps against the floor of 34 (issue #247, 5.2).
+  // CI measured 27.7 fps against the floor of 34, so the floor is about 90% of that.
   minimumFps: 25,
   checkpoints: [1, 60, 300, 480, 720, 1200, 1800],
   actions: [
@@ -34,12 +34,12 @@ export const gyruss = sourceTarget({
       480: { video: '0cf148d4', state: '2c1f1195' },
       720: { video: 'bbe296d9', state: '99d211a3' },
       1200: { video: 'b12f288e', state: 'cc0f26f4' },
-      1800: { video: 'e595fce5', state: 'a23ffa08' },
+      1800: { video: '12baf728', state: 'a23ffa08' },
     },
     audio: {
       writes: 1425599,
       nonzeroWrites: 1425599,
-      writeHash: 'a22f4d3e',
+      writeHash: '29ed60d6',
       pcmHash: 'f0f202cb',
       rms: 0.064027,
     },

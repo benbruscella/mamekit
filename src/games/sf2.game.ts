@@ -9,7 +9,7 @@ export const sf2 = sourceTarget({
   // Same CPS1 board as sf2ce (10 MHz 68000 instead of 12): ~103 fps in Node
   // with wired-hot handler codegen; hold it above real time.
   // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 32.9 fps against the old floor of 50 (issue #247, 4.5).
+  // 32.9 fps against the old floor of 50, so the floor is about 80% of that.
   minimumFps: 26,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title
@@ -49,8 +49,8 @@ export const sf2 = sourceTarget({
     audio: {
       writes: 2897510,
       nonzeroWrites: 2026105,
-      writeHash: '5e259523',
-      pcmHash: '04013114',
+      writeHash: 'e315443b',
+      pcmHash: '3927cbeb',
       rms: 0.104195,
     },
   },

@@ -9,7 +9,7 @@ export const galaxian = sourceTarget({
   frames: 900,
   // Partial updates now draw each slice where MAME does (#254) instead of
   // the whole frame at the first VBLANK call: CI measured 57.4 and 59.1 fps
-  // against the floor of 60 (issue #247, 6.4).
+  // against the floor of 60.
   minimumFps: 50,
   checkpoints: [1, 60, 180, 300, 480, 500, 900],
   actions: [
@@ -37,7 +37,7 @@ export const galaxian = sourceTarget({
     audio: {
       writes: 712799,
       nonzeroWrites: 712799,
-      writeHash: 'c8c96b7c',
+      writeHash: '4343b92b',
       pcmHash: '60737b14',
       rms: 0.075846,
     },

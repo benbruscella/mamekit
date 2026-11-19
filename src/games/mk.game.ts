@@ -27,9 +27,9 @@ export const mk = sourceTarget({
   soundKind: 'stream',
   frames: 2400,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
-  // CI measured 9.9 fps against the floor of 13 (issue #247, 5.2).
+  // CI measured 9.9 fps against the floor of 13, so it came down to 9.
   // MAME's round bounds (#255) cost a further 2-4% with no single hot spot:
-  // CI measured 8.96 fps against the floor of 9 (issue #247, 7.9).
+  // CI measured 8.96 fps against the floor of 9, so it came down to 8.
   minimumFps: 8,
   checkpoints: [1, 120, 300, 600, 1200, 1800, 2100, 2400],
   actions: [
@@ -52,18 +52,18 @@ export const mk = sourceTarget({
       1: { video: '864f564c', state: 'a2c68bdb' },
       120: { video: '8f3c19f2', state: 'f6dffac0' },
       300: { video: '594b6c45', state: '712a272b' },
-      600: { video: 'afd305d5', state: '05e76463' },
-      1200: { video: '64884dee', state: '4a4a5f7e' },
-      1800: { video: '056a6659', state: 'a7a13d3f' },
-      2100: { video: 'b0fc7a5f', state: '34b00d44' },
-      2400: { video: '864f564c', state: '30f0717b' },
+      600: { video: 'afd305d5', state: '2e716bf5' },
+      1200: { video: '64884dee', state: '52319924' },
+      1800: { video: '056a6659', state: '4186ca90' },
+      2100: { video: '83328f28', state: 'b4027a55' },
+      2400: { video: '74bc449e', state: '3b210ca9' },
     },
     audio: {
       writes: 2105769,
       nonzeroWrites: 2104839,
-      writeHash: 'e78f4c57',
-      pcmHash: '15255e50',
-      rms: 0.08951,
+      writeHash: 'a9438fc2',
+      pcmHash: '7653fbec',
+      rms: 0.087313,
     },
   },
 });

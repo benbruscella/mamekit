@@ -8,7 +8,7 @@ export const kungfum = sourceTarget({
   soundKind: 'stream',
   frames: 1800,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
-  // CI measured 40.9 fps against the floor of 45 (issue #247, 5.2).
+  // CI measured 40.9 fps against the floor of 45, so the floor is about 90% of that.
   minimumFps: 36,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1500, 1800],
   actions: [
@@ -59,7 +59,7 @@ export const kungfum = sourceTarget({
     audio: {
       writes: 4600797,
       nonzeroWrites: 1608515,
-      writeHash: '7fac5d9c',
+      writeHash: '76543b25',
       pcmHash: '08a7ab76',
       rms: 0.040492,
     },

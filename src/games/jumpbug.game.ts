@@ -33,8 +33,8 @@ export const jumpbug = sourceTarget({
     audio: {
       writes: 950399,
       nonzeroWrites: 950397,
-      writeHash: '1ada67e4',
-      pcmHash: 'bb8c4047',
+      writeHash: 'c1ce3714',
+      pcmHash: '8b2b67dd',
       rms: 0.183315,
     },
   },

@@ -6587,6 +6587,21 @@ function foreignClassConstants(
   return found;
 }
 
+/**
+ * `sound_manager::STREAMS_UPDATE_FREQUENCY` (sound.h): the rate of the
+ * sound manager's update timer, which every machine runs from power-on
+ * (`m_update_timer->adjust(STREAMS_UPDATE_ATTOTIME, 0, STREAMS_UPDATE_ATTOTIME)`).
+ * It is a scheduler timer like any other, so MAME's rounds end on it.
+ */
+export function mameStreamsUpdateFrequency(mameSrc: string): number | undefined {
+  const path = join(mameSrc, 'src/emu/sound.h');
+  if (!existsSync(path)) return undefined;
+  const unit = parseMameAst([{ file: 'src/emu/sound.h', source: readFileSync(path, 'utf8') }]);
+  const manager = unit.units.flatMap(entry => entry.classes).find(declaration => declaration.name === 'sound_manager');
+  const frequency = manager ? numericConstants(stripCppComments(manager.body)).STREAMS_UPDATE_FREQUENCY : undefined;
+  return frequency !== undefined && frequency > 0 ? frequency : undefined;
+}
+
 const RESCAP_FUNCTIONS = new Map<string, ReturnType<typeof parseConstexprFunctions>>();
 
 /** rescap.h's RES_K, CAP_U and friends, and the device's own one-expression constexpr helpers. */

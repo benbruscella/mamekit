@@ -18,14 +18,6 @@ export interface GeneratedFrameProcessor {
   /** MAME abort_timeslice: stop after the instruction in progress. */
   abort?: () => void;
   /**
-   * Cycles into the running slice where the processor stands, for a core
-   * MAME suspends between the bus cycles of an instruction (the 6502). A
-   * synchronize there ends MAME's round at that cycle, not at the end of the
-   * instruction: a POKEY read is followed by the next opcode's prefetch, and
-   * the POKEY catches up only to the read.
-   */
-  position?: () => number;
-  /**
    * MAME's suspension of an execute device this round: one that is 'eating'
    * is charged its slice without running, one 'waiting' is skipped. Either
    * runs after every active processor, as `rebuild_execute_list` moves it.
@@ -189,8 +181,6 @@ export class GeneratedFrameRunner {
   lockstepping = false;
   /** Work was synchronized during the running slice. */
   private synchronizeRequested = false;
-  /** Where the running processor stood when it synchronized (`position`). */
-  private synchronizedAt?: number;
   /** The round in progress: its first line and its length. */
   private roundFirstLine = 0;
   private roundLines = 1;
@@ -380,12 +370,14 @@ export class GeneratedFrameRunner {
     // (screen_device's m_vblank_begin_timer, m_vblank_end_timer and
     // m_scanline0_timer). Between two of them a round is as long as MAME's:
     // to the soonest timer, and no longer than the quantum (runProcessors).
+    // Each fires at the start of its line (time_until_pos(line)), so a round
+    // ends there and only there (runLine).
     this.boundaryLines = new Set([
       ...this.eventsByLine.keys(),
       ...scanlineTimerLines,
       options.machine.execution.screen.vbstart,
       (options.machine.execution.screen.vbend ?? 0) % Math.max(1, vtotal),
-      options.machine.execution.screen.vtotal - 1,
+      0,
     ]);
   }
 
@@ -432,8 +424,6 @@ export class GeneratedFrameRunner {
    */
   requestSynchronize(): boolean {
     if (!this.running) return false;
-    // The first synchronize in the slice is where it ended.
-    if (!this.synchronizeRequested) this.synchronizedAt = this.running.processor.position?.();
     this.synchronizeRequested = true;
     this.running.processor.abort?.();
     return true;
@@ -558,6 +548,10 @@ export class GeneratedFrameRunner {
       }
       this.present(framebuffer);
       rendered = true;
+    } else if (this.pendingLines > 0) {
+      // The next frame starts at its origin, which is scanline 0's timer.
+      this.runProcessors(this.pendingLines, (origin + vtotal - 1) % vtotal);
+      this.pendingLines = 0;
     }
     this.presented();
     this.frameBase.addTime(this.framePeriod);
@@ -610,8 +604,12 @@ export class GeneratedFrameRunner {
     }
 
     this.pendingLines++;
+    // A boundary line's timer fired at its start, above; its end is no timer
+    // of MAME's, so the round runs on through it. Ending one there as well
+    // split Venture's round at line 279, and its main CPU saw a PIA edge the
+    // sound CPU raised earlier in that round, which MAME's had run past (#275).
     const inQuantumWindow = this.fineLines > 0;
-    if (this.perLineSchedule || inQuantumWindow || this.boundaryLines.has(line)) {
+    if (this.perLineSchedule || inQuantumWindow) {
       this.runProcessors(this.pendingLines, line);
       this.pendingLines = 0;
     }
@@ -740,7 +738,6 @@ export class GeneratedFrameRunner {
         this.running = scheduled;
         this.runStartLines = local.since(this.roundStart) / this.linePeriod.total;
         this.synchronizeRequested = false;
-        this.synchronizedAt = undefined;
         // A window's slice is an instruction against a target of a cycle or
         // so, as a lockstep step is (see the board's lockstepping).
         this.lockstepping = windowed || this.perfectRounds;
@@ -751,18 +748,18 @@ export class GeneratedFrameRunner {
           this.lockstepping = false;
         }
         this.running = undefined;
-        // A core that stops between bus cycles ended the round where it
-        // synchronized; finishing the instruction is its own overrun.
-        const stopped = this.synchronizedAt !== undefined ? Math.min(executed, this.synchronizedAt) : executed;
-        if (this.synchronizeRequested && stopped < cycles) {
-          this.pullTarget(this.scratch.setPeriodsFrom(local, stopped, scheduled.cycle), slop);
-        }
         local.addPeriods(executed, scheduled.cycle);
+        // A processor that synchronized ends the round where it stopped:
+        // MAME's `target = max(m_localtime, m_basetime)`, its local time after
+        // the run, not the time it posted the work. Venture's sound 6502
+        // stops two cycles past its 6532 read; from the read, every round
+        // after was 1.1 us short and its main CPU's PIA poll fell into the
+        // next one (#275).
+        if (this.synchronizeRequested && executed < cycles) this.pullTarget(local, slop);
         // Whole cycles left it short of the target (MAME skips a waiting
         // device, which then stands wherever it stopped).
         if (!this.synchronizeRequested && scheduled.processor.suspended?.() !== 'waiting') this.pullTarget(local, slop);
         this.synchronizeRequested = false;
-        this.synchronizedAt = undefined;
       }
       this.onSynchronize?.('target');
       this.onRoundEnd?.(this.linesAt(target));
