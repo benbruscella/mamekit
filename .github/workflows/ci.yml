@@ -69,6 +69,9 @@ jobs:
             hash/vic10.xml
             hash/spectrum_cart.xml
             hash/spectrum_cass.xml
+            hash/snes.xml
+            hash/snes_bspack.xml
+            hash/snes_strom.xml
             3rdparty/ymfm/src
             3rdparty/softfloat3/source/include
             3rdparty/softfloat3/bochs_ext
@@ -148,6 +151,9 @@ jobs:
             hash/vic10.xml
             hash/spectrum_cart.xml
             hash/spectrum_cass.xml
+            hash/snes.xml
+            hash/snes_bspack.xml
+            hash/snes_strom.xml
             3rdparty/ymfm/src
             3rdparty/softfloat3/source/include
             3rdparty/softfloat3/bochs_ext
@@ -213,6 +219,9 @@ jobs:
             hash/vic10.xml
             hash/spectrum_cart.xml
             hash/spectrum_cass.xml
+            hash/snes.xml
+            hash/snes_bspack.xml
+            hash/snes_strom.xml
             3rdparty/ymfm/src
             3rdparty/softfloat3/source/include
             3rdparty/softfloat3/bochs_ext
