@@ -8,7 +8,7 @@ metadata:
   modified: 2026-10-18T03:07:06.454Z
 ---
 
-Built 2026-10-18 for issue #162: `tools/rom-library.ts` (+ `tools/rom-library/`) replaced `import-new-roms.ts` and `softlist-coverage.ts`. `.data/Makefile` wraps it as `roms-status`, `roms-missing`, `roms-import`, `roms-tidy` (DRY=1). Inbox is `.data/roms/_new/` (not consoles/_new); quarantine is `.data/roms/_quarantine/` with `quarantine.jsonl`.
+Built 2026-10-18 for issue #162: `tools/rom-library.ts` (+ `tools/rom-library/`) replaced `import-new-roms.ts` and `softlist-coverage.ts`. `.data/Makefile` wraps it as `roms-status`, `roms-missing`, `roms-import`, `roms-tidy` (DRY=1). Since #159 (2026-11-20) the inbox is `.data/_input/` for everything (`make import`); outcomes `_done/ _duplicate/ _unidentified/ _unsupported/`, `_review/`, `_quarantine/` (+ `quarantine.jsonl`) and `_reports/` all live inside it. See [[data-inbox-159]].
 
 Non-obvious findings:
 - **Blank banks fake cross-system matches.** C64 CRT chips "matched" coleco:linklogc/skiing because both lists catalogue an all-$00/all-$FF 8K chip. Uniform-byte chips are never evidence; listed blanks are synthesised once real chips name the set (this also turns coleco 8K "variants" into verified sets).

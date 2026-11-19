@@ -43,11 +43,15 @@ hidden, gitignored tree:
 .data/roms/arcade/<set>.zip           arcade sets: each board's own, its parent's, its devices'
 .data/roms/consoles/<system>/         cartridges by software-list short name, BIOS in bios/
 .data/roms/computers/<family>/<list>/ software per software list, BIOS in <family>/bios/
-.data/roms/_new/                      the ROM library's inbox (make roms-import)
-.data/roms/_quarantine/               what no supported machine uses, with the reason logged
 .data/samples/<set>.zip               MAME's sample sets, played by the contracts and `mamekit against`
-.data/samples/_new/                   the sample inbox (make samples-import)
 .data/artwork/                        bezels, flyers, cabinet and marquee scans
+.data/artwork/carts/<list>/           shelf art by software-list short name: cart labels, computer covers
+.data/_input/                         the one inbox for everything above (make import)
+.data/_input/<system>/                a cover archive dropped here is scoped to that system's shelves
+.data/_input/_done/ _duplicate/ ...   where each input ends up, by verdict
+.data/_input/_review/<list>/          covers held for a person to accept
+.data/_input/_quarantine/             what tidying took off a shelf, logged in quarantine.jsonl
+.data/_input/_reports/                every import and tidy run's report
 .data/release-notes/raw/              MAMEDEV's published whatsnew/messnew notes
 .data/release-notes/index.json        digested driver credits generation reads
 .data/Makefile                        npm wrappers + the DreamObjects sync
@@ -72,12 +76,16 @@ is already there:
 
 ```sh
 node tools/download-artwork.ts [game ...]   # bezels and layouts (archive.org), flyers, cabinets, marquees
-node tools/c64-covers.ts [--apply]          # C64 shelf covers from TOSEC's Cover.zip; reports unless --apply
 ```
 
 `download-artwork` with no argument fetches whatever every game contract is
-still missing. `c64-covers` matches every title on the generated C64 shelves
-to a front scan by name and writes a 240 px `<name>.webp` under
+still missing. Cover archives (TOSEC's C64 `Cover.zip`) go through the inbox
+instead: dropped in `.data/_input/c64/`, `make import` matches every title on
+that system's generated shelves to a front scan by name and writes a 240 px
+`<name>.webp` under `artwork/carts/<list>/`. A scan wider than 1.2:1 is an
+unfolded cassette inlay, so only its right-hand J-card front is kept. A scan
+whose re-release label disagrees with MAME's publisher is held in
+`_input/_review/<list>/`; accepting it means moving it into
 `artwork/carts/<list>/`. Run `npm run audit:game-package -- <target>` to see
 what a machine still lacks.
 
@@ -87,22 +95,29 @@ hardcoding any of them. ROMs are
 never served or deployed — `src/cli.ts` mounts artwork explicitly and nothing
 mounts roms. Run `make -C .data help` for the sync targets.
 
-### ROM LIBRARY
+### DATA LIBRARY
 
-`tools/rom-library.ts` keeps `.data/roms` in the shape the app and the harness
-read, for every supported system at once. "Supported" is derived: the systems
+Everything new for `.data` is dropped in `.data/_input/`, and
+`tools/rom-library.ts` files it. It keeps `.data/roms`, `samples` and
+`artwork` in the shape the app and the harness read, for every supported system at once. "Supported" is derived: the systems
 and their software lists come from the game contracts and each target's
 generated `config.json`, the lists themselves from MAME's `hash/`, so it needs
 a generated `dist/` and nothing in it names a machine.
 
 ```sh
-make -C .data roms-status                 # per system: games/entries per list, BIOS, arcade sets
+make -C .data status                      # per system: lists, BIOS, arcade sets, samples, covers
+make -C .data import DRY=1                # every verdict for everything in _input/, nothing moved
+make -C .data import                      # tidy, then file everything in _input/
+make -C .data roms-import DRY=1           # the same, dumps only (samples-, artwork-, covers-import likewise)
 make -C .data roms-missing LIST=a2600     # the uncovered games (REGION=western LIMIT=40 CSV=1)
-make -C .data roms-missing DAT=1          # + a Logiqx want list per list in roms/_new/_reports/
-make -C .data roms-import DRY=1           # every verdict for roms/_new/, nothing moved
-make -C .data roms-import                 # tidy, then file everything in roms/_new/
-make -C .data samples-import DRY=1        # every verdict for samples/_new/, nothing moved
+make -C .data roms-missing DAT=1          # + a Logiqx want list per list in _input/_reports/
+make -C .data bucket-tidy DRY=1           # bucket objects with no local file, which bucket-tidy quarantines
 ```
+
+Each input is routed by what it holds: a zip of `.wav` files is a sample set,
+a zip with a `.lay` is MAME artwork for the arcade machine it is named after
+(`artwork/<game>.zip`), a zip of images under `_input/<system>/` is a cover
+archive, and anything else is dumps.
 
 Identification is by chip size, CRC32 and SHA1 against the list, never by file
 name. Inputs may be loose files or archives of archives (zip natively; 7z and
@@ -117,8 +132,13 @@ console BIOS set into `<system>/bios/` (a cartridge board's firmware, the
 VRC7's `ds1001.zip`, goes there under its own name, never as `nes.zip`),
 renames a computer list folder to its
 list, and quarantines whatever no supported list or machine claims,
-MAME-unsupported sets included; inputs park in `_new/_imported/` and its
-siblings, and every run writes `_new/_reports/`.
+MAME-unsupported sets included, into `_input/_quarantine/`; inputs park in
+`_input/_done/` and its siblings, and every run writes `_input/_reports/`.
+
+`make sync` only adds and updates: it never removes a bucket object. `make
+bucket-tidy` brings the bucket to the local tree's shape: every object under a
+synced prefix with no local file at that path (renamed, retired or misfiled)
+is moved server side to `_quarantine/<its key>` in the bucket, never deleted.
 
 Tidying also keeps an arcade zip that only MAME's own run of a supported
 machine loads. Our Q*bert never reads the Votrax's `votrsc01a.zip`, but MAME

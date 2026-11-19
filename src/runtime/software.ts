@@ -912,8 +912,10 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
   }
   /**
    * A title's cover in place of its drawn medium, where its shelf has one
-   * (`shelf.art`, the .webp the site ships under artwork/carts/<list>/). The
-   * drawing stays underneath: a cover that does not load leaves it showing.
+   * (`shelf.art`, the .webp the site ships under artwork/carts/<list>/). A
+   * cover is shown whole, at its own shape, standing on the tile's floor --
+   * a tape inlay is tall, a disk sleeve square -- so nothing of it is cropped.
+   * The drawing stays until the cover has loaded: one that fails leaves it.
    */
   function withCover(cover: HTMLElement, shelf: SoftwareShelf | undefined, name: string | undefined): void {
     const file = shelf && name ? shelf.art?.[name] : undefined;
@@ -924,8 +926,21 @@ export async function runSoftwareRoom(cfg: ShellConfig): Promise<void> {
     img.loading = 'lazy';
     img.decoding = 'async';
     img.setAttribute('data-cover', '');
-    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px';
+    img.style.cssText = 'position:absolute;left:0;bottom:0;width:100%;height:100%;border-radius:8px;opacity:0;' +
+      'box-shadow:0 12px 22px rgba(0,0,0,.45);transition:opacity .2s ease';
     img.onerror = () => img.remove();
+    img.onload = () => {
+      const tile = cover.clientWidth && cover.clientHeight ? cover.clientWidth / cover.clientHeight : TILE_W / TILE_H;
+      const shape = img.naturalWidth / img.naturalHeight;
+      const width = shape > tile ? 100 : (shape / tile) * 100;
+      const height = shape > tile ? (tile / shape) * 100 : 100;
+      img.style.width = `${width}%`;
+      img.style.height = `${height}%`;
+      img.style.left = `${(100 - width) / 2}%`;
+      img.style.opacity = '1';
+      cover.querySelector<SVGElement>(':scope > svg')?.style.setProperty('visibility', 'hidden');
+      cover.style.boxShadow = 'none';
+    };
     img.src = web;
     cover.appendChild(img);
   }
