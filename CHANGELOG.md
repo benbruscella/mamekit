@@ -30,6 +30,15 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Venture's music plays: the 8253 counts in exact attotime ([#272](https://github.com/benbruscella/mamekit/issues/272), [#274](https://github.com/benbruscella/mamekit/issues/274))
+
+**For players:** Venture's music is back. Its tones come from the sound board's 8253 timer, which never toggled, so only the sound effects played. Its sound now matches MAME's within 0.3 dB in attract and in play, every band within 1.5 dB. With a coin and a game played, its RAM follows MAME's to frame 3900, where it used to leave at 3184.
+
+**Under the hood:**
+- A device whose source reads attotime's fields (`m_seconds`, `m_attoseconds`) now holds attotime exactly: whole seconds and integer attoseconds, with attotime.h's own operators (`src/ir/exact-attotime.ts`). The compiler decides from the source (`src/mame/exact-attotime-marking.ts`) and marks its attotime operators and field accesses, and the interpreter and emitted code run them on the exact type. `machine().time()` and `from_hz` answer exact values there, and a device timer armed with an exact delay keeps an exact expiry that its callback sees as `machine().time()`.
+- The 8253's counter update divides `now - m_last_updated` by its clock period. With attotime in doubles the fields were unlowered and read 0, so the counter never counted and its timer disarmed. Lowered from doubles, about 51 s in, a whole number of periods sometimes divided to one fewer and the timer re-fired on the spot. `attoseconds_t` is 64-bit to the wide-precision pass, and attotime.h's constants (`ATTOSECONDS_PER_SECOND`) are read from MAME.
+- Every other device keeps attotime in seconds. Of the machines built today only Venture changes.
+
 ### Venture stays in step with MAME ([#271](https://github.com/benbruscella/mamekit/issues/271))
 
 **For players:** Venture's attract mode now plays out exactly as MAME's does. With no input its RAM matches MAME's on every one of 6,200 frames, where it used to drift from frame 2048, and every picture checked is pixel-exact.

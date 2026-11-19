@@ -36,6 +36,7 @@ import {
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
 import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, programLambdas, deviceLambdaName, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
+import { attotimeBinary, attotimeField, attotimeFieldAssignment, ExactAttotime, exactAttotime, exactAttotimeFromHz, withAttotimeField } from '../ir/exact-attotime.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
@@ -224,6 +225,11 @@ export interface GeneratedDeviceExecutionContext {
   resize(container: unknown, length: number): unknown;
   /** An attotime accessor on a duration held as seconds. */
   attotime(seconds: number, method: string, ...args: number[]): number;
+  /** attotime's operators and fields, exactly (src/ir/exact-attotime.ts). */
+  attotimeBinary(operator: string, left: unknown, right: unknown): unknown;
+  attotimeField(value: unknown, property: string): number | bigint;
+  withAttotimeField(value: unknown, property: string, field: unknown): unknown;
+  attotimeFieldAssignment(operator: string, current: number | bigint, value: unknown): unknown;
   invoke(name: string, ...args: GeneratedCallArgument[]): unknown;
   /** Context-free MAME framework macros, identical to the interpreter's. */
   macro(name: string, ...args: unknown[]): unknown;
@@ -297,6 +303,12 @@ export interface GeneratedDeviceDefinition {
   suspendsMidInstruction?: true;
   /** The member the core counts cycles in, set_icountptr's (device-compiler.ts). */
   icountMember?: string;
+  /**
+   * The device's source reads attotime's fields, so it holds attotime exactly
+   * (src/ir/exact-attotime.ts): `machine().time()` and the attotime
+   * constructors answer exact values, and its timers keep an exact expiry.
+   */
+  exactAttotime?: true;
   /** device_state_interface's state_add table (device-compiler.ts GeneratedDeviceStateEntry). */
   stateEntries?: { index: number; name: string; mask?: number; import?: true; export?: true; read: string; write: string }[];
   members: DeviceMember[];
@@ -983,6 +995,20 @@ export function generatedTimerExpiry(): number | undefined {
 }
 
 /**
+ * The firing timer's expiry as an exact attotime, when it was armed with one
+ * (src/ir/exact-attotime.ts); undefined otherwise. The 8253 re-arms its
+ * counter timer for `m_last_updated + period` and, when it fires, divides
+ * `machine().time() - m_last_updated` by the period: it must find exactly
+ * the time it asked for, which seconds in a double are not (#272).
+ */
+let timerExactExpiry: ExactAttotime | undefined;
+
+/** `machine().time()` for a device that holds attotime exactly. */
+function exactMachineTime(seconds: unknown): ExactAttotime {
+  return timerExactExpiry ?? exactAttotime(seconds);
+}
+
+/**
  * Run a board timer's callback with the scheduler standing at its expiry, as
  * a device timer's does. The Spectrum's interrupt callback reads
  * `local_time() - machine().time()` to recover the cycle it fell on.
@@ -1084,26 +1110,41 @@ class IrTimer {
   /** The delivery this timer was armed inside and credited for (see adjust). */
   private creditedDelivery = -1;
 
-  /** The owning device's `machine().time()`, when it has one. */
-  private readonly now?: () => number;
+  /**
+   * The expiry exactly, when an exact device armed it with an exact delay:
+   * its `machine().time()` while the callback runs (timerExactExpiry).
+   */
+  private exactExpiry: ExactAttotime | undefined;
 
-  constructor(now?: () => number) {
+  /** The owning device's `machine().time()`, when it has one: seconds, or an exact attotime. */
+  private readonly now?: () => unknown;
+
+  constructor(now?: () => unknown) {
     this.now = now;
   }
 
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['remainingSeconds', 'disabledSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry'];
+    return ['remainingSeconds', 'disabledSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry', 'exactExpiry'];
   }
 
-  adjust(delay: number, parameter = 0, period = Infinity): void {
+  adjust(duration: unknown, parameter = 0, repeat: unknown = Infinity): void {
+    const period = Number(repeat);
+    // An exact device hands an exact attotime; every other a number of seconds.
+    const exactDelay = duration instanceof ExactAttotime && !duration.is_never() ? duration : undefined;
+    const delay = Number(duration);
     // Where the clock stands, read before anything changes: reading it can
     // catch the devices up, which delivers this timer's old schedule first,
     // as MAME's synchronize does. Read after the new delay was stored, the
     // catch-up fired the new zero delay with the old (absent) period and
     // disarmed it: the Neo Geo's uPD4990A TP toggled once, and the BIOS
     // waited for its next edge forever (Metal Slug silent).
-    const armed = Number.isFinite(delay) ? Number(this.now?.()) : NaN;
+    const now = Number.isFinite(delay) ? this.now?.() : undefined;
+    const armed = now === undefined ? NaN : Number(now);
+    // MAME's expiry is now plus the delay, exactly; a delay in the past is now.
+    this.exactExpiry = exactDelay && now instanceof ExactAttotime
+      ? attotimeBinary('+', now, exactDelay.secs < 0 ? ExactAttotime.zero : exactDelay) as ExactAttotime
+      : undefined;
     // MAME clamps a start delay in the past to now: the timer fires at once.
     // A sub-nanosecond negative is what a duration measured against the
     // instruction-time device clock comes to when the deadline is "now".
@@ -1156,8 +1197,8 @@ class IrTimer {
    * parameter and period. The JY Company boards' device_start stops their
    * IRQ prescaler this way, and unanswered it left the call a silent zero.
    */
-  reset(delay = Infinity): void {
-    this.adjust(Number(delay), this.parameter, this.period);
+  reset(delay: unknown = Infinity): void {
+    this.adjust(delay instanceof ExactAttotime ? delay : Number(delay), this.parameter, this.period);
   }
 
   remaining(): IrAttotime {
@@ -1252,13 +1293,16 @@ class IrTimer {
       // must measure that line from where it actually fired.
       const outerBacklog = timerBacklogSeconds;
       const outerExpiry = timerExpirySeconds;
+      const outerExact = timerExactExpiry;
       timerBacklogSeconds = outerBacklog + overshoot;
       timerExpirySeconds = Number.isFinite(this.expiry) ? this.expiry : undefined;
+      timerExactExpiry = this.exactExpiry;
       try {
         callback(this.parameter);
       } finally {
         timerBacklogSeconds = outerBacklog;
         timerExpirySeconds = outerExpiry;
+        timerExactExpiry = outerExact;
       }
 
       // MAME callbacks commonly re-arm their own one-shot timer. Honour that
@@ -1273,11 +1317,14 @@ class IrTimer {
       if (!Number.isFinite(firedPeriod)) {
         this.remainingSeconds = Infinity;
         this.expiry = NaN;
+        this.exactExpiry = undefined;
         break;
       }
       this.remainingSeconds += firedPeriod;
       this.intervalSeconds = firedPeriod;
       this.expiry += firedPeriod;
+      // A period held in seconds has no exact sum.
+      this.exactExpiry = undefined;
     }
   }
 }
@@ -1786,7 +1833,7 @@ class IrDevice implements Device {
     }
     for (const specification of definition.timers ?? []) {
       const build = (name: string): IrTimer => {
-        const timer = new IrTimer(() => Number(this.bindings.calls?.['machine().time']?.() ?? NaN));
+        const timer = new IrTimer(() => this.bindings.calls?.['machine().time']?.() ?? NaN);
         this.timers.set(name, { timer, callback: specification.callback });
         this.timerEntries.push({ name, timer, callback: specification.callback });
         return timer;
@@ -2250,6 +2297,7 @@ class IrDevice implements Device {
     // device: its own method named like a device_t service is that method.
     // ymfm's engine steps itself with `clock(chanmask)`, which answered the
     // device's clock rate and never ran.
+    if (definition.exactAttotime) this.holdAttotimeExactly();
     if (definition.construct) {
       for (const method of definition.methods) {
         if (!options.calls?.[method.name]) delete this.bindings.calls![method.name];
@@ -2324,6 +2372,10 @@ class IrDevice implements Device {
       subtract: generatedSubtract,
       resize: resizeGeneratedContainer,
       attotime: (seconds: number, method: string, ...args: number[]) => attotimeSecondsMethod(seconds, method, args) ?? 0,
+      attotimeBinary,
+      attotimeField,
+      withAttotimeField,
+      attotimeFieldAssignment,
       // A device declares every member up front, so the container is already
       // there; the name-addressed form exists for the board, whose driver
       // members are materialised on first write.
@@ -3263,6 +3315,26 @@ class IrDevice implements Device {
     }
     listeners.push(listener);
     return this;
+  }
+
+  /**
+   * A device whose source reads attotime's fields (exactAttotime) is handed
+   * exact attotimes: `machine().time()` -- the firing timer's exact expiry
+   * inside its callback, the clock to the nearest attosecond elsewhere --
+   * and `from_hz`. Whatever the board binds as `machine().time()` later is
+   * wrapped the same way.
+   */
+  private holdAttotimeExactly(): void {
+    const calls = this.bindings.calls!;
+    let clock = calls['machine().time'];
+    const exact = () => exactMachineTime(clock?.());
+    Object.defineProperty(calls, 'machine().time', {
+      enumerable: true,
+      configurable: true,
+      get: () => exact,
+      set: (listener: typeof clock) => { clock = listener; },
+    });
+    calls['attotime::from_hz'] = exactAttotimeFromHz;
   }
 
   bindCall(

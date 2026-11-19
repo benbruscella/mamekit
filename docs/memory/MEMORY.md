@@ -179,3 +179,4 @@
 - [SNES speed #174](snes-speed-174.md) — SMW 60 fps in browser (Node ~52); V8 traps: __proto__ literals, accessor closures, >1000-key tables
 - [Venture scheduler time #271](venture-scheduler-time-271.md) — frame events at scheduler base, timer read lead, PIT8253 silent → #272
 - [Cart battery saves](cart-battery-saves.md) — every console slot via battery_load/save; devcb reads dropped offsets (FF3 hang)
+- [Exact attotime #272](exact-attotime-272.md) — devices reading attotime fields hold it exactly; Venture music back; `against --audio` is sound truth; residual round at 53.1200

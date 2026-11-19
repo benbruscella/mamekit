@@ -8,6 +8,7 @@
 // disagree about what a lowered program means.
 
 import { isVideoPlanCall } from './framework-calls.ts';
+import { attotimeBinary, attotimeField, attotimeFieldAssignment, withAttotimeField } from './exact-attotime.ts';
 import type {
   BoardIr,
   GeneratedCallback,
@@ -900,6 +901,10 @@ function preparedHandlerRuntime(
     subtract: generatedSubtract,
     resize: resizeGeneratedContainer,
     attotime: (seconds: number, method: string, ...args: number[]) => attotimeSecondsMethod(seconds, method, args) ?? 0,
+    attotimeBinary,
+    attotimeField,
+    withAttotimeField,
+    attotimeFieldAssignment,
     wide: wideBinary,
     low32: generatedLow32,
     invoke: (name, ...args) => prepared.referenceCalls[name]?.(...args) ??
@@ -1871,6 +1876,7 @@ function compileFastExpression(
     const left = compileFastExpression(expression.left, bindings, locals);
     const right = compileFastExpression(expression.right, bindings, locals);
     const operator = expression.operator;
+    if (expression.attotime) return context => attotimeBinary(operator, left(context), right(context));
     if (expression.precision === 64) return context => wideBinary(operator, left(context), right(context));
     if (operator === '&&') {
       return context => truthy(left(context)) && truthy(right(context)) ? 1 : 0;
@@ -1972,6 +1978,10 @@ function compileFastExpression(
   }
   if (expression.kind === 'member') {
     const objectExpression = compileFastExpression(expression.object, bindings, locals);
+    if (expression.attotime) {
+      const property = expression.property;
+      return context => attotimeField(generatedReferent(objectExpression(context)), property);
+    }
     return context => {
       const raw = objectExpression(context);
       const object = memberObject(raw, expression.property);
@@ -2423,6 +2433,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
       return truthy(leftValue) || truthy(evaluate(expression.right, context)) ? 1 : 0;
     }
     const rightValue = evaluate(expression.right, context);
+    if (expression.attotime) return attotimeBinary(expression.operator, leftValue, rightValue);
     if (expression.precision === 64) return wideBinary(expression.operator, leftValue, rightValue);
     if (ORDERING.has(expression.operator)) {
       const ordered = orderedPointers(expression.operator, leftValue, rightValue);
@@ -2488,6 +2499,7 @@ function evaluate(expression: GeneratedExpression, context: ExecutionContext): u
   }
   if (expression.kind === 'member') {
     const rawObject = evaluate(expression.object, context);
+    if (expression.attotime) return attotimeField(generatedReferent(rawObject), expression.property);
     const object = memberObject(rawObject, expression.property);
     if (isReference(object)) return reference(`${object.reference}.${expression.property}`);
     if (
@@ -3570,6 +3582,14 @@ function assign(
   }
   if (target.kind === 'member') {
     const rawObject = evaluate(target.object, context);
+    // One field of an exact attotime (exact-attotime.ts): the value is
+    // rebuilt with that field and stored back where the attotime lives.
+    if (target.attotime) {
+      const held = generatedReferent(rawObject);
+      const field = attotimeFieldAssignment(operator, attotimeField(held, target.property), value);
+      assign(target.object, '=', withAttotimeField(held, target.property, field), context);
+      return;
+    }
     const object = memberObject(rawObject, target.property);
     if (!object || typeof object !== 'object' || isReference(object)) {
       throw new Error(`generated member assignment has no object for "${target.property}"`);

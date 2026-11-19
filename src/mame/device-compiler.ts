@@ -14,6 +14,7 @@ import {
 import { normalizeMameExecutionSource } from './execution-source.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { isWideType, markWidePrecision } from './wide-precision.ts';
+import { markExactAttotime } from './exact-attotime-marking.ts';
 import { monomorphizeClassTemplate } from './function-template.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
@@ -265,6 +266,8 @@ export interface GeneratedDeviceDefinition {
    * are `m_ICount`, most cores' `m_icount`.
    */
   icountMember?: string;
+  /** Its source reads attotime's fields: it holds attotime exactly (exact-attotime-marking.ts). */
+  exactAttotime?: true;
   members: GeneratedDeviceMember[];
   callbacks: GeneratedDeviceCallback[];
   timers: GeneratedDeviceTimer[];
@@ -522,6 +525,9 @@ export function compileMameDevice(
     resolveIntegerReferenceOverloads(device);
     attachLibraryFunctions(mameSrc, device);
     attachStateEntries(mameSrc, device);
+    // Before the 64-bit pass, which takes an attotime's `m_attoseconds`
+    // (attoseconds_t, an s64) as 64-bit once it is marked.
+    markExactAttotime(device);
     markDeviceWidePrecision(mameSrc, device);
     if (device.sourceFiles.some(file => /\.h$/.test(file) && existsSync(join(mameSrc, file)) &&
       /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {
@@ -1522,6 +1528,7 @@ function compileMameDeviceSource(
     coreAddressSpaces(mameSrc),
     coreEnumerators(mameSrc, sources),
     coreOsdDefines(mameSrc, sources),
+    coreAttotimeConstants(mameSrc, sources),
     // Comments out: an enum documented entry by entry (flopimg.h's variants)
     // otherwise parses to the wrong values for everything after a comment.
     // Seeded with diexec.h's lines: z80.h numbers its own after them
@@ -6284,6 +6291,26 @@ function coreOsdDefines(mameSrc: string, sources: readonly { source: string }[])
     if (value !== null && Number.isFinite(value)) defines[match[1]!] = value;
   }
   return defines;
+}
+
+/**
+ * attotime.h's `constexpr attoseconds_t` constants a device's source names,
+ * read from MAME: the 8253's counter update counts a multi-second gap in
+ * whole seconds with `ATTOSECONDS_PER_SECOND / m_clock_period.m_attoseconds`,
+ * which unresolved divided by zero (#272).
+ */
+export function coreAttotimeConstants(mameSrc: string, sources: readonly { source: string }[]): Record<string, number> {
+  const header = join(mameSrc, 'src/emu/attotime.h');
+  if (!existsSync(header)) return {};
+  const named = new Set(sources.flatMap(({ source }) => stripCppComments(source).match(/\b[A-Z_][A-Z0-9_]*\b/g) ?? []));
+  const constants: Record<string, number> = {};
+  for (const match of stripCppComments(readFileSync(header, 'utf8'))
+    .matchAll(/^\s*constexpr\s+attoseconds_t\s+([A-Z_][A-Z0-9_]*)\s*=\s*([^;]+);/gm)) {
+    // Every one is defined from earlier ones, so all are evaluated in order.
+    const value = evalExpr(match[2]!.replace(/(\d)'(?=\d)/g, '$1').trim(), constants);
+    if (value !== null && Number.isFinite(value)) constants[match[1]!] = value;
+  }
+  return Object.fromEntries(Object.entries(constants).filter(([name]) => named.has(name)));
 }
 
 const CORE_CONSTRUCTORS = new Map<string, Map<string, Set<number>>>();
