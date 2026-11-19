@@ -18,7 +18,7 @@ export const sf2ce = sourceTarget({
   // observed range and still catches the regression the floor is for.
   // sf2 is the next closest (61.4s to 79.7s on the same runs).
   // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 30.1 fps against the old floor of 40 (issue #247, 4.5).
+  // 30.1 fps against the old floor of 40, so the floor is about 80% of that.
   minimumFps: 24,
   // The default schedule coins at 300 and presses start at 330, which CPS1 is
   // still in its power-on RAM test to notice: the golden then graded a title

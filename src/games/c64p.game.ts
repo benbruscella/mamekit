@@ -112,7 +112,7 @@ export const c64p = {
     romEnvironment: 'MAMEKIT_C64_ROM',
     frames: 2600,
     // CPUs compiled whole from MAME (#249): CI measured 9.9 fps against the
-    // floor of 10 (issue #247, 5.2).
+    // floor of 10, so the floor came down to 8.
     minimumFps: 8,
     checkpoints: [1, 300, 1200, 2250, 2500, 2600],
     actions: [],

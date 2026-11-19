@@ -8,7 +8,7 @@ export const dkongjr = sourceTarget({
   soundKind: 'stream',
   frames: 1800,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
-  // CI measured 41.6 fps against the floor of 45 (issue #247, 5.2).
+  // CI measured 41.6 fps against the floor of 45, so the floor is about 90% of that.
   minimumFps: 37,
   checkpoints: [1, 60, 180, 300, 600, 1200, 1800],
   actions: [

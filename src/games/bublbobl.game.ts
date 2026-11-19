@@ -8,7 +8,7 @@ export const bublbobl = sourceTarget({
   soundKind: 'stream',
   frames: 1800,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
-  // CI measured 23.5 fps against the floor of 25 (issue #247, 5.2).
+  // CI measured 23.5 fps against the floor of 25, so the floor is about 90% of that.
   minimumFps: 21,
   checkpoints: [1, 120, 240, 360, 600, 900, 1200, 1800],
   actions: [

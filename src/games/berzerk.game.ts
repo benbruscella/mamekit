@@ -7,7 +7,7 @@ export const berzerk = sourceTarget({
   screen: { width: 256, height: 224 },
   soundKind: 'stream',
   // Sound compiled from MAME (#242) runs on the main thread: CI measured
-  // 48.4 fps against the old floor of 60 (issue #247, 4.5).
+  // 48.4 fps against the old floor of 60, so the floor is about 80% of that.
   minimumFps: 38,
   actions: [
     { atFrame: 550, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

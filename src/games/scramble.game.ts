@@ -8,7 +8,7 @@ export const scramble = sourceTarget({
   soundKind: 'stream',
   frames: 900,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
-  // CI measured 42.1 fps against the floor of 45 (issue #247, 5.2).
+  // CI measured 42.1 fps against the floor of 45, so the floor is about 90% of that.
   minimumFps: 37,
   checkpoints: [1, 60, 180, 300, 480, 600, 900],
   actions: [

@@ -14,7 +14,7 @@ export const gunsmoke = sourceTarget({
   frames: 2000,
   // MAME's round bounds (#255) run it in a seventh of the slices and about
   // 5% slower, inside the Z80 loop, for a reason not yet found: CI measured
-  // 44.7 fps against the floor of 45 (issue #247, 7.9).
+  // 44.7 fps against the floor of 45, so it came down to 42.
   minimumFps: 42,
   checkpoints: [1, 60, 180, 300, 600, 900, 1200, 1740, 1820, 1900, 2000],
   actions: [
