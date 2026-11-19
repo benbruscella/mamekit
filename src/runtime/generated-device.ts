@@ -178,6 +178,11 @@ export interface GeneratedDeviceExecutionContext {
    */
   links?: Record<string, ((...args: any[]) => unknown) | undefined>;
   readonly palette: number[];
+  /**
+   * device_palette_interface's m_indirect_pens and m_indirect_colors, which
+   * MAME saves with the device: the SNES PPU's CGRAM colours.
+   */
+  readonly paletteIndirect: { pens?: number[]; colors: number[] };
   readIndex(value: unknown, index: number): unknown;
   writeIndex(value: unknown, index: number, next: unknown): unknown;
   /** C++ struct assignment into an existing struct member (see copyGeneratedStruct). */
@@ -2328,6 +2333,7 @@ class IrDevice implements Device {
       calls: this.bindings.calls!,
       links: undefined,
       palette,
+      paletteIndirect: indirect,
       readIndex: (value, index) => {
         // A typed array first: the pointer probe on one is a prototype-chain
         // miss, and device memory is almost always typed.

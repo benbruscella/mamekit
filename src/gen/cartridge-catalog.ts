@@ -87,6 +87,20 @@ export const CART_GAME_SUPPORT: Record<string, string[]> = {
     'adventure', 'pacman', 'pitfall', 'combat', 'spaceinv',
     'breakout', 'frogger', 'defender', 'asteroid',
   ],
+  // Each checked against MAME 0.289 with `mamekit against snes <title>` and
+  // pixel-exact at the frames compared (#174): Super Mario World's work RAM is
+  // identical for 1,800 frames and Final Fantasy III's for 3,600; Donkey Kong
+  // Country's picture matches though one RAM byte ($7E0000) drifts from frame
+  // 20; the two DSP-1 titles run the cartridge's own uPD7725 and match in a
+  // race and in flight; the rest at frames 600 and 1800 with Start pressed.
+  snes: [
+    // LoROM
+    'smw', 'zelda3', 'smetroid', 'fzero', 'megamnx', 'scvania4',
+    // HiROM
+    'ffant3', 'dkongc', 'ctrigger',
+    // DSP-1 (LoROM and HiROM)
+    'pilotwin', 'smkart',
+  ],
 };
 
 /**
