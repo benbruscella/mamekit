@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { chooseScan, coverKey, frontCrop, frontScans, imageSize, planCovers, scanContradicts, shelfTitle } from './covers.ts';
+import { chooseScan, coverKey, frontCrop, frontEdge, frontScans, imageSize, planCovers, scanContradicts, shelfTitle } from './covers.ts';
 
 // Both spellings reduce to one key: articles, underscores, notes and scan kinds go.
 assert.equal(coverKey('Scroll_of_Akbar_Khan_The'), coverKey('The Scroll of Akbar Khan'));
@@ -32,10 +32,20 @@ assert.deepEqual(chooseScan(['a/Head_Over_Heels.jpg', 'a/Head_Over_Heels_(Hit_Sq
 assert.deepEqual(chooseScan(['a/Dig_Dug_(Thunder_Mountain).jpg'], 'Atarisoft'), { scan: 'a/Dig_Dug_(Thunder_Mountain).jpg', review: true });
 assert.equal(chooseScan([], 'Anyone'), undefined);
 
-// An unfolded inlay keeps its right-hand J-card front; a real cover stays whole.
-assert.deepEqual(frontCrop(1608, 1187), { x: 1608 - 742, width: 742 });
-assert.equal(frontCrop(1267, 1229), undefined);
-assert.equal(frontCrop(376, 600), undefined);
+// A found fold crops there; with none the scan stays whole.
+assert.deepEqual(frontCrop(1000, 300), { x: 300, width: 700 });
+assert.equal(frontCrop(1608), undefined);
+
+// Back, spine and front: the front starts at the second fold, not the first.
+const panels = (width: number, height: number, colour: (x: number, y: number) => [number, number, number]) => {
+  const rgb = new Uint8Array(width * height * 3);
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) rgb.set(colour(x, y), (y * width + x) * 3);
+  return rgb;
+};
+const inlay = panels(200, 200, x => x < 60 ? [240, 240, 230] : x < 80 ? [20, 20, 20] : [200, 40, 40]);
+assert.equal(frontEdge(inlay, 200, 200), 80);
+// A plain square front has no fold.
+assert.equal(frontEdge(panels(200, 200, (x, y) => [(x + y) & 0xff, 90, 160]), 200, 200), undefined);
 
 // Sizes come from the header alone.
 const png = new Uint8Array(32);

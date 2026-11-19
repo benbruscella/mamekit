@@ -82,8 +82,10 @@ node tools/download-artwork.ts [game ...]   # bezels and layouts (archive.org), 
 still missing. Cover archives (TOSEC's C64 `Cover.zip`) go through the inbox
 instead: dropped in `.data/_input/c64/`, `make import` matches every title on
 that system's generated shelves to a front scan by name and writes a 240 px
-`<name>.webp` under `artwork/carts/<list>/`. A scan wider than 1.2:1 is an
-unfolded cassette inlay, so only its right-hand J-card front is kept. A scan
+`<name>.webp` under `artwork/carts/<list>/`. A scan wider than 0.7:1 may
+carry a spine, or a back and a spine, left of its front; the importer looks
+for the fold (a column crossing most rows with an edge or a colour change)
+and keeps what lies right of it. With no fold it keeps the whole scan. A scan
 whose re-release label disagrees with MAME's publisher is held in
 `_input/_review/<list>/`; accepting it means moving it into
 `artwork/carts/<list>/`. Run `npm run audit:game-package -- <target>` to see

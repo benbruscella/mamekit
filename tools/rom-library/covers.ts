@@ -28,16 +28,15 @@ import { join } from 'node:path';
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { System } from './systems.ts';
 
-/** A tile is drawn 200 CSS px tall (software.ts coverEl); 240 is ample once object-fit crops it. */
+/** A tile is drawn 200 CSS px tall (software.ts coverEl); 240 leaves headroom for high-density screens. */
 export const COVER_HEIGHT = 240;
 /**
- * A scan this much wider than tall is an unfolded cassette inlay -- back,
- * spine and front side by side -- so only its right-hand front panel is
- * kept. Real fronts measured 1.03-1.08 wide; inlays 1.35 and up.
+ * A scan narrower than this is a front alone (tape inlays measure 0.62, cart
+ * boxes 0.7). Anything wider may carry a spine, or a back and a spine, to the
+ * left of its front -- 0.75 to 1.05 for a front and spine, about square for
+ * back, spine and front -- so it is searched for the fold.
  */
-export const INLAY_ASPECT = 1.2;
-/** A compact-cassette J-card front: 2.5 in wide by 4 in tall. */
-export const JCARD_FRONT = 0.625;
+export const SPINE_ASPECT = 0.7;
 
 const IMAGE = /\.(jpe?g|png|gif|webp)$/i;
 
@@ -176,54 +175,107 @@ export function imageSize(bytes: Uint8Array): { width: number; height: number } 
   return undefined;
 }
 
-/** The front panel of a scan: the whole of it, or an inlay's right-hand J-card front. */
-export function frontCrop(width: number, height: number, edge?: number): { x: number; width: number } | undefined {
-  if (width / height <= INLAY_ASPECT) return undefined;
-  const front = Math.min(width, edge !== undefined ? width - edge : Math.round(height * JCARD_FRONT));
-  return { x: width - front, width: front };
+/**
+ * The front panel of a scan: everything right of the fold found at `edge`,
+ * or the whole scan when none was. A fixed J-card crop was tried for wide
+ * scans without a fold and cut half of them through the title: they are as
+ * often landscape fronts (Mr. Computer's carts, compilation boxes) or disk
+ * sleeves wider than a J-card as tape inlays.
+ */
+export function frontCrop(width: number, edge?: number): { x: number; width: number } | undefined {
+  return edge !== undefined && edge > 0 && edge < width ? { x: edge, width: width - edge } : undefined;
 }
 
 /**
- * A front panel is between a J-card's narrowest (half its height) and a disk
- * sleeve's square: fronts measured 0.52 (Amaurote's inlay) to 0.95 (Arkanoid's
- * sleeve) of the scan's height.
+ * A front panel is between a J-card's narrowest and a disk sleeve's square:
+ * fronts measured 0.55 (Amaurote's inlay) to 0.95 (Arkanoid's sleeve) of the
+ * scan's height.
  */
-export const FRONT_MIN = 0.5;
+export const FRONT_MIN = 0.55;
 export const FRONT_MAX = 1.0;
 
 /** A step in grey this large between neighbouring columns is an edge in that row. */
 const EDGE_STEP = 24;
+/** A colour change this large between the strips either side of a column is a panel change in that row. */
+const PANEL_STEP = 30;
+/** Columns either side of a fold averaged into the strips compared. */
+const STRIP = 3;
+/**
+ * The share of rows a fold must cross. An unfolded inlay is plainly not one
+ * front. Near-square scans are as often a whole front (a disk sleeve, a
+ * compilation box) as back, spine and front; narrow ones are more often a cart
+ * box than a front and spine; and artwork carries long straight edges, so
+ * they ask for more: cutting a title costs a tile more than a spine left on.
+ */
+const FOLD_WIDE = 0.75;
+const FOLD_SQUARE = 0.85;
+const FOLD_NARROW = 0.9;
+const SQUARE_ASPECT = 1.25;
+const NARROW_ASPECT = 0.8;
 
 /**
- * Where an unfolded scan's front panel begins, measured on a small greyscale
- * copy (`pixels` row-major, `width` x `height`). A fold runs the scan's whole
- * height where an edge in the artwork covers part of it, so each column in
- * the band a front can start in scores the share of rows with an edge there
- * (columns compared one and two apart, so a soft fold still reads). The
- * left-most column within a tenth of the best score wins: some fronts carry a
- * full-height stripe of their own (Mastertronic's label band), and keeping a
- * sliver of spine costs a tile far less than cutting its title in half.
+ * Where a scan's front panel begins, measured on a small copy (`rgb`
+ * row-major, three bytes a pixel, `width` x `height`), or undefined when the
+ * scan shows no fold. A fold runs the scan's whole height, where an edge in
+ * the artwork covers part of it. Each column in the band a front can start in
+ * scores the share of rows where either the grey steps there (one or two
+ * columns apart, so a soft crease still reads) or the colour of the strips
+ * either side differs (a spine printed in another colour than its front).
+ *
+ * The right-most strong column wins. Back, spine and front put two strong
+ * folds in the band, and the front starts at the second; a spine's own
+ * printing is weaker than either. Measured on 1,060 C64 scans; a four-panel
+ * fold-out whose inside flap sits right of the front (Elite's Commando) is
+ * cropped to the flap, since nothing in a flat panel of print tells it from a
+ * plain front.
  */
-export function frontEdge(pixels: Uint8Array, width: number, height: number): number {
-  const from = Math.max(2, Math.round(width - FRONT_MAX * height));
-  const to = Math.min(width - 2, Math.round(width - FRONT_MIN * height));
+export function frontEdge(rgb: Uint8Array, width: number, height: number): number | undefined {
+  const from = Math.max(STRIP + 1, Math.round(width - FRONT_MAX * height));
+  const to = Math.min(width - STRIP - 1, Math.round(width - FRONT_MIN * height));
+  if (to < from) return undefined;
+  const grey = new Uint8Array(width * height);
+  for (let i = 0; i < grey.length; i++) grey[i] = (rgb[i * 3]! * 299 + rgb[i * 3 + 1]! * 587 + rgb[i * 3 + 2]! * 114) / 1000;
   const scores: number[] = [];
+  const steps: number[] = [];
   for (let x = from; x <= to; x++) {
     let rows = 0;
+    let stepRows = 0;
     for (let y = 0; y < height; y++) {
       const row = y * width;
-      if (Math.abs(pixels[row + x]! - pixels[row + x - 1]!) > EDGE_STEP
-        || Math.abs(pixels[row + x + 1]! - pixels[row + x - 2]!) > EDGE_STEP) rows++;
+      const step = Math.abs(grey[row + x]! - grey[row + x - 1]!) > EDGE_STEP
+        || Math.abs(grey[row + x + 1]! - grey[row + x - 2]!) > EDGE_STEP;
+      if (step) stepRows++;
+      let fold = step;
+      for (let c = 0; c < 3 && !fold; c++) {
+        let left = 0;
+        let right = 0;
+        for (let k = 1; k <= STRIP; k++) {
+          left += rgb[(row + x - 1 - k) * 3 + c]!;
+          right += rgb[(row + x + k) * 3 + c]!;
+        }
+        fold = Math.abs(left - right) / STRIP > PANEL_STEP;
+      }
+      if (fold) rows++;
     }
     scores.push(rows / height);
+    steps.push(stepRows / height);
   }
   const best = Math.max(...scores);
-  const first = scores.findIndex(score => score >= best * 0.9);
-  return first < 0 ? to : from + first;
+  const aspect = width / height;
+  const floor = aspect > SQUARE_ASPECT ? FOLD_WIDE : aspect > NARROW_ASPECT ? FOLD_SQUARE : FOLD_NARROW;
+  if (best < floor) return undefined;
+  let last = -1;
+  scores.forEach((score, at) => { if (score >= Math.max(floor, best * 0.85)) last = at; });
+  // The strips still differ a few columns past the fold; the grey step is
+  // sharpest on it, spread one column either side by the two-apart test.
+  const near = Array.from({ length: 2 * STRIP + 1 }, (_, k) => last - 2 * STRIP + k).filter(at => at >= 0);
+  const sharpest = Math.max(...near.map(at => steps[at]!));
+  const on = near.filter(at => steps[at] === sharpest);
+  return from + on[Math.floor(on.length / 2)]!;
 }
 
-/** Greyscale pixels from a binary PPM (P6), as dwebp -ppm writes it. */
-export function ppmGrey(bytes: Uint8Array): { pixels: Uint8Array; width: number; height: number } {
+/** Pixels from a binary PPM (P6), as dwebp -ppm writes it: three bytes a pixel. */
+export function ppmPixels(bytes: Uint8Array): { rgb: Uint8Array; width: number; height: number } {
   const header: string[] = [];
   let at = 0;
   while (header.length < 4) {
@@ -236,9 +288,7 @@ export function ppmGrey(bytes: Uint8Array): { pixels: Uint8Array; width: number;
   at++;
   const width = Number(header[1]);
   const height = Number(header[2]);
-  const pixels = new Uint8Array(width * height);
-  for (let i = 0; i < pixels.length; i++, at += 3) pixels[i] = (bytes[at]! * 299 + bytes[at + 1]! * 587 + bytes[at + 2]! * 114) / 1000;
-  return { pixels, width, height };
+  return { rgb: bytes.subarray(at, at + width * height * 3), width, height };
 }
 
 /** The front's left edge in a scan's own pixels, found on a 200 px tall copy. */
@@ -248,8 +298,9 @@ function measureFront(source: string, scratch: string, width: number, height: nu
     const ppm = join(scratch, 'measure.ppm');
     execFileSync('cwebp', ['-quiet', '-q', '90', '-resize', '0', '200', source, '-o', small], { stdio: 'pipe' });
     execFileSync('dwebp', ['-quiet', small, '-ppm', '-o', ppm], { stdio: 'pipe' });
-    const grey = ppmGrey(readFileSync(ppm));
-    return Math.round(frontEdge(grey.pixels, grey.width, grey.height) * width / grey.width);
+    const copy = ppmPixels(readFileSync(ppm));
+    const edge = frontEdge(copy.rgb, copy.width, copy.height);
+    return edge === undefined ? undefined : Math.round(edge * width / copy.width);
   } catch {
     return undefined;
   }
@@ -285,8 +336,8 @@ export function writeCover(zip: string, scan: string, dest: string, extracted?: 
       execFileSync('gif2webp', ['-quiet', source, '-o', `${source}.webp`], { stdio: 'pipe' });
       source = `${source}.webp`;
     }
-    const unfolded = size && size.width / size.height > INLAY_ASPECT;
-    const crop = unfolded ? frontCrop(size.width, size.height, measureFront(source, scratch, size.width, size.height)) : undefined;
+    const unfolded = size && size.width / size.height > SPINE_ASPECT;
+    const crop = unfolded ? frontCrop(size.width, measureFront(source, scratch, size.width, size.height)) : undefined;
     mkdirSync(join(dest, '..'), { recursive: true });
     execFileSync('cwebp', [
       '-q', '80', ...(crop ? ['-crop', String(crop.x), '0', String(crop.width), String(size!.height)] : []),

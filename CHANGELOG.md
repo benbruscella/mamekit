@@ -36,7 +36,7 @@ MAMEDEV's release notes (see the README).
 
 **Under the hood:**
 - `tools/rom-library/covers.ts` replaces `tools/c64-covers.ts`. It matches TOSEC's `Cover.zip` scans to shelf titles by normalised name. Where a title has several scans, the one whose label agrees with MAME's publisher wins, then the plainest name. A scan whose label disagrees is held in `_input/_review/`.
-- Unfolded scans (wider than 1.2:1, a third of the archive) are cropped to their front panel. The fold is found as the column with an edge on the most rows, in the band where a front can start.
+- Scans wider than 0.7:1 are cropped to their front panel when they show a fold: a column, in the band where a front can start, crossing most rows with a grey edge or a colour change. The right-most strong fold wins, so back, spine and front lose both. Near-square and narrow scans ask for a stronger fold, and a scan with none stays whole, because cutting a title costs more than a spine left on. 631 of 1,137 covers are cropped.
 - Extraction is one batched `unzip` per archive: 71 s for 1,137 covers, against ten minutes with one call per scan.
 - `.data/_input/` is the single inbox. `make import` routes each input by its content: dumps by hash, `.wav` zips as sample sets, `.lay` zips as arcade artwork, image zips in `_input/<system>/` as covers. Outcomes, review, quarantine and reports live in its `_*` folders, and `make status` adds a covers row per computer.
 - `make bucket-tidy` (`DRY=1` first) moves every bucket object with no local file to `_quarantine/<key>` in the bucket. `make sync` never removed anything.
