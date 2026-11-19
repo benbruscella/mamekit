@@ -176,6 +176,12 @@ export function isGeneratedStruct(value: unknown): value is Record<string, unkno
  * element by element. Returns the target.
  */
 export function copyGeneratedStruct(target: unknown, source: unknown): unknown {
+  // A scalar stored into a struct with `operator=(unsigned)` (compiled as
+  // `__assign`) runs it: the uPD7725's `regs.sr = 0x0000` sets its flags.
+  if ((typeof source === 'number' || typeof source === 'boolean') && structAssigns(target)) {
+    target.__assign(Number(source));
+    return target;
+  }
   if (isPairValue(target) && isPairValue(source) && target !== source) {
     target.word[0] = source.word[0]!;
     return target;
@@ -229,7 +235,16 @@ function isPairValue(value: unknown): value is { word: Uint32Array | Uint16Array
     (word instanceof Uint16Array && 'w' in (value as object));
 }
 
+/** A struct whose `operator=` takes a scalar (`__assign`). */
+function structAssigns(target: unknown): target is { __assign(value: number): unknown } {
+  return isGeneratedStruct(target) && typeof (target as { __assign?: unknown }).__assign === 'function';
+}
+
 function copiesStruct(target: unknown, value: unknown): boolean {
+  if (structAssigns(target)) {
+    const source = isLValue(value) ? value.get() : value;
+    if (typeof source === 'number' || typeof source === 'boolean') return true;
+  }
   if (isPairValue(target)) {
     const source = isLValue(value) ? value.get() : value;
     return isPairValue(source) && source !== target;
@@ -3595,6 +3610,10 @@ function assign(
       throw new Error(`generated member assignment has no object for "${target.property}"`);
     }
     const record = object as Record<string, unknown>;
+    if (operator === '=' && copiesStruct(record[target.property], value) && structAssigns(record[target.property])) {
+      copyGeneratedStruct(record[target.property], isLValue(value) ? value.get() : value);
+      return;
+    }
     const next = assignmentValue(operator, record[target.property], value);
     // A struct field carries the width MAME declared. Emitted code narrows to
     // it inline; an interpreted store narrows through the shape the host

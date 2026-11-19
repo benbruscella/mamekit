@@ -468,6 +468,10 @@ export interface Device {
   untilNextTimer?(): number;
   /** Host a device_execute_interface time slice in device cycles. */
   runCycles?(cycles: number): number;
+  /** device_execute_interface::total_cycles(), mid-slice included. */
+  totalCyclesNow?(): number;
+  /** The processors inside the card a slot mounted (IrDevice.nestedProcessors). */
+  nestedProcessors?(): { tag: string; device: Device }[];
   /** MAME `apply_suspend_changes` for this device, at the start of a round. */
   applySuspendChanges?(): void;
   /** Suspended this round: charged its slice ('eating') or skipped ('waiting'). */
@@ -1461,7 +1465,7 @@ class IrDevice implements Device {
     for (const config of definition.spaces ?? []) {
       // A mapped space is built on first use, once the constructor has run:
       // its map tests state the constructor sets (the 68705's port masks).
-      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits), config.addressBits, config));
+      if (config.installed) this.spaces.set(config.index, withSpaceConfig(installableDeviceSpace(config.addressBits, config), config.addressBits, config));
       else if (!config.map) this.spaces.set(config.index, withSpaceConfig(generatedDeviceSpace(config.addressBits), config.addressBits, config));
     }
     const resourceCache = options.resourceCache ?? {};
@@ -1548,8 +1552,15 @@ class IrDevice implements Device {
                 calls[name] = (...args: unknown[]) => device.call(name, ...args as number[]);
               }
               for (const [name, fn] of Object.entries(own)) calls[name] = (fn as (...args: unknown[]) => unknown).bind(this);
+              // Its fields narrow to their declared widths, as an emitted
+              // store does: the uPD7725 status register's `drc = d & 0x0400`
+              // is a bool.
+              const widths = (this as { [GENERATED_FIELD_WIDTHS]?: Record<string, number> })[GENERATED_FIELD_WIDTHS] ?? {};
+              const setters = Object.fromEntries(Object.entries(widths).map(([name, width]) =>
+                [name, (value: number) => { this[name] = generatedFieldWidth(value, width); }]));
               STRUCT_BINDINGS.set(this, bindings = {
                 members: this, constants: device.bindings.constants, calls,
+                ...(Object.keys(setters).length ? { setters } : {}),
               } as GeneratedHandlerBindings);
             }
             return executeGeneratedProgram(method.program, bindings, locals, false).value;
@@ -2658,6 +2669,12 @@ class IrDevice implements Device {
         for (const [name, value] of Object.entries(self)) {
           if (typeof value === 'function' && !Object.hasOwn(callable, name)) callable[name] = value;
         }
+        // And device_memory_interface::space(n): the SNES DSP cartridge's
+        // speedup_addon_bios_access installs the firmware into its own
+        // uPD7725's spaces, `m_upd7725->space(AS_PROGRAM).install_rom(...)`.
+        for (const [name, value] of Object.entries(instance.hostedCalls())) {
+          if (!Object.hasOwn(callable, name)) callable[name] = value;
+        }
         // An owner reads and writes its children's state as well as calling
         // them: the CTC's daisy-chain methods walk `m_channel[ch]->m_int_state`
         // and acknowledge through `channel.m_int_state = Z80_DAISY_IEO`. Not
@@ -3496,6 +3513,31 @@ class IrDevice implements Device {
     if (!this.definition.imageInterface || !this.methods.has('image_type_name')) return undefined;
     const name = this.invoke('image_type_name');
     return typeof name === 'string' ? name : undefined;
+  }
+
+  /**
+   * The processors inside the card this slot mounted: devices of the card's
+   * own machine config that execute (an SNES DSP cartridge's uPD7725). MAME
+   * schedules them like any CPU; the board only knows its machine config's
+   * devices, so it asks the slot for these.
+   */
+  nestedProcessors(): { tag: string; device: Device }[] {
+    const found: { tag: string; device: Device }[] = [];
+    const visit = (device: IrDevice): void => {
+      for (const child of [...device.children, ...device.slotChild ? [device.slotChild] : []]) {
+        if (child.methods.has('execute_run') && child.methods.has('execute_set_input')) {
+          found.push({ tag: child.ownTag, device: child });
+        }
+        visit(child);
+      }
+    };
+    if (this.slotChild) {
+      if (this.slotChild.methods.has('execute_run') && this.slotChild.methods.has('execute_set_input')) {
+        found.push({ tag: this.slotChild.ownTag, device: this.slotChild });
+      }
+      visit(this.slotChild);
+    }
+    return found;
   }
 
   timerPending(): boolean {
@@ -5468,7 +5510,7 @@ function pair16Value(): Record<string, unknown> {
  * `space(0).install_rom(start, end, base)` puts a region's bytes there, and
  * `read_byte` reads whatever is installed (open bus elsewhere reads 0).
  */
-function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
+function installableDeviceSpace(addressBits: number, config?: { dataBits: number; addressShift?: number }): GeneratedDeviceSpace & {
   install_rom(start: number, end: number, base: unknown): number;
   unmap_readwrite(start: number, end: number): number;
   unmap_read(start: number, end: number): number;
@@ -5495,10 +5537,21 @@ function installableDeviceSpace(addressBits: number): GeneratedDeviceSpace & {
     }
     return 0;
   };
+  // A word-addressed space (addrshift < 0) holds a word per address, and
+  // install_rom hands it a table of them: the SNES DSP cartridge installs its
+  // uPD7725's firmware as `uint32_t m_dsp_prg[0x800]`, and the core fetches
+  // with `m_cache.read_dword(regs.pc)`.
+  const wordMask = config && config.dataBits >= 32 ? 0xffffffff : 2 ** (config?.dataBits ?? 8) - 1;
+  const words = config && (config.addressShift ?? 0) < 0 && config.dataBits > 8
+    ? (config.dataBits >= 32
+      ? { read_dword: (address: number) => (Number(read(address)) & wordMask) >>> 0 }
+      : { read_word: (address: number) => Number(read(address)) & wordMask })
+    : {};
   return {
     memory: new Uint8Array(0),
     read_byte: read,
     write_byte: () => 0,
+    ...words,
     install_rom: (start, end, base) => {
       const pointer = isGeneratedPointer(base) ? base : undefined;
       const bytes = pointer ? pointer.source : base as ArrayLike<number>;
@@ -5700,6 +5753,16 @@ function structMember(
   const methods = table?.[typeName!] ?? table?.[typeName!.split('::').at(-1)!.trim()];
   for (const [name, method] of Object.entries(methods ?? {})) {
     Object.defineProperty(struct, name, { value: method, enumerable: false, configurable: true, writable: true });
+  }
+  // A struct with a scalar conversion (`operator unsigned()`, compiled as
+  // `__convert`) reads as that number wherever it meets arithmetic: the
+  // uPD7725's `return regs.sr >> 8`.
+  const convert = methods?.__convert;
+  if (convert) {
+    Object.defineProperty(struct, 'valueOf', {
+      value: function (this: Record<string, unknown>) { return Number(convert.call(this)) || 0; },
+      enumerable: false, configurable: true, writable: true,
+    });
   }
   return struct;
 }

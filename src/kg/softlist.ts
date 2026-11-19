@@ -107,6 +107,14 @@ export interface SoftEntry {
    */
   areas?: Record<string, number>;
   /**
+   * Chips of a dataarea that is neither the program nor RAM, which the slot
+   * reads by name with get_software_region: an SNES DSP cartridge's `addon`
+   * (the uPD7725's firmware, `dsp1b.u3`). A flat image carries them after the
+   * program area, in this order -- the layout MAME's own
+   * `setup_addon_from_fullpath` reads from a file with the DSP data appended.
+   */
+  extra?: SoftRom[];
+  /**
    * The part's other features, as `get_feature` answers them, with the
    * entry's `sharedfeat`s inherited as MAME's parser copies them into each
    * part: a C64 cartridge's `exrom` and `game` lines, a disk's
@@ -292,6 +300,26 @@ export function parseSoftwareList(xml: string): ParsedSoftwareList {
       if (areaName && areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea &&
         size > 0 && !/<rom\b/.test(areaBlock)) {
         (entry.areas ??= {})[areaName] = size;
+        continue;
+      }
+      // A chip-bearing area beside the program (an SNES DSP's `addon`): the
+      // slot reads it by name, so its chips are kept with their area.
+      if (areaName && areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea &&
+        size > 0) {
+        const chips = [...areaBlock.matchAll(/<rom\b[^>]*\/>/g)].map(rm => attrs(rm[0]))
+          .filter(rAttrs => !rAttrs.loadflag && rAttrs.status !== 'nodump' && rAttrs.crc);
+        if (chips.length) {
+          (entry.areas ??= {})[areaName] = size;
+          for (const rAttrs of chips) {
+            (entry.extra ??= []).push({
+              size: parseSize(rAttrs.size),
+              crc: rAttrs.crc!.toLowerCase(),
+              offset: parseOffset(rAttrs.offset),
+              ...(rAttrs.name ? { file: rAttrs.name } : {}),
+              area: areaName,
+            });
+          }
+        }
         continue;
       }
       if (areaName !== 'prg' && areaName !== 'chr' && areaName !== 'rom' && !mediaArea) continue;

@@ -7,7 +7,7 @@
 // room's DOM, so the acceptance harness boots a contract's cartridge through
 // exactly the code a visitor's cartridge goes through.
 
-import { cartImageFromSoftlistSet, resolveFlatCart } from './cart-identify.ts';
+import { cartImageFromSoftlistSet, programSize, resolveFlatCart } from './cart-identify.ts';
 import {
   identify,
   inesFromSoftlistSet,
@@ -178,6 +178,12 @@ export function mountCart(
     const chips = entry && !resolved.approx
       ? new Map(entry.prg.roms.map((rom, index) => [String(index), bytes.subarray(rom.offset, rom.offset + rom.size)]))
       : undefined;
+    // A side area's chips ride after the program area (cartImageFromSoftlistSet).
+    let end = entry ? programSize(entry) : 0;
+    for (const [index, rom] of (entry?.extra ?? []).entries()) {
+      if (chips && end + rom.size <= bytes.length) chips.set(`extra${index}`, bytes.subarray(end, end + rom.size));
+      end += rom.size;
+    }
     const software = entry && chips ? softwarePart(chips, entry) : undefined;
     const image: BoardImage = entry && software
       ? { name: entry.name, software: { ...software, features: { ...software.features, ...(entry.pcb ? { pcb: entry.pcb } : {}) } } }

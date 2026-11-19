@@ -64,7 +64,19 @@ function matchedChips(image: Uint8Array, entry: SoftEntry, memo: ChipCrcs): numb
     if (end > image.length) continue;
     if (chipCrc(image, rom.offset, rom.size, memo) === rom.crc) matched++;
   }
+  // A side area's chips (an SNES DSP's firmware) follow the program area:
+  // two sets with one program and different DSP revisions are told apart here.
+  let at = programSize(entry);
+  for (const rom of entry.extra ?? []) {
+    if (at + rom.size <= image.length && chipCrc(image, at, rom.size, memo) === rom.crc) matched++;
+    at += rom.size;
+  }
   return matched;
+}
+
+/** Where a flat image's side-area chips start: the end of the program area. */
+export function programSize(entry: Pick<SoftEntry, 'prg'>): number {
+  return entry.prg.size || entry.prg.roms.reduce((end, rom) => Math.max(end, rom.offset + rom.size), 0);
 }
 
 /**
@@ -83,8 +95,8 @@ export function identifyCartImage(
   const memo: ChipCrcs = new Map();
   let best: CartImageMatch | null = null;
   for (const entry of catalog.entries) {
-    const total = entry.prg.roms.length;
-    if (!total) continue;
+    if (!entry.prg.roms.length) continue;
+    const total = entry.prg.roms.length + (entry.extra?.length ?? 0);
     const matched = matchedChips(image, entry, memo);
     if (!matched) continue;
     if (matched === total) return { entry, matched, total, verified: true };
@@ -202,18 +214,23 @@ function cartImageFromSoftlistFiles(
 
   for (const entry of catalog.entries) {
     const roms = entry.prg.roms;
-    if (!roms.length || roms.length !== byCrc.size) continue;
+    const extra = entry.extra ?? [];
+    if (!roms.length || roms.length + extra.length !== byCrc.size) continue;
     const chips = roms.map(rom => byCrc.get(rom.crc));
-    if (chips.some(chip => !chip)) continue;
-    const size = entry.prg.size ||
-      roms.reduce((end, rom) => Math.max(end, rom.offset + rom.size), 0);
-    const bytes = new Uint8Array(size);
+    const extraChips = extra.map(rom => byCrc.get(rom.crc));
+    if (chips.some(chip => !chip) || extraChips.some(chip => !chip)) continue;
+    const size = programSize(entry);
+    // A side area's chips (an SNES DSP's firmware) follow the program, as in
+    // a file with the DSP data appended.
+    const bytes = new Uint8Array(size + extraChips.reduce((total, chip) => total + chip!.length, 0));
     let placed = true;
     for (const [index, rom] of roms.entries()) {
       const chip = chips[index]!;
       if (rom.offset + chip.length > size) { placed = false; break; }
       bytes.set(chip, rom.offset);
     }
+    let end = size;
+    for (const chip of extraChips) { bytes.set(chip!, end); end += chip!.length; }
     if (placed) return { bytes, entry };
   }
   return null;

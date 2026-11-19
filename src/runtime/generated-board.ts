@@ -724,6 +724,11 @@ class IrBoard implements Board {
    */
   private catchUpDeviceTime?: (lag?: number) => void;
   /**
+   * Run the processors inside a mounted card (IrDevice.nestedProcessors) up to
+   * where the board's first processor stands, mid-instruction included.
+   */
+  private syncNestedProcessors?: () => void;
+  /**
    * Device time a catch-up delivered past the running slice's target. A
    * lockstep slice's booked overrun pays only the rest; any other slice's
    * overrun comes off the next slice. Always zero between slices.
@@ -2076,6 +2081,9 @@ class IrBoard implements Board {
         }
       }
       const lag = this.deviceAccessLag(device);
+      // A slot whose card holds processors: they stand where the leader does
+      // before it reaches the card (syncNestedProcessors).
+      const hostsNested = (device.nestedProcessors?.().length ?? 0) > 0;
       for (const method of device.methodNames()) {
         const accessed = lag !== undefined && (method === 'read' || method === 'write');
         const synced = <T extends (...args: never[]) => unknown>(call: T): T => accessed
@@ -2083,7 +2091,12 @@ class IrBoard implements Board {
             this.catchUpDeviceTime?.(lag);
             return call(...args);
           }) as T
-          : call;
+          : hostsNested
+            ? ((...args: Parameters<T>) => {
+              this.syncNestedProcessors?.();
+              return call(...args);
+            }) as T
+            : call;
         const invoke = synced(device.prepareCall?.(method) ?? ((...args: unknown[]) =>
           device.invoke(method, ...args as Parameters<typeof device.invoke>[1][])));
         calls[`${tag}.${method}`] = invoke;
@@ -3026,6 +3039,39 @@ class IrBoard implements Board {
         ...processorRunner(device),
       }];
     });
+    // And the processors inside a card a slot mounted (an SNES DSP
+    // cartridge's uPD7725): the card is chosen from the image, so the machine
+    // config does not name them, but MAME schedules them like any CPU.
+    // They exchange data with the board's first processor through the card
+    // (the uPD7725's data register), and a host that reads four results back
+    // to back without polling, as Super Mario Kart's raster command does,
+    // needs the DSP where MAME's stands at each access. So they keep a clock
+    // of their own: run up to the first processor's time, mid-instruction
+    // included, at every delivery and before every access to their card.
+    const leader = machine.execution.cpus[0];
+    const nested = [...this.devices.values()].flatMap(device => device.nestedProcessors?.() ?? []).map(entry => ({
+      ...entry, clock: entry.device.cycleClock(), runner: processorRunner(entry.device),
+    }));
+    if (nested.length && leader) {
+      // Where their cycle counts start, on the leader's clock: built with the
+      // board, so a board built to load a state into starts from the same
+      // point, and each device saves its own count (executedCycles).
+      const origin = this.cpuSeconds(leader);
+      let syncing = false;
+      this.syncNestedProcessors = () => {
+        if (syncing) return;
+        syncing = true;
+        try {
+          const now = this.cpuSeconds(leader);
+          for (const entry of nested) {
+            const owed = Math.floor((now - origin) * entry.clock) - (entry.device.totalCyclesNow?.() ?? 0);
+            if (owed > 0) entry.runner.run(owed);
+          }
+        } finally {
+          syncing = false;
+        }
+      };
+    }
     // Standalone bus masters expose MAME's execute_run/m_icount pair but have
     // no firmware host: the Intel 8257 on Donkey Kong, a POKEY, the C64's
     // VIC-II and CIAs. MAME schedules them in the round beside the CPUs,
@@ -3127,9 +3173,10 @@ class IrBoard implements Board {
         carries[index] = hostedCarry.get(processor.tag) ?? 0;
       }),
     });
-    hostsProcessors = synchronizedProcessors.length > 0;
+    hostsProcessors = synchronizedProcessors.length > 0 || this.syncNestedProcessors !== undefined;
     tickHostedProcessors = seconds => {
       if (!(seconds > 0)) return;
+      this.syncNestedProcessors?.();
       for (let index = 0; index < synchronizedProcessors.length; index++) {
         const processor = synchronizedProcessors[index]!;
         if (processor.enabled && !processor.enabled()) {

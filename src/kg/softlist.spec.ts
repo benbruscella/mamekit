@@ -331,5 +331,25 @@ eq('entry count (pre-filter)', parsed.entries.length, 3);
     disks.entries.map(entry => entry.features), [{ write_protected: 'true' }, { write_protected: 'false' }, undefined]);
 }
 
+// A chip-bearing dataarea beside the program is kept with its area, which the
+// slot reads by name: an SNES DSP cartridge's uPD7725 firmware is `addon`.
+{
+  const dsp = parseSoftwareList(`<?xml version="1.0"?>
+<softwarelist name="snes" description="SNES">
+  <software name="smkart"><description>Super Mario Kart</description><year>1992</year><publisher>Nintendo</publisher>
+    <part name="cart" interface="snes_cart">
+      <feature name="slot" value="hirom_dsp" />
+      <dataarea name="rom" size="524288"><rom name="spal-mk-0.u1" size="524288" crc="56410e5e" sha1="x" offset="0x000000" /></dataarea>
+      <dataarea name="addon" size="10240"><rom name="dsp1b.u3" size="10240" crc="453557e0" sha1="x" offset="0x000000" /></dataarea>
+      <dataarea name="nvram" size="2048"></dataarea>
+    </part>
+  </software>
+</softwarelist>`);
+  const entry = dsp.entries[0]!;
+  eq('the program area stays the program', entry.prg.roms.map(rom => rom.crc), ['56410e5e']);
+  eq('a side area\'s chips are kept with their area', entry.extra, [{ size: 10240, crc: '453557e0', offset: 0, file: 'dsp1b.u3', area: 'addon' }]);
+  eq('and its size, as get_software_region_length answers', entry.areas, { rom: 524288, addon: 10240, nvram: 2048 });
+}
+
 console.log(`\nsoftlist.spec: ${totalPass} passed, ${totalFail} failed`);
 if (totalFail > 0) process.exitCode = 1;

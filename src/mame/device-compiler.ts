@@ -7386,9 +7386,30 @@ function structMethodsOf(
     const program = compileMameHandler(normalizeMameExecutionSource(body.slice(open + 1, close)));
     if (!program.diagnostics.length) found.push({ name: '__call', parameters: match[1]!.trim(), program });
   }
+  // Its scalar conversion and assignment, as `__convert` and `__assign`: the
+  // uPD7725's status register is `operator unsigned() const` over its flag
+  // bits and `unsigned operator=(unsigned d)` back into them, so
+  // `regs.sr = 0x0000` sets the flags and `regs.sr >> 8` reads them.
+  const operators: [RegExp, string][] = [
+    [/(?:^\s*|[;{}]\s*)(?:explicit\s+)?operator\s+(?:unsigned|signed|int|bool|u8|u16|u32|uint8_t|uint16_t|uint32_t|int32_t)(?:\s+int)?\s*\(()\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g, '__convert'],
+    [/(?:^\s*|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+operator\s*=\s*\(((?:unsigned|signed|int|bool|u8|u16|u32|uint8_t|uint16_t|uint32_t|int32_t)(?:\s+int)?\s+\w+)\)\s*(?:noexcept\s*)?\{/g, '__assign'],
+  ];
+  for (const [pattern, name] of operators) {
+    for (const match of body.matchAll(pattern)) {
+      const open = body.indexOf('{', match.index! + match[0].length - 1);
+      const close = matchingBrace(body, open);
+      if (close < 0) continue;
+      const program = compileMameHandler(normalizeMameExecutionSource(body.slice(open + 1, close)));
+      if (program.diagnostics.length) continue;
+      STRUCT_METHOD_SOURCE.set(program, body.slice(open + 1, close));
+      found.push({ name, parameters: match[1]!.trim(), program });
+    }
+  }
   // The first method may open the body: `ymfm_output &clear()`.
   const header = /(?:^\s*|[;{}]\s*)(?:inline\s+)?[\w:<>]+[\s*&]+(\w+)\s*\(([^()]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{/g;
   for (const match of body.matchAll(header)) {
+    // `operator unsigned() const` is the conversion above, not a method named `unsigned`.
+    if (/\boperator\s+\w+\s*\($/.test(match[0].replace(/\([^()]*\)\s*(?:const\s*)?(?:noexcept\s*)?\{$/, '('))) continue;
     const open = body.indexOf('{', match.index! + match[0].length - 1);
     const close = matchingBrace(body, open);
     if (close < 0) continue;

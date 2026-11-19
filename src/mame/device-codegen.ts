@@ -27,6 +27,8 @@ export interface CodegenScope {
   members: GeneratedDeviceMember[];
   /** Struct types the scope declares, so a field store can narrow inline. */
   structs?: Record<string, GeneratedStructField[]>;
+  /** The inline methods of those structs, by type: `__assign` is a scalar `operator=`. */
+  structMethods?: Record<string, { name: string }[]>;
   /** Classes the device allocates itself, by type: their objects have methods. */
   allocations?: Record<string, { members?: GeneratedDeviceMember[] }>;
   callbacks: GeneratedDeviceCallback[];
@@ -712,7 +714,10 @@ export function generatedStructMethodsSources(definition: GeneratedDeviceDefinit
       ],
       members: fields.map(field => ({
         name: field.name,
-        valueType: field.valueType ?? `${field.signed === false ? 'u' : ''}int${field.bits ?? 32}_t`,
+        // A one-bit field is a bool, as a struct field store narrows it
+        // elsewhere: the uPD7725 status register's `drc = d & 0x0400` is 1.
+        valueType: field.valueType ?? (field.bits === 1 ? 'bool' : `${field.signed === false ? 'u' : ''}int${field.bits ?? 32}_t`),
+        ...(field.bits && field.bits < 64 ? { bits: field.bits, ...(field.signed !== undefined ? { signed: field.signed } : {}) } : {}),
         ...(field.length ? { arrayLength: field.length } : {}),
       })),
       hotMethods: single.map(method => method.name),
@@ -3237,6 +3242,16 @@ function emitAssignment(
       const copier = structCopier(member, value, context);
       if (copier) return `${copier}(members.${member.name}, ${right})`;
       return `runtime.copyStruct(members.${member.name}, ${right})`;
+    }
+  }
+  // A struct field whose type has `operator=(unsigned)` (`__assign`) takes a
+  // scalar through it, and a struct through the copy: the uPD7725's
+  // `regs.sr = 0x0000` sets its status flags rather than replacing them.
+  if (operator === '=' && expression.kind === 'member') {
+    const type = structFieldOf(expression, context)?.valueType?.replace(/\bconst\b/g, '').trim();
+    const methods = type ? context.definition.structMethods?.[type] ?? context.definition.structMethods?.[type.split('::').at(-1)!] : undefined;
+    if (methods?.some((method: { name: string }) => method.name === '__assign')) {
+      return `runtime.copyStruct(${emitExpression(expression, context)}, ${right})`;
     }
   }
   const target = targetInfo(expression, context);

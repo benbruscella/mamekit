@@ -93,6 +93,8 @@ function exponentSize(bytes: number): number | undefined {
 
 export interface SoftRom {
   size: number; crc: string; offset: number;
+  /** the dataarea the chip loads into, for a slot that reads areas by name */
+  area?: string;
   /** where the list loads the chip again (`loadflag="reload"`) */
   reloads?: { offset: number; size: number }[];
 }
@@ -107,6 +109,14 @@ export interface SoftEntry {
   /** the iNES mapper MAME's tables give `slot`, for a header rebuilt from chips */
   mapper?: number;
   prg: SoftArea; chr?: SoftArea; vram?: number; wram?: number; bwram?: number;
+  /** each named dataarea's declared size */
+  areas?: Record<string, number>;
+  /**
+   * Chips of a side dataarea the slot reads by name (an SNES DSP's `addon`
+   * firmware). A flat image carries them after the program area, in order:
+   * the layout MAME's setup_addon_from_fullpath reads.
+   */
+  extra?: SoftRom[];
   /** a RAM area the list fills with a non-zero value (`loadflag="fill"`) */
   ramFills?: Partial<Record<'vram' | 'wram' | 'bwram', { offset: number; size: number; value: number }[]>>;
   /** the part's other features, as `get_feature` answers them */
