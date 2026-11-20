@@ -43,10 +43,10 @@ export const bzone = sourceTarget({
     },
     audio: {
       writes: 1053257,
-      nonzeroWrites: 584930,
-      writeHash: '65b1c27a',
-      pcmHash: 'df2c40a1',
-      rms: 0.102695,
+      nonzeroWrites: 584929,
+      writeHash: 'e28af3e6',
+      pcmHash: '326d9234',
+      rms: 0.102699,
     },
   },
 });

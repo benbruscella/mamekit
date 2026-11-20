@@ -36,9 +36,9 @@ export const zigzagb = sourceTarget({
     audio: {
       writes: 712799,
       nonzeroWrites: 712797,
-      writeHash: '625aa6b0',
-      pcmHash: '879ca099',
-      rms: 0.164021,
+      writeHash: 'bbec1b69',
+      pcmHash: '8234bdae',
+      rms: 0.163974,
     },
   },
 });

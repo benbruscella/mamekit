@@ -35,9 +35,9 @@ export const rocnrope = sourceTarget({
     audio: {
       writes: 960000,
       nonzeroWrites: 959999,
-      writeHash: 'cd26ef36',
-      pcmHash: 'f553fbc1',
-      rms: 0.404708,
+      writeHash: '49e87c0d',
+      pcmHash: 'c576b328',
+      rms: 0.404683,
     },
   },
 });

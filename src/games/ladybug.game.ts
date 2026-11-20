@@ -32,10 +32,10 @@ export const ladybug = sourceTarget({
     },
     audio: {
       writes: 958171,
-      nonzeroWrites: 236179,
-      writeHash: '9578c910',
-      pcmHash: 'c2fd9439',
-      rms: 0.0711,
+      nonzeroWrites: 236151,
+      writeHash: '6fdb1198',
+      pcmHash: '51a2c5be',
+      rms: 0.071111,
     },
   },
 });

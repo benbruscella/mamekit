@@ -30,10 +30,10 @@ export const pacman = sourceTarget({
     },
     audio: {
       writes: 475200,
-      nonzeroWrites: 219781,
-      writeHash: 'aca182bd',
-      pcmHash: 'd81c842a',
-      rms: 0.169598,
+      nonzeroWrites: 219895,
+      writeHash: 'cc6b9290',
+      pcmHash: '82d5af06',
+      rms: 0.169045,
     },
   },
 });

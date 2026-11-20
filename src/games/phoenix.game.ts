@@ -32,9 +32,9 @@ export const phoenix = sourceTarget({
     audio: {
       writes: 943718,
       nonzeroWrites: 943718,
-      writeHash: '7984d912',
-      pcmHash: 'c2d5821a',
-      rms: 0.094133,
+      writeHash: '98dcdea6',
+      pcmHash: '9d7c0f30',
+      rms: 0.094117,
     },
   },
 });

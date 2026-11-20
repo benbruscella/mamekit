@@ -59,7 +59,7 @@ export const kungfum = sourceTarget({
     audio: {
       writes: 4600797,
       nonzeroWrites: 1608515,
-      writeHash: '76543b25',
+      writeHash: '4379cc40',
       pcmHash: '08a7ab76',
       rms: 0.040492,
     },

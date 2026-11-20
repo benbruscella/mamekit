@@ -64,8 +64,8 @@ export const sinistar = sourceTarget({
     audio: {
       writes: 1916928,
       nonzeroWrites: 1916926,
-      writeHash: '71e40feb',
-      pcmHash: '49fdc551',
+      writeHash: '5cbda01d',
+      pcmHash: '6735aede',
       rms: 0.227679,
     },
   },

@@ -50,9 +50,9 @@ export const xevious = sourceTarget({
     audio: {
       writes: 2375999,
       nonzeroWrites: 2375999,
-      writeHash: '0bee44d5',
-      pcmHash: 'd95512e8',
-      rms: 0.060662,
+      writeHash: 'aee5c1d0',
+      pcmHash: 'ee834535',
+      rms: 0.060647,
     },
   },
 });

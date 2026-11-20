@@ -41,10 +41,10 @@ export const gng = sourceTarget({
     },
     audio: {
       writes: 2414591,
-      nonzeroWrites: 1677470,
-      writeHash: 'b900d57f',
-      pcmHash: '2c731995',
-      rms: 0.067927,
+      nonzeroWrites: 1677457,
+      writeHash: 'b82a6daf',
+      pcmHash: 'd84e7c43',
+      rms: 0.067935,
     },
   },
 });

@@ -33,8 +33,8 @@ export const upndown = sourceTarget({
     },
     checkpoints: {
       1: { video: '82cad202', state: '89560517' },
-      60: { video: '3b94439d', state: '041bdd01' },
-      180: { video: '6e934d37', state: '8c8a6356' },
+      60: { video: '3b94439d', state: 'a8d6a6ed' },
+      180: { video: '6e934d37', state: 'e8ceb5f2' },
       300: { video: '68b8a049', state: '216a8d8a' },
       600: { video: '484fd1c9', state: '674e2263' },
       900: { video: '82cad202', state: 'af1f2105' },
@@ -42,10 +42,10 @@ export const upndown = sourceTarget({
     },
     audio: {
       writes: 958464,
-      nonzeroWrites: 492213,
-      writeHash: '29bba52c',
-      pcmHash: 'ecc6ff42',
-      rms: 0.10001,
+      nonzeroWrites: 492243,
+      writeHash: '9c343f7b',
+      pcmHash: 'fbff0bf3',
+      rms: 0.09999,
     },
   },
 });
