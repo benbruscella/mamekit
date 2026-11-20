@@ -358,6 +358,12 @@ const HOLD_LINE = 2;
  */
 const PRESENT_MARGIN_SECONDS = 1e-9;
 /**
+ * How far a device timer's countdown may stand from its exact expiry and
+ * still be put back on it: the drift of seconds counted down in a double, a
+ * few hundred attoseconds a period (#278). Further apart is not drift.
+ */
+const EXACT_ANCHOR_LIMIT_SECONDS = 1e-9;
+/**
  * How far past a round's end a driver timer may stand and still fire there.
  * Its expiry is kept in floating-point seconds on the processors' clock, so
  * the round that ended on it can come out a rounding short of it.
@@ -3527,7 +3533,19 @@ class IrBoard implements Board {
     const armLead = (): number => {
       if (this.deliveringDeviceTime || this.runningRoundDevice !== undefined) return 0;
       const tag = this.runningCpu ?? this.workPoster;
-      if (tag === undefined || tag === timerClockCpu?.tag) return 0;
+      if (tag === undefined) return 0;
+      // The processor the device clock follows is followed only as far as
+      // its core last reported its time (timing()): a Z80 reports at its
+      // slice's ends, and the devices stand at the slice's start until then.
+      // A timer it arms runs from where it stands, so the devices' lag is a
+      // lead like any other processor's. Counted from the devices, Mario's
+      // Z80 DMA fired 66 us early, before the processor that enabled it had
+      // got there, and Rampage's sound CTC 18 us early (#278).
+      if (tag === timerClockCpu?.tag) {
+        if (this.runningCpu !== tag) return 0;
+        const lead = this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - this.machineSeconds();
+        return lead < 0 ? lead : 0;
+      }
       const now = this.runningCpu !== undefined ? this.machineSeconds() : generatedTimerExpiry();
       if (now === undefined) return 0;
       return this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - now;
@@ -3656,8 +3674,16 @@ class IrBoard implements Board {
             const due = timer?.exactDue();
             if (!timer || !due) return;
             const baseAttos = this.frameRunner.baseExact();
+            // Only drift: the countdown carries what the exact expiry does not
+            // (the arming processor's lead, the round's base), and where the
+            // two are further apart than drift, the countdown is the one that
+            // stays with MAME. Battlezone's vector generator, started a cycle
+            // before its STA ended, kept MAME's POKEY reads to frame 209 on
+            // the countdown and lost them at 44 on the exact expiry.
+            const exact = Number(exactToAttos(due) - baseAttos) * 1e-18;
+            if (Math.abs(exact - soonest) > EXACT_ANCHOR_LIMIT_SECONDS) return;
             soonest = timer.anchorTo(baseAttos + BigInt(Math.round(standing * 1e18)));
-            exactUntil = Number(exactToAttos(due) - baseAttos) * 1e-18;
+            exactUntil = exact;
           };
           boundExactly();
           // Due at the base: within the clocks' rounding, or on the attosecond
