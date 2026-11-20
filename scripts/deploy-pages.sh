@@ -75,6 +75,15 @@ fi
 URL="$(git remote get-url origin)"
 trap 'rm -rf dist/.git' EXIT
 rm -rf dist/.git
+# dist/runtime is imported by the app in the browser (registry.js loads
+# runtime/core/*.js and generated/devices/*.js, which import their own
+# *.device.ir.json), so it ships. Only compiler-side files stay out: the
+# manifest/graph/report and the .ts twins of each device. hardware-manifest.json
+# alone is >100 MB, over GitHub's per-file limit. Only the local dev server and
+# build tooling read them.
+printf '%s\n' '/.build/' '/runtime/generated/hardware-manifest.json' \
+  '/runtime/generated/hardware-graph.json' '/runtime/generated/hardware-report.md' \
+  '/runtime/generated/devices/*.ts' > dist/.gitignore
 git -C dist init -q -b gh-pages
 git -C dist add -A
 git -C dist commit -qm "deploy"
