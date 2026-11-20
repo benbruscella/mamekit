@@ -102,7 +102,7 @@ assert.equal(executeGeneratedHandler(compileMameHandler(`
 assert.equal(executeGeneratedHandler(compileMameHandler(`
   attotime period = attotime::from_hz(1500) / 2;
   return period;
-`), {}), 1 / 3000);
+`), {}), 333333333333333e-18, 'from_hz truncates to whole attoseconds, as MAME\'s HZ_TO_ATTOSECONDS does');
 const tableProgram = compileMameHandler(normalizeMameExecutionSource(`
   static const int offsets[2][2] = {{ 0, 1 }, { 2, 3 }};
   return offsets[row][column];

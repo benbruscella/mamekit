@@ -13,10 +13,13 @@ import {
   generatedInstanceFactories,
   generatedTimerBacklog,
   generatedTimerExpiry,
+  generatedTimerExactExpiry,
+  EXACT_TIMER_TOLERANCE_SECONDS,
   withGeneratedTimerExpiry,
   setGeneratedTimerArmed,
   setGeneratedTimerArmBase,
   setGeneratedTimerArmLead,
+  setGeneratedTimerArmExact,
   withGeneratedTimerHeadroom,
   setGeneratedTimerPreFire,
   hasGeneratedDevice,
@@ -32,7 +35,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { ExactAttotime } from '../ir/exact-attotime.ts';
+import { attotimeSecondsFromTicks, ExactAttotime, exactFromAttos, exactToAttos } from '../ir/exact-attotime.ts';
 import { callLinksGeneration, DEFAULT_CONSTANTS, GENERATED_STRUCT, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
@@ -781,6 +784,10 @@ class IrBoard implements Board {
     fixture?: BoardProcessorFixture,
   ) {
     this.processorFixture = fixture;
+    // The arming hook is module state: installed first, so a device_start
+    // never reads the board built before this one (whose base had moved on a
+    // frame), and answering nothing until this board's scheduler runs.
+    setGeneratedTimerArmExact(() => this.exactMachineTime());
     // The screen is the board's own: a processor may reposition its visible
     // area, and that must not carry into the next board built from this IR.
     // So are its processors' address-space facts, which it completes from
@@ -1254,7 +1261,7 @@ class IrBoard implements Board {
               // contention window is measured from.
               if (method === 'local_time') return () => this.cpuSeconds(cpuSpec);
               if (method === 'clocks_to_attotime') {
-                return (clocks: number) => Number(clocks) / this.cycleClockOf(cpuSpec);
+                return (clocks: number) => attotimeSecondsFromTicks(clocks, this.cycleClockOf(cpuSpec));
               }
               // device_t::clock(), the processor's configured clock.
               if (method === 'clock') return () => cpuSpec.clock;
@@ -2842,7 +2849,7 @@ class IrBoard implements Board {
       // device_execute_interface's time conversions, at the processor's own
       // clock, and `local_time()`, where the processor stands now.
       calls[`m_${specification.tag}.clocks_to_attotime`] = clocks =>
-        Number(clocks) / this.cycleClockOf(specification);
+        attotimeSecondsFromTicks(clocks, this.cycleClockOf(specification));
       calls[`m_${specification.tag}.attotime_to_cycles`] = seconds =>
         Math.floor(Number(seconds) / this.secondsPerCycleOf(specification) + CYCLE_ROUNDING);
       // Unbound, The Simpsons' four-cycle NMI block lasted no time at all, and
@@ -3567,6 +3574,22 @@ class IrBoard implements Board {
       }
       return soonest;
     };
+    // The timer behind soonestTimer(), for its exact expiry.
+    const soonestTimerHandle = () => {
+      let soonest = Infinity;
+      let device: Device | undefined;
+      for (let index = 0; index < timerDevices.length; index++) {
+        const until = timerDevices[index]!.untilNextTimer?.() ?? Infinity;
+        if (until < soonest) { soonest = until; device = timerDevices[index]; }
+      }
+      return device?.soonestTimer?.();
+    };
+    // MAME's `machine().time()` exactly, for a device timer armed outside a
+    // timer's callback (setGeneratedTimerArmExact): the running processor's
+    // local time, in its slice, or the scheduler's base between timeslices.
+    // Where only seconds are known -- a device running in the round, posted
+    // work, a delivery -- the timer keeps no exact expiry.
+    this.exactTimeKnown = timerRounds;
     // MAME's perfect interleave (schedule.cpp compute_perfect_interleave): the
     // second shortest cycle time, times its execute_min_cycles(), of every
     // device that executes. Asked when a window opens, as clocks may change.
@@ -3611,11 +3634,43 @@ class IrBoard implements Board {
           const offset = (this.beamPosition() - baseLine) * this.lineSeconds();
           this.roundDeviceOffset = Math.abs(offset) < 1e-11 ? 0 : offset;
           const headroom = Math.max(0, this.roundDeviceOffset);
-          for (let fired = 0; soonest + headroom <= 1e-10 && fired < 64; fired++) {
+          // The round ends at the soonest timer's exact expiry, as MAME's
+          // does, and its countdown is put back on it: counted down in seconds
+          // it drifts a few hundred attoseconds a period, and the device
+          // clock's offset from the base is taken as nothing under 10 ps. A
+          // round that ends that short of a timer leaves a processor a whole
+          // cycle short of it: Bubble Bobble's sound Z80 read the YM2203's
+          // timer flag an instruction early at frame 83 (#278).
+          let exactUntil: number | undefined;
+          const boundExactly = (): void => {
+            exactUntil = undefined;
+            if (!Number.isFinite(soonest)) return;
+            // Only where the devices stand on the base, give or take the
+            // rounding of their clock (a femtosecond or so). Held short of it
+            // for the presentation (PRESENT_MARGIN_SECONDS), a countdown
+            // anchored to the scheduler's could never come due, and the
+            // device clock stood still for three frames.
+            const standing = (this.beamPosition() - baseLine) * this.lineSeconds();
+            if (Math.abs(standing) > 1e-12) return;
+            const timer = soonestTimerHandle();
+            const due = timer?.exactDue();
+            if (!timer || !due) return;
+            const baseAttos = this.frameRunner.baseExact();
+            soonest = timer.anchorTo(baseAttos + BigInt(Math.round(standing * 1e18)));
+            exactUntil = Number(exactToAttos(due) - baseAttos) * 1e-18;
+          };
+          boundExactly();
+          // Due at the base: within the clocks' rounding, or on the attosecond
+          // for a timer held exactly (EXACT_TIMER_TOLERANCE_SECONDS).
+          const dueAtBase = (): boolean => exactUntil !== undefined
+            ? exactUntil <= EXACT_TIMER_TOLERANCE_SECONDS
+            : soonest + headroom <= 1e-10;
+          for (let fired = 0; dueAtBase() && fired < 64; fired++) {
             this.roundTimerBudget = Infinity;
             if (headroom > 0) withGeneratedTimerHeadroom(headroom, () => advanceTimedHardware(1e-12));
             else advanceTimedHardware(1e-12);
             soonest = soonestTimer();
+            boundExactly();
           }
           // No timer fires inside the round: the device clock stops short of
           // the soonest, and the rest waits for the round's end. One the clock
@@ -3628,7 +3683,7 @@ class IrBoard implements Board {
           this.roundDelivered = 0;
           setGeneratedTimerArmBase(armBase);
           setGeneratedTimerArmLead(armLead);
-          const untilDevice = soonest + this.roundDeviceOffset;
+          const untilDevice = exactUntil ?? soonest + this.roundDeviceOffset;
           // The driver's own timers end the round too, and one already due
           // (armed between rounds, by a frame event) fires before it starts.
           // Read only by a driver timer, by another processor's arming lead
@@ -4386,6 +4441,7 @@ class IrBoard implements Board {
     // `machine().time()`, and read when the drain ran instead, Galaga's
     // first chip select after a control write came an MCU instruction early.
     const at = this.machineSeconds();
+    const exactAt = this.exactMachineTime();
     const poster = this.runningCpu;
     this.scheduledWork.push({
       at,
@@ -4393,7 +4449,7 @@ class IrBoard implements Board {
         const outer = this.workPoster;
         this.workPoster = poster;
         try {
-          withGeneratedTimerExpiry(at, run);
+          withGeneratedTimerExpiry(at, run, exactAt);
         } finally {
           this.workPoster = outer;
         }
@@ -4407,6 +4463,31 @@ class IrBoard implements Board {
     // run there and then, Neo Geo's NMI merger started after it and set every
     // input high again, so the sound CPU took one NMI and never another.
     if (!this.drainingScheduledWork && this.schedulerRunning) this.drainScheduledWork();
+  }
+
+  /** The board's rounds end at timers, so machine time is known exactly (exactMachineTime). */
+  private exactTimeKnown = false;
+
+  /**
+   * MAME's `machine().time()` exactly, where the board knows it: a timer's
+   * callback or posted work runs at its exact time, a processor in its slice
+   * stands at its exact local time, and between timeslices the scheduler
+   * stands at its base. Undefined where only seconds are known (a device
+   * running in the round, a delivery of device time), and on a board whose
+   * rounds do not end at timers.
+   */
+  private exactMachineTime(): ExactAttotime | undefined {
+    const runner = this.frameRunner;
+    // Not before the scheduler starts: a device_start's timer counts from
+    // power-on, which the runner's base does not stand at yet.
+    if (!this.exactTimeKnown || !runner || !this.schedulerRunning) return undefined;
+    if (generatedTimerExpiry() !== undefined) return generatedTimerExactExpiry();
+    if (this.deliveringDeviceTime || this.runningRoundDevice !== undefined) return undefined;
+    if (this.runningCpu !== undefined) {
+      const local = runner.runningLocalExact(this.runningCycles());
+      return local === undefined ? undefined : exactFromAttos(local);
+    }
+    return exactFromAttos(runner.baseExact());
   }
 
   private drainingScheduledWork = false;

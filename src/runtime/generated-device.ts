@@ -36,7 +36,7 @@ import {
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
 import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, programLambdas, deviceLambdaName, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
-import { attotimeBinary, attotimeField, attotimeFieldAssignment, ExactAttotime, exactAttotime, exactAttotimeFromHz, withAttotimeField } from '../ir/exact-attotime.ts';
+import { attotimeBinary, attotimeField, attotimeFieldAssignment, attotimeSecondsFromHz, attotimeSecondsFromTicks, ExactAttotime, exactAttotime, exactAttotimeFromHz, exactDuration, exactToAttos, withAttotimeField } from '../ir/exact-attotime.ts';
 import { markResizable, stateValue } from './machine-state.ts';
 import { GeneratedRectangle } from './rectangle.ts';
 import { IrEmuFile, IrFlacDecoder, mameStringFormat, type SamplePath } from './sample-path.ts';
@@ -471,6 +471,8 @@ export interface Device {
   needsTick?(): boolean;
   /** Seconds until the soonest armed timer of this device or one inside it fires. */
   untilNextTimer?(): number;
+  /** The armed timer due soonest (IrDevice.soonestTimer): its exact expiry, and re-anchoring its countdown to it. */
+  soonestTimer?(): { exactDue(): ExactAttotime | undefined; anchorTo(now: bigint): number } | undefined;
   /** Host a device_execute_interface time slice in device cycles. */
   runCycles?(cycles: number): number;
   /** device_execute_interface::total_cycles(), mid-slice included. */
@@ -817,6 +819,22 @@ class IrAttotime {
  */
 let timerBacklogSeconds = 0;
 
+/** How many device timer callbacks are running (IrTimer.tick), nested. */
+let timerCallbackDepth = 0;
+
+/**
+ * MAME's `machine().time()` exactly where the board knows it, for a timer
+ * armed outside any timer's callback: the running processor's local time, or
+ * the scheduler's base between timeslices. Undefined where it is only known
+ * in seconds; such a timer keeps no exact expiry (IrTimer.adjust).
+ */
+let timerArmExact: (() => ExactAttotime | undefined) | undefined;
+
+/** The board says where MAME's time stands exactly when a timer is armed (see timerArmExact). */
+export function setGeneratedTimerArmExact(exact: (() => ExactAttotime | undefined) | undefined): void {
+  timerArmExact = exact;
+}
+
 /**
  * The board's delivery of device time in progress, if any: it brackets every
  * delivery with beginGeneratedTimerDelivery and endGeneratedTimerDelivery. A
@@ -952,6 +970,17 @@ let timerNowAheadSeconds = 0;
  */
 const TIMER_NOW_TOLERANCE_SECONDS = 1e-10;
 
+/**
+ * The same for a timer whose expiry is held exactly (IrTimer.exactExpiry):
+ * the board ends its round on that attosecond and puts its countdown back
+ * on it, so what is left when the round ends is a double's rounding of a few
+ * attoseconds, not a drift. MAME fires a timer only once time has reached
+ * it; with the wider tolerance one fired 4.4 ps early, at the end of a round
+ * something else had ended there, and Bubble Bobble's sound Z80, a cycle
+ * short of it, read the YM2203's timer flag an instruction early (#278).
+ */
+export const EXACT_TIMER_TOLERANCE_SECONDS = 1e-16;
+
 /** diexec.h: the suspend reason `suspend_until_trigger` sets. */
 const SUSPEND_REASON_TRIGGER = 0x0008;
 
@@ -1022,14 +1051,24 @@ function exactMachineTime(seconds: unknown): ExactAttotime {
  * a device timer's does. The Spectrum's interrupt callback reads
  * `local_time() - machine().time()` to recover the cycle it fell on.
  */
-export function withGeneratedTimerExpiry<T>(seconds: number, run: () => T): T {
+export function withGeneratedTimerExpiry<T>(seconds: number, run: () => T, exact?: ExactAttotime): T {
   const outer = timerExpirySeconds;
+  const outerExact = timerExactExpiry;
   timerExpirySeconds = seconds;
+  // Exactly too, when the board knows it (synchronized work is posted at
+  // the poster's exact local time); never an enclosing timer's.
+  timerExactExpiry = exact;
   try {
     return run();
   } finally {
     timerExpirySeconds = outer;
+    timerExactExpiry = outerExact;
   }
+}
+
+/** The exact time a timer's callback, or a board's timed work, runs at; undefined where only seconds are known. */
+export function generatedTimerExactExpiry(): ExactAttotime | undefined {
+  return timerExactExpiry;
 }
 
 const noTimerCallback = (): void => {};
@@ -1120,10 +1159,16 @@ class IrTimer {
   private creditedDelivery = -1;
 
   /**
-   * The expiry exactly, when an exact device armed it with an exact delay:
-   * its `machine().time()` while the callback runs (timerExactExpiry).
+   * The expiry exactly: an exact device's `machine().time()` while the
+   * callback runs (timerExactExpiry), and for every timer the attotime its
+   * rounds are bounded by (exactDue). Seconds counted down in a double drift
+   * off MAME's attotime by a few hundred attoseconds a period, and a round
+   * that ends that short of a timer leaves a processor a whole cycle short of
+   * it (#278).
    */
   private exactExpiry: ExactAttotime | undefined;
+  /** The period exactly, for a periodic timer with an exact expiry. */
+  private exactPeriod: ExactAttotime | undefined;
 
   /** The owning device's `machine().time()`, when it has one: seconds, or an exact attotime. */
   private readonly now?: () => unknown;
@@ -1134,7 +1179,23 @@ class IrTimer {
 
   /** Save-state roots (machine-state.ts). */
   stateKeys(): readonly string[] {
-    return ['remainingSeconds', 'disabledSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry', 'exactExpiry'];
+    return ['remainingSeconds', 'disabledSeconds', 'intervalSeconds', 'period', 'parameter', 'adjustmentGeneration', 'expiry', 'exactExpiry', 'exactPeriod'];
+  }
+
+  /** The expiry exactly while the timer is armed, when it is known (see exactExpiry). */
+  exactDue(): ExactAttotime | undefined {
+    return Number.isFinite(this.remainingSeconds) ? this.exactExpiry : undefined;
+  }
+
+  /**
+   * Puts the countdown back on the exact expiry, the devices standing at
+   * `now` (total attoseconds). The board does so for the soonest timer at the
+   * start of every round, so the seconds a delivery takes off it cannot drift.
+   */
+  anchorTo(now: bigint): number {
+    const due = this.exactDue();
+    if (due) this.remainingSeconds = Number(exactToAttos(due) - now) * 1e-18;
+    return this.remainingSeconds;
   }
 
   adjust(duration: unknown, parameter = 0, repeat: unknown = Infinity): void {
@@ -1169,6 +1230,15 @@ class IrTimer {
     this.period = Number.isFinite(period) && period > 0 ? period : Infinity;
     this.parameter = parameter;
     this.adjustmentGeneration++;
+    // MAME's expiry is `time() + delay`: inside another timer's callback,
+    // time() is that timer's expiry; elsewhere the board says where it stands.
+    if (!this.exactExpiry && Number.isFinite(delay)) {
+      const from = timerCallbackDepth > 0 ? timerExactExpiry : timerArmExact?.();
+      if (from) {
+        this.exactExpiry = attotimeBinary('+', from, delay > 0 ? exactDuration(delay) : ExactAttotime.zero) as ExactAttotime;
+      }
+    }
+    this.exactPeriod = this.exactExpiry && Number.isFinite(this.period) ? exactDuration(this.period) : undefined;
     // Armed from inside another timer's callback, the delay runs from that
     // callback's expiry, where MAME's scheduler stands; the delivery in
     // progress has already carried device time past it by the backlog. So
@@ -1177,7 +1247,14 @@ class IrTimer {
     // 2C02's NMI -- armed four cycles after the VBLANK flag's scanline tick
     // -- fired that tick's overshoot late, and a timer whose device is ticked
     // after the arming one in the same delivery took the whole lump (#184).
-    if (timerBacklogSeconds > 0 && Number.isFinite(this.remainingSeconds)) {
+    // Either side of the expiry: a timer due within the clocks' rounding fires
+    // a hair before it (TIMER_NOW_TOLERANCE_SECONDS), with the backlog
+    // negative. Credited only when positive, such a re-arm fell through to a
+    // processor's arming lead below, which a callback is not, and Bubble
+    // Bobble's YM2203 timer B -- re-armed by ymfm in its own callback every
+    // period -- crept ahead of MAME's by up to 1.7 ps a period until the
+    // sound CPU stopped a cycle short of it and read its flag early (#278).
+    if (timerCallbackDepth > 0 && Number.isFinite(this.remainingSeconds)) {
       this.remainingSeconds -= timerBacklogSeconds;
       this.creditedDelivery = timerDeliveryOpen ? timerDelivery : -1;
     } else {
@@ -1281,7 +1358,8 @@ class IrTimer {
     if (this.creditedDelivery !== timerDelivery) this.remainingSeconds -= seconds;
     // Every armed timer comes through here once per round, and on a board with
     // a per-cycle timer that is tens of thousands of times a frame.
-    if (this.remainingSeconds > TIMER_NOW_TOLERANCE_SECONDS - timerHeadroomSeconds) return;
+    const tolerance = this.exactExpiry ? EXACT_TIMER_TOLERANCE_SECONDS : TIMER_NOW_TOLERANCE_SECONDS;
+    if (this.remainingSeconds > tolerance - timerHeadroomSeconds) return;
     let firings = 0;
     // Due within the clocks' rounding is due: MAME fires a timer whose expiry
     // the processor's slice ends exactly on before the next instruction, and
@@ -1290,7 +1368,7 @@ class IrTimer {
     // A catch-up's delivery ends at the processor's access, and a timer due
     // exactly there fires after it (City Fighter IV's VRC4 IRQ counter ticks
     // on whole cycles and was taken an instruction early, #184).
-    const due = (timerDeliveryExclusive ? -TIMER_NOW_TOLERANCE_SECONDS : TIMER_NOW_TOLERANCE_SECONDS) - timerHeadroomSeconds;
+    const due = (timerDeliveryExclusive ? -tolerance : tolerance) - timerHeadroomSeconds;
     while (this.remainingSeconds <= due) {
       if (++firings > 65_536) throw new Error('generated device timer exceeded 65536 firings');
       const overshoot = -this.remainingSeconds;
@@ -1306,9 +1384,11 @@ class IrTimer {
       timerBacklogSeconds = outerBacklog + overshoot;
       timerExpirySeconds = Number.isFinite(this.expiry) ? this.expiry : undefined;
       timerExactExpiry = this.exactExpiry;
+      timerCallbackDepth++;
       try {
         callback(this.parameter);
       } finally {
+        timerCallbackDepth--;
         timerBacklogSeconds = outerBacklog;
         timerExpirySeconds = outerExpiry;
         timerExactExpiry = outerExact;
@@ -1332,8 +1412,9 @@ class IrTimer {
       this.remainingSeconds += firedPeriod;
       this.intervalSeconds = firedPeriod;
       this.expiry += firedPeriod;
-      // A period held in seconds has no exact sum.
-      this.exactExpiry = undefined;
+      this.exactExpiry = this.exactExpiry && this.exactPeriod
+        ? attotimeBinary('+', this.exactExpiry, this.exactPeriod) as ExactAttotime
+        : undefined;
     }
   }
 }
@@ -1748,7 +1829,7 @@ class IrDevice implements Device {
     // the CTC's clock rather than its own (which is 0). Never in place of a
     // method of the same name: ymfm's engine is ticked by its own `clock()`.
     self.clock ??= () => clock;
-    self.clocks_to_attotime ??= (ticks: unknown) => clock > 0 ? Number(ticks) / clock : Infinity;
+    self.clocks_to_attotime ??= (ticks: unknown) => attotimeSecondsFromTicks(ticks, clock);
     self.attotime_to_clocks ??= (seconds: unknown) => Math.floor(Number(seconds) * clock);
     self.machine = () => ({
       sample_rate: () => Number(this.bindings.calls?.['machine().sample_rate']?.() ?? 48000),
@@ -2162,7 +2243,7 @@ class IrDevice implements Device {
         },
         total_cycles: () => this.executedCycles + (this.runningCycles === undefined
           ? 0 : this.runningCycles - Number(this.members[this.icountMember])),
-        clocks_to_attotime: ticks => clock > 0 ? ticks / clock : Infinity,
+        clocks_to_attotime: ticks => attotimeSecondsFromTicks(ticks, clock),
         // MAME `device_t::attotime_to_clocks`, the inverse. A chip that
         // measures an interval in its own clocks needs it: the Game Boy APU
         // advances every channel by
@@ -2170,10 +2251,8 @@ class IrDevice implements Device {
         // zero every time -- the square waves never toggled and the console
         // rendered silence however loud the game set the envelope.
         attotime_to_clocks: seconds => Math.floor(Number(seconds) * clock),
-        'attotime::from_hz': frequency =>
-          frequency > 0 ? 1 / frequency : Infinity,
-        'attotime::from_ticks': (ticks, frequency) =>
-          frequency > 0 ? ticks / frequency : Infinity,
+        'attotime::from_hz': frequency => attotimeSecondsFromHz(frequency),
+        'attotime::from_ticks': (ticks, frequency) => attotimeSecondsFromTicks(ticks, frequency),
         // The rest of attotime's constructors, in the seconds every duration
         // is held in here (as execute.ts's macro answers them). Bound so a
         // floppy drive's per-flux-cell `attotime::from_usec(4)` is a call,
@@ -2937,6 +3016,24 @@ class IrDevice implements Device {
   needsTick(): boolean {
     return this.timers.size > 0 || this.children.some(child => child.needsTick()) ||
       Boolean(this.slotChild?.needsTick());
+  }
+
+  /** The armed timer due soonest, this device's or a child's (see untilNextTimer). */
+  soonestTimer(): IrTimer | undefined {
+    let soonest = Infinity;
+    let found: IrTimer | undefined;
+    const entries = this.timerEntries;
+    for (let index = 0; index < entries.length; index++) {
+      const timer = entries[index]!.timer;
+      const until = timer.untilExpiry();
+      if (until < soonest) { soonest = until; found = timer; }
+    }
+    for (const child of [...this.children, ...this.slotChild ? [this.slotChild] : []]) {
+      const timer = child.soonestTimer();
+      const until = timer?.untilExpiry() ?? Infinity;
+      if (until < soonest) { soonest = until; found = timer; }
+    }
+    return found;
   }
 
   untilNextTimer(): number {
