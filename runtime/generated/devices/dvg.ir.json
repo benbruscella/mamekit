@@ -1,0 +1,3054 @@
+{
+  "type": "DVG",
+  "uses": [
+    {
+      "game": "asteroid",
+      "tags": [
+        "dvg"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "DVG",
+    "className": "dvg_device",
+    "shortName": "dvg",
+    "description": "Atari DVG",
+    "sourceFile": "src/devices/video/avgdvg.cpp",
+    "sourceLine": 1498,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(DVG,          dvg_device,          \"dvg\",          \"Atari DVG\")"
+  },
+  "methods": [
+    {
+      "name": "apply_flipping",
+      "parameters": "int &x, int &y",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_flip_x"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_xcenter"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "x"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_flip_y"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "y"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_ycenter"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "y"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_flush",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 56,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "cx0",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "cy0",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "cx1",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 83886080
+            }
+          },
+          {
+            "op": "declare",
+            "name": "cy1",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 83886080
+            }
+          },
+          {
+            "op": "declare",
+            "name": "i",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_vectbuf"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "property": "status"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "VGCLIP"
+              }
+            },
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "xs",
+            "valueType": "int",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vectbuf"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              },
+              "property": "x"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ys",
+            "valueType": "int",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vectbuf"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              },
+              "property": "y"
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_nvect"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_vectbuf"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    },
+                    "property": "status"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "VGVECTOR"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "xe",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vectbuf"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "property": "x"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "ye",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vectbuf"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "property": "y"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "x0",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "xs"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "y0",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "ys"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "x1",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "xe"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "y1",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "ye"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "xs"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "xe"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ys"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "ye"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "||",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cx0"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cx0"
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cx1"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cx1"
+                          }
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "continue"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x0"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cx0"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "y0"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "cx0"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "x0"
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "y1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "y0"
+                                }
+                              }
+                            },
+                            "precision": 64
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "x1"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "x0"
+                            }
+                          },
+                          "precision": 64
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x0"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "cx0"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cx1"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "y0"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "cx1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "x0"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "y1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "y0"
+                                    }
+                                  }
+                                },
+                                "precision": 64
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "x1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "x0"
+                                }
+                              },
+                              "precision": 64
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "x0"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "cx1"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "x1"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cx0"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "y1"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "cx0"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "x1"
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "y1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "y0"
+                                }
+                              }
+                            },
+                            "precision": 64
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "x1"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "x0"
+                            }
+                          },
+                          "precision": 64
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "cx0"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "x1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cx1"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "y1"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "cx1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "x1"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "y1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "y0"
+                                    }
+                                  }
+                                },
+                                "precision": 64
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "x1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "x0"
+                                }
+                              },
+                              "precision": 64
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "x1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "cx1"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "||",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cy0"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cy0"
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cy1"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cy1"
+                          }
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "continue"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y0"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cy0"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x0"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "cy0"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "y0"
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "x1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "x0"
+                                }
+                              }
+                            },
+                            "precision": 64
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "y1"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "y0"
+                            }
+                          },
+                          "precision": 64
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "y0"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "cy0"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y0"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cy1"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "x0"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "cy1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "y0"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "x1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "x0"
+                                    }
+                                  }
+                                },
+                                "precision": 64
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "y1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "y0"
+                                }
+                              },
+                              "precision": 64
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "y0"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "cy1"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y1"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cy0"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "x1"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "cy0"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "y1"
+                                }
+                              }
+                            },
+                            "right": {
+                              "kind": "cast",
+                              "valueType": "s64",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "x1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "x0"
+                                }
+                              }
+                            },
+                            "precision": 64
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "y1"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "y0"
+                            }
+                          },
+                          "precision": 64
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "y1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "cy0"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y1"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "cy1"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "x1"
+                            },
+                            "operator": "+=",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "cy1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "y1"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "kind": "cast",
+                                  "valueType": "s64",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "x1"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "x0"
+                                    }
+                                  }
+                                },
+                                "precision": 64
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "-",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "y1"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "y0"
+                                }
+                              },
+                              "precision": 64
+                            }
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "y1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "cy1"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vector"
+                        },
+                        "property": "add_point"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "x0"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "y0"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_vectbuf"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "property": "color"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vector"
+                        },
+                        "property": "add_point"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "x1"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "y1"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_vectbuf"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "property": "color"
+                        },
+                        {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_vectbuf"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "i"
+                            }
+                          },
+                          "property": "intensity"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_vectbuf"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "i"
+                      }
+                    },
+                    "property": "status"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "VGCLIP"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "cx0"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vectbuf"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "property": "x"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "cy0"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vectbuf"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "property": "y"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "cx1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vectbuf"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "property": "arg1"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "cy1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_vectbuf"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "i"
+                        }
+                      },
+                      "property": "arg2"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "cx0"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cx1"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "swap"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "cx0"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "cx1"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "cy0"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cy1"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "swap"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "cy0"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "cy1"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_nvect"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_add_point_buf",
+      "parameters": "int x, int y, rgb_t color, int intensity",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 146,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_add_clip",
+      "parameters": "int xmin, int ymin, int xmax, int ymax",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "m_nvect"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "MAXVECT"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vectbuf"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "m_nvect"
+                    }
+                  },
+                  "property": "status"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "VGCLIP"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vectbuf"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "m_nvect"
+                    }
+                  },
+                  "property": "x"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "xmin"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vectbuf"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "m_nvect"
+                    }
+                  },
+                  "property": "y"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "ymin"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vectbuf"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "m_nvect"
+                    }
+                  },
+                  "property": "arg1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "xmax"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vectbuf"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "m_nvect"
+                    }
+                  },
+                  "property": "arg2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "ymax"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_nvect"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_set_halt",
+      "parameters": "int dummy",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1177,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "done_r",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1248,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_w",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1253,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vggo"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_sync_halt"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_nvect"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 10
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    },
+                    "property": "clear_list"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vg_flush"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vg_set_halt"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vg_run_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "attotime::zero"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_word_w",
+      "parameters": "u16 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1272,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "go_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1284,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vgrst"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vg_set_halt"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_word_w",
+      "parameters": "u16 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1290,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "reset_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1330,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "avgdvg_device_base::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "visarea",
+            "valueType": "rectangle&",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    },
+                    "property": "screen"
+                  },
+                  "args": []
+                },
+                "property": "visible_area"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xmin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "min_x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ymin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "min_y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xcenter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 512
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ycenter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 512
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1301,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_vector"
+                  },
+                  "property": "started"
+                },
+                "args": []
+              }
+            },
+            "then": []
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flip_x"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_flip_y"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pc"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sp"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dvx"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dvy"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_stack"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_state_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_scale"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_intensity"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_op"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_halt"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sync_halt"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xpos"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ypos"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip_x"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip_y"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_set_halt_callback",
+      "parameters": "int param",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1183,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "run_state_machine",
+      "parameters": "int param",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1202,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_vector",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 13,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_memory",
+      "parameters": "auto &&tag, int no, offs_t base",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_memspace"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "no"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_membase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_flip_x",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_flip_y",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ST3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_vector",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_memory",
+      "parameters": "auto &&tag, int no, offs_t base",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 19,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_memspace"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "no"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_membase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_flip_x",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_flip_y",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::ST3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_databus",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 179,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_addr",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 185,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 195,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 205,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dvg_draw_to",
+      "parameters": "int x, int y, int intensity",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 220,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 232,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 338,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_7",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 351,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_6",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 358,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_5",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 371,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_4",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 385,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vggo",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 397,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_op"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vgrst",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 403,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state_latch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_op"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vector_device::color111",
+      "parameters": "T c",
+      "sourceFile": "src/devices/video/vector.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pal1bit",
+      "parameters": "uint8_t bits",
+      "sourceFile": "src/lib/util/palette.h",
+      "sourceLine": 249,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "palexpand_1",
+      "parameters": "uint8_t bits",
+      "sourceFile": "src/lib/util/palette.h",
+      "sourceLine": 232,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/video/avgdvg.cpp",
+    "src/devices/video/avgdvg.h",
+    "src/devices/video/vector.h",
+    "src/devices/video/vector.cpp"
+  ]
+}

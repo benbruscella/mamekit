@@ -1,0 +1,1898 @@
+{
+  "schemaVersion": 1,
+  "type": "AD7533",
+  "className": "ad7533_device",
+  "description": "AD7533 DAC",
+  "hierarchy": [
+    "dac_device_base",
+    "dac_word_interface",
+    "dac_word_device_base",
+    "ad7533_device"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/dac.h",
+    "src/devices/sound/dac.cpp"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "DAC_INPUT_RANGE_HI": 0,
+    "DAC_INPUT_RANGE_LO": 1,
+    "dac_gain_r2r": 1,
+    "dac_gain_bw": 2,
+    "_dac_type": 3710911511,
+    "AD7533": 2056903014
+  },
+  "members": [
+    {
+      "name": "m_curval",
+      "valueType": "sound_stream::sample_t",
+      "initial": 0
+    },
+    {
+      "name": "m_bits",
+      "valueType": "u8 const",
+      "bits": 8,
+      "initial": 10
+    },
+    {
+      "name": "m_mapper",
+      "valueType": "dac_mapper_callback const",
+      "initialText": "dac_mapper_unsigned"
+    },
+    {
+      "name": "m_gain",
+      "valueType": "sound_stream::sample_t const",
+      "initial": 1
+    },
+    {
+      "name": "m_range_min",
+      "valueType": "sound_stream::sample_t",
+      "initial": -1
+    },
+    {
+      "name": "m_range_max",
+      "valueType": "sound_stream::sample_t",
+      "initial": 1
+    },
+    {
+      "name": "m_value_map",
+      "valueType": "std::vector<sound_stream::sample_t>",
+      "memory": {
+        "kind": "growable",
+        "elementBytes": 0,
+        "element": "sound_stream::sample_t"
+      },
+      "initial": 1024
+    },
+    {
+      "name": "m_stream",
+      "valueType": "sound_stream*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "set_value",
+      "parameters": "u32 value",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_curval"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_value_map"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "value"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_value_map"
+                      },
+                      "property": "size"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 91,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_output_range",
+      "parameters": "sound_stream::sample_t range_min, sound_stream::sample_t range_max",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_min"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_max"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 98,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_output_range",
+      "parameters": "sound_stream::sample_t vref",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_output_range__2"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "vref"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "vref"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 108,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "code",
+                "valueType": "s32",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "code"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_value_map"
+                  },
+                  "property": "size"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "code"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_value_map"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "code"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "CALL_METHOD"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "m_mapper"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "code"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "m_bits"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_gain"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "inputs",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_sound_requested_inputs_mask"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 0
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "inputs"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "number",
+                    "value": 48000
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_curval"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.cpp",
+        "line": 87,
+        "column": 1
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "input_count"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "fill"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_range_min"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_curval"
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_range_max"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_range_min"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "get_sound_requested_inputs_mask"
+                    },
+                    "args": []
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "DAC_INPUT_RANGE_LO"
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "sampindex",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "sampindex"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sampindex"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "put"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_range_min"
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_curval"
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "stream"
+                                  },
+                                  "property": "get"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "DAC_INPUT_RANGE_HI"
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "sampindex"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_range_min"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_sound_requested_inputs_mask"
+                        },
+                        "args": []
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "DAC_INPUT_RANGE_HI"
+                      }
+                    ]
+                  }
+                },
+                "then": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "sampindex",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "stream"
+                          },
+                          "property": "samples"
+                        },
+                        "args": []
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "sampindex"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "stream"
+                                  },
+                                  "property": "get"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "DAC_INPUT_RANGE_LO"
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "sampindex"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_curval"
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_range_max"
+                                  },
+                                  "right": {
+                                    "kind": "call",
+                                    "callee": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "stream"
+                                      },
+                                      "property": "get"
+                                    },
+                                    "args": [
+                                      {
+                                        "kind": "identifier",
+                                        "name": "DAC_INPUT_RANGE_LO"
+                                      },
+                                      {
+                                        "kind": "identifier",
+                                        "name": "sampindex"
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "sampindex",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "stream"
+                          },
+                          "property": "samples"
+                        },
+                        "args": []
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "sampindex"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "stream"
+                                  },
+                                  "property": "get"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "DAC_INPUT_RANGE_LO"
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "sampindex"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_curval"
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "call",
+                                    "callee": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "stream"
+                                      },
+                                      "property": "get"
+                                    },
+                                    "args": [
+                                      {
+                                        "kind": "identifier",
+                                        "name": "DAC_INPUT_RANGE_HI"
+                                      },
+                                      {
+                                        "kind": "identifier",
+                                        "name": "sampindex"
+                                      }
+                                    ]
+                                  },
+                                  "right": {
+                                    "kind": "call",
+                                    "callee": {
+                                      "kind": "member",
+                                      "object": {
+                                        "kind": "identifier",
+                                        "name": "stream"
+                                      },
+                                      "property": "get"
+                                    },
+                                    "args": [
+                                      {
+                                        "kind": "identifier",
+                                        "name": "DAC_INPUT_RANGE_LO"
+                                      },
+                                      {
+                                        "kind": "identifier",
+                                        "name": "sampindex"
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.cpp",
+        "line": 108,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_device_base::set_value",
+      "parameters": "u32 value",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_curval"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_value_map"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "value"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_value_map"
+                      },
+                      "property": "size"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 91,
+        "column": 65
+      }
+    },
+    {
+      "name": "dac_device_base::set_output_range",
+      "parameters": "sound_stream::sample_t range_min, sound_stream::sample_t range_max",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_min"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_max"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 99,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_word_device_base",
+      "parameters": "const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, u8 bits, dac_mapper_callback mapper, sound_stream::sample_t gain",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 161,
+        "column": 1
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "u16 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                "property": "set_value"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 166,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "u16 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                "property": "set_value"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 169,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_word_device_base::dac_word_device_base",
+      "parameters": "const machine_config &mconfig, device_type type, const char *tag, device_t *owner, u32 clock, u8 bits, dac_mapper_callback mapper, sound_stream::sample_t gain",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 162,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_word_device_base::write",
+      "parameters": "u16 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                "property": "set_value"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 167,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_word_device_base::data_w",
+      "parameters": "u16 data",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                "property": "set_value"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 170,
+        "column": 1
+      }
+    },
+    {
+      "name": "ad7533_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock = 0",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 1,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_mapper_unsigned",
+      "parameters": "u32 input, u8 bits",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "scale",
+            "valueType": "sound_stream::sample_t",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "number",
+                "value": 1,
+                "floating": true
+              },
+              "right": {
+                "kind": "cast",
+                "valueType": "float",
+                "operand": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": ">",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "bits"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "bits"
+                    }
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "input"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bits"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "cast",
+                "valueType": "float",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "input"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "scale"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.cpp",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_mapper_signed",
+      "parameters": "u32 input, u8 bits",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "dac_mapper_unsigned"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "input"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "bits"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "bits"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.cpp",
+        "line": 41,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_mapper_ones_complement",
+      "parameters": "u32 input, u8 bits",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "input"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bits"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "number",
+                    "value": 0.5,
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "number",
+                      "value": 0.5,
+                      "floating": true
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "dac_mapper_unsigned"
+                      },
+                      "args": [
+                        {
+                          "kind": "unary",
+                          "operator": "~",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "input"
+                          }
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "bits"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "number",
+                    "value": 0.5,
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "number",
+                      "value": 0.5,
+                      "floating": true
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "dac_mapper_unsigned"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "input"
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "bits"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.cpp",
+        "line": 53,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_output_range=",
+      "parameters": "sound_stream::sample_t range_min, sound_stream::sample_t range_max, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_min"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_max"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 98,
+        "column": 1
+      }
+    },
+    {
+      "name": "dac_device_base::set_output_range=",
+      "parameters": "sound_stream::sample_t range_min, sound_stream::sample_t range_max, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_min"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_max"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 99,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_output_range__2",
+      "parameters": "sound_stream::sample_t range_min, sound_stream::sample_t range_max",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_min"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_range_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "range_max"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 98,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_output_range__1",
+      "parameters": "sound_stream::sample_t vref",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_output_range__2"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "vref"
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "vref"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/dac.h",
+        "line": 108,
+        "column": 1
+      }
+    }
+  ],
+  "structs": {
+    "range": [
+      {
+        "name": "start",
+        "bits": 32
+      },
+      {
+        "name": "end",
+        "bits": 32
+      }
+    ]
+  },
+  "start": "device_start",
+  "summary": {
+    "methods": 21,
+    "compiledMethods": 21,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "set_value",
+    "set_output_range",
+    "set_output_range",
+    "device_start",
+    "sound_stream_update",
+    "dac_device_base::set_value",
+    "dac_device_base::set_output_range",
+    "dac_word_device_base",
+    "write",
+    "data_w",
+    "dac_word_device_base::dac_word_device_base",
+    "dac_word_device_base::write",
+    "dac_word_device_base::data_w",
+    "ad7533_device",
+    "dac_mapper_unsigned",
+    "dac_mapper_signed",
+    "dac_mapper_ones_complement",
+    "set_output_range=",
+    "dac_device_base::set_output_range=",
+    "set_output_range__2",
+    "set_output_range__1"
+  ]
+}

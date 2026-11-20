@@ -1,0 +1,871 @@
+{
+  "type": "INVADERS_AUDIO",
+  "uses": [
+    {
+      "game": "invaders",
+      "tags": [
+        "soundboard"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "INVADERS_AUDIO",
+    "className": "invaders_audio_device",
+    "shortName": "invaders_audio",
+    "description": "Taito Space Invaders Audio",
+    "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+    "sourceLine": 574,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(INVADERS_AUDIO, invaders_audio_device, \"invaders_audio\", \"Taito Space Invaders Audio\")"
+  },
+  "methods": [
+    {
+      "name": "p1_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 8494,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "enable_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "NODE_00"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 6
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "NODE_00"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 5
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "NODE_00"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 4
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "NODE_00"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 3
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sound"
+                  },
+                  "args": []
+                },
+                "property": "system_mute"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 8509,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "changed",
+            "valueType": "u8",
+            "value": {
+              "kind": "cast",
+              "valueType": "u8",
+              "operand": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "NODE_00"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 2
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "NODE_00"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "changed"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_flip_screen_out"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 8546,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "flip_screen_out",
+      "parameters": "",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 5226,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "invaders_audio_device::flip_screen_out",
+      "parameters": "",
+      "sourceFile": "src/mame/midw8080/mw8080bw_a.cpp",
+      "sourceLine": 5227,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RES_K",
+      "parameters": "double res",
+      "sourceFile": "src/devices/machine/rescap.h",
+      "sourceLine": 8,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CAP_U",
+      "parameters": "double cap",
+      "sourceFile": "src/devices/machine/rescap.h",
+      "sourceLine": 11,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CAP_N",
+      "parameters": "double cap",
+      "sourceFile": "src/devices/machine/rescap.h",
+      "sourceLine": 12,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "max",
+      "parameters": "double a, double b",
+      "sourceFile": "src/devices/sound/sn76477.cpp",
+      "sourceLine": 259,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "a",
+                  "floating": true
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "b",
+                  "floating": true
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "a",
+                "floating": true
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "b",
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "min",
+      "parameters": "double a, double b",
+      "sourceFile": "src/devices/sound/sn76477.cpp",
+      "sourceLine": 265,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "a",
+                  "floating": true
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "b",
+                  "floating": true
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "a",
+                "floating": true
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "b",
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/midw8080/mw8080bw_a.cpp",
+    "src/mame/midw8080/mw8080bw_a.h",
+    "src/devices/sound/discrete.h",
+    "src/devices/machine/rescap.h",
+    "src/devices/sound/disc_cls.h",
+    "src/devices/sound/disc_wav.h",
+    "src/devices/sound/discrete.cpp",
+    "src/devices/sound/disc_sys.hxx",
+    "src/devices/sound/disc_wav.hxx",
+    "src/devices/sound/disc_mth.hxx",
+    "src/devices/sound/disc_inp.hxx",
+    "src/devices/sound/disc_flt.hxx",
+    "src/devices/sound/disc_dev.hxx",
+    "src/devices/sound/disc_mth.h",
+    "src/devices/sound/disc_flt.h",
+    "src/devices/sound/disc_dev.h",
+    "src/devices/sound/samples.h",
+    "src/devices/sound/samples.cpp",
+    "src/devices/sound/sn76477.h",
+    "src/devices/sound/sn76477.cpp",
+    "src/devices/machine/netlist.h",
+    "src/lib/netlist/nltypes.h",
+    "src/lib/netlist/nl_config.h",
+    "src/lib/netlist/plib/pconfig.h",
+    "src/lib/netlist/plib/pexception.h",
+    "src/lib/netlist/plib/pstring.h",
+    "src/lib/netlist/plib/ptypes.h",
+    "src/lib/netlist/plib/pstring.cpp",
+    "src/lib/netlist/plib/pexception.cpp",
+    "src/lib/netlist/plib/ptime.h",
+    "src/lib/netlist/plib/pmath.h",
+    "src/lib/netlist/plib/pgsl.h",
+    "src/devices/machine/netlist.cpp",
+    "src/lib/netlist/plib/pfmtlog.h",
+    "src/lib/netlist/plib/pfmtlog.cpp"
+  ],
+  "composedOf": [
+    "DISCRETE",
+    "SN76477",
+    "SPEAKER"
+  ]
+}

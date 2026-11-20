@@ -1,0 +1,47 @@
+{
+  "game": "gauntlet",
+  "title": "Gauntlet (rev 14) (Atari Games, 1985)",
+  "fullname": "Gauntlet (rev 14)",
+  "year": "1985",
+  "manufacturer": "Atari Games",
+  "family": "gauntlet",
+  "driverFile": "src/mame/atari/gauntlet.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.231",
+        "lastRelease": "0.231"
+      },
+      {
+        "name": "O. Galibert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.228",
+        "lastRelease": "0.228"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 205,
+    "authors": 26,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

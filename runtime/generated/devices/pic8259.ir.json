@@ -1,0 +1,2213 @@
+{
+  "type": "PIC8259",
+  "uses": [
+    {
+      "game": "rtype",
+      "tags": [
+        "upd71059c"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "PIC8259",
+    "className": "pic8259_device",
+    "shortName": "pic8259",
+    "description": "Intel 8259 PIC",
+    "sourceFile": "src/devices/machine/pic8259.cpp",
+    "sourceLine": 458,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(PIC8259, pic8259_device, \"pic8259\", \"Intel 8259 PIC\")"
+  },
+  "methods": [
+    {
+      "name": "set_irq_line",
+      "parameters": "int irq, int state",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 61,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "acknowledge",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_x86"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_current_level"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "-",
+                    "operand": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "mask",
+                    "valueType": "uint8_t",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_current_level"
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "side_effects_disabled"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                              "kind": "identifier",
+                              "name": "m_level_trig_mode"
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "||",
+                            "left": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "m_master"
+                              }
+                            },
+                            "right": {
+                              "kind": "unary",
+                              "operator": "!",
+                              "operand": {
+                                "kind": "binary",
+                                "operator": "&",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_slave"
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "mask"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_irr"
+                            },
+                            "operator": "&=",
+                            "value": {
+                              "kind": "unary",
+                              "operator": "~",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "mask"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "m_auto_eoi"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_isr"
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "mask"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_irq_timer"
+                            },
+                            "property": "adjust"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "attotime::zero"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_cascade"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_master"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "mask"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_slave"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_read_slave_ack_func"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_current_level"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_current_level"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_base"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "side_effects_disabled"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_base"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_inta_sequence"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "side_effects_disabled"
+                        },
+                        "args": []
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_current_level"
+                          },
+                          "right": {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                              },
+                              "args": []
+                            }
+                          },
+                          {
+                            "op": "declare",
+                            "name": "mask",
+                            "valueType": "uint8_t",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "<<",
+                              "left": {
+                                "kind": "number",
+                                "value": 1
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_current_level"
+                              }
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "!",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "m_level_trig_mode"
+                                }
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "||",
+                                "left": {
+                                  "kind": "unary",
+                                  "operator": "!",
+                                  "operand": {
+                                    "kind": "identifier",
+                                    "name": "m_master"
+                                  }
+                                },
+                                "right": {
+                                  "kind": "unary",
+                                  "operator": "!",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "&",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "m_slave"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "mask"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_irr"
+                                },
+                                "operator": "&=",
+                                "value": {
+                                  "kind": "unary",
+                                  "operator": "~",
+                                  "operand": {
+                                    "kind": "identifier",
+                                    "name": "mask"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_isr"
+                            },
+                            "operator": "|=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "mask"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TRACE_NOOP"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_inta_sequence"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_cascade"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_master"
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "!=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_current_level"
+                          },
+                          "right": {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "BIT"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "m_slave"
+                          },
+                          {
+                            "kind": "identifier",
+                            "name": "m_current_level"
+                          }
+                        ]
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_read_slave_ack_func"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_current_level"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "return",
+                        "value": {
+                          "kind": "number",
+                          "value": 205
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_inta_sequence"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "machine"
+                                },
+                                "args": []
+                              },
+                              "property": "side_effects_disabled"
+                            },
+                            "args": []
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_inta_sequence"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_cascade"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_master"
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_current_level"
+                              },
+                              "right": {
+                                "kind": "unary",
+                                "operator": "-",
+                                "operand": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "BIT"
+                            },
+                            "args": [
+                              {
+                                "kind": "identifier",
+                                "name": "m_slave"
+                              },
+                              {
+                                "kind": "identifier",
+                                "name": "m_current_level"
+                              }
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "return",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "m_read_slave_ack_func"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_current_level"
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "return",
+                            "value": {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_vector_addr_low"
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "<<",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "&",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_current_level"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 7
+                                  }
+                                },
+                                "right": {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "number",
+                                    "value": 3
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "m_vector_size"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "unary",
+                          "operator": "!",
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "machine"
+                                },
+                                "args": []
+                              },
+                              "property": "side_effects_disabled"
+                            },
+                            "args": []
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_inta_sequence"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_auto_eoi"
+                              },
+                              "right": {
+                                "kind": "binary",
+                                "operator": "!=",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "m_current_level"
+                                },
+                                "right": {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                }
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_isr"
+                                },
+                                "operator": "&=",
+                                "value": {
+                                  "kind": "unary",
+                                  "operator": "~",
+                                  "operand": {
+                                    "kind": "binary",
+                                    "operator": "<<",
+                                    "left": {
+                                      "kind": "number",
+                                      "value": 1
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "m_current_level"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_irq_timer"
+                                },
+                                "property": "adjust"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "attotime::zero"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&&",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&&",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_cascade"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_master"
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "!=",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_current_level"
+                              },
+                              "right": {
+                                "kind": "unary",
+                                "operator": "-",
+                                "operand": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "BIT"
+                            },
+                            "args": [
+                              {
+                                "kind": "identifier",
+                                "name": "m_slave"
+                              },
+                              {
+                                "kind": "identifier",
+                                "name": "m_current_level"
+                              }
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "return",
+                            "value": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "m_read_slave_ack_func"
+                              },
+                              "args": [
+                                {
+                                  "kind": "identifier",
+                                  "name": "m_current_level"
+                                }
+                              ]
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "return",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "m_vector_addr_high"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 235,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 235,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 393,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_isr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prio"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_imr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_lines"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_input"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ocw3"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_master"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_level_trig_mode"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vector_size"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cascade"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_icw4_needed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vector_addr_low"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_base"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vector_addr_high"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_slave"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_nested"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_mode"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_eoi"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_is_x86"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_current_level"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_inta_sequence"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_inta_sequence"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 430,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state_t::READY"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_isr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_lines"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prio"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_imr"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_input"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ocw3"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_level_trig_mode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cascade"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_icw4_needed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_base"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_slave"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_nested"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_eoi"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_is_x86"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector_addr_low"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector_addr_high"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_current_level"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "-",
+              "operand": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_inta_sequence"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_master"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_in_sp_func"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_timer_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 31,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inta_cb",
+      "parameters": "int irqline",
+      "sourceFile": "src/devices/machine/pic8259.cpp",
+      "sourceLine": 177,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "acknowledge"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_sp_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_slave_ack_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ir7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_x86",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::in_sp_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::read_slave_ack_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::ir7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 51,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pic8259_device::is_x86",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/pic8259.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/pic8259.cpp",
+    "src/devices/machine/pic8259.h"
+  ]
+}

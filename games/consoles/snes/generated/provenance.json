@@ -1,0 +1,1019 @@
+{
+  "generatedFrom": "src/mame/nintendo/snes.cpp",
+  "entries": [
+    {
+      "path": "/callbacks/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1342,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/1/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1343,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/2/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1349,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/3/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1355,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/4/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1358,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/5/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1362,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/6/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1364,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/7/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1365,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/8/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1377,
+      "column": 2
+    },
+    {
+      "path": "/callbacks/9/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1378,
+      "column": 2
+    },
+    {
+      "path": "/connections/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1342,
+      "column": 2
+    },
+    {
+      "path": "/connections/1/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1343,
+      "column": 2
+    },
+    {
+      "path": "/connections/2/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1349,
+      "column": 2
+    },
+    {
+      "path": "/connections/3/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1358,
+      "column": 2
+    },
+    {
+      "path": "/connections/4/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1377,
+      "column": 2
+    },
+    {
+      "path": "/connections/5/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1378,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1336,
+      "column": 2
+    },
+    {
+      "path": "/execution/cpus/1/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1340,
+      "column": 2
+    },
+    {
+      "path": "/execution/screen/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1352,
+      "column": 2
+    },
+    {
+      "path": "/execution/screenUpdate/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 31,
+      "column": 1
+    },
+    {
+      "path": "/devices/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1336,
+      "column": 2
+    },
+    {
+      "path": "/devices/1/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1340,
+      "column": 2
+    },
+    {
+      "path": "/devices/2/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1348,
+      "column": 2
+    },
+    {
+      "path": "/devices/3/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1352,
+      "column": 2
+    },
+    {
+      "path": "/devices/4/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1357,
+      "column": 2
+    },
+    {
+      "path": "/devices/5/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1361,
+      "column": 2
+    },
+    {
+      "path": "/devices/6/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1363,
+      "column": 2
+    },
+    {
+      "path": "/devices/7/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1368,
+      "column": 2
+    },
+    {
+      "path": "/devices/8/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1370,
+      "column": 2
+    },
+    {
+      "path": "/devices/9/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1375,
+      "column": 2
+    },
+    {
+      "path": "/handlers/0/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 93,
+      "column": 1
+    },
+    {
+      "path": "/handlers/1/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 46,
+      "column": 1
+    },
+    {
+      "path": "/handlers/2/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 61,
+      "column": 1
+    },
+    {
+      "path": "/handlers/3/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1285,
+      "column": 1
+    },
+    {
+      "path": "/handlers/4/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1255,
+      "column": 1
+    },
+    {
+      "path": "/handlers/5/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1233,
+      "column": 1
+    },
+    {
+      "path": "/handlers/6/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1184,
+      "column": 1
+    },
+    {
+      "path": "/handlers/7/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1174,
+      "column": 1
+    },
+    {
+      "path": "/handlers/8/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1243,
+      "column": 1
+    },
+    {
+      "path": "/handlers/9/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 975,
+      "column": 1
+    },
+    {
+      "path": "/handlers/10/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 182,
+      "column": 1
+    },
+    {
+      "path": "/handlers/11/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1298,
+      "column": 1
+    },
+    {
+      "path": "/handlers/12/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1193,
+      "column": 1
+    },
+    {
+      "path": "/handlers/13/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 55,
+      "column": 1
+    },
+    {
+      "path": "/handlers/14/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 70,
+      "column": 1
+    },
+    {
+      "path": "/handlers/15/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 87,
+      "column": 1
+    },
+    {
+      "path": "/handlers/16/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1085,
+      "column": 1
+    },
+    {
+      "path": "/handlers/17/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 75,
+      "column": 1
+    },
+    {
+      "path": "/handlers/18/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 81,
+      "column": 1
+    },
+    {
+      "path": "/handlers/19/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1327,
+      "column": 1
+    },
+    {
+      "path": "/handlers/20/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1327,
+      "column": 1
+    },
+    {
+      "path": "/handlers/21/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1003,
+      "column": 1
+    },
+    {
+      "path": "/handlers/22/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1182,
+      "column": 1
+    },
+    {
+      "path": "/handlers/23/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1182,
+      "column": 1
+    },
+    {
+      "path": "/handlers/24/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 228,
+      "column": 1
+    },
+    {
+      "path": "/handlers/25/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 212,
+      "column": 1
+    },
+    {
+      "path": "/handlers/26/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 346,
+      "column": 1
+    },
+    {
+      "path": "/handlers/27/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 236,
+      "column": 1
+    },
+    {
+      "path": "/handlers/28/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 220,
+      "column": 1
+    },
+    {
+      "path": "/handlers/29/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1113,
+      "column": 1
+    },
+    {
+      "path": "/handlers/30/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1121,
+      "column": 1
+    },
+    {
+      "path": "/handlers/31/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 285,
+      "column": 1
+    },
+    {
+      "path": "/handlers/32/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 190,
+      "column": 1
+    },
+    {
+      "path": "/handlers/33/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 120,
+      "column": 1
+    },
+    {
+      "path": "/handlers/34/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 101,
+      "column": 1
+    },
+    {
+      "path": "/handlers/35/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 16,
+      "column": 1
+    },
+    {
+      "path": "/handlers/36/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 14,
+      "column": 1
+    },
+    {
+      "path": "/handlers/37/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 234,
+      "column": 1
+    },
+    {
+      "path": "/handlers/38/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 239,
+      "column": 1
+    },
+    {
+      "path": "/handlers/39/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 131,
+      "column": 1
+    },
+    {
+      "path": "/handlers/40/source",
+      "file": "src/mame/nintendo/cx4fn.ipp",
+      "line": 201,
+      "column": 1
+    },
+    {
+      "path": "/handlers/41/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 137,
+      "column": 1
+    },
+    {
+      "path": "/handlers/42/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 199,
+      "column": 1
+    },
+    {
+      "path": "/handlers/43/source",
+      "file": "src/mame/nintendo/cx4fn.ipp",
+      "line": 19,
+      "column": 1
+    },
+    {
+      "path": "/handlers/44/source",
+      "file": "src/mame/nintendo/cx4fn.ipp",
+      "line": 45,
+      "column": 1
+    },
+    {
+      "path": "/handlers/45/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 183,
+      "column": 1
+    },
+    {
+      "path": "/handlers/46/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 189,
+      "column": 1
+    },
+    {
+      "path": "/handlers/47/source",
+      "file": "src/mame/nintendo/cx4fn.ipp",
+      "line": 94,
+      "column": 1
+    },
+    {
+      "path": "/handlers/48/source",
+      "file": "src/mame/nintendo/cx4fn.ipp",
+      "line": 146,
+      "column": 1
+    },
+    {
+      "path": "/handlers/49/source",
+      "file": "src/mame/nintendo/cx4fn.ipp",
+      "line": 68,
+      "column": 1
+    },
+    {
+      "path": "/handlers/50/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 195,
+      "column": 1
+    },
+    {
+      "path": "/handlers/51/source",
+      "file": "src/mame/nintendo/cx4oam.ipp",
+      "line": 245,
+      "column": 1
+    },
+    {
+      "path": "/handlers/52/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 31,
+      "column": 1
+    },
+    {
+      "path": "/handlers/53/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 38,
+      "column": 1
+    },
+    {
+      "path": "/handlers/54/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 49,
+      "column": 1
+    },
+    {
+      "path": "/handlers/55/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 63,
+      "column": 1
+    },
+    {
+      "path": "/handlers/56/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 31,
+      "column": 1
+    },
+    {
+      "path": "/handlers/57/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 47,
+      "column": 1
+    },
+    {
+      "path": "/handlers/58/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 39,
+      "column": 1
+    },
+    {
+      "path": "/handlers/59/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 81,
+      "column": 1
+    },
+    {
+      "path": "/handlers/60/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 60,
+      "column": 1
+    },
+    {
+      "path": "/handlers/61/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 91,
+      "column": 1
+    },
+    {
+      "path": "/handlers/62/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 115,
+      "column": 1
+    },
+    {
+      "path": "/handlers/63/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 126,
+      "column": 1
+    },
+    {
+      "path": "/handlers/64/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 149,
+      "column": 1
+    },
+    {
+      "path": "/handlers/65/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 205,
+      "column": 1
+    },
+    {
+      "path": "/handlers/66/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 215,
+      "column": 1
+    },
+    {
+      "path": "/handlers/67/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 230,
+      "column": 1
+    },
+    {
+      "path": "/handlers/68/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 242,
+      "column": 1
+    },
+    {
+      "path": "/handlers/69/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 251,
+      "column": 1
+    },
+    {
+      "path": "/handlers/70/source",
+      "file": "src/mame/nintendo/snescx4.cpp",
+      "line": 86,
+      "column": 1
+    },
+    {
+      "path": "/handlers/71/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 258,
+      "column": 1
+    },
+    {
+      "path": "/handlers/72/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 259,
+      "column": 1
+    },
+    {
+      "path": "/handlers/73/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 260,
+      "column": 1
+    },
+    {
+      "path": "/handlers/74/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 261,
+      "column": 1
+    },
+    {
+      "path": "/handlers/75/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 262,
+      "column": 1
+    },
+    {
+      "path": "/handlers/76/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 263,
+      "column": 1
+    },
+    {
+      "path": "/handlers/77/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 264,
+      "column": 1
+    },
+    {
+      "path": "/handlers/78/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 265,
+      "column": 1
+    },
+    {
+      "path": "/handlers/79/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 266,
+      "column": 1
+    },
+    {
+      "path": "/handlers/80/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 267,
+      "column": 1
+    },
+    {
+      "path": "/handlers/81/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 268,
+      "column": 1
+    },
+    {
+      "path": "/handlers/82/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 269,
+      "column": 1
+    },
+    {
+      "path": "/handlers/83/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 270,
+      "column": 1
+    },
+    {
+      "path": "/handlers/84/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 271,
+      "column": 1
+    },
+    {
+      "path": "/handlers/85/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 272,
+      "column": 1
+    },
+    {
+      "path": "/handlers/86/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 273,
+      "column": 1
+    },
+    {
+      "path": "/handlers/87/source",
+      "file": "src/mame/nintendo/cx4ops.ipp",
+      "line": 276,
+      "column": 1
+    },
+    {
+      "path": "/handlers/88/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 441,
+      "column": 1
+    },
+    {
+      "path": "/handlers/89/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 282,
+      "column": 1
+    },
+    {
+      "path": "/handlers/90/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1129,
+      "column": 1
+    },
+    {
+      "path": "/handlers/91/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1135,
+      "column": 1
+    },
+    {
+      "path": "/handlers/92/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1380,
+      "column": 1
+    },
+    {
+      "path": "/handlers/93/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 133,
+      "column": 1
+    },
+    {
+      "path": "/handlers/94/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 886,
+      "column": 1
+    },
+    {
+      "path": "/handlers/95/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 865,
+      "column": 1
+    },
+    {
+      "path": "/handlers/96/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 905,
+      "column": 1
+    },
+    {
+      "path": "/handlers/97/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 891,
+      "column": 1
+    },
+    {
+      "path": "/handlers/98/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 536,
+      "column": 1
+    },
+    {
+      "path": "/handlers/99/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 585,
+      "column": 1
+    },
+    {
+      "path": "/handlers/100/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 564,
+      "column": 1
+    },
+    {
+      "path": "/handlers/101/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 510,
+      "column": 1
+    },
+    {
+      "path": "/handlers/102/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 454,
+      "column": 1
+    },
+    {
+      "path": "/handlers/103/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 501,
+      "column": 1
+    },
+    {
+      "path": "/handlers/104/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 480,
+      "column": 1
+    },
+    {
+      "path": "/handlers/105/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 428,
+      "column": 1
+    },
+    {
+      "path": "/handlers/106/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 695,
+      "column": 1
+    },
+    {
+      "path": "/handlers/107/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 729,
+      "column": 1
+    },
+    {
+      "path": "/handlers/108/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 734,
+      "column": 1
+    },
+    {
+      "path": "/handlers/109/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 721,
+      "column": 1
+    },
+    {
+      "path": "/handlers/110/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 826,
+      "column": 1
+    },
+    {
+      "path": "/handlers/111/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 855,
+      "column": 1
+    },
+    {
+      "path": "/handlers/112/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 794,
+      "column": 1
+    },
+    {
+      "path": "/handlers/113/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 765,
+      "column": 1
+    },
+    {
+      "path": "/handlers/114/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 300,
+      "column": 1
+    },
+    {
+      "path": "/handlers/115/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 334,
+      "column": 1
+    },
+    {
+      "path": "/handlers/116/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 362,
+      "column": 1
+    },
+    {
+      "path": "/handlers/117/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 396,
+      "column": 1
+    },
+    {
+      "path": "/handlers/118/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 626,
+      "column": 1
+    },
+    {
+      "path": "/handlers/119/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 663,
+      "column": 1
+    },
+    {
+      "path": "/handlers/120/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 597,
+      "column": 1
+    },
+    {
+      "path": "/handlers/121/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 658,
+      "column": 1
+    },
+    {
+      "path": "/handlers/122/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 962,
+      "column": 1
+    },
+    {
+      "path": "/handlers/123/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 989,
+      "column": 1
+    },
+    {
+      "path": "/handlers/124/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 941,
+      "column": 1
+    },
+    {
+      "path": "/handlers/125/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 914,
+      "column": 1
+    },
+    {
+      "path": "/handlers/126/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1342,
+      "column": 2
+    },
+    {
+      "path": "/handlers/127/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1343,
+      "column": 2
+    },
+    {
+      "path": "/handlers/128/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 31,
+      "column": 1
+    },
+    {
+      "path": "/handlers/129/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 220,
+      "column": 1
+    },
+    {
+      "path": "/handlers/130/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1364,
+      "column": 2
+    },
+    {
+      "path": "/handlers/131/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1365,
+      "column": 2
+    },
+    {
+      "path": "/handlers/132/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1377,
+      "column": 2
+    },
+    {
+      "path": "/handlers/133/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1078,
+      "column": 1
+    },
+    {
+      "path": "/handlers/134/source",
+      "file": "src/mame/nintendo/snes_m.cpp",
+      "line": 1032,
+      "column": 1
+    },
+    {
+      "path": "/maps/0/ranges/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1004,
+      "column": 2
+    },
+    {
+      "path": "/maps/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1001,
+      "column": 1
+    },
+    {
+      "path": "/maps/1/ranges/0/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1010,
+      "column": 2
+    },
+    {
+      "path": "/maps/1/source",
+      "file": "src/mame/nintendo/snes.cpp",
+      "line": 1008,
+      "column": 1
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "game": "rtype",
+  "title": "R-Type (World) (Irem, 1987)",
+  "fullname": "R-Type (World)",
+  "year": "1987",
+  "manufacturer": "Irem",
+  "family": "m72",
+  "driverFile": "src/mame/irem/m72.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Stefan Lindberg",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.112",
+        "lastRelease": "0.112"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.209",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.274",
+        "lastRelease": "0.279"
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.186",
+        "lastRelease": "0.186"
+      },
+      {
+        "name": "Angelo Salese",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.215",
+        "lastRelease": "0.215"
+      },
+      {
+        "name": "Brian Troha",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.246",
+        "lastRelease": "0.246"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.274",
+        "lastRelease": "0.274"
+      },
+      {
+        "name": "Mamesick",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.249",
+        "lastRelease": "0.249"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 358,
+    "authors": 38,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,1716 @@
+{
+  "type": "NEOGEO_SPRITE_OPTIMZIED",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "spritegen"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NEOGEO_SPRITE_OPTIMZIED",
+    "className": "neosprite_optimized_device",
+    "shortName": "neosprite_opt",
+    "description": "Neo-Geo Sprites (optimized)",
+    "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+    "sourceLine": 654,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NEOGEO_SPRITE_OPTIMZIED, neosprite_optimized_device, \"neosprite_opt\", \"Neo-Geo Sprites (optimized)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_videoram_drawsource"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_videoram"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_videoram"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2048
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "u16"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_sprite_line_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_auto_animation_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_modulo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_speed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_disabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_frame_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_videoram"
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "number",
+                    "value": 32768
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2048
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_offset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_read_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_modulo"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_fixed_layer_source"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_speed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_disabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_frame_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neosprite_base_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_videoram_drawsource"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_videoram"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_videoram"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "number",
+                      "value": 32768
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2048
+                    }
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "u16"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_sprite_line_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "create_auto_animation_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_modulo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_speed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_disabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_auto_animation_frame_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_videoram"
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "number",
+                    "value": 32768
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2048
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_offset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_read_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vram_modulo"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_fixed_layer_source"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_speed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_disabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_auto_animation_frame_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 60,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "optimize_sprite_data"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "start_sprite_line_timer"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "start_auto_animation_timer"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_videoram_offset",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 76,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_offset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 32768
+                }
+              },
+              "whenTrue": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 34815
+                }
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vram_read_buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_videoram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_vram_offset"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_videoram_data",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_videoram_data",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_videoram"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "m_vram_offset"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_videoram_offset"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_vram_offset"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32768
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_vram_offset"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_vram_modulo"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32767
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_videoram_modulo",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_videoram_modulo",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_auto_animation_speed",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 118,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_auto_animation_disabled",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 124,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_auto_animation_counter",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 130,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "create_auto_animation_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 150,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_auto_animation_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 156,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_auto_animation_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "NEOGEO_VSSTART"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_fixed_layer_source",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 168,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_fixed_layer_bank_type",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 174,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_fixed_layer",
+      "parameters": "bitmap_rgb32 &bitmap, int scanline",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 180,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_fixed_layer_2pixels",
+      "parameters": "u32*&pixel_addr, int offset, u8* gfx_base, const pen_t* char_pens",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 248,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "u8",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "gfx_base"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "pixel_addr"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "char_pens"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 15
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "pixel_addr"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 240
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "pixel_addr"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "char_pens"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 240
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "pixel_addr"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_on_scanline",
+      "parameters": "int scanline, int y, int rows",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 277,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites",
+      "parameters": "bitmap_rgb32 &bitmap, int scanline",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 283,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "parse_sprites",
+      "parameters": "int scanline",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 462,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "create_sprite_line_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 530,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_sprite_line_timer",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 536,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sprite_line_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_region_mask",
+      "parameters": "u8* rgn, u32 rgn_size",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 542,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "optimize_sprite_data",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 699,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sprite_gfx_address_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "optimize_helper"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_sprite_gfx"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_region_sprites"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_region_sprites_size"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spritegfx8"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sprite_gfx"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_optimized_sprite_data",
+      "parameters": "u8* sprdata, u32 mask",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 705,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sprite_gfx_address_mask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mask"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spritegfx8"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "sprdata"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_sprite_region",
+      "parameters": "u8* region_sprites, u32 region_sprites_size",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 577,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_sprites"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "region_sprites"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_sprites_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "region_sprites_size"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_fixed_regions",
+      "parameters": "u8* fix_cart, u32 fix_cart_size, memory_region* fix_bios",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 583,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_fixed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "fix_cart"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_fixed_size"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "fix_cart_size"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_region_fixedbios"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "fix_bios"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_pens",
+      "parameters": "const pen_t* pens",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 590,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "auto_animation_timer_callback",
+      "parameters": "int param",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 136,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_line_timer_callback",
+      "parameters": "int param",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 512,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "optimize_helper",
+      "parameters": "std::vector<u8> &spritegfx, u8* region_sprites, u32 region_sprites_size",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 662,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neosprite_base_device::optimize_sprite_data",
+      "parameters": "",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 564,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neosprite_base_device::set_optimized_sprite_data",
+      "parameters": "u8* sprdata, u32 mask",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 571,
+      "program": {
+        "operations": [
+          {
+            "op": "return"
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_pixel",
+      "parameters": "int romaddr, u32* dst, const pen_t *line_pens",
+      "sourceFile": "src/mame/snk/neogeo_spr.cpp",
+      "sourceLine": 711,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/snk/neogeo_spr.cpp",
+    "src/mame/snk/neogeo_spr.h"
+  ]
+}

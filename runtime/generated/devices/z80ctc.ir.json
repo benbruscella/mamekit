@@ -1,0 +1,1240 @@
+{
+  "type": "Z80CTC",
+  "uses": [
+    {
+      "game": "rampage",
+      "tags": [
+        "ctc"
+      ]
+    },
+    {
+      "game": "spyhunt",
+      "tags": [
+        "ctc"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "Z80CTC",
+    "className": "z80ctc_device",
+    "shortName": "z80ctc",
+    "description": "Z80 CTC",
+    "sourceFile": "src/devices/machine/z80ctc.cpp",
+    "sourceLine": 72,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(Z80CTC, z80ctc_device, \"z80ctc\", \"Z80 CTC\")"
+  },
+  "methods": [
+    {
+      "name": "set_clk",
+      "parameters": "const XTAL &xtal",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "channel_config"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "auto"
+                    }
+                  ]
+                },
+                "property": "set_clock"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "xtal"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interface_post_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device"
+                  },
+                  "args": []
+                },
+                "property": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interface_post_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_decode",
+      "parameters": "uint8_t opcode",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 237
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "opcode"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 77
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "z80daisy_irq_reti"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 203
+                  },
+                  {
+                    "kind": "number",
+                    "value": 221
+                  },
+                  {
+                    "kind": "number",
+                    "value": 253
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "opcode"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 109,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 120,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 122,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trg3",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 123,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 147,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset_after_children",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "interrupt_check"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 176,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_channel"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "ch"
+                      }
+                    },
+                    "property": "m_int_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "Z80_DAISY_IEO"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "operator": "|=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "Z80_DAISY_IEO"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "m_int_state"
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_ack",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 202,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "channel",
+                "valueType": "z80ctc_channel_device&",
+                "value": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "channel"
+                    },
+                    "property": "m_int_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "Z80_DAISY_INT"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "channel"
+                      },
+                      "property": "m_int_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "Z80_DAISY_IEO"
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "interrupt_check"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_vector"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "ch"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_vector"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_reti",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 231,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "ch",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "ch"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "ch"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "channel",
+                "valueType": "z80ctc_channel_device&",
+                "value": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "channel"
+                    },
+                    "property": "m_int_state"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "Z80_DAISY_IEO"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "channel"
+                      },
+                      "property": "m_int_state"
+                    },
+                    "operator": "&=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "Z80_DAISY_IEO"
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "interrupt_check"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "return"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interrupt_check",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.cpp",
+      "sourceLine": 264,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "z80daisy_irq_state"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "Z80_DAISY_INT"
+                }
+              },
+              "whenTrue": {
+                "kind": "identifier",
+                "name": "ASSERT_LINE"
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "CLEAR_LINE"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_intr_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "intr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "zc_callback_0",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clk",
+      "parameters": "u32 clock",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "channel_config"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "auto"
+                    }
+                  ]
+                },
+                "property": "set_clock"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_channel_constant",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_int_state",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 113,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_mode",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 116,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_config",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::intr_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::zc_callback_0",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::set_clk",
+      "parameters": "u32 clock",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "channel_config"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "auto"
+                    }
+                  ]
+                },
+                "property": "set_clock"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::get_channel_constant",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::channel_int_state",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 113,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::channel_mode",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 117,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::channel_config",
+      "parameters": "int ch",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "channel_config=",
+      "parameters": "int ch, u32 __assigned",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "lookup"
+                },
+                "args": []
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "lookup"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80ctc_device::channel_config=",
+      "parameters": "int ch, u32 __assigned",
+      "sourceFile": "src/devices/machine/z80ctc.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "lookup"
+                },
+                "args": []
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_channel"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "ch"
+                    }
+                  },
+                  "property": "lookup"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/z80ctc.cpp",
+    "src/devices/machine/z80ctc.h",
+    "src/devices/machine/z80daisy.h",
+    "src/devices/machine/z80daisy.cpp"
+  ]
+}

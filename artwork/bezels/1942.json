@@ -1,0 +1,17 @@
+{
+  "name": "Upright_Artwork_Romstar",
+  "screen": {
+    "x": 1006,
+    "y": 607,
+    "w": 1920,
+    "h": 2560
+  },
+  "art": {
+    "x": 0,
+    "y": 0,
+    "w": 3960,
+    "h": 4000
+  },
+  "rotate": 0,
+  "tints": []
+}

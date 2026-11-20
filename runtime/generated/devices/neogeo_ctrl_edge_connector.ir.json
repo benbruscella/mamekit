@@ -1,0 +1,295 @@
+{
+  "type": "NEOGEO_CTRL_EDGE_CONNECTOR",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "edge"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NEOGEO_CTRL_EDGE_CONNECTOR",
+    "className": "neogeo_ctrl_edge_port_device",
+    "shortName": "neogeo_ctrl_edge",
+    "description": "SNK Neo Geo Edge Connector (Controller)",
+    "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+    "sourceLine": 35,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NEOGEO_CTRL_EDGE_CONNECTOR, neogeo_ctrl_edge_port_device, \"neogeo_ctrl_edge\",    \"SNK Neo Geo Edge Connector (Controller)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in0_r",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 165,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_device"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_device"
+                  },
+                  "property": "in0_r"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in1_r",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 170,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_device"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_device"
+                  },
+                  "property": "in1_r"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_start_sel",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 175,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_device"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_device"
+                  },
+                  "property": "read_start_sel"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_ctrlsel",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+      "sourceLine": 180,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "write_ctrlsel"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neogeo_ctrl_edge_port_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt, bool const fixed",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.h",
+      "sourceLine": 83,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "fixed"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "neogeo_ctrl_edge_port_device::neogeo_ctrl_edge_port_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt, bool const fixed",
+      "sourceFile": "src/devices/bus/neogeo_ctrl/ctrl.h",
+      "sourceLine": 84,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "fixed"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/neogeo_ctrl/ctrl.cpp",
+    "src/devices/bus/neogeo_ctrl/ctrl.h"
+  ]
+}

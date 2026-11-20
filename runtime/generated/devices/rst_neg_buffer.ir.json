@@ -1,0 +1,217 @@
+{
+  "type": "RST_NEG_BUFFER",
+  "uses": [
+    {
+      "game": "rtype",
+      "tags": [
+        "soundirq"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "RST_NEG_BUFFER",
+    "className": "rst_neg_buffer_device",
+    "shortName": "rst_neg_buffer",
+    "description": "RST Interrupt Buffer (negative modification)",
+    "sourceFile": "src/devices/machine/rstbuf.cpp",
+    "sourceLine": 63,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(RST_NEG_BUFFER, rst_neg_buffer_device, \"rst_neg_buffer\", \"RST Interrupt Buffer (negative modification)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/rstbuf.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_input_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_input",
+      "parameters": "bool state, u8 mask",
+      "sourceFile": "src/devices/machine/rstbuf.cpp",
+      "sourceLine": 151,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_set_input",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/rstbuf.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_clear_input",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/rstbuf.cpp",
+      "sourceLine": 134,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inta_cb",
+      "parameters": "int irqline",
+      "sourceFile": "src/devices/machine/rstbuf.cpp",
+      "sourceLine": 165,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_vector"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 20,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst_buffer_device::int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst30_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 78,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst28_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 81,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst18_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 84,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_vector",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::rst30_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 78,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::rst28_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 82,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::rst18_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rst_neg_buffer_device::get_vector",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/rstbuf.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/rstbuf.cpp",
+    "src/devices/machine/rstbuf.h"
+  ]
+}

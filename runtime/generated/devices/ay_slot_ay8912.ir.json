@@ -1,0 +1,97 @@
+{
+  "type": "AY_SLOT_AY8912",
+  "uses": [
+    {
+      "game": "spec128",
+      "tags": [
+        "ay_slot:ay_ay8912"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "AY_SLOT_AY8912",
+    "className": "ay8912_device",
+    "shortName": "ay_ay8912",
+    "description": "AY8912",
+    "sourceFile": "src/devices/bus/spectrum/ay/cards.cpp",
+    "sourceLine": 69,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE_PRIVATE(AY_SLOT_AY8912,     device_ay_slot_interface, bus::spectrum::ay_slot::ay8912_device,     \"ay_ay8912\",     \"AY8912\")"
+  },
+  "methods": [
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/devices/bus/spectrum/ay/cards.cpp",
+      "sourceLine": 22,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "AY8912"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_ay0"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "spectrum_ay_device::device_add_mconfig"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ay8912_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock",
+      "sourceFile": "src/devices/bus/spectrum/ay/cards.cpp",
+      "sourceLine": 13,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/spectrum/ay/cards.cpp",
+    "src/devices/bus/spectrum/ay/cards.h"
+  ],
+  "composedOf": [
+    "AY8912"
+  ]
+}

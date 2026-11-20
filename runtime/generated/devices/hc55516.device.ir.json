@@ -1,0 +1,2652 @@
+{
+  "schemaVersion": 1,
+  "type": "HC55516",
+  "className": "hc55516_device",
+  "description": "HC-55516",
+  "hierarchy": [
+    "cvsd_device_base",
+    "hc55516_device"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/hc55516.cpp",
+    "src/devices/sound/hc55516.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "SAMPLE_RATE": 192000,
+    "INTEGRATOR_LEAK_TC": 0.001,
+    "FILTER_DECAY_TC": 0.004,
+    "FILTER_CHARGE_TC": 0.004,
+    "FILTER_MIN": 0.0416,
+    "FILTER_MAX": 1.0954,
+    "SAMPLE_GAIN": 0.30517578125,
+    "RISING": 1,
+    "FALLING": 0,
+    "HC55516": 683712278,
+    "HC55532": 3032873128,
+    "HC55536": 3099983604,
+    "HC55564": 683565183,
+    "MC3417": 20538342,
+    "MC34115": 1281195707,
+    "MC3418": 205092151
+  },
+  "members": [
+    {
+      "name": "m_active_clock_edge",
+      "valueType": "const bool",
+      "bits": 1,
+      "initial": 1
+    },
+    {
+      "name": "m_shiftreg_mask",
+      "valueType": "const uint8_t",
+      "bits": 8,
+      "initial": 7
+    },
+    {
+      "name": "m_last_clock_state",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_buffered_bit",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_shiftreg",
+      "valueType": "uint8_t",
+      "bits": 8,
+      "initial": 0
+    },
+    {
+      "name": "m_samples_generated",
+      "valueType": "uint32_t",
+      "bits": 32,
+      "initial": 0
+    },
+    {
+      "name": "m_stream",
+      "valueType": "sound_stream*"
+    },
+    {
+      "name": "m_sylmask",
+      "valueType": "const uint32_t",
+      "bits": 32,
+      "initial": 4032
+    },
+    {
+      "name": "m_sylshift",
+      "valueType": "const int32_t",
+      "bits": 32,
+      "signed": true,
+      "initial": 6
+    },
+    {
+      "name": "m_syladd",
+      "valueType": "const int32_t",
+      "bits": 32,
+      "signed": true,
+      "initial": 4033
+    },
+    {
+      "name": "m_intshift",
+      "valueType": "const int32_t",
+      "bits": 32,
+      "signed": true,
+      "initial": 4
+    },
+    {
+      "name": "m_sylfilter",
+      "valueType": "int32_t",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_intfilter",
+      "valueType": "int32_t",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_next_sample",
+      "valueType": "int16_t",
+      "bits": 16,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_agc",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 1
+    },
+    {
+      "name": "m_buffered_fzq",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 1
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "clock_state_cb",
+      "member": "m_clock_state_push_cb",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "digin_cb",
+      "member": "m_digin_pull_cb",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "digout_cb",
+      "member": "m_digout_push_cb",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "agc_cb",
+      "member": "m_agc_push_cb",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "fzq_cb",
+      "member": "m_fzq_pull_cb",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "cvsd_device_base::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sylfilter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_intfilter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_next_sample"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_agc"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffered_fzq"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 240,
+        "column": 1
+      }
+    },
+    {
+      "name": "cvsd_device_base::device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SAMPLE_RATE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_clock_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffered_bit"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shiftreg"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_samples_generated"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 63,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "cvsd_device_base::device_reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sylfilter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 63
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_intfilter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_agc"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_buffered_fzq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 255,
+        "column": 1
+      }
+    },
+    {
+      "name": "cvsd_device_base::device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_clock_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 78,
+        "column": 1
+      }
+    },
+    {
+      "name": "clock_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock_state_r"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 92,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "mclock_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clock_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 100,
+        "column": 1
+      }
+    },
+    {
+      "name": "digin_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "digit_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 105,
+        "column": 1
+      }
+    },
+    {
+      "name": "dec_encq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 116,
+        "column": 1
+      }
+    },
+    {
+      "name": "digout_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 121,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "is_external_oscillator",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "clock"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 128,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_clock_changed",
+      "parameters": "bool clock_state",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "m_last_clock_state"
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "clock_state"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_last_clock_state"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "clock_state"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 133,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_active_clock_transition",
+      "parameters": "bool clock_state",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "clock_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_last_clock_state"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "clock_state"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_active_clock_edge"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 138,
+        "column": 1
+      }
+    },
+    {
+      "name": "current_clock_state",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "cast",
+                        "valueType": "uint64_t",
+                        "operand": {
+                          "kind": "cast",
+                          "valueType": "uint32_t",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "m_samples_generated"
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "clock"
+                        },
+                        "args": []
+                      },
+                      "precision": 64
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    "precision": 64
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "SAMPLE_RATE"
+                  },
+                  "precision": 64
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "precision": 64
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 143,
+        "column": 1
+      }
+    },
+    {
+      "name": "digit_w",
+      "parameters": "int digit",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_buffered_bit"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "digit"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 154,
+        "column": 1
+      }
+    },
+    {
+      "name": "clock_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "clock_state",
+            "valueType": "bool",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_clock_changed"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock_state"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_samples_generated"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "process_bit"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffered_bit"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "clock_state"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_clock_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "clock_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 160,
+        "column": 1
+      }
+    },
+    {
+      "name": "clock_state_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "current_clock_state"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 181,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "process_bit",
+      "parameters": "bool bit, bool clock_state",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "frozen",
+            "valueType": "bool",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_intfilter"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 384
+                  }
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "bit"
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_intfilter"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "-",
+                    "operand": {
+                      "kind": "number",
+                      "value": 384
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bit"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "sum",
+            "valueType": "int32_t"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_active_clock_transition"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "clock_state"
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "fzq_state",
+                "valueType": "bool",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_fzq_pull_cb"
+                      },
+                      "property": "isunset"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "fzq_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_fzq_pull_cb"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "fzq_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_buffered_fzq"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "fzq_state"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_shiftreg"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_shiftreg"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "|",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_shiftreg"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "bit"
+                    },
+                    "whenTrue": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "whenFalse": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "||",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg_mask"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_shiftreg_mask"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_shiftreg_mask"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "frozen"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_sylfilter"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "unary",
+                              "operator": "~",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "m_sylfilter"
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_sylmask"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_sylshift"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "frozen"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_sylfilter"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "&",
+                              "left": {
+                                "kind": "unary",
+                                "operator": "~",
+                                "operand": {
+                                  "kind": "identifier",
+                                  "name": "m_sylfilter"
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "m_sylmask"
+                              }
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "m_sylshift"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_syladd"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sylfilter"
+                },
+                "operator": "&=",
+                "value": {
+                  "kind": "number",
+                  "value": 4095
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sum"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "util::sext"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "unary",
+                          "operator": "~",
+                          "operand": {
+                            "kind": "identifier",
+                            "name": "m_intfilter"
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_intshift"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_shiftreg"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sum"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "util::sext"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "unary",
+                            "operator": "~",
+                            "operand": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "std::max"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 2
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": ">>",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "m_sylfilter"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 6
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "sum"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "util::sext"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "std::max"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 2
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": ">>",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "m_sylfilter"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 6
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "frozen"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "util::sext"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_intfilter"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "sum"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_next_sample"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 6
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "binary",
+                  "operator": "^",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_intfilter"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 512
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": ">=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 256
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "<=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_intfilter"
+                },
+                "right": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 256
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_agc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_agc"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_agc_push_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_agc"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 281,
+        "column": 1
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_external_oscillator"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "put_int"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "i"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_next_sample"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 32768
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_samples_generated"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "clock_state",
+                    "valueType": "uint8_t",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "current_clock_state"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_clock_changed"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "clock_state"
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "process_bit"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_buffered_bit"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "clock_state"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_clock_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "clock_state"
+                    }
+                  }
+                ]
+              }
+            ],
+            "else": [
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "stream"
+                      },
+                      "property": "samples"
+                    },
+                    "args": []
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "stream"
+                        },
+                        "property": "put_int"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "i"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_next_sample"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 32768
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 356,
+        "column": 1
+      }
+    },
+    {
+      "name": "clock_state_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_clock_state_push_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 16,
+        "column": 1
+      }
+    },
+    {
+      "name": "digin_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_digin_pull_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 20,
+        "column": 1
+      }
+    },
+    {
+      "name": "digout_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_digout_push_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 24,
+        "column": 1
+      }
+    },
+    {
+      "name": "cvsd_device_base::clock_state_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_clock_state_push_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 16,
+        "column": 3
+      }
+    },
+    {
+      "name": "cvsd_device_base::digin_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_digin_pull_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 21,
+        "column": 1
+      }
+    },
+    {
+      "name": "cvsd_device_base::digout_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_digout_push_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 25,
+        "column": 1
+      }
+    },
+    {
+      "name": "fzq_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_buffered_fzq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 268,
+        "column": 1
+      }
+    },
+    {
+      "name": "agc_r",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_agc"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 273,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "cvsd_device_base::process_bit",
+      "parameters": "bool bit, bool clock_state",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 191,
+        "column": 1
+      }
+    },
+    {
+      "name": "cvsd_device_base::sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_samples_generated"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "stream"
+                },
+                "property": "samples"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_samples_generated"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "SAMPLE_RATE"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_samples_generated"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "SAMPLE_RATE"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.cpp",
+        "line": 200,
+        "column": 1
+      }
+    },
+    {
+      "name": "fzq_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_fzq_pull_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 109,
+        "column": 1
+      }
+    },
+    {
+      "name": "agc_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_agc_push_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 112,
+        "column": 1
+      }
+    },
+    {
+      "name": "hc55516_device::fzq_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_fzq_pull_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 109,
+        "column": 101
+      }
+    },
+    {
+      "name": "hc55516_device::agc_cb",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_agc_push_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/hc55516.h",
+        "line": 113,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 32,
+    "compiledMethods": 32,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "cvsd_device_base::device_start",
+    "device_reset",
+    "cvsd_device_base::device_reset",
+    "clock_r",
+    "mclock_w",
+    "digin_w",
+    "dec_encq_w",
+    "digout_r",
+    "is_external_oscillator",
+    "is_clock_changed",
+    "is_active_clock_transition",
+    "current_clock_state",
+    "digit_w",
+    "clock_w",
+    "clock_state_r",
+    "process_bit",
+    "sound_stream_update",
+    "clock_state_cb",
+    "digin_cb",
+    "digout_cb",
+    "cvsd_device_base::clock_state_cb",
+    "cvsd_device_base::digin_cb",
+    "cvsd_device_base::digout_cb",
+    "fzq_w",
+    "agc_r",
+    "cvsd_device_base::process_bit",
+    "cvsd_device_base::sound_stream_update",
+    "fzq_cb",
+    "agc_cb",
+    "hc55516_device::fzq_cb",
+    "hc55516_device::agc_cb"
+  ]
+}

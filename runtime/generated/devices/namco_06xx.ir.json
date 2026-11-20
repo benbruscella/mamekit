@@ -1,0 +1,566 @@
+{
+  "type": "NAMCO_06XX",
+  "uses": [
+    {
+      "game": "digdug",
+      "tags": [
+        "06xx"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "06xx"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "06xx"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "06xx"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NAMCO_06XX",
+    "className": "namco_06xx_device",
+    "shortName": "namco06",
+    "description": "Namco 06xx",
+    "sourceFile": "src/mame/namco/namco06.cpp",
+    "sourceLine": 237,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NAMCO_06XX, namco_06xx_device, \"namco06\", \"Namco 06xx\")"
+  },
+  "methods": [
+    {
+      "name": "data_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 135,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 154,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ctrl_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 174,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ctrl_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 179,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_nmi",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 228,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_nmicpu"
+                  },
+                  "property": "suspended"
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "operator": "|",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "SUSPEND_REASON_HALT"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "SUSPEND_REASON_RESET"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "SUSPEND_REASON_DISABLE"
+                    }
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_nmi"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "state"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "ASSERT_LINE"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "CLEAR_LINE"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 256,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timer_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_read_stretch"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 270,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_control"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_generate",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 102,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ctrl_w_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco06.cpp",
+      "sourceLine": 184,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_maincpu",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 12,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select_callback_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select_callback_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_callback_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_callback_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::set_maincpu",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 12,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::chip_select_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 15,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::chip_select_callback_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 15,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::chip_select_callback_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 15,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::chip_select_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 15,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::rw_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::rw_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::read_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::read_callback_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::read_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::write_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 19,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::write_callback_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 19,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_06xx_device::write_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco06.h",
+      "sourceLine": 19,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/namco/namco06.cpp",
+    "src/mame/namco/namco06.h"
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "type": "GALAXIAN_SOUND",
+  "uses": [
+    {
+      "game": "galaxian",
+      "tags": [
+        "cust"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "GALAXIAN_SOUND",
+    "className": "galaxian_sound_device",
+    "shortName": "galaxian_sound",
+    "description": "Galaxian Custom Sound",
+    "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+    "sourceLine": 613,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(GALAXIAN_SOUND, galaxian_sound_device, \"galaxian_sound\", \"Galaxian Custom Sound\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 5992,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_lfo_val"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_lfo_val"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pitch_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6040,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "lfo_freq_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6045,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "background_enable_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6056,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "noise_enable_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6061,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vol_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6066,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fire_enable_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6071,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 6077,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "NODE_INDEX",
+      "parameters": "int x",
+      "sourceFile": "src/mame/galaxian/galaxian_a.cpp",
+      "sourceLine": 3897,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/galaxian/galaxian_a.cpp",
+    "src/mame/galaxian/galaxian_a.h",
+    "src/devices/sound/discrete.h",
+    "src/devices/machine/rescap.h",
+    "src/devices/sound/disc_cls.h",
+    "src/devices/sound/disc_wav.h",
+    "src/devices/sound/discrete.cpp",
+    "src/devices/sound/disc_sys.hxx",
+    "src/devices/sound/disc_wav.hxx",
+    "src/devices/sound/disc_mth.hxx",
+    "src/devices/sound/disc_inp.hxx",
+    "src/devices/sound/disc_flt.hxx",
+    "src/devices/sound/disc_dev.hxx",
+    "src/devices/sound/disc_mth.h",
+    "src/devices/sound/disc_flt.h",
+    "src/devices/sound/disc_dev.h"
+  ],
+  "composedOf": [
+    "DISCRETE"
+  ]
+}

@@ -1,0 +1,149 @@
+// MAME framework calls that MAMEKIT answers on purpose without executing them.
+//
+// The interpreter and emitted code once answered *any* unresolved call with a
+// silent 0. That hid real gaps (#178): a call MAME makes for its effect looked
+// the same as one that has none here. This is the declared list of the second
+// kind, each group with the reason it has no effect in MAMEKIT's model. Every
+// other unresolved call is a gap, reported by tools/unresolved-calls.ts.
+//
+// Add a name only with a reason that holds for every machine.
+/**
+ * Calls whose only purpose in MAME is a service MAMEKIT provides another way,
+ * matched on the root of the call chain (`state_add().mask().formatstr` is
+ * `state_add`).
+ */
+const NO_EFFECT_ROOTS = new Set([
+    // Save-state registration. MAMEKIT's save states walk each generated
+    // definition's declared members (src/runtime/machine-state.ts), so nothing
+    // has to be registered.
+    'save_item', 'save_pointer', 'NAME', 'STRUCT_MEMBER', 'save_prepost_delegate',
+    // ymfm serializes its chips into a blob MAME registers with save_item: the
+    // FM devices' device_start sizes it with `ymfm_saved_state state(m_save_blob,
+    // true); m_chip.save_restore(state);`. The same walk covers the chip.
+    'ymfm_saved_state',
+    // Debugger and state-view registration: register names, masks and formats
+    // for MAME's debugger, and where its icount lives. The generated cores own
+    // their registers and icount.
+    'state_add', 'set_icountptr', 'debugger_instruction_hook',
+    // diexec.h's wait hook, which reaches the debugger only with
+    // DEBUG_FLAG_CALL_HOOK (the 6809 calls it while it burns a wait).
+    'debugger_wait_hook',
+    // And the exception hook the x86 cores call on a trap or interrupt (i86.cpp
+    // interrupt(), nec_interrupt): it only reports to a running debugger.
+    'debugger_exception_hook',
+    // And the privilege hook Musashi calls when the S flag changes: it too only
+    // reports to a running debugger.
+    'debugger_privilege_hook',
+    // diexec.h's `trigger(m_inttrigger)`: it wakes a processor parked in
+    // spin_until_interrupt/spin_until_trigger. Nothing parks one here (either
+    // call would fail as unresolved), so there is never a waiter. The TMS34010
+    // signals it on every internal interrupt.
+    'signal_interrupt_trigger',
+    // Logging, a device's own `printf` to the console included (the NES
+    // cartridge's prg_alloc warns about an odd PRG size that way).
+    'logerror', 'popmessage', 'osd_printf_info', 'osd_printf_verbose', 'osd_printf_warning', 'printf',
+    // ymfm's own logging, each switched off by a constexpr LOG_* flag of its
+    // `debug` class.
+    'debug::log_fm_write', 'debug::log_keyon', 'debug::log_unconditional', 'debug::log_unexpected_read_write',
+]);
+/**
+ * Methods with no effect whatever object they are called on, matched on the
+ * last element of the call chain.
+ */
+const NO_EFFECT_METHODS = new Set([
+    // devcb and delegate resolution. MAMEKIT binds every callback when the
+    // board is composed, so there is nothing left to resolve at start.
+    'resolve', 'resolve_safe', 'resolve_all', 'resolve_all_safe',
+    // A ymfm object writing itself into that save blob (see ymfm_saved_state
+    // above); MAME uses the name for nothing else.
+    'save_restore',
+    // Cabinet coin meters: an electromechanical counter, not machine state.
+    'coin_counter_w',
+    // DISCRETE's log, a variadic template that hands discrete_vlog its
+    // arguments, through the device itself or a node's `m_device`;
+    // discrete_vlog writes only when DISCRETE_DEBUGLOG, which is 0.
+    'discrete_log',
+]);
+/**
+ * Tilemap and palette configuration the video compiler reads from the same
+ * source when it builds the screen plan (src/mame/video-compiler.ts), and
+ * tilemap cache maintenance a plan that redraws each frame does not need.
+ * Executing them again at run time would have nothing to change.
+ */
+const VIDEO_PLAN_METHODS = new Set([
+    'mark_all_dirty', 'mark_tile_dirty', 'set_flip', 'set_scrollx', 'set_scrolly',
+    'set_transparent_pen', 'configure_groups', 'set_transmask',
+    'set_user_data', 'set_indirect_color', 'set_scrolldx', 'set_scrolldy',
+]);
+/**
+ * Accessors that only hand back a framework object. Evaluating them is not a
+ * guess: the method then called on the object (`coin_lockout_w`,
+ * `system_mute`) is what has an effect, and it is counted on its own.
+ */
+const FRAMEWORK_ACCESSORS = new Set([
+    'machine', 'bookkeeping', 'sound', 'scheduler', 'tilemap', 'screen', 'palette',
+    'owner', 'device',
+]);
+/**
+ * device_t's own lifecycle methods, every one of which does nothing by default
+ * (emu/device.cpp). A derived class's `base::device_reset_after_children()`
+ * lands on one when no class between it and device_t overrides the method:
+ * the Game Boy's cartridge slot calls its base's before it reads the
+ * cartridge header. One that is overridden is compiled and never reaches here.
+ */
+const DEVICE_T_DEFAULTS = new Set([
+    'device_config_complete', 'device_reset', 'device_reset_after_children', 'device_stop',
+    'device_pre_save', 'device_post_load', 'device_clock_changed',
+    // driver_device's lifecycle overrides, each as empty (emu/driver.cpp).
+    // defender_state::machine_start calls `williams_state::machine_start()`,
+    // which no class between it and driver_device defines.
+    'machine_start', 'machine_reset', 'sound_start', 'sound_reset', 'video_start', 'video_reset',
+]);
+/** Tilemap creation in video_start, which the video compiler reads to build each layer. */
+const VIDEO_PLAN_CALLS = new Set(['machine().tilemap().create']);
+/** The root call of a generated call name: `state_add().mask` -> `state_add`. */
+function callRoot(name) {
+    return /^[\w:]+/.exec(name)?.[0] ?? name;
+}
+/** The method a call chain ends with: `m_fg_tilemap.set_transparent_pen` -> `set_transparent_pen`. */
+function callMethod(name) {
+    return /(\w+)$/.exec(name)?.[1] ?? name;
+}
+/**
+ * A call that does nothing at all here -- save-state and debugger
+ * registration, logging, the debugger's per-instruction hook -- so a
+ * statement making it can be left out entirely, as a release build without
+ * the debugger leaves `debugger_instruction_hook` out of every instruction.
+ */
+export function isNoEffectStatement(name) {
+    return NO_EFFECT_ROOTS.has(callRoot(name));
+}
+/** True when MAMEKIT answers this call on purpose without executing it. */
+export function isDeclaredFrameworkNoOp(name) {
+    return NO_EFFECT_ROOTS.has(callRoot(name)) ||
+        NO_EFFECT_METHODS.has(callMethod(name)) ||
+        isFrameworkAccessor(name) ||
+        isDelegateConstructor(name) ||
+        isVideoPlanCall(name) ||
+        isDeviceDefault(name);
+}
+/** `gb_cart_slot_device_base::device_reset_after_children`: a base call that only device_t answers. */
+function isDeviceDefault(name) {
+    const qualified = /^\w+::(\w+)$/.exec(name);
+    return Boolean(qualified && DEVICE_T_DEFAULTS.has(qualified[1]));
+}
+/** `machine()`, `machine().bookkeeping()`: an accessor whose result is an object. */
+function isFrameworkAccessor(name) {
+    return FRAMEWORK_ACCESSORS.has(callMethod(name));
+}
+/**
+ * `FUNC(...)` and the `*_delegate(...)` constructors build a delegate that
+ * means something only to the call it is passed to, which is counted itself.
+ */
+function isDelegateConstructor(name) {
+    return name === 'FUNC' || /^\w+_delegate$/.test(name);
+}
+/** True for tilemap and palette configuration the screen plan already holds. */
+export function isVideoPlanCall(name) {
+    return VIDEO_PLAN_METHODS.has(callMethod(name)) || VIDEO_PLAN_CALLS.has(name);
+}

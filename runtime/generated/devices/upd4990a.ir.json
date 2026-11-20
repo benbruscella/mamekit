@@ -1,0 +1,1223 @@
+{
+  "type": "UPD4990A",
+  "uses": [
+    {
+      "game": "mslug",
+      "tags": [
+        "upd4990a"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "UPD4990A",
+    "className": "upd4990a_device",
+    "shortName": "upd4990a",
+    "description": "uPD4990A RTC",
+    "sourceFile": "src/devices/machine/upd1990a.cpp",
+    "sourceLine": 31,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(UPD4990A, upd4990a_device, \"upd4990a\", \"uPD4990A RTC\")"
+  },
+  "methods": [
+    {
+      "name": "set_use_utc",
+      "parameters": "bool use_utc",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "has_battery",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rtc_feature_y2k",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rtc_feature_leap_year",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rtc_battery_backed",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 73,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_time",
+      "parameters": "bool update, int year, int month, int day, int day_of_week, int hour, int minute, int second",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 52,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_current_time",
+      "parameters": "const system_time &systime",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "time",
+            "valueType": "system_time::full_time&",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_use_utc"
+              },
+              "whenTrue": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "systime"
+                },
+                "property": "utc_time"
+              },
+              "whenFalse": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "systime"
+                },
+                "property": "local_time"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_time"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "time"
+                  },
+                  "property": "year"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "time"
+                    },
+                    "property": "month"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "time"
+                  },
+                  "property": "mday"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "time"
+                    },
+                    "property": "weekday"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "time"
+                  },
+                  "property": "hour"
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "time"
+                  },
+                  "property": "minute"
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "time"
+                  },
+                  "property": "second"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "convert_to_bcd",
+      "parameters": "int val",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bcd_to_integer",
+      "parameters": "u8 val",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 102,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_clock_register",
+      "parameters": "int reg, int value",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_clock_register",
+      "parameters": "int reg",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 122,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clock_updated",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 132,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "advance_seconds",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 143,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "advance_minutes",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 164,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "advance_days",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 190,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adjust_seconds",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.cpp",
+      "sourceLine": 228,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "seconds",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_clock_register"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "RTC_SECOND"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_clock_register"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "RTC_SECOND"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "seconds"
+              },
+              "right": {
+                "kind": "number",
+                "value": 30
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "advance_minutes"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock_updated"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rtc_interface::set_use_utc",
+      "parameters": "bool use_utc",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rtc_interface::has_battery",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rtc_interface::rtc_feature_y2k",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rtc_interface::rtc_feature_leap_year",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 73,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_rtc_interface::rtc_battery_backed",
+      "parameters": "",
+      "sourceFile": "src/emu/dirtc.h",
+      "sourceLine": 74,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_serial_mode",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 73,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_shift_reg"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "__range0"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "__range0_index"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_oe"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stb"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data_in"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data_out"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_c"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clk"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tp"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_c_unlatched"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_testmode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_timer_clock"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime::from_hz"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "clock"
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 32768,
+                        "floating": true
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime::from_hz"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "clock"
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 32768,
+                        "floating": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_time_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shift_reg"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_oe"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cs"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_stb"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data_in"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data_out"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_c"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clk"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_tp"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_c_unlatched"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_testmode"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rtc_clock_updated",
+      "parameters": "int year, int month, int day, int day_of_week, int hour, int minute, int second",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 118,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stb_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 187,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clk_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 373,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cs_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 420,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "oe_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 427,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 439,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 445,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 451,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_in_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 457,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_data_out",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 469,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_out_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 476,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tp_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 481,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clock_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 133,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tp_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 138,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_out_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 144,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "test_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/upd1990a.cpp",
+      "sourceLine": 150,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tp_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "upd1990a_device::data_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "upd1990a_device::tp_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/upd1990a.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/upd1990a.cpp",
+    "src/devices/machine/upd1990a.h",
+    "src/emu/dirtc.h",
+    "src/emu/dirtc.cpp"
+  ]
+}

@@ -1,0 +1,32 @@
+Computer published 44 years ago:
+
+ZX Spectrum (c) 1982 Sinclair Research, Limited.
+
+The ZX Spectrum is an 8-bit personal home computer released in the United Kingdom in 1982 by Sinclair Research Limited.
+
+- TECHNICAL -
+
+The Spectrum is based on a Zilog Z80A CPU running at 3.5 MHz. The original model Spectrum has 16 KB (16×1024 bytes) of ROM and either 16 KB or 48 KB of RAM.
+
+- TRIVIA -
+
+Referred to during development as the ZX81 Colour and ZX82, the machine was launched as the ZX Spectrum by Sinclair to highlight the machine's colour display, compared with the black-and-white of its predecessor, the ZX81.
+
+The Spectrum was ultimately released as eight different models, ranging from the entry level model with 16 KB RAM released in 1982 to the "ZX Spectrum +3" with 128 KB RAM and built in floppy disk drive in 1987; together they sold in excess of 5 million units worldwide (not counting numerous clones).
+
+The Spectrum was among the first mainstream audience home computers in the UK, similar in significance to the Commodore 64 in the USA.
+
+Over 24,000 software titles have been released since the Spectrum's launch and new titles continue to be released.
+
+On 23 April 2012, a Google doodle honoured the 30th anniversary of the Spectrum. As it coincided with St George's Day, the logo was of St George fighting a dragon in the style of a Spectrum loading screen.
+
+- STAFF -
+
+Hardware design was by: Richard Altwasser
+Machine's outward appearance was designed by: Rick Dickinson
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/83045/?o=2
+
+— Gaming History (arcade-history.com)

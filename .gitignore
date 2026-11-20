@@ -1,0 +1,5 @@
+/.build/
+/runtime/generated/hardware-manifest.json
+/runtime/generated/hardware-graph.json
+/runtime/generated/hardware-report.md
+/runtime/generated/devices/*.ts

@@ -1,0 +1,17 @@
+{
+  "name": "Upright_Artwork_Stern",
+  "screen": {
+    "x": 909,
+    "y": 587,
+    "w": 1590,
+    "h": 2120
+  },
+  "art": {
+    "x": 0,
+    "y": 0,
+    "w": 3358,
+    "h": 3019
+  },
+  "rotate": 0,
+  "tints": []
+}

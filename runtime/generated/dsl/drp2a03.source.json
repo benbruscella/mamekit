@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "dialect": "unlowered-mame-operation-dsl",
+  "sourceFile": "src/devices/cpu/m6502/drp2a03.lst"
+}

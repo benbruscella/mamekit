@@ -1,0 +1,1467 @@
+{
+  "type": "C64H156",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "uc4"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "uc4"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "C64H156",
+    "className": "c64h156_device",
+    "shortName": "c64h156",
+    "description": "Commodore 64H156",
+    "sourceFile": "src/devices/machine/64h156.cpp",
+    "sourceLine": 46,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(C64H156, c64h156_device, \"c64h156\", \"Commodore 64H156\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 86,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_mtr"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_accl"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_stp"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ds"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_soe"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_oe"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ted"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_yb"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_atni"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_atna"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_period"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "attotime::from_hz"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "live_abort"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 136,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "checkpoint",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rollback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 165,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_writing",
+      "parameters": "const attotime &tm",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 171,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stop_writing",
+      "parameters": "const attotime &tm",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 177,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_next_bit",
+      "parameters": "bool bit, const attotime &limit",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "commit",
+      "parameters": "const attotime &tm, bool force = false",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 202,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_delay",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 218,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_sync",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 227,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_abort",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 250,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "live_run",
+      "parameters": "const attotime &limit = attotime::never",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 269,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_next_edge",
+      "parameters": "const attotime &when",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 386,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_next_bit",
+      "parameters": "attotime &tm, const attotime &limit",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 391,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 423,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 437,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_yb"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_yb"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "yb"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "data"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "test_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 455,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "accl_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 464,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ted_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 481,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mtr_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 502,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "oe_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 529,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "soe_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 551,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atni_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 568,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atna_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 582,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_floppy",
+      "parameters": "floppy_image_device *floppy",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 596,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stp_w",
+      "parameters": "int stp",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 606,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_stp"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "stp"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_mtr"
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "tracks",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "switch",
+                    "expression": {
+                      "kind": "identifier",
+                      "name": "m_stp"
+                    },
+                    "cases": [
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 2
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 0
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 3
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      },
+                      {
+                        "values": [
+                          {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        ],
+                        "body": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "binary",
+                              "operator": "==",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stp"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 0
+                              }
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "tracks"
+                                },
+                                "operator": "+=",
+                                "value": {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "if",
+                                "condition": {
+                                  "kind": "binary",
+                                  "operator": "==",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "stp"
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 2
+                                  }
+                                },
+                                "then": [
+                                  {
+                                    "op": "assign",
+                                    "target": {
+                                      "kind": "identifier",
+                                      "name": "tracks"
+                                    },
+                                    "operator": "-=",
+                                    "value": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "break"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "tracks"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "-",
+                        "operand": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_floppy"
+                            },
+                            "property": "dir_w"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_floppy"
+                            },
+                            "property": "stp_w"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_floppy"
+                            },
+                            "property": "stp_w"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "tracks"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_floppy"
+                                },
+                                "property": "dir_w"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_floppy"
+                                },
+                                "property": "stp_w"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "call",
+                            "expression": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_floppy"
+                                },
+                                "property": "stp_w"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_stp"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "stp"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ds_w",
+      "parameters": "int ds",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 650,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_ds"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "ds"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_sync"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ds"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "cur_live"
+                    },
+                    "property": "ds"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "ds"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "checkpoint"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "live_run"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_tick",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/64h156.cpp",
+      "sourceLine": 130,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atn_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 78,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "byte_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "byte_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atn_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::atn_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::sync_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 79,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::byte_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 80,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::sync_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::byte_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c64h156_device::atn_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/64h156.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/64h156.cpp",
+    "src/devices/machine/64h156.h",
+    "src/devices/imagedev/floppy.h",
+    "src/devices/sound/samples.h",
+    "src/devices/sound/samples.cpp",
+    "src/devices/imagedev/floppy.cpp",
+    "src/lib/formats/imageutl.h",
+    "src/lib/formats/imageutl.cpp"
+  ],
+  "declaredBy": [
+    "c1541_device_base"
+  ]
+}

@@ -1,0 +1,5903 @@
+{
+  "type": "I8088",
+  "uses": [
+    {
+      "game": "qbert",
+      "tags": [
+        "maincpu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8088",
+    "className": "i8088_cpu_device",
+    "shortName": "i8088",
+    "description": "Intel 8088",
+    "sourceFile": "src/devices/cpu/i86/i86.cpp",
+    "sourceLine": 121,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8088, i8088_cpu_device, \"i8088\", \"Intel 8088\")"
+  },
+  "methods": [
+    {
+      "name": "state_import",
+      "parameters": "const device_state_entry &entry",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 442,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_string_export",
+      "parameters": "const device_state_entry &entry, std::string &str",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 466,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "property": "index"
+              },
+              "args": []
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_GENFLAGS"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "flags",
+                    "valueType": "uint16_t",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "CompressFlags"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "str"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "string_format"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 49
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 16384
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 49
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8192
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 49
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4096
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 49
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 2048
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 79
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1024
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 68
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 512
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 73
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 256
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 84
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 128
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 83
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 64
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 90
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 32
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 48
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 16
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 65
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 48
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 80
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 49
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "flags"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 67
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "i8086_common_cpu_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stack"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "has_space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_STACK"
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "&",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "space"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "AS_STACK"
+                    }
+                  ]
+                }
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "m_program"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_code"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "has_space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_CODE"
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "&",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "space"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "AS_CODE"
+                    }
+                  ]
+                }
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "m_program"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_extra"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "has_space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_EXTRA"
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "&",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "space"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "AS_EXTRA"
+                    }
+                  ]
+                }
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "m_program"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_ES"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "ES"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_sregs"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "ES"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "I8086_CS"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "CS"
+                        },
+                        {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_sregs"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "CS"
+                          }
+                        }
+                      ]
+                    },
+                    "property": "callimport"
+                  },
+                  "args": []
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_SS"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "SS"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_sregs"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "SS"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_DS"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DS"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_sregs"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "DS"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_VECTOR"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "V"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_int_vector"
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%02X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "I8086_PC"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "PC"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_pc"
+                        }
+                      ]
+                    },
+                    "property": "callimport"
+                  },
+                  "args": []
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%05X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_GENPCBASE"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "CURPC"
+                        },
+                        {
+                          "kind": "lambda",
+                          "parameters": [],
+                          "body": [
+                            {
+                              "op": "return",
+                              "value": {
+                                "kind": "binary",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "binary",
+                                  "operator": "<<",
+                                  "left": {
+                                    "kind": "index",
+                                    "object": {
+                                      "kind": "identifier",
+                                      "name": "m_sregs"
+                                    },
+                                    "index": {
+                                      "kind": "identifier",
+                                      "name": "CS"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 4
+                                  }
+                                },
+                                "right": {
+                                  "kind": "identifier",
+                                  "name": "m_prev_ip"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "property": "mask"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1048575
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_HALT"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "HALT"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_halt"
+                    }
+                  ]
+                },
+                "property": "mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_program"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_PROGRAM"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_opcodes"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "has_space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_OPCODES"
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "unary",
+                "operator": "&",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "space"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "AS_OPCODES"
+                    }
+                  ]
+                }
+              },
+              "whenFalse": {
+                "kind": "identifier",
+                "name": "m_program"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_opcodes"
+                  },
+                  "property": "data_width"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_cache8"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_opcodes"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_or8"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "lambda",
+                  "parameters": [
+                    "address"
+                  ],
+                  "body": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_cache8"
+                          },
+                          "property": "read_byte"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "address"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_cache16"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_opcodes"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_or8"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "lambda",
+                  "parameters": [
+                    "address"
+                  ],
+                  "body": [
+                    {
+                      "op": "return",
+                      "value": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_cache16"
+                          },
+                          "property": "read_byte"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "address"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_io"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "AS_IO"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_regs"
+                      },
+                      "property": "w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sregs"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ip"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prev_ip"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_io_stall"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_TF"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_IF"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_DF"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_MF"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_NT"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_IOPL"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_SignVal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_int_vector"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pending_irq"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_nmi_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_AuxVal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_OverVal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ZeroVal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_CarryVal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ParityVal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_seg_prefix"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_seg_prefix_next"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prefix_seg"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_halt"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "I8086_IP"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "IP"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_ip"
+                        }
+                      ]
+                    },
+                    "property": "callimport"
+                  },
+                  "args": []
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_AX"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "AX"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "AX"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_CX"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "CX"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "CX"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_DX"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DX"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "DX"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_BX"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "BX"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "BX"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_SP"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "SP"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "SP"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_BP"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "BP"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "BP"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_SI"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "SI"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "SI"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_DI"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DI"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "DI"
+                      }
+                    }
+                  ]
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%04X"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_AL"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "AL"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "AL"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_AH"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "AH"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "AH"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_CL"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "CL"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "CL"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_CH"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "CH"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "CH"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_DL"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DL"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "DL"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_DH"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DH"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "DH"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_BL"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "BL"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "BL"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "I8086_BH"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "BH"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "b"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "BH"
+                      }
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_GENFLAGS"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "GENFLAGS"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_TF"
+                        }
+                      ]
+                    },
+                    "property": "formatstr"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "%16s"
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_icountptr"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_icount"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 560,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ZeroVal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ParityVal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sregs"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "ES"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sregs"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "CS"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 65535
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sregs"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "SS"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_sregs"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "DS"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prev_ip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_SignVal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_AuxVal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_OverVal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_CarryVal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_TF"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_IF"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_DF"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_IOPL"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 3
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_NT"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_MF"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_int_vector"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pending_irq"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "identifier",
+              "name": "INT_IRQ"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_no_interrupt"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_fire_trap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prefix_seg"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_seg_prefix"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_seg_prefix_next"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ea"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_eo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_modrm"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dst"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_src"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_halt"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_lock"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_easeg"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "DS"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interrupt",
+      "parameters": "int int_num, int trap = 1",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 599,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_set_input",
+      "parameters": " int inptnum, int state ",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 619,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_mode",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 646,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_byte",
+      "parameters": "uint32_t addr",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 191,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_word",
+      "parameters": "uint32_t addr",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 196,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_byte",
+      "parameters": "uint32_t addr, uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 201,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_word",
+      "parameters": "uint32_t addr, uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 206,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_port_byte",
+      "parameters": "uint16_t port",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 671,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_port_word",
+      "parameters": "uint16_t port",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 676,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_port_byte",
+      "parameters": "uint16_t port, uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 681,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "property": "write_byte"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "port"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_port_byte_al",
+      "parameters": "uint16_t port",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 686,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_port_word",
+      "parameters": "uint16_t port, uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 694,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "calc_addr",
+      "parameters": "int seg, uint16_t offset, int size, int op, bool override = true",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 699,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "common_op",
+      "parameters": "uint8_t op",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 713,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fetch_word",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "repx_op",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CLK",
+      "parameters": "uint8_t op",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CLKM",
+      "parameters": "uint8_t op_reg, uint8_t op_mem",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 70,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_ea",
+      "parameters": "int size, int op",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 76,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutbackRMByte",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 195,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutbackRMWord",
+      "parameters": "uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 208,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutImmRMWord",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 220,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutRMWord",
+      "parameters": "uint16_t val",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 233,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutRMByte",
+      "parameters": "uint8_t val",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 246,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutImmRMByte",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 259,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DEF_br8",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 273,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DEF_wr16",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 281,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DEF_r8b",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 289,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DEF_r16w",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 297,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DEF_ald8",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 305,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DEF_axd16",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 312,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegByte",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 320,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "b"
+              },
+              "index": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_Mod_RM"
+                    },
+                    "property": "reg"
+                  },
+                  "property": "b"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "m_modrm"
+                }
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegWord",
+      "parameters": "uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 326,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "w"
+              },
+              "index": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_Mod_RM"
+                    },
+                    "property": "reg"
+                  },
+                  "property": "w"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "m_modrm"
+                }
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegByte",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 332,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "b"
+              },
+              "index": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_Mod_RM"
+                    },
+                    "property": "reg"
+                  },
+                  "property": "b"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "m_modrm"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegWord",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 338,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "w"
+              },
+              "index": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_Mod_RM"
+                    },
+                    "property": "reg"
+                  },
+                  "property": "w"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "m_modrm"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "GetRMWord",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 344,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "GetnextRMWord",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 357,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "GetRMByte",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 363,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutMemB",
+      "parameters": "int seg, uint16_t offset, uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 376,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PutMemW",
+      "parameters": "int seg, uint16_t offset, uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 382,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "GetMemB",
+      "parameters": "int seg, uint16_t offset",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 388,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "GetMemW",
+      "parameters": "int seg, uint16_t offset",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 394,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_CFB",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 402,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_CFW",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 407,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_AF",
+      "parameters": "uint32_t x,uint32_t y,uint32_t z",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 412,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_SF",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 417,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_ZF",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 422,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_PF",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 427,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_SZPF_Byte",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 432,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_SZPF_Word",
+      "parameters": "uint32_t x",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 437,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_OFW_Add",
+      "parameters": "uint32_t x,uint32_t y,uint32_t z",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 442,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_OFB_Add",
+      "parameters": "uint32_t x,uint32_t y,uint32_t z",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 447,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_OFW_Sub",
+      "parameters": "uint32_t x,uint32_t y,uint32_t z",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 452,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_OFB_Sub",
+      "parameters": "uint32_t x,uint32_t y,uint32_t z",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 457,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CompressFlags",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 463,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ExpandFlags",
+      "parameters": "uint16_t f",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 480,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_insb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 496,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "ea",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "calc_addr"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ES"
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    },
+                    "property": "w"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "DI"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "I8086_WRITE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "read_port_byte"
+              },
+              "args": [
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    },
+                    "property": "w"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "DX"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "access_to_be_redone"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_io_stall"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_prev_ip"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_icount"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_byte"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ea"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "w"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "DI"
+              }
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_DF"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CLK"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "IN_IMM8"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_insw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 513,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "ea",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "calc_addr"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ES"
+                },
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    },
+                    "property": "w"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "DI"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "I8086_WRITE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint16_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "read_port_word"
+              },
+              "args": [
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    },
+                    "property": "w"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "DX"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "access_to_be_redone"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_io_stall"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_prev_ip"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_icount"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_word"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ea"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "w"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "DI"
+              }
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_DF"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CLK"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "IN_IMM16"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_outsb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 529,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_port_byte"
+              },
+              "args": [
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    },
+                    "property": "w"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "DX"
+                  }
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "GetMemB"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "DS"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "SI"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "access_to_be_redone"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_io_stall"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_prev_ip"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_icount"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "w"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "SI"
+              }
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_DF"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CLK"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "OUT_IMM8"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_outsw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 544,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_port_word"
+              },
+              "args": [
+                {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    },
+                    "property": "w"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "DX"
+                  }
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "GetMemW"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "DS"
+                    },
+                    {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "property": "w"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "SI"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "access_to_be_redone"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_io_stall"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_prev_ip"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_icount"
+                },
+                "operator": "-=",
+                "value": {
+                  "kind": "number",
+                  "value": 4
+                }
+              },
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                "property": "w"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "SI"
+              }
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_DF"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CLK"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "OUT_IMM16"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_movsb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 558,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_movsw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 567,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_cmpsb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 576,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_cmpsw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 586,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_stosb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 596,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_stosw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 603,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_lodsb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 610,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_lodsw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 617,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_scasb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 624,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_scasw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 633,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i_popf",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 643,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ADDB",
+      "parameters": "uint8_t c = 0",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 656,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ADDX",
+      "parameters": "uint8_t c = 0",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 668,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SUBB",
+      "parameters": "uint8_t b = 0",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 680,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SUBX",
+      "parameters": "uint8_t b = 0",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 692,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ORB",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 704,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ORW",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 712,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ANDB",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 720,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ANDX",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 728,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "XORB",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 736,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "XORW",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 744,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ROL_BYTE",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 752,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ROL_WORD",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 758,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ROR_BYTE",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 764,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ROR_WORD",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 770,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ROLC_BYTE",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 776,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ROLC_WORD",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 782,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RORC_BYTE",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 788,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RORC_WORD",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 795,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SHL_BYTE",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 802,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SHL_WORD",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 812,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SHR_BYTE",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SHR_WORD",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 834,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SHRA_BYTE",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 846,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "SHRA_WORD",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 858,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "XchgAXReg",
+      "parameters": "uint8_t reg",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 871,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "IncWordReg",
+      "parameters": "uint8_t reg",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 880,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "DecWordReg",
+      "parameters": "uint8_t reg",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 892,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "PUSH",
+      "parameters": "uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 904,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "POP",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 911,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "JMP",
+      "parameters": "bool cond",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 920,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ADJ4",
+      "parameters": "int8_t param1,int8_t param2",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 934,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ADJB",
+      "parameters": "int8_t param1, int8_t param2",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 953,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "lock_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_min_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 117,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_max_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_input_edge_triggered",
+      "parameters": "int inputnum",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fetch_op",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 145,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::lock_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::execute_min_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 117,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::execute_max_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 121,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::execute_input_edge_triggered",
+      "parameters": "int inputnum",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::fetch_op",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "fetch"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fetch",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 168,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sreg_to_space",
+      "parameters": "int sreg",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 176,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::read_byte",
+      "parameters": "uint32_t addr",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 651,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::read_word",
+      "parameters": "uint32_t addr",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 656,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::write_byte",
+      "parameters": "uint32_t addr, uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 661,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "write_byte"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "addr"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_common_cpu_device::write_word",
+      "parameters": "uint32_t addr, uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 666,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_program"
+                },
+                "property": "write_word_unaligned"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "addr"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_run",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 211,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "if_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 355,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "esc_opcode_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 356,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "esc_data_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 357,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_pc",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 384,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_cpu_device::if_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 355,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_cpu_device::esc_opcode_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 357,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_cpu_device::esc_data_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 358,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8086_cpu_device::update_pc",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.h",
+      "sourceLine": 384,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegByte__1",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 320,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegByte__0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 332,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegWord__1",
+      "parameters": "uint16_t data",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 326,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RegWord__0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86inline.h",
+      "sourceLine": 338,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "swapendian_int16",
+      "parameters": "uint16_t val",
+      "sourceFile": "src/osd/osdcomm.h",
+      "sourceLine": 80,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_0",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_1",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_2",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_3",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_4",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_5",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_6",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_7",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_8",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_8",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_9",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_9",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_10",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_10",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_11",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_11",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_12",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_12",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_13",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_13",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_14",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_14",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_15",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_15",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_16",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_16",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_17",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_17",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_18",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_18",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_19",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_19",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_20",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_20",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_21",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_21",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_22",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_22",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_23",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_23",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/i86/i86.cpp",
+      "sourceLine": 495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/i86/i86.cpp",
+    "src/devices/cpu/i86/i86inline.h",
+    "src/devices/cpu/i86/i86.h"
+  ]
+}

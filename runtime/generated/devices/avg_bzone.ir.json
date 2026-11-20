@@ -1,0 +1,2491 @@
+{
+  "type": "AVG_BZONE",
+  "uses": [
+    {
+      "game": "bzone",
+      "tags": [
+        "avg"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "AVG_BZONE",
+    "className": "avg_bzone_device",
+    "shortName": "avg_bzone",
+    "description": "Atari AVG (Battlezone)",
+    "sourceFile": "src/devices/video/avgdvg.cpp",
+    "sourceLine": 1504,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(AVG_BZONE,    avg_bzone_device,    \"avg_bzone\",    \"Atari AVG (Battlezone)\")"
+  },
+  "methods": [
+    {
+      "name": "apply_flipping",
+      "parameters": "int &x, int &y",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_flip_x"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_xcenter"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "x"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_flip_y"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "y"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_ycenter"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "y"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_flush",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 56,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_add_point_buf",
+      "parameters": "int x, int y, rgb_t color, int intensity",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 146,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_add_clip",
+      "parameters": "int xmin, int ymin, int xmax, int ymax",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_set_halt",
+      "parameters": "int dummy",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1177,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "done_r",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1248,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_w",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1253,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vggo"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_sync_halt"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_nvect"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 10
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    },
+                    "property": "clear_list"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vg_flush"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vg_set_halt"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vg_run_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "attotime::zero"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_word_w",
+      "parameters": "u16 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1272,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "go_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1284,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vgrst"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vg_set_halt"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_word_w",
+      "parameters": "u16 data = 0",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1290,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "reset_w"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1397,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "avg_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_hst"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_lst"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_izblank"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clipx_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clipy_min"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clipx_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clipy_max"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_hst"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_lst"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_izblank"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clipx_min"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clipy_min"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clipx_max"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clipy_max"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1301,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_vector"
+                  },
+                  "property": "started"
+                },
+                "args": []
+              }
+            },
+            "then": []
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flip_x"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_flip_y"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pc"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sp"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dvx"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dvy"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_stack"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_state_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_scale"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_intensity"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_op"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_halt"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sync_halt"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xpos"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ypos"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip_x"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip_y"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vg_set_halt_callback",
+      "parameters": "int param",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1183,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "run_state_machine",
+      "parameters": "int param",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1202,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_vector",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 13,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_memory",
+      "parameters": "auto &&tag, int no, offs_t base",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_memspace"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "no"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_membase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_flip_x",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_flip_y",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "OP3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ST3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_vector",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_memory",
+      "parameters": "auto &&tag, int no, offs_t base",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 19,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_memspace"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "no"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_membase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_flip_x",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::set_flip_y",
+      "parameters": "bool flip",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::OP3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avgdvg_device_base::ST3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_addr",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 422,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_databus",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 430,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vggo",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 435,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pc"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sp"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vgrst",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 442,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state_latch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bin_scale"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_scale"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_color"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_device::vgrst",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 442,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state_latch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bin_scale"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_scale"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_color"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 450,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1102,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_device::handler_1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 458,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 471,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 479,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_4",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 490,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_common_strobe1",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 529,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_5",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 541,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_common_strobe2",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 558,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_6",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1130,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_common_strobe3",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 618,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "handler_7",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1153,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_device::handler_6",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 607,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "OP2"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_dvy12"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_color"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_dvy"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_intensity"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": ">>",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_dvy"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "avg_common_strobe2"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_device::handler_7",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 652,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "cycles",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "avg_common_strobe3"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "OP0"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "OP2"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "x",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_xpos"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "y",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_ypos"
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_flip_x"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_xcenter"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_flip_y"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_ycenter"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "y"
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "vg_add_point_buf"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "x"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "vector_device::color111"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_color"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "conditional",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_int_latch"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        },
+                        "whenTrue": {
+                          "kind": "identifier",
+                          "name": "m_intensity"
+                        },
+                        "whenFalse": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_int_latch"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 14
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "cycles"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "avg_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/avgdvg.cpp",
+      "sourceLine": 1343,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "avgdvg_device_base::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "visarea",
+            "valueType": "rectangle&",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    },
+                    "property": "screen"
+                  },
+                  "args": []
+                },
+                "property": "visible_area"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xmin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "min_x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ymin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "min_y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xmax"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "max_x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ymax"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "visarea"
+              },
+              "property": "max_y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xcenter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_xmax"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_xmin"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ycenter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "<<",
+              "left": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_ymax"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_ymin"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dvy12"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_int_latch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bin_scale"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_color"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xdac_xor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 512
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ydac_xor"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 512
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dvy12"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_int_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bin_scale"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_color"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xdac_xor"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ydac_xor"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vector_device::color111",
+      "parameters": "T c",
+      "sourceFile": "src/devices/video/vector.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pal1bit",
+      "parameters": "uint8_t bits",
+      "sourceFile": "src/lib/util/palette.h",
+      "sourceLine": 249,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "palexpand_1",
+      "parameters": "uint8_t bits",
+      "sourceFile": "src/lib/util/palette.h",
+      "sourceLine": 232,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/video/avgdvg.cpp",
+    "src/devices/video/avgdvg.h",
+    "src/devices/video/vector.h",
+    "src/devices/video/vector.cpp"
+  ]
+}

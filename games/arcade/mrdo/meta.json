@@ -1,0 +1,77 @@
+{
+  "game": "mrdo",
+  "title": "Mr. Do! (Universal, 1982)",
+  "fullname": "Mr. Do!",
+  "year": "1982",
+  "manufacturer": "Universal",
+  "family": "mrdo",
+  "driverFile": "src/mame/universal/mrdo.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.241",
+        "lastRelease": "0.241"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.224",
+        "lastRelease": "0.224"
+      },
+      {
+        "name": "Darren Olafson",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.240",
+        "lastRelease": "0.240"
+      },
+      {
+        "name": "Juan Romero",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.224",
+        "lastRelease": "0.224"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.137",
+        "lastRelease": "0.137"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2025-12-30",
+    "commits": 103,
+    "authors": 22,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

@@ -1,0 +1,2509 @@
+{
+  "type": "Z80DMA",
+  "uses": [
+    {
+      "game": "mario",
+      "tags": [
+        "z80dma"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "Z80DMA",
+    "className": "z80dma_device",
+    "shortName": "z80dma",
+    "description": "Zilog Z80 DMA Controller",
+    "sourceFile": "src/devices/machine/z80dma.cpp",
+    "sourceLine": 120,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(Z80DMA, z80dma_device, \"z80dma\", \"Zilog Z80 DMA Controller\")"
+  },
+  "methods": [
+    {
+      "name": "interface_post_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 47,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device"
+                  },
+                  "args": []
+                },
+                "property": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interface_post_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 58,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_decode",
+      "parameters": "uint8_t opcode",
+      "sourceFile": "src/devices/machine/z80daisy.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_last_opcode"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 237
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "opcode"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 77
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "z80daisy_irq_reti"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 203
+                  },
+                  {
+                    "kind": "number",
+                    "value": 221
+                  },
+                  {
+                    "kind": "number",
+                    "value": 253
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_last_opcode"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "opcode"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 147,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_regs_follow"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_num_follow"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cur_follow"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_read_cur_follow"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_status"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dma_seq"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vector"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_iei"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ip"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ius"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_addressA"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_addressB"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_count"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_byte_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_rdy"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_force_ready"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_reset_pointer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_wait"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_waits_extra"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_busrq"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_busrq_ack"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_is_pulse"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_timer"
+                },
+                "property": "reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_status"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dma_seq"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "SEQ_IDLE"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_rdy"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_force_ready"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_wait"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_waits_extra"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_num_follow"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_read_cur_follow"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_reset_pointer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_busrq"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_busrq_ack"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_is_pulse"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_regs"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_regs"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_regs_follow"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_regs_follow"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "number",
+                    "value": 3
+                  },
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ]
+              }
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "unary",
+              "operator": "~",
+              "operand": {
+                "kind": "number",
+                "value": 32
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ius"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vector"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 218,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_ip"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "Z80_DAISY_INT"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_ius"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "Z80_DAISY_IEO"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_ack",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 241,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_ip"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "interrupt_check"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ius"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_vector"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80daisy_irq_reti",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 267,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_ius"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_ius"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "interrupt_check"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "enable",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 288,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "disable",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 295,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_bao",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 306,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_busrq",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 311,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "is_ready",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 321,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "interrupt_check",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 329,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "trigger_interrupt",
+      "parameters": "int level",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 338,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 366,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_transfer_write",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 401,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_search",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 423,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "do_write",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 434,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 627,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "res",
+            "valueType": "u8",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_read_cur_follow"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_status"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 1
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_byte_counter"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 255
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_byte_counter"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 3
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_addressA"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 255
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 4
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_addressA"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 5
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_addressB"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 255
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 6
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "res"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_addressB"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 8
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_regs"
+                      },
+                      "index": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "REGNUM"
+                        },
+                        "args": [
+                          {
+                            "kind": "number",
+                            "value": 6
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        ]
+                      }
+                    },
+                    "right": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_regs"
+                        },
+                        "index": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "REGNUM"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 6
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "setup_next_read"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_read_cur_follow"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 7
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "res"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "setup_next_read",
+      "parameters": "int rr",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 672,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 685,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::write",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 685,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rdy_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 913,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bai_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 922,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clock_w",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 465,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rdy_write_callback",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/z80dma.cpp",
+      "sourceLine": 898,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_busreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 52,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_ieo_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_bao_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 56,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 57,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 58,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 60,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iei_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "wait_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adjust_wait",
+      "parameters": "int count",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "num_follow",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_byte_counter",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 129,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "REG",
+      "parameters": "unsigned m, unsigned s",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "s"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "REGNUM",
+      "parameters": "unsigned m, unsigned s",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 134,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::out_busreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 52,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::out_int_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::out_ieo_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 56,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::out_bao_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 57,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::in_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 58,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::out_mreq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::in_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 60,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::out_iorq_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 61,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::iei_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::wait_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::adjust_wait",
+      "parameters": "int count",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::num_follow",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::reset_byte_counter",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 129,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_byte_counter"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::REG",
+      "parameters": "unsigned m, unsigned s",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "s"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::REGNUM",
+      "parameters": "unsigned m, unsigned s",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 135,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "s"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "REG=",
+      "parameters": "unsigned m, unsigned s, u32 __assigned",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "s"
+                  }
+                ]
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "u16",
+              "operand": {
+                "kind": "identifier",
+                "name": "__assigned"
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "s"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "z80dma_device::REG=",
+      "parameters": "unsigned m, unsigned s, u32 __assigned",
+      "sourceFile": "src/devices/machine/z80dma.h",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "s"
+                  }
+                ]
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "cast",
+              "valueType": "u16",
+              "operand": {
+                "kind": "identifier",
+                "name": "__assigned"
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_regs"
+              },
+              "index": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "REGNUM"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "s"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/z80dma.cpp",
+    "src/devices/machine/z80dma.h",
+    "src/devices/machine/z80daisy.h",
+    "src/devices/machine/z80daisy.cpp"
+  ]
+}

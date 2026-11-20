@@ -1,0 +1,2934 @@
+{
+  "type": "PIA6821",
+  "uses": [
+    {
+      "game": "defender",
+      "tags": [
+        "pia_0",
+        "pia_1",
+        "pia_2"
+      ]
+    },
+    {
+      "game": "joust",
+      "tags": [
+        "pia_0",
+        "pia_1",
+        "pia_2"
+      ]
+    },
+    {
+      "game": "qix",
+      "tags": [
+        "pia0",
+        "pia1",
+        "pia2",
+        "sndpia0",
+        "sndpia1",
+        "sndpia2"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "pia"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "pia_0",
+        "pia_1",
+        "pia_2"
+      ]
+    },
+    {
+      "game": "sinistar",
+      "tags": [
+        "pia_0",
+        "pia_1",
+        "pia_2"
+      ]
+    },
+    {
+      "game": "spyhunt",
+      "tags": [
+        "pia"
+      ]
+    },
+    {
+      "game": "venture",
+      "tags": [
+        "pia"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "PIA6821",
+    "className": "pia6821_device",
+    "shortName": "pia6821",
+    "description": "6821 PIA",
+    "sourceFile": "src/devices/machine/6821pia.cpp",
+    "sourceLine": 41,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(PIA6821, pia6821_device, \"pia6821\", \"6821 PIA\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_a_pushed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_a_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_ca2_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_b_pushed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_b_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_cb2_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_logged_port_a_not_connected"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_logged_port_b_not_connected"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_logged_ca1_not_connected"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_logged_ca2_not_connected"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_logged_cb1_not_connected"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_logged_cb2_not_connected"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_ca1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_ca2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_ca2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ddr_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ctl_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_a1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_a2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_a_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_cb1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_cb2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_cb2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_last_out_cb2_z"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ddr_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ctl_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_b1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_b2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_b_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_a_pushed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_a_needs_pulled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_ca1_pushed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_ca2_pushed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_ca2_needs_pulled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_b_pushed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_b_needs_pulled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_cb1_pushed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_in_cb2_pushed"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_out_cb2_needs_pulled"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 135,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_ca2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ddr_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ctl_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_a1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_a2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_a_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_cb2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_out_cb2_z"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ddr_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ctl_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_b1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_b2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_b_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_irqa_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_irqb_handler"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_out_a_handler"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_out_a_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 255
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_ca2_handler"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_ca2_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_out_b_handler"
+                    },
+                    "property": "isunset"
+                  },
+                  "args": []
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_ts_b_handler"
+                    },
+                    "property": "isunset"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_out_b_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "cast",
+                      "valueType": "offs_t",
+                      "operand": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "m_ts_b_handler"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_interrupts",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 179,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_in_a_value",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 205,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_in_b_value",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 250,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_out_a_value",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 300,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_out_b_value",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 323,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_out_ca2",
+      "parameters": "int data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 339,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_out_cb2",
+      "parameters": "int data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 362,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_a_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 391,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ddr_a_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 425,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 439,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ddr_b_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 469,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_a_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 483,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_b_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 531,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 575,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "send_to_out_a_func",
+      "parameters": "const char* message",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 608,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "send_to_out_b_func",
+      "parameters": "const char* message",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 633,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_a_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 657,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ddr_a_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 671,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 689,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ddr_b_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 713,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_a_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 731,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "control_b_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 778,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 814,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_a_input",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 848,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::set_a_input",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 848,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in_a_handler"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "__throw"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "emu_fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "pia6821_device::set_a_input() called when m_in_a_handler set"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_a_pushed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "porta_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 864,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_a_input"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_porta_line",
+      "parameters": "int line, bool state",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 874,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "a_output",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 888,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_a_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_out_a_value"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ca1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 900,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ca2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 930,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ca2_output",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 956,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_ca2_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_out_ca2"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ca2_output_z",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 969,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_ca2_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "identifier",
+                "name": "m_out_ca2"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "c2_input"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_ctl_a"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "portb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 982,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::portb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 982,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_in_b_handler"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "__throw"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "emu_fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "pia6821_device::portb_w() called when in_b_func implemented"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_b"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_in_b_pushed"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_portb_line",
+      "parameters": "int line, bool state",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 998,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "b_output",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1013,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_b_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_out_b_value"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cb1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1025,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cb2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1056,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cb2_output",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1084,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_out_cb2_needs_pulled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_out_cb2"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cb2_output_z",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1096,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq1_enabled",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1106,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c1_low_to_high",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1107,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c1_high_to_low",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1108,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_selected",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1109,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq2_enabled",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1110,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strobe_e_reset",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1111,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strobe_c1_reset",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_set",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1113,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_low_to_high",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1114,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_high_to_low",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1115,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_set_mode",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1116,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_strobe_mode",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1117,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_output",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1118,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "c2_input",
+      "parameters": "uint8_t c",
+      "sourceFile": "src/devices/machine/6821pia.cpp",
+      "sourceLine": 1119,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "readpa_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "readpb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "readca1_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "readca2_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "readcb1_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "writepa_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "writepb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tspb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ca2_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cb2_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irqa_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irqb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_alt",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_alt",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_z_mask",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 56,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_port_a_input_overrides_output_mask",
+      "parameters": "uint8_t mask",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 70,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 83,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 85,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_a_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_b_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::readpa_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::readpb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::readca1_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::readca2_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::readcb1_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::writepa_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::writepb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::tspb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::ca2_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 47,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::cb2_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::irqa_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::irqb_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 51,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::read_alt",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::write_alt",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 56,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::port_b_z_mask",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 57,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::set_port_a_input_overrides_output_mask",
+      "parameters": "uint8_t mask",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 70,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pa7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 73,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb0_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 83,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb1_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 86,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb3_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb5_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::pb7_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::irq_a_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pia6821_device::irq_b_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/6821pia.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/6821pia.cpp",
+    "src/devices/machine/6821pia.h"
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "game": "defender",
+  "title": "Defender (Red label) (Williams, 1980)",
+  "fullname": "Defender (Red label)",
+  "year": "1980",
+  "manufacturer": "Williams",
+  "family": "williams",
+  "driverFile": "src/mame/williams/williams.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.155",
+        "lastRelease": "0.155"
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.223",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "MajorHavocOnKLOV",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.284",
+        "lastRelease": "0.284"
+      },
+      {
+        "name": "Recreativas.org",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.262",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "Asociación Retroclub",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.278",
+        "lastRelease": "0.278"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.230",
+        "lastRelease": "0.230"
+      },
+      {
+        "name": "Juan Romero",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.223",
+        "lastRelease": "0.223"
+      },
+      {
+        "name": "M.A.S.H.",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.147",
+        "lastRelease": "0.147"
+      },
+      {
+        "name": "O. Galibert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.277",
+        "lastRelease": "0.277"
+      },
+      {
+        "name": "SynaMax",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-18",
+    "commits": 291,
+    "authors": 42,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

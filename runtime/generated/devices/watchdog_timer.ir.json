@@ -1,0 +1,1260 @@
+{
+  "type": "WATCHDOG_TIMER",
+  "uses": [
+    {
+      "game": "arkanoid",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "asteroid",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "bombjack",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "bublbobl",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "bzone",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "centiped",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "defender",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "dkong",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "dkongjr",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "elevator",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "friskyt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "galaxian",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "gauntlet",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "gberet",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "hyperspt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "invaders",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "joust",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "junglek",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "marble",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "missile",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "mk",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "mslug",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "mspacman",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "nbajam",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "qbert",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "rampage",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "robotron",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "rygar",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "shinobi",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "simpsons",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "sinistar",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "spyhunt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "tmnt",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "watchdog"
+      ]
+    },
+    {
+      "game": "zigzagb",
+      "tags": [
+        "watchdog"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "WATCHDOG_TIMER",
+    "className": "watchdog_timer_device",
+    "shortName": "watchdog",
+    "description": "Watchdog Timer",
+    "sourceFile": "src/devices/machine/watchdog.cpp",
+    "sourceLine": 20,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(WATCHDOG_TIMER, watchdog_timer_device, \"watchdog\", \"Watchdog Timer\")"
+  },
+  "methods": [
+    {
+      "name": "device_validity_check",
+      "parameters": "validity_checker &valid",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 43,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_vblank_count"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_screen"
+                      },
+                      "property": "finder_tag"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "finder_base::DUMMY_TAG"
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "osd_printf_error"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "VBLANK count set without setting screen tag\n"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_screen"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "osd_printf_error"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "Screen device %s not found\n"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "m_screen"
+                                },
+                                "property": "finder_tag"
+                              },
+                              "args": []
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 59,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_vblank_count"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_screen"
+                        },
+                        "property": "register_vblank_callback"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "vblank_state_delegate"
+                          },
+                          "args": [
+                            {
+                              "kind": "unary",
+                              "operator": "&",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "watchdog_timer_device::watchdog_vblank"
+                              }
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "this"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_enabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_reset_line"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_counter"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_vblank_count"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_time"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "attotime::zero"
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "watchdog_reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 104,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_enable",
+      "parameters": "int state = 1",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 128,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "enable",
+            "valueType": "bool",
+            "value": {
+              "kind": "cast",
+              "valueType": "bool",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_enabled"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_enabled"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "watchdog_reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_fired",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "machine"
+                  },
+                  "args": []
+                },
+                "property": "schedule_soft_reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_vblank",
+      "parameters": "screen_device &screen, bool vblank_state",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "vblank_state"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_enabled"
+              }
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_vblank_count"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "assignment",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_counter"
+                        },
+                        "operator": "-=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "watchdog_fired"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 179,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "watchdog_reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_r",
+      "parameters": "address_space &space",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 184,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "watchdog_reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "property": "unmap"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset16_w",
+      "parameters": "u16 data = 0",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 197,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "watchdog_reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset16_r",
+      "parameters": "address_space &space",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 202,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "watchdog_reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "property": "unmap"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset32_w",
+      "parameters": "u32 data = 0",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 215,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "watchdog_reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset32_r",
+      "parameters": "address_space &space",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 220,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "side_effects_disabled"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "watchdog_reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "space"
+                },
+                "property": "unmap"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_line_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 233,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_expired",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/watchdog.cpp",
+      "sourceLine": 94,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_vblank_count",
+      "parameters": "auto &&screen_tag, int32_t count",
+      "sourceFile": "src/devices/machine/watchdog.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vblank_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "count"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_time",
+      "parameters": "attotime time",
+      "sourceFile": "src/devices/machine/watchdog.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_vblank_counter",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/watchdog.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_timer_device::set_vblank_count",
+      "parameters": "auto &&screen_tag, int32_t count",
+      "sourceFile": "src/devices/machine/watchdog.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vblank_count"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "count"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_timer_device::set_time",
+      "parameters": "attotime time",
+      "sourceFile": "src/devices/machine/watchdog.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "watchdog_timer_device::get_vblank_counter",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/watchdog.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/watchdog.cpp",
+    "src/devices/machine/watchdog.h"
+  ]
+}

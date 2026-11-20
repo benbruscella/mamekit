@@ -1,0 +1,2010 @@
+{
+  "type": "SLAPSTIC",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "slapstic"
+      ]
+    },
+    {
+      "game": "marble",
+      "tags": [
+        "slapstic"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SLAPSTIC",
+    "className": "atari_slapstic_device",
+    "shortName": "slapstic",
+    "description": "Atari Slapstic",
+    "sourceFile": "src/mame/atari/slapstic.cpp",
+    "sourceLine": 204,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SLAPSTIC, atari_slapstic_device, \"slapstic\", \"Atari Slapstic\")"
+  },
+  "methods": [
+    {
+      "name": "device_validity_check",
+      "parameters": "validity_checker &valid",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 742,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "||",
+                "left": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 101
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 118
+                  }
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "slapstic_table"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_chipnum"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 101
+                    }
+                  }
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "osd_printf_error"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "Unknown slapstic number: %d\n"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_chipnum"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 756,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_current_bank"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_loaded_bank"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_saved_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_space"
+                  },
+                  "property": "data_width"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 16
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_space"
+                    },
+                    "property": "install_readwrite_tap"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_space"
+                        },
+                        "property": "addrmask"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "string",
+                      "value": "slapstic"
+                    },
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "offset",
+                        "",
+                        ""
+                      ],
+                      "body": [
+                        {
+                          "op": "if",
+                          "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "machine"
+                                  },
+                                  "args": []
+                                },
+                                "property": "side_effects_disabled"
+                              },
+                              "args": []
+                            }
+                          },
+                          "then": [
+                            {
+                              "op": "call",
+                              "expression": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_state"
+                                  },
+                                  "property": "test"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "offset",
+                        "",
+                        ""
+                      ],
+                      "body": [
+                        {
+                          "op": "if",
+                          "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "machine"
+                                  },
+                                  "args": []
+                                },
+                                "property": "side_effects_disabled"
+                              },
+                              "args": []
+                            }
+                          },
+                          "then": [
+                            {
+                              "op": "call",
+                              "expression": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_state"
+                                  },
+                                  "property": "test"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_space"
+                    },
+                    "property": "install_readwrite_tap"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_space"
+                        },
+                        "property": "addrmask"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "string",
+                      "value": "slapstic"
+                    },
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "offset",
+                        "",
+                        ""
+                      ],
+                      "body": [
+                        {
+                          "op": "if",
+                          "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "machine"
+                                  },
+                                  "args": []
+                                },
+                                "property": "side_effects_disabled"
+                              },
+                              "args": []
+                            }
+                          },
+                          "then": [
+                            {
+                              "op": "call",
+                              "expression": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_state"
+                                  },
+                                  "property": "test"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "lambda",
+                      "parameters": [
+                        "offset",
+                        "",
+                        ""
+                      ],
+                      "body": [
+                        {
+                          "op": "if",
+                          "condition": {
+                            "kind": "unary",
+                            "operator": "!",
+                            "operand": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "machine"
+                                  },
+                                  "args": []
+                                },
+                                "property": "side_effects_disabled"
+                              },
+                              "args": []
+                            }
+                          },
+                          "then": [
+                            {
+                              "op": "call",
+                              "expression": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "m_state"
+                                  },
+                                  "property": "test"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "identifier",
+                                    "name": "offset"
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "check",
+            "valueType": "checker",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::checker"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_start"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_end"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_mirror"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_space"
+                    },
+                    "property": "data_width"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_chipnum"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 101
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 13
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 14
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "slapstic_table"
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "-",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_chipnum"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 101
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_s_idle"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::idle"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "check"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "info"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_chipnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 102
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_active"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::active_101_102"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_alt_valid"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::alt_valid_101_102"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_chipnum"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 110
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_s_active"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "new::active_103_110"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "check"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "info"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_s_alt_valid"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "new::alt_valid_103_110"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "check"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "info"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_s_active"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "new::active_111_118"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "check"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "info"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_s_alt_valid"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "new::alt_valid_111_118"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "check"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "info"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_chipnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 110
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_alt_select"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::alt_select_101_110"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "==",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_space"
+                            },
+                            "property": "data_width"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_alt_select"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::alt_select_111_118"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "binary",
+                        "operator": "==",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_space"
+                            },
+                            "property": "data_width"
+                          },
+                          "args": []
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "whenTrue": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_s_alt_commit"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::alt_commit"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "check"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "info"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_chipnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 110
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_bit_load"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::bit_load"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_bit_set_odd"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::bit_set"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_bit_set_even"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::bit_set"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_chipnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 111
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_add_load"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::add_load"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s_add_set"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "new::add_set"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "check"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_s_idle"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "void",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 813,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_s_idle"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_bank"
+              },
+              "args": [
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "slapstic_table"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_chipnum"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 101
+                      }
+                    }
+                  },
+                  "property": "bankstart"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "change_bank",
+      "parameters": "int bank",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 822,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TRACE_NOOP"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_current_bank"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bank"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_bank"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bank"
+                    },
+                    "property": "set_entry"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_current_bank"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_view"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_view"
+                    },
+                    "property": "select"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_current_bank"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "commit_bank",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 832,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "change_bank"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_loaded_bank"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_pre_save",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 1264,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_saved_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_state"
+                },
+                "property": "state_id"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/slapstic.cpp",
+      "sourceLine": 1284,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_saved_state"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_IDLE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_idle"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_ACTIVE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_active"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_ALT_VALID"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_alt_valid"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_ALT_SELECT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_alt_select"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_ALT_COMMIT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_alt_commit"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_BIT_LOAD"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_bit_load"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_BIT_SET_ODD"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_bit_set_odd"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_BIT_SET_EVEN"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_bit_set_even"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_ADD_LOAD"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_add_load"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "S_ADD_SET"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_s_add_set"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_slapstic_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, int chipnum",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "chipnum"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_bank",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_view",
+      "parameters": "memory_view &view",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_view"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "identifier",
+                "name": "view"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_range",
+      "parameters": "auto &&tag, int index, offs_t start, offs_t end, offs_t mirror",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_space"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "index"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_start"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "start"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "end"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mirror"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mirror"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_chipnum",
+      "parameters": "int chipnum",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_slapstic_device::atari_slapstic_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, int chipnum",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chipnum"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "chipnum"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_bank",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_view",
+      "parameters": "memory_view &view",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_view"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "identifier",
+                "name": "view"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_range",
+      "parameters": "auto &&tag, int index, offs_t start, offs_t end, offs_t mirror",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_space"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "index"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_start"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "start"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "end"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_mirror"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "mirror"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_slapstic_device::set_chipnum",
+      "parameters": "int chipnum",
+      "sourceFile": "src/mame/atari/slapstic.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/atari/slapstic.cpp",
+    "src/mame/atari/slapstic.h"
+  ]
+}

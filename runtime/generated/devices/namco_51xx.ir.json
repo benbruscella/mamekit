@@ -1,0 +1,393 @@
+{
+  "type": "NAMCO_51XX",
+  "uses": [
+    {
+      "game": "digdug",
+      "tags": [
+        "51xx"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "51xx"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "51xx"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "51xx"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NAMCO_51XX",
+    "className": "namco_51xx_device",
+    "shortName": "namco51",
+    "description": "Namco 51xx",
+    "sourceFile": "src/mame/namco/namco51.cpp",
+    "sourceLine": 141,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NAMCO_51XX, namco_51xx_device, \"namco51\", \"Namco 51xx\")"
+  },
+  "methods": [
+    {
+      "name": "reset",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vblank",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 70,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 76,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 86,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 91,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 96,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "K_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 106,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R_r_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "P_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 127,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_portO"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 81,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 101,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco51.cpp",
+      "sourceLine": 122,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_callback_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_callback_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "lockout_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::input_callback_0",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::input_callback_1",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::input_callback_2",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::input_callback_3",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::output_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 17,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_51xx_device::lockout_callback",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco51.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/namco/namco51.cpp",
+    "src/mame/namco/namco51.h",
+    "src/devices/cpu/mb88xx/mb88xx.h",
+    "src/devices/cpu/mb88xx/mb88xx.cpp"
+  ],
+  "composedOf": [
+    "MB8843"
+  ]
+}

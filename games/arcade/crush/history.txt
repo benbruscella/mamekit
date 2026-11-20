@@ -1,0 +1,56 @@
+Arcade Video game published 45 years ago:
+
+Crush Roller (c) 1981 Kural Electric, Limited.
+
+Crush Roller is a maze game in which the player controls a paintbrush and must paint the entire layout in order to advance to the next stage. Two fish — one yellow, the other light blue — emerge from separate aquariums to pursue the paintbrush around the board, and if either of the fish succeeds in making contact with the paintbrush, the player loses a life.
+
+The player may use two "rollers" to attack the fish. The rollers are located on two overpasses, one vertical in its orientation, the other horizontal. To use a roller, the player positions the paintbrush on the forward end of the roller, waits for either or both of the fish to approach, then pushes the paintbrush along the roller, attacking the fish. The fish is removed from the maze for a few seconds, then returns to one of the aquariums and resumes its pursuit of the paintbrush. Killing fish in this manner scores bonus points.
+
+A third character, appearing to be an animal or human figure depending on the level, may enter the maze and leave tracks that must be painted over in order for the board to be completed. The player can limit the damage by running over the figure, which not only stops further tracks from being left but also awards the player a score, which progressively increases as more boards are cleared.
+
+- TECHNICAL -
+
+Main CPU : Zilog Z80 (@ 3.072 Mhz)
+Sound Chips : Namco (@ 96 Khz)
+
+Players : 2
+Control : 4-way joystick
+
+- TRIVIA -
+
+Released in October 1981 in Japan. 
+
+This game is known in the U.S. as "Make Trax".
+
+Another version of this game is known as "Korosuke Roller". 
+
+2 bootlegs are known as "Paint Roller" and "Magic Brush". Another bootleg was made by Sidam as "Crush Roller (Sidam [Torino, Italy, EUR])". 
+
+Giuseppe Fiorido of Italy holds the official record for this game with 2514100 points on June 27, 1984.
+
+- UPDATES -
+
+Make Trax has a protection chip, Crush Roller doesn't. The code between the two is nearly identical, except that everywhere the protection code is located, code has been replaced with a couple of bytes to return the correct value and several NOP instructions (which do absolutely nothing).
+
+- SCORING -
+
+Painting floor : 10 points per unpainted or footprint/tiretrack/dropping messed segment. 
+Killing Fish : 50, 100, 200, 400, 800, 1600, 3200, 6400 and the maximum 9000. 
+Each level starts with the lowest point scoring fish being increased by one. E.g. Level one starts at 50 points, level two with 100 points, and so on up to 9000 
+Capturing the creature/object messing up your paintwork : 1000 points.
+
+- PORTS -
+
+* CONSOLES: 
+[AS] Nintendo Famicon (1990) "Brush Roller"
+
+- SERIES -
+
+1. Crush Roller (1981)
+2. Crush Roller [Model NEOP00380] (1999, Neo Geo Pocket Color)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/547/?o=2
+
+— Gaming History (arcade-history.com)

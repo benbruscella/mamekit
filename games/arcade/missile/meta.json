@@ -1,0 +1,69 @@
+{
+  "game": "missile",
+  "title": "Missile Command (rev 3, A035467-02/04 PCBs) (Atari, 1980)",
+  "fullname": "Missile Command (rev 3, A035467-02/04 PCBs)",
+  "year": "1980",
+  "manufacturer": "Atari",
+  "family": "missile",
+  "driverFile": "src/mame/atari/missile.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Aaron Giles",
+  "credits": {
+    "people": [
+      {
+        "name": "Aaron Giles",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 4,
+        "firstRelease": "0.198",
+        "lastRelease": "0.199"
+      },
+      {
+        "name": "couriersud",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      },
+      {
+        "name": "einstein95",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.148",
+        "lastRelease": "0.148"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 194,
+    "authors": 26,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

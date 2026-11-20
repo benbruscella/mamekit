@@ -1,0 +1,407 @@
+{
+  "type": "LADYBUG_VIDEO",
+  "uses": [
+    {
+      "game": "cavenger",
+      "tags": [
+        "video"
+      ]
+    },
+    {
+      "game": "ladybug",
+      "tags": [
+        "video"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "LADYBUG_VIDEO",
+    "className": "ladybug_video_device",
+    "shortName": "ladybug_video",
+    "description": "Lady Bug/Space Raider video",
+    "sourceFile": "src/mame/universal/ladybug_video.cpp",
+    "sourceLine": 15,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(LADYBUG_VIDEO,  ladybug_video_device,  \"ladybug_video\",  \"Lady Bug/Space Raider video\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/universal/ladybug_video.cpp",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill_n"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_spr_ram"
+                },
+                {
+                  "kind": "number",
+                  "value": 1024
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::fill_n"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_bg_ram"
+                },
+                {
+                  "kind": "number",
+                  "value": 2048
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bg_tilemap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "tilemap"
+                    },
+                    "args": []
+                  },
+                  "property": "create"
+                },
+                "args": [
+                  {
+                    "kind": "unary",
+                    "operator": "*",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "m_gfxdecode"
+                    }
+                  },
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "tilemap_get_info_delegate"
+                    },
+                    "args": [
+                      {
+                        "kind": "unary",
+                        "operator": "*",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      },
+                      {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "FUNC"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "ladybug_video_device::get_bg_tile_info"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "TILEMAP_SCAN_ROWS"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 8
+                  },
+                  {
+                    "kind": "number",
+                    "value": 8
+                  },
+                  {
+                    "kind": "number",
+                    "value": 32
+                  },
+                  {
+                    "kind": "number",
+                    "value": 32
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "property": "set_scroll_rows"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 32
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "property": "set_transparent_pen"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_spr_ram"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 1024
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bg_ram"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 2048
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bg_w",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/universal/ladybug_video.cpp",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw",
+      "parameters": "screen_device &screen, bitmap_ind16 &bitmap, rectangle const &cliprect, bool flip",
+      "sourceFile": "src/mame/universal/ladybug_video.cpp",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+      "sourceFile": "src/mame/universal/ladybug_video.cpp",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_bg_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/universal/ladybug_video.cpp",
+      "sourceLine": 46,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_gfxdecode_tag",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spr_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spr_w",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 20,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bg_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ladybug_video_device::set_gfxdecode_tag",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ladybug_video_device::spr_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 19,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ladybug_video_device::spr_w",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ladybug_video_device::bg_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/universal/ladybug_video.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/universal/ladybug_video.cpp",
+    "src/mame/universal/ladybug_video.h"
+  ]
+}

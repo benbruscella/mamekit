@@ -1,0 +1,62 @@
+{
+  "game": "gameboy",
+  "title": "Game Boy (Nintendo, 1990)",
+  "fullname": "Game Boy",
+  "year": "1990",
+  "manufacturer": "Nintendo",
+  "family": "gameboy",
+  "kind": "console",
+  "driverFile": "src/mame/nintendo/gb.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Anthony Kruize,Wilbert Pol",
+  "credits": {
+    "people": [
+      {
+        "name": "Wilbert Pol",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 5,
+        "firstRelease": "0.156",
+        "lastRelease": "0.239"
+      },
+      {
+        "name": "Anthony Kruize",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Firewave",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.149",
+        "lastRelease": "0.149"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.255",
+        "lastRelease": "0.255"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-04-14",
+    "commits": 110,
+    "authors": 24,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

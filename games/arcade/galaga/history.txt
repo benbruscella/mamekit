@@ -1,0 +1,189 @@
+Arcade Video game published 45 years ago:
+
+Galaga (c) 1981 Namco. 
+
+Galaga is a single-screen shoot-em-up in which the player controls a 'Fighter' spaceship and must defend the home planet against the on-coming hordes of alien invaders called "Galagans". The Fighter can only move left and right along the bottom of the screen. 
+
+Galagans fly onto the screen in a variety of formations before forming troop lines at the top of the screen. Once all troop lines are formed the Galagans separate and start attacking the player's Fighter in ones, twos and threes. The top-line Boss Galaga need to be shot twice before they are destroyed. 
+
+The Boss Galaga has a tractor beam that can capture the player's Fighter. A captured Fighter changes color from white to red and stays with that particular Boss until it is destroyed. The Fighter can be retrieved by destroying the Boss that captured it, but players must be careful not to destroy the captured Fighter itself, or that Fighter is lost. A rescued Fighter changes color back to white and links up with the player's current Fighter, doubling its fire power. 
+
+As players progress through each screen, the speed and number of alien attacks increases. Alien formations also become more complex, making the aliens harder to shoot. 
+
+Bonus Fighters are awarded periodically throughout the game, as players reach specific point values, as dictated by the 'Bonus Life' dip switch setting. Each enemy ship also has an assigned point value (see Scoring below). 
+
+The alien troop lines that form at the top of the screen are, from top to bottom: Boss Galaga (in one row of four), Butterflies (red/white bug ships, in two rows of eight, directly below the Boss Galaga), and Bees (blue/yellow bug ships, in two rows of ten, directly below the Butterflies). 
+
+In Stage 1, the enemies do not drop bombs as they fly onto the screen. However, they do so in most of the later stages. 
+
+From Stage 4 onwards, a squadron of special bonus enemies called "transforms" start appearing. They're called transforms because Bees will begin pulsating and move out of formation to change into these bonus enemies. They appear in the form of yellow scorpions in Stages 4, 5, and 6, green 'Spy Ships' from "Bosconian" in Stages 8, 9, and 10, and Galaxian Flagships in Stages 12, 13, and 14. After that, the three different transforms are repeated in the same order. Transforms are always worthwhile targets because they are not very aggressive and are worth more than the other enemies. If all three transforms are destroyed, extra bonus points will be awarded. 
+
+Galaga also features CHALLENGING STAGES, these consist of 40 Galagans that fly onto the screen in formations but do not drop any bombs. The object is to shoot as many of them as possible before they leave the play area. When an entire formation of eight Galagans is destroyed, bonus points are added to the player's score. If all 40 aliens are destroyed, players are awarded a special bonus of 10,000 points. 
+
+Two new gameplay features Galaga introduced are: 
+1) Players are given the chance to double their fire power. 
+2) The game has a rapid fire (automatic firing) option, whereby the player simply holds the FIRE button down and the space fighter continues to fire at the Galagan army in bursts of two missiles each.
+
+- TECHNICAL -
+
+[Upright model]
+Game ID : GG
+
+Main CPU: Zilog Z80 (x3), MB88xx
+Sound Chips: Namco 3-channel WSG, discrete circuitry (for the ship explosion sound)
+
+Palette colors: 32 (16 colors for tiles + 16 colors for sprites)
+
+Players: 2
+Control: 2-way joystick
+Buttons: 1 (FIRE)
+
+- TRIVIA -
+
+Galaga was released in September 1981 in Japan.
+
+Although Galaga was a superior game, it didn't sell the large numbers that "Galaxian" did. One of the first games with a bonus stage. 
+
+The game 'rolls over' at 999,990 points. The 1P score counter is six digits, but the 2P counter is seven digits. Therefore, most good players start a 2-player game and play exclusively on the 2P side so their score won't 'roll over' at 999,990. After the 1,000,000 mark, new Fighters are no longer awarded. 
+
+What happens after finishing Stage 255 depends upon the skill level set in the DIP switches: 
+* On the easy skill, the game resets. 
+* On the medium skill, the game flips to "Stage 0" which plays as a strange cross between the 2nd Challenging Stage and a regular level where the enemies shoot. The game will advance to Stage 1 after completion, and the game will get easy again. 
+* On the hard skill setting, the words "Stage 0" stay on the screen forever. No more enemies ever appear. The player can continue to move the ship and fire, but there is no way to advance to the next level, or to die. To play again, the machine must be reset. 
+* On the hardest skill, the game flips to "Stage 0" which plays like Stage 1 (no extra enemies when flying onto the screen), but it is still as difficult as Stage 255. The game will advance to Stage 1 after completion, and the game will get easy again. 
+
+If you have more than seven extra Fighters, the marker for the screen will only show 7 1/2 (!) Fighters remaining. Additional extra Fighters will still be credited, even though they won't show on the screen. 
+
+In Japan, the Bees are referred to as 'Zako' and the Butterflies are referred to as 'Goei'. 
+
+Stephen Krogman holds the official record for this game with 15,999,990 points. 
+
+A Galaga unit appears in the 1983 movie 'WarGames', the 1983 movie 'Spring Break' (being played by one of the main characters), the 1984 movie 'The Karate Kid,' the 1987 movie 'Planes, Trains and Automobiles', and the sitcom 'Two and a Half Men', Season 5, Episode 2 (People Who Love Peepholes), and was shown in 2012 movie 'The Avengers' (a agent soldier was surprised playing in the Helicarrier computer).
+
+- SCORING -
+
+Bee: 50 points in formation or 100 points in flight.
+Butterfly: 80 points in formation or 160 points in flight.
+Boss Galaga: 150 points in formation or 400 points in flight.
+Boss Galaga: 800 points in flight with 1 wingman.
+Boss Galaga: 1,600 points in flight with 2 wingmen.
+Scorpions: 160 points each, 1,000 points for destroying all 3.
+Bosconian Spy Ships: 160 points each, 2,000 points for destroying all 3.
+Galaxian Flagships: 160 points each, 3,000 points for destroying all 3.
+Captured fighter: 500 points in formation or 1000 points in flight.
+Challenging Stage: 100 points per ship destroyed if less than 40.
+Challenging Stage: 10,000 points for destroying all 40 ships (Perfect).
+Challenging Stage: 1,000 points on the first two Challenging Stages, 1,500 points on the 3rd and 4th, 2,000 points on the 5th and 6th, and 3,000 points from the 7th onward for destroying a complete formation of 8 ships.
+
+- TIPS AND TRICKS -
+
+* Enemy Stop Shooting:
+On the first stage, kill everything but the two Bees in the bottom left corner. Then just wait, dodging the enemies' shots, until the enemy no longer drops any shots towards you. After the enemies stop firing, let them pass for two more trips and then kill them. For the rest of the game, the enemies will not drop shots. It will take approximately 15 minutes for the enemies to quit shooting at you, so this trick requires a lot of patience. Note : in a 2-player game, only one person has to do the cheat for both players to benefit. But as soon as one of the player's game is over the enemies begin shooting again.
+
+* (BUG) Take The Control Of The Fighter For Free:
+During the Galaga demo, the Boss Galaga comes down and tries to tractor-beam the Fighter. As soon as that tractor-beam starts, the player can take control of the ship in the demo. The player has two choices here and this will affect how the game handles this bug : If the player allows himself to be captured, the demo will continue as normal and he has the option of controlling the player Fighter or not. The player can choose whether to save the captured Fighter, try to complete the level, etc. The demo mode will complete after 30 seconds and the high-score screen will appear. If the player takes control of the Fighter and destroys the Boss Galaga with the tractor beam, some of the characters on the screen will freeze while others are still moving and doing what they are suppose to be doing. This will last 15-20 seconds, then the game will go to the high score screen.
+
+* Challenging stages are easier if the high score numbers are used to refine your aim. These tips assume a 6-digit high score:
+1) On the first two challenging stages, aim your ships so that your left set of bullets falls between the second and third numbers in the high score list.
+2) On subsequent challenging stages, aim one set of your bullets between the first and second numbers in the high score list (if the units come from the left) or between the last and next-to-last numbers (if the units come from the right). This will allow you to hit descending enemies at the highest possible point.
+
+* Here is a neat (and useless) Galaga trick:
+It is possible to end the game with a 200% ratio. The 200% hit-miss ratio trick can only be done with your first shot of the game. When the game starts, don't move, and fire only one shot. If you time it correctly, two enemies will be killed at once. Let your remaining Fighters be destroyed, and presto : a better-than-perfect result.
+
+* Easter Egg:
+1) Enter service mode.
+2) Keep B1 pressed and enter the following sequence : Right(x5), Left(x6), Right(x3), Left(x7). '(c) 1981 NAMCO LTD.' will be added at the bottom of the screen.
+
+- STAFF -
+
+Music by: Nobuyuki Ohnogi
+
+- PORTS -
+
+NOTE: For ports released in North America, please see the Midway Upright Model entry.
+
+* CONSOLES: 
+[JP] Sega SG-1000 (1983) "Sega-Galaga [Model G-1022]" 
+[TW] Sega SG-1000 (198?) "Galaga [Model W-022]" 
+[JP] Nintendo Famicom (feb.15, 1985) "Galaga [Model NGG-4500]" 
+[EU] Nintendo NES (1988) "Galaga [Model NES-AG-EEC]" 
+[JP] Nintendo Famicom Disk (june.22, 1990) "Galaga [Model NDS-GAG]" 
+[JP] Sony PlayStation (nov.22, 1995) "Namco Museum Vol.1 [Model SLPS-00107]" 
+[EU] Philips CD-i (1996) "Arcade Classics [Model 810 0329]" 
+[AU] Sony PlayStation (1996) "Namco Museum Vol.1 [Model SCES-00243]" 
+[EU] Sony PlayStation (aug.1996) "Namco Museum Vol.1 [Model SCES-00243]" 
+[JP] Sony PS2 (jan.26, 2006) "Namco Museum Arcade Hits! [Model SLPS-25590]" 
+[EU] Microsoft XBOX (mar.24, 2006) "Namco Museum - 50th Anniversary" 
+[EU] Sony PS2 (mar.31, 2006) "Namco Museum - 50th Anniversary [Model SLES-53957]" 
+[EU] Nintendo GameCube (may.5, 2006) "Namco Museum - 50th Anniversary [Model DOL-G5NP-EUR]" 
+[EU] [JP] Microsoft XBOX 360 [XBLA] (jul.26, 2006) 
+[JP] Sony PlayStation 3 [PSN] (jan.29, 2009) "Namco Museum.comm [Model NPJB-00012]" 
+[EU] Microsoft XBOX 360 [XBLA] (may.15, 2009) "Namco Museum - Virtual Arcade" 
+[AU] Microsoft XBOX 360 [XBLA] (june.4, 2009) "Namco Museum - Virtual Arcade" 
+[JP] Microsoft XBOX 360 [XBLA] (nov.5, 2009) "Namco Museum - Virtual Arcade [Model 2RD-00001]" 
+[JP] Nintendo Wii [Virtual Console Arcade] (nov.24, 2009) 
+[EU] Sony PlayStation 3 [PSN] (apr.1, 2010) "Namco Museum Essentials [Model NPEB-00104]" 
+[AU] Sony PlayStation 3 [PSN] (apr.1, 2010) "Namco Museum Essentials" 
+[EU] [AU] [JP] Microsoft XBOX One [XBOX Store] (apr.20, 2016) "Arcade Game Series - Galaga" 
+[EU] [AU] Sony PlayStation 4 [PSN] (apr.20, 2016) "Arcade Game Series - Galaga [Model CUSA-03865]" 
+[JP] Sony PlayStation 4 [PSN] (apr.20, 2016) "Arcade Game Series - Galaga [Model CUSA-03668]" 
+
+* HANDHELDS: 
+[UK] Nintendo Game Boy (1995) "Arcade Classic No. 3 - Galaga & Galaxian [Model DMG-AGCP-UKV]" 
+[EU] Nintendo Game Boy (1995) "Arcade Classic No. 3 - Galaga & Galaxian [Model DMG-AGCP-NOE]" 
+[JP] Nintendo Game Boy (1995) "Galaga & Galaxian [Model DMG-AGCJ-JPN]" 
+[JP] Nintendo Game Boy (jul.21, 1996) "Namco Gallery Vol.1 [Model DMG-ANGJ-JPN]" 
+[JP] Nintendo GBA (dec.7, 2001) "Namco Museum [Model AGB-ANMJ-JPN]" 
+[EU] Nintendo GBA (dec.7, 2001) "Namco Museum [Model AGB-ANMP-EUR]" 
+[JP] Sony PSP (feb.24, 2005) "Namco Museum [Model ULJS-00012]" 
+[KO] Sony PSP (may.2, 2005) "Namco Museum [Model UCKS-45005]" 
+[EU] Sony PSP (dec.9, 2005) "Namco Museum Battle Collection [Model UCES-00116]" 
+[EU] Nintendo GBA (mar.31, 2006) "Namco Museum - 50th Anniversary [Model AGB-B5NP-EUR]" 
+[JP] Nintendo DS (oct.11, 2007) "Namco Museum DS [Model NTR-YNMJ-JPN]" 
+[EU] Nintendo DS (feb.29, 2008) "Namco Museum DS [Model NTR-YNMP-EUR]" 
+[JP] Nintendo 3DS (june.23, 2011) "Pac-Man & Galaga Dimensions [Model CTR-APGJ-JPN]" 
+[AU] Nintendo 3DS (aug.25, 2011) "Pac-Man & Galaga Dimensions [Model CTR-APGP-AUS]" 
+[EU] Nintendo 3DS (aug.26, 2011) "Pac-Man & Galaga Dimensions [Model CTR-APGP-EUR]" 
+
+* COMPUTERS: 
+[EU] Commodore C64 (1982) : Unlicensed 
+[JP] Casio PV-2000
+[EU] BBC B (1983) "Zalaga" by Aardvark 
+[EU] Acorn Electron (1984) "Zalaga" by Aardvark 
+[JP] MSX (1984) 
+[JP] NEC PC-9801 (apr.1985) 
+[JP] Fujitsu FM-7 (1985) 
+[JP] Fujitsu FM-77 (1985) 
+[EU] Sharp MZ-700 "Galao" 
+[EU] Sharp MZ-1500 
+[JP] Sharp X1
+[EU] Sharp MZ2500
+[JP] PC [MS Windows] (dec.24, 1998) "Namco History Vol.4" 
+[AU] PC [MS Windows, CD-ROM] (mar.27, 2006) "Namco Museum - 50th Anniversary" 
+[EU] PC [MS Windows, CD-ROM] (may.19, 2006) "Namco Museum - 50th Anniversary" 
+
+* OTHERS: 
+[JP] Arcade (1995) "Namco Classics Collection Vol.1"
+[JP] PC [MS Windows, Online] (apr.20, 2016) "Arcade Game Series - Galaga"
+
+- SERIES -
+
+1. Galaxian (1979)
+2. Galaga (1981)
+3. Gaplus (1984) : also known in the USA as "Galaga 3"
+4. Galaga '88 (1987)
+5. Galaxian 3 Theatre 6 - Project Dragoon (1990)
+6. Galaxian 3 Theatre 6 J2 - Attack Of The Zolgear (1994)
+7. Galaga Arrangement (1995) : part of "Namco Classics Collection Vol.1"
+8. Galaga - Destination Earth (2000, GBA, PC CD-ROM and PlayStation)
+9. Galaga Arrangement (2005, PSP) : part of "Namco Museum Battle Collection" 
+10. Galaga Remix (2007, Wii) : part of "Namco Museum Remix" 
+11. Galaga Legions (2008, XBLA)
+12. Galaga Legions DX (2010, PSN, XBLA)
+13. Galaga 3D Impact (2011, Nintendo 3DS) : part of "Pac-Man & Galaga Dimensions"
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/898/?o=2
+
+— Gaming History (arcade-history.com)

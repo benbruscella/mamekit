@@ -1,0 +1,400 @@
+{
+  "type": "I8243",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "upd7751_8243"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8243",
+    "className": "i8243_device",
+    "shortName": "i8243",
+    "description": "Intel 8243 I/O Expander",
+    "sourceFile": "src/devices/machine/i8243.cpp",
+    "sourceLine": 20,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8243, i8243_device, \"i8243\", \"Intel 8243 I/O Expander\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2out"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_opcode"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prog"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cs"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_update",
+      "parameters": "int which",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 74,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "prog_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cs_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8243.cpp",
+      "sourceLine": 144,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p4_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p4_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p5_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p5_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p6_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p6_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p7_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p7_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p4_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p4_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p5_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p5_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p6_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p6_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p7_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8243_device::p7_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8243.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/i8243.cpp",
+    "src/devices/machine/i8243.h"
+  ]
+}

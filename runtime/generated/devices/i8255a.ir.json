@@ -1,0 +1,798 @@
+{
+  "type": "I8255A",
+  "uses": [
+    {
+      "game": "congo",
+      "tags": [
+        "ppi8255"
+      ]
+    },
+    {
+      "game": "frogger",
+      "tags": [
+        "ppi8255_0",
+        "ppi8255_1"
+      ]
+    },
+    {
+      "game": "scramble",
+      "tags": [
+        "ppi8255_0",
+        "ppi8255_1"
+      ]
+    },
+    {
+      "game": "upndown",
+      "tags": [
+        "ppi8255"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "ppi8255"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8255",
+    "className": "i8255_device",
+    "shortName": "i8255",
+    "description": "Intel 8255 PPI",
+    "sourceFile": "src/devices/machine/i8255.cpp",
+    "sourceLine": 66,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8255, i8255_device, \"i8255\", \"Intel 8255 PPI\")"
+  },
+  "methods": [
+    {
+      "name": "check_interrupt",
+      "parameters": "int port",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 75,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_ibf",
+      "parameters": "int port, int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_obf",
+      "parameters": "int port, int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 109,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_inte",
+      "parameters": "int port, int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_inte1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 129,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_inte2",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 139,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_intr",
+      "parameters": "int port, int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 149,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "group_mode",
+      "parameters": "int group",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 159,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_mode",
+      "parameters": "int port",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_c_lower_mode",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 197,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_c_upper_mode",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 203,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 246,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_output"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_input"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ibf"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_obf"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_inte"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_inte1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_inte2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_intr"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 265,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_mode"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 155
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_mode0",
+      "parameters": "int port",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 271,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_mode1",
+      "parameters": "int port",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 290,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_mode2",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 321,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_pc",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 342,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_mode0",
+      "parameters": "int port, uint8_t data",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 438,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_mode1",
+      "parameters": "int port, uint8_t data",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 454,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_mode2",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 476,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_pc",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 492,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_mode",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 570,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_pc_bit",
+      "parameters": "int bit, int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 637,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 701,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 741,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pa_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 798,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "acka_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 813,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 831,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ackb_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 848,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pc2_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 862,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pc4_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 895,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pc6_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/i8255.cpp",
+      "sourceLine": 914,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_pc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 51,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 52,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 53,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_pc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tri_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tri_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 58,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tri_pc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::in_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::in_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 51,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::in_pc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 52,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::out_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 53,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::out_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::out_pc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::tri_pa_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 56,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::tri_pb_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 59,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "i8255_device::tri_pc_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/i8255.h",
+      "sourceLine": 60,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/i8255.cpp",
+    "src/devices/machine/i8255.h"
+  ]
+}

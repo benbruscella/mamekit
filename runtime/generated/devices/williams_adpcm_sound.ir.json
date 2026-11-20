@@ -1,0 +1,2202 @@
+{
+  "type": "WILLIAMS_ADPCM_SOUND",
+  "uses": [
+    {
+      "game": "mk",
+      "tags": [
+        "adpcm"
+      ]
+    },
+    {
+      "game": "nbajam",
+      "tags": [
+        "adpcm"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "WILLIAMS_ADPCM_SOUND",
+    "className": "williams_adpcm_sound_device",
+    "shortName": "wmsadpcm",
+    "description": "Williams ADPCM Sound Board",
+    "sourceFile": "src/mame/shared/williamssound.cpp",
+    "sourceLine": 63,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(WILLIAMS_ADPCM_SOUND, williams_adpcm_sound_device, \"wmsadpcm\", \"Williams ADPCM Sound Board\")"
+  },
+  "methods": [
+    {
+      "name": "write",
+      "parameters": "u16 data",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 647,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sync_command_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "attotime::zero"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_write",
+      "parameters": "int state",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 657,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "state"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "bank_select_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "device_reset"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INPUT_LINE_RESET"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INPUT_LINE_RESET"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_read",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 677,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_sound_int_state"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bank_select_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 688,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_rombank"
+                },
+                "property": "set_entry"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "oki6295_bank_select_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 699,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "set_entry"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "command_r",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 710,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "M6809_IRQ_LINE"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_irq_clear_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "attotime::from_usec"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_latch"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "talkback_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 725,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_talkback"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "logerror"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ADPCM Talkback = %02X\n"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_adpcm_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 736,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 8191
+                    }
+                  ]
+                },
+                "property": "ram"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 8192
+                        },
+                        {
+                          "kind": "number",
+                          "value": 8192
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_adpcm_sound_device::bank_select_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 9216
+                        },
+                        {
+                          "kind": "number",
+                          "value": 9217
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1022
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "ym2151"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ym2151_device::read"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ym2151_device::write"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 10240
+                        },
+                        {
+                          "kind": "number",
+                          "value": 10240
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "dac"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "dac_byte_interface::data_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 11264
+                        },
+                        {
+                          "kind": "number",
+                          "value": 11264
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  ]
+                },
+                "property": "rw"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "oki"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "okim6295_device::read"
+                    }
+                  ]
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "okim6295_device::write"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 12288
+                        },
+                        {
+                          "kind": "number",
+                          "value": 12288
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  ]
+                },
+                "property": "r"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_adpcm_sound_device::command_r"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 13312
+                        },
+                        {
+                          "kind": "number",
+                          "value": 13312
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_adpcm_sound_device::oki6295_bank_select_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 15360
+                        },
+                        {
+                          "kind": "number",
+                          "value": 15360
+                        }
+                      ]
+                    },
+                    "property": "mirror"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1023
+                    }
+                  ]
+                },
+                "property": "w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_adpcm_sound_device::talkback_w"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 16384
+                    },
+                    {
+                      "kind": "number",
+                      "value": 49151
+                    }
+                  ]
+                },
+                "property": "bankr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "rombank"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 49152
+                    },
+                    {
+                      "kind": "number",
+                      "value": 65535
+                    }
+                  ]
+                },
+                "property": "bankr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "romupper"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "williams_adpcm_oki_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 755,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "map"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 131071
+                    }
+                  ]
+                },
+                "property": "bankr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "okibank"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 131072
+                        },
+                        {
+                          "kind": "number",
+                          "value": 262143
+                        }
+                      ]
+                    },
+                    "property": "rom"
+                  },
+                  "args": []
+                },
+                "property": "region"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "oki"
+                },
+                {
+                  "kind": "number",
+                  "value": 393216
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_add_mconfig",
+      "parameters": "machine_config &config",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 766,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "MC6809E"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "ADPCM_MASTER_CLOCK"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "williams_adpcm_sound_device::williams_adpcm_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "ym2151",
+            "valueType": "ym2151_device&",
+            "value": {
+              "kind": "cast",
+              "valueType": "ym2151_device&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "YM2151"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "config"
+                  },
+                  {
+                    "kind": "string",
+                    "value": "ym2151"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "ADPCM_FM_CLOCK"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "ym2151"
+                    },
+                    "property": "irq_handler"
+                  },
+                  "args": []
+                },
+                "property": "set_inputline"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "cpu"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "M6809_FIRQ_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "ym2151"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0.1,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "AD7524"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "config"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "dac"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0.1,
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "oki",
+            "valueType": "okim6295_device&",
+            "value": {
+              "kind": "cast",
+              "valueType": "okim6295_device&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "OKIM6295"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "config"
+                  },
+                  {
+                    "kind": "string",
+                    "value": "oki"
+                  },
+                  {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "ADPCM_MASTER_CLOCK"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "okim6295_device::PIN7_HIGH"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "oki"
+                },
+                "property": "set_addrmap"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "williams_adpcm_sound_device::williams_adpcm_oki_map"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "oki"
+                },
+                "property": "add_route"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "ALL_OUTPUTS"
+                },
+                {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "this"
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 0.15,
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 787,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "rom",
+            "valueType": "u8*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memregion"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "cpu"
+                    }
+                  ]
+                },
+                "property": "base"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_rombank"
+                },
+                "property": "configure_entries"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 65536
+                    }
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 32768
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "membank"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "romupper"
+                    }
+                  ]
+                },
+                "property": "set_base"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 65536
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16384
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "number",
+                          "value": 7
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 32768
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "rom"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memregion"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "oki"
+                    }
+                  ]
+                },
+                "property": "base"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 262144
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 262144
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 131072
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 3
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 917504
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 5
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 786432
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 6
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 655360
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_okibank"
+                },
+                "property": "configure_entry"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 7
+                },
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rom"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 524288
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_latch"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_talkback"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sound_int_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sync_command_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_adpcm_sound_device::sync_command"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_clear_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "williams_adpcm_sound_device::irq_clear"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 820,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sound_int_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "M6809_FIRQ_LINE"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "M6809_IRQ_LINE"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_cpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "INPUT_LINE_NMI"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sync_command_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "attotime::never"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_irq_clear_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "attotime::never"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sync_command",
+      "parameters": "int param",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 837,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_latch"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "param"
+              },
+              "right": {
+                "kind": "number",
+                "value": 255
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "param"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 512
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "M6809_IRQ_LINE"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_sound_int_state"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "perfect_quantum"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_usec"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 100
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_clear",
+      "parameters": "int param",
+      "sourceFile": "src/mame/shared/williamssound.cpp",
+      "sourceLine": 848,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sound_int_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/shared/williamssound.cpp",
+    "src/mame/shared/williamssound.h"
+  ],
+  "composedOf": [
+    "AD7524",
+    "MC6809E",
+    "OKIM6295",
+    "YM2151"
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "game": "crush",
+  "title": "Crush Roller (set 1) (Alpha Denshi Co. / Kural Samno Electric, Ltd., 1981)",
+  "fullname": "Crush Roller (set 1)",
+  "year": "1981",
+  "manufacturer": "Alpha Denshi Co. / Kural Samno Electric, Ltd.",
+  "family": "pacman",
+  "driverFile": "src/mame/pacman/pacman.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Nicola Salmoria,Stephane Humbert",
+  "credits": {
+    "people": [
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Stephane Humbert",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "ClawGrip",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 7,
+        "firstRelease": "0.227",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.272",
+        "lastRelease": "0.274"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      },
+      {
+        "name": "Recreativas.org",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.266",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.174",
+        "lastRelease": "0.175"
+      },
+      {
+        "name": "UnclePetros",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.284",
+        "lastRelease": "0.284"
+      },
+      {
+        "name": "chaneman",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.262",
+        "lastRelease": "0.262"
+      },
+      {
+        "name": "Davidc96",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "Devin Acker",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.226",
+        "lastRelease": "0.226"
+      },
+      {
+        "name": "Edgar Solé",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.272",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "einstein95",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      },
+      {
+        "name": "Fabio Priuli",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.129",
+        "lastRelease": "0.129"
+      },
+      {
+        "name": "Fortuna",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.189",
+        "lastRelease": "0.189"
+      },
+      {
+        "name": "Ian Eure",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      },
+      {
+        "name": "Jordi Tuells",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.275",
+        "lastRelease": "0.275"
+      },
+      {
+        "name": "Liron486",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "Marc Deslauriers",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.247",
+        "lastRelease": "0.247"
+      },
+      {
+        "name": "Museo Arcade Vintage",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.261",
+        "lastRelease": "0.261"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.182",
+        "lastRelease": "0.182"
+      },
+      {
+        "name": "Victor Fernandez (City Game)",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-07-20",
+    "commits": 437,
+    "authors": 52,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

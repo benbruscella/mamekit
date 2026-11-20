@@ -1,0 +1,734 @@
+{
+  "type": "SNES_CONTROL_PORT",
+  "uses": [
+    {
+      "game": "snes",
+      "tags": [
+        "ctrl1",
+        "ctrl2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SNES_CONTROL_PORT",
+    "className": "snes_control_port_device",
+    "shortName": "snes_control_port",
+    "description": "Nintendo SNES / SFC controller port",
+    "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+    "sourceLine": 27,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SNES_CONTROL_PORT, snes_control_port_device, \"snes_control_port\", \"Nintendo SNES / SFC controller port\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_card_device"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_onscreen_cb"
+                },
+                "property": "resolve_safe"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gunlatch_cb"
+                },
+                "property": "resolve_safe"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_pin4",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "read_pin4"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read_pin5",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "operator": "|=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "read_pin5"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_strobe",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "write_strobe"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_pin6",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 115,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "write_pin6"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_poll",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 121,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_device"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_device"
+                    },
+                    "property": "port_poll"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snes_control_port_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "onscreen_cb",
+      "parameters": "int16_t x, int16_t y",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_onscreen_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gunlatch_cb",
+      "parameters": "int16_t x, int16_t y",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.h",
+      "sourceLine": 71,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_gunlatch_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snes_control_port_device::snes_control_port_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.h",
+      "sourceLine": 50,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snes_control_port_device::onscreen_cb",
+      "parameters": "int16_t x, int16_t y",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_onscreen_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snes_control_port_device::gunlatch_cb",
+      "parameters": "int16_t x, int16_t y",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.h",
+      "sourceLine": 72,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_gunlatch_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "snes_control_port_devices",
+      "parameters": "device_slot_interface &device",
+      "sourceFile": "src/devices/bus/snes_ctrl/ctrl.cpp",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "joypad"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_JOYPAD"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "mouse"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_MOUSE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "multitap"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_MULTITAP"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "pachinko"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_PACHINKO"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "sscope"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_SUPERSCOPE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "twintap"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_TWINTAP"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "barcode_battler"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_BARCODE_BATTLER"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "miracle_piano"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SNES_MIRACLE"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/snes_ctrl/ctrl.cpp",
+    "src/devices/bus/snes_ctrl/ctrl.h"
+  ]
+}

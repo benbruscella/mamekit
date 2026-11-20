@@ -1,0 +1,1064 @@
+{
+  "type": "LS259",
+  "uses": [
+    {
+      "game": "asteroid",
+      "tags": [
+        "audiolatch"
+      ]
+    },
+    {
+      "game": "cavenger",
+      "tags": [
+        "videolatch"
+      ]
+    },
+    {
+      "game": "centiped",
+      "tags": [
+        "outlatch"
+      ]
+    },
+    {
+      "game": "congo",
+      "tags": [
+        "mainlatch1",
+        "mainlatch2"
+      ]
+    },
+    {
+      "game": "crush",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "digdug",
+      "tags": [
+        "misclatch",
+        "videolatch"
+      ]
+    },
+    {
+      "game": "galaga",
+      "tags": [
+        "misclatch",
+        "videolatch"
+      ]
+    },
+    {
+      "game": "gauntlet",
+      "tags": [
+        "outlatch",
+        "soundctl"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "gyruss",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "hyperspt",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "ladybug",
+      "tags": [
+        "videolatch"
+      ]
+    },
+    {
+      "game": "marble",
+      "tags": [
+        "outlatch"
+      ]
+    },
+    {
+      "game": "mario",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "mspacman",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "pacman",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "pengo",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "latch"
+      ]
+    },
+    {
+      "game": "pooyan",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "rocnrope",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "timeplt",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "trackfld",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "tutankhm",
+      "tags": [
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "wardner",
+      "tags": [
+        "coinlatch",
+        "mainlatch"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "misclatch"
+      ]
+    },
+    {
+      "game": "zaxxon",
+      "tags": [
+        "mainlatch1",
+        "mainlatch2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "LS259",
+    "className": "ls259_device",
+    "shortName": "ls259",
+    "description": "74LS259 Addressable Latch",
+    "sourceFile": "src/devices/machine/74259.cpp",
+    "sourceLine": 95,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(LS259, ls259_device, \"ls259\", \"74LS259 Addressable Latch\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_clear"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_q"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_address"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_q"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_clear"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 139,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear_outputs"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_enable"
+                  },
+                  "whenTrue": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "u8",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_data"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_address"
+                    }
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_bit",
+      "parameters": "offs_t offset, bool d",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 150,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_abcd",
+      "parameters": "u8 a, bool d",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 162,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "enable_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 180,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_bit",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 194,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_d0",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 228,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_d1",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 249,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_d7",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 270,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_a0",
+      "parameters": "offs_t offset, u8 data = 0",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 292,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_a3",
+      "parameters": "offs_t offset, u8 data = 0",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 303,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_nibble_d0",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 314,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_bit"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 14
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_nibble_d3",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 325,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "write_bit"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 334,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear_outputs"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_enable"
+                  },
+                  "whenTrue": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "cast",
+                      "valueType": "u8",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_data"
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_address"
+                    }
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 343,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear_outputs",
+      "parameters": "u8 new_q",
+      "sourceFile": "src/devices/machine/74259.cpp",
+      "sourceLine": 354,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_0",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_1",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_2",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_3",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_4",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_5",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_7",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q_out_cb_6",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "parallel_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q0_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 58,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q1_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 61,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q2_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q3_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q4_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q5_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q6_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "q7_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_0",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_1",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_2",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_3",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_4",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_5",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_7",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q_out_cb_6",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 43,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::parallel_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q0_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 58,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q1_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 62,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q2_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 63,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q3_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 64,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q4_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q5_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q6_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 67,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::q7_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "addressable_latch_device::output_state",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74259.h",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/74259.cpp",
+    "src/devices/machine/74259.h"
+  ]
+}

@@ -1,0 +1,4853 @@
+{
+  "type": "S14001A",
+  "uses": [
+    {
+      "game": "berzerk",
+      "tags": [
+        "speech"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "S14001A",
+    "className": "s14001a_device",
+    "shortName": "s14001a",
+    "description": "SSi TSI S14001A",
+    "sourceFile": "src/devices/sound/s14001a.cpp",
+    "sourceLine": 204,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(S14001A, s14001a_device, \"s14001a\", \"SSi TSI S14001A\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 221,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  },
+                  "whenTrue": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  },
+                  "whenFalse": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "sample_rate"
+                    },
+                    "args": []
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bPhase1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uStateP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_uStateP2"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "states::IDLE"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uDAR13To05P1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uDAR13To05P2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uDAR04To00P1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uDAR04To00P2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uCWARP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uCWARP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bStopP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bStopP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bVoicedP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bVoicedP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bSilenceP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bSilenceP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uLengthP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uLengthP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uXRepeatP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uXRepeatP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uDeltaOldP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uDeltaOldP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bDAR04To00CarryP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bPPQCarryP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bRepeatCarryP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bLengthCarryP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uRomAddrP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uRomAddrP2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bBusyP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bStart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uWord"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uOutputP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_uOutputP2"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 7
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bPhase1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uStateP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uDAR13To05P1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uDAR13To05P2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uCWARP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bStopP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bStopP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bVoicedP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bVoicedP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bSilenceP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bSilenceP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uLengthP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uLengthP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uXRepeatP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uXRepeatP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uDeltaOldP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uDeltaOldP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bDAR04To00CarryP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bPPQCarryP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bRepeatCarryP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bLengthCarryP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uOutputP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bBusyP1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bStart"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_uWord"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 300,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "Clock"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "sample",
+                "valueType": "s16",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_uOutputP2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 7
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "put_int"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sample"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "romen_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 315,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_bPhase1"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "busy_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 321,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_bBusyP1"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 1
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 327,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_uWord"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 63
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "start_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 333,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "m_bStart"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uStateP1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "states::WORDWAIT"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bStart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "state"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ReadMem",
+      "parameters": "u16 offset, bool phase",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 346,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "offset"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 4095
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "read_byte"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "Clock",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 352,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_bPhase1"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bPhase1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uStateP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uStateP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uDAR13To05P2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uDAR13To05P1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uDAR04To00P2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uDAR04To00P1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uCWARP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uCWARP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bStopP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_bStopP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bVoicedP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_bVoicedP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bSilenceP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_bSilenceP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uLengthP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uLengthP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uXRepeatP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uXRepeatP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uDeltaOldP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uDeltaOldP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uOutputP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uOutputP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_uRomAddrP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_uRomAddrP1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bDAR04To00CarryP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_uDAR04To00P2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 31
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bPPQCarryP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_bDAR04To00CarryP2"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_uLengthP2"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bRepeatCarryP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_bPPQCarryP2"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_uLengthP2"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 12
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 12
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bLengthCarryP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_bRepeatCarryP2"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "==",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_uLengthP2"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 127
+                    }
+                  }
+                }
+              },
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bPhase1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_uStateP1"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::IDLE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_bStart"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uStateP1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "states::WORDWAIT"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_bBusyP1"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_bsy_handler"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_bBusyP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::WORDWAIT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR13To05P1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": ">>",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uWord"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 60
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uWord"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR13To05P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR04To00P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_bStart"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "states::WORDWAIT"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "states::CWARMSB"
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "unary",
+                      "operator": "!",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "m_bBusyP1"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "m_bsy_handler"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_bBusyP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::CWARMSB"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "ReadMem"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "m_uRomAddrP2"
+                          },
+                          {
+                            "kind": "identifier",
+                            "name": "m_bPhase1"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">=",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_uDAR04To00P1"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 32
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uDAR04To00P1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR13To05P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR04To00P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_bStart"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "states::WORDWAIT"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "states::CWARLSB"
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::CWARLSB"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_uCWARP2"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "ReadMem"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_uRomAddrP2"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_bPhase1"
+                            }
+                          ]
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_bStart"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "states::WORDWAIT"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "states::DARMSB"
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::DARMSB"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR13To05P1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "ReadMem"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "m_uRomAddrP2"
+                          },
+                          {
+                            "kind": "identifier",
+                            "name": "m_bPhase1"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_bStart"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "states::WORDWAIT"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "states::CTRLBITS"
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::CTRLBITS"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "data",
+                    "valueType": "u8",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "ReadMem"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_uRomAddrP2"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_bPhase1"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_bStopP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "cast",
+                      "valueType": "bool",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 128
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_bVoicedP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "cast",
+                      "valueType": "bool",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 64
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_bSilenceP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "cast",
+                      "valueType": "bool",
+                      "operand": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 32
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uXRepeatP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uLengthP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 31
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uCWARP1"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR13To05P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR04To00P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_bStart"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "states::WORDWAIT"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "states::PLAY"
+                      }
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "TRACE_NOOP"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::PLAY"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_bPPQCarryP2"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TRACE_NOOP"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "uDeltaP2",
+                    "valueType": "u8"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "uIncrementP2",
+                    "valueType": "u8"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "bAddP2",
+                    "valueType": "bool"
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "uDeltaP2"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "Mux8To2"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_bVoicedP2"
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uLengthP2"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uDAR04To00P2"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "ReadMem"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "m_uRomAddrP2"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_bPhase1"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__inline0_bVoicedP2",
+                    "valueType": "auto",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_bVoicedP2"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__inline0_uPPQtrP2",
+                    "valueType": "auto",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_uLengthP2"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__inline0_bPPQStartP2",
+                    "valueType": "auto",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_uDAR04To00P2"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__inline0_uDelta",
+                    "valueType": "auto",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "uDeltaP2"
+                    }
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__inline0_uDeltaOldP2",
+                    "valueType": "auto",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_uDeltaOldP2"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "==",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "__inline0_uPPQtrP2"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "__inline0_bPPQStartP2"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "__inline0_uDeltaOldP2"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "declare",
+                    "name": "__inline0_MIRROR",
+                    "valueType": "bool",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "__inline0_uPPQtrP2"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "||",
+                      "left": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "__inline0_bVoicedP2"
+                        }
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "__inline0_MIRROR"
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "uIncrementP2"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TABLE"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "__inline0_uDelta"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 4
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "__inline0_uDeltaOldP2"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "bAddP2"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "__inline0_uDelta"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "uIncrementP2"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "TABLE"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "__inline0_uDeltaOldP2"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 4
+                                }
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "__inline0_uDelta"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 1
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            },
+                            {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "bAddP2"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "__inline0_uDeltaOldP2"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDeltaOldP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "__inline0_uDelta"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "__inline0_bVoicedP2"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "__inline0_bPPQStartP2"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "__inline0_MIRROR"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "uIncrementP2"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "CalculateOutput"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_bVoicedP2"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_bSilenceP2"
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uLengthP2"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 3
+                          }
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "==",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uDAR04To00P2"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_uOutputP2"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "uIncrementP2"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "bAddP2"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_bDAR04To00CarryP2"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uDAR04To00P1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uLengthP1"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uLengthP1"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 128
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_uLengthP1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_bVoicedP2"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_bRepeatCarryP2"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uLengthP1"
+                        },
+                        "operator": "&=",
+                        "value": {
+                          "kind": "number",
+                          "value": 112
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uLengthP1"
+                        },
+                        "operator": "|=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "<<",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uXRepeatP1"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uDAR13To05P1"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uDAR13To05P1"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 512
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_uDAR13To05P1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "unary",
+                        "operator": "!",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "m_bVoicedP2"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_bDAR04To00CarryP2"
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uDAR13To05P1"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": ">=",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_uDAR13To05P1"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 512
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_uDAR13To05P1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_uDAR04To00P1"
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "&&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_bVoicedP2"
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uLengthP1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uRomAddrP1"
+                        },
+                        "operator": "^=",
+                        "value": {
+                          "kind": "number",
+                          "value": 31
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uRomAddrP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "|",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "<<",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uDAR13To05P1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 3
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": ">>",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_uRomAddrP1"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "m_bStart"
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_uStateP1"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "identifier",
+                          "name": "states::WORDWAIT"
+                        }
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "binary",
+                          "operator": "&&",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_bStopP2"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_bLengthCarryP2"
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "identifier",
+                              "name": "m_uStateP1"
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "states::DELAY"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "if",
+                            "condition": {
+                              "kind": "identifier",
+                              "name": "m_bLengthCarryP2"
+                            },
+                            "then": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_uStateP1"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "states::DARMSB"
+                                }
+                              },
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_uRomAddrP1"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "m_uCWARP1"
+                                }
+                              }
+                            ],
+                            "else": [
+                              {
+                                "op": "assign",
+                                "target": {
+                                  "kind": "identifier",
+                                  "name": "m_uStateP1"
+                                },
+                                "operator": "=",
+                                "value": {
+                                  "kind": "identifier",
+                                  "name": "states::PLAY"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "states::DELAY"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uOutputP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_uStateP1"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "m_bStart"
+                      },
+                      "whenTrue": {
+                        "kind": "identifier",
+                        "name": "states::WORDWAIT"
+                      },
+                      "whenFalse": {
+                        "kind": "identifier",
+                        "name": "states::IDLE"
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bsy",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bsy_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "set_sample_rate"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rom_bank_pre_change",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "s14001a_device::bsy",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.h",
+      "sourceLine": 18,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bsy_handler"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "s14001a_device::device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "set_sample_rate"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "s14001a_device::rom_bank_pre_change",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/s14001a.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "Mux8To2",
+      "parameters": "bool bVoicedP2, u8 uPPQtrP2, u8 uDeltaAdrP2, u8 uRomDataP2",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "bVoicedP2"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "uPPQtrP2"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uDeltaAdrP2"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 3
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "uRomDataP2"
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "uDeltaAdrP2"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 6
+                  }
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CalculateIncrement",
+      "parameters": "bool bVoicedP2, u8 uPPQtrP2, bool bPPQStartP2, u8 uDelta, u8 uDeltaOldP2, u8 &uDeltaOldP1, u8 &uIncrementP2, bool &bAddP2",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 130,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "uPPQtrP2"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "bPPQStartP2"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uDeltaOldP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 2
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "MIRROR",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "uPPQtrP2"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "bVoicedP2"
+                }
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "MIRROR"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uIncrementP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TABLE"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "uDelta"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "uDeltaOldP2"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "bAddP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "uDelta"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uIncrementP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TABLE"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "uDeltaOldP2"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 4
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "uDelta"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    },
+                    {
+                      "kind": "number",
+                      "value": 3
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "bAddP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "uDeltaOldP2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "uDeltaOldP1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "uDelta"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "bVoicedP2"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "bPPQStartP2"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "MIRROR"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uIncrementP2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CalculateOutput",
+      "parameters": "bool bVoiced, bool bXSilence, u8 uPPQtr, bool bPPQStart, u8 uLOutput, u8 uIncrementP2, bool bAddP2",
+      "sourceFile": "src/devices/sound/s14001a.cpp",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "SILENCE",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "uPPQtr"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "identifier",
+                "name": "bXSilence"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "bVoiced"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "SILENCE"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 7
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "identifier",
+                  "name": "uPPQtr"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "bPPQStart"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uLOutput"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 7
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "uTmp",
+            "valueType": "u8",
+            "value": {
+              "kind": "identifier",
+              "name": "uLOutput"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "bAddP2"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uTmp"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 15
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "uTmp"
+            },
+            "operator": "+=",
+            "value": {
+              "kind": "identifier",
+              "name": "uIncrementP2"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "uTmp"
+              },
+              "right": {
+                "kind": "number",
+                "value": 15
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uTmp"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 15
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "bAddP2"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "uTmp"
+                },
+                "operator": "^=",
+                "value": {
+                  "kind": "number",
+                  "value": 15
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "uTmp"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/s14001a.cpp",
+    "src/devices/sound/s14001a.h"
+  ]
+}

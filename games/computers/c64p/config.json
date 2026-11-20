@@ -1,0 +1,2794 @@
+{
+  "game": "c64p",
+  "title": "Commodore 64 (PAL) (Commodore Business Machines, 1982)",
+  "family": "c64",
+  "kind": "computer",
+  "dataPath": "games/computers/c64p",
+  "board": {
+    "family": "c64",
+    "cpus": [
+      {
+        "tag": "u7",
+        "type": "m6510",
+        "clock": 985248.4444444445,
+        "region": "u7",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 65535,
+            "kind": "handler",
+            "read": "c64_state.read",
+            "write": "c64_state.write",
+            "handlerWidth": 8
+          }
+        ]
+      },
+      {
+        "tag": "iec8:c1541:ucd5",
+        "type": "m6502",
+        "clock": 1000000,
+        "region": "ucd5",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 2047,
+            "kind": "ram",
+            "mirror": 24576
+          },
+          {
+            "start": 6144,
+            "end": 6159,
+            "kind": "handler",
+            "mirror": 25584,
+            "read": "iec8:c1541:uab1.read",
+            "write": "iec8:c1541:uab1.write"
+          },
+          {
+            "start": 7168,
+            "end": 7183,
+            "kind": "handler",
+            "mirror": 25584,
+            "read": "iec8:c1541:ucd4.read",
+            "write": "iec8:c1541:ucd4.write"
+          },
+          {
+            "start": 32768,
+            "end": 49151,
+            "kind": "rom",
+            "mirror": 16384,
+            "romOffset": 0
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 65535,
+        "kind": "handler",
+        "read": "c64_state.read",
+        "write": "c64_state.write",
+        "handlerWidth": 8
+      }
+    ],
+    "screen": {
+      "width": 403,
+      "height": 284,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 50.12456473567585,
+      "frameAttoseconds": "19950297928238292",
+      "htotal": 504,
+      "vtotal": 312,
+      "vbstart": 284,
+      "vbend": 0,
+      "updateMode": "frame",
+      "physicalAspect": [
+        4,
+        3
+      ],
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "stream",
+    "clock": 48000,
+    "deviceTag": "u18",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "basic",
+      "size": 8192,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "901226-01.u3",
+          "offset": 0,
+          "size": 8192,
+          "crc": "f833d117",
+          "alt": [
+            {
+              "file": "tesa-basic.ud4",
+              "crc": "f319d661"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "kernal",
+      "size": 8192,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "901227-03.u4",
+          "offset": 0,
+          "size": 8192,
+          "crc": "dbe3e7c7",
+          "alt": [
+            {
+              "file": "906145-02.u4",
+              "crc": "3a9ef6f1"
+            },
+            {
+              "file": "kernel.u4",
+              "crc": "f10c2c25"
+            },
+            {
+              "file": "901246-01.u4",
+              "crc": "789c8cc5"
+            },
+            {
+              "file": "251104-04.ud3",
+              "crc": "2c5965d4"
+            },
+            {
+              "file": "kernelsx.ud3",
+              "crc": "7858d3d7"
+            },
+            {
+              "file": "tesa-kernal.ud3",
+              "crc": "af638f9c"
+            },
+            {
+              "file": "kernal.bin",
+              "crc": "13ca39ca"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "charom",
+      "size": 4096,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "901225-01.u5",
+          "offset": 0,
+          "size": 4096,
+          "crc": "ec4272ee",
+          "alt": [
+            {
+              "file": "906143-02.u5",
+              "crc": "1604f6c1"
+            },
+            {
+              "file": "charswe.u5",
+              "crc": "bee9b3fd"
+            },
+            {
+              "file": "tesa-char.ud1",
+              "crc": "10765a90"
+            },
+            {
+              "file": "chr_gen.bin",
+              "crc": "a675a239"
+            },
+            {
+              "file": "325056-03.u5",
+              "crc": "c890c175"
+            },
+            {
+              "file": "cbm 64 skand.gen.u5",
+              "crc": "377a382b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "region": "u17",
+      "size": 245,
+      "romSet": "c64",
+      "loads": [
+        {
+          "file": "906114-01.u17",
+          "offset": 0,
+          "size": 245,
+          "crc": "54c89351"
+        }
+      ]
+    },
+    {
+      "region": "iec8:c1541:ucd5",
+      "size": 32768,
+      "romSet": "c1541",
+      "loads": [
+        {
+          "file": "325302-01.uab4",
+          "offset": 0,
+          "size": 8192,
+          "crc": "29ae9752"
+        },
+        {
+          "file": "901229-06 aa.uab5",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "3a235039"
+        }
+      ]
+    }
+  ],
+  "software": {
+    "dumpsKey": "computers/c64",
+    "shelves": [
+      {
+        "list": "vic10",
+        "description": "Commodore VIC-10 / Max Machine / UltiMax cartridges",
+        "interface": "vic10_cart",
+        "kind": "cartridge",
+        "catalogUrl": "software/vic10.json",
+        "availableUrl": "software/vic10.available.json",
+        "extensions": [
+          "80",
+          "a0",
+          "e0",
+          "crt"
+        ],
+        "entries": 28,
+        "mountable": true,
+        "filter": "PAL",
+        "imageDevice": "exp",
+        "art": {
+          "avengera": "avengera.webp",
+          "avenger": "avenger.webp",
+          "bowling": "bowling.webp",
+          "clownsa": "clownsa.webp",
+          "clowns": "clowns.webp",
+          "jlander": "jlander.webp",
+          "kickman": "kickman.webp",
+          "lemans": "lemans.webp",
+          "basic": "basic.webp",
+          "minibas": "minibas.webp",
+          "moleattk": "moleattk.webp",
+          "moneywar": "moneywar.webp",
+          "musicm": "musicm.webp",
+          "omegrace": "omegrace.webp",
+          "pinspec": "pinspec.webp",
+          "radarrr2": "radarrr2.webp",
+          "radarrr1": "radarrr1.webp",
+          "radarrr": "radarrr.webp",
+          "roadrace": "roadrace.webp",
+          "seawolf": "seawolf.webp",
+          "slalom": "slalom.webp",
+          "supalien": "supalien.webp",
+          "solarsys": "solarsys.webp",
+          "wowa": "wowa.webp",
+          "wow": "wow.webp"
+        }
+      },
+      {
+        "list": "c64_cart",
+        "description": "Commodore 64 cartridges",
+        "interface": "c64_cart",
+        "kind": "cartridge",
+        "catalogUrl": "software/c64_cart.json",
+        "availableUrl": "software/c64_cart.available.json",
+        "extensions": [
+          "80",
+          "a0",
+          "e0",
+          "crt"
+        ],
+        "entries": 460,
+        "mountable": true,
+        "filter": "PAL",
+        "imageDevice": "exp",
+        "art": {
+          "superexp": "superexp.webp",
+          "busbasic": "busbasic.webp",
+          "advcrtor": "advcrtor.webp",
+          "aegeanv": "aegeanv.webp",
+          "alfclrcv": "alfclrcv.webp",
+          "alienss": "alienss.webp",
+          "alphabld": "alphabld.webp",
+          "alphazoo": "alphazoo.webp",
+          "amaze": "amaze.webp",
+          "ablitz": "ablitz.webp",
+          "mtntcmls": "mtntcmls.webp",
+          "bzone": "bzone.webp",
+          "bcquest": "bcquest.webp",
+          "beamridr": "beamridr.webp",
+          "bigbrdfh": "bigbrdfh.webp",
+          "bigbrdsd": "bigbrdsd.webp",
+          "blockhop": "blockhop.webp",
+          "blueprnt": "blueprnt.webp",
+          "bblburst": "bblburst.webp",
+          "bugcrush": "bugcrush.webp",
+          "castlhas": "castlhas.webp",
+          "centiped": "centiped.webp",
+          "checkers": "checkers.webp",
+          "choplift": "choplift.webp",
+          "clsenctr": "clsenctr.webp",
+          "congo": "congo.webp",
+          "cosmiclf": "cosmiclf.webp",
+          "crisismt": "crisismt.webp",
+          "dncfntsy": "dncfntsy.webp",
+          "dncfeats": "dncfeats.webp",
+          "defender": "defender.webp",
+          "diamondm": "diamondm.webp",
+          "digdug": "digdug.webp",
+          "digduga": "digduga.webp",
+          "dkong": "dkong.webp",
+          "dgobbler": "dgobbler.webp",
+          "dragnden": "dragnden.webp",
+          "duckahoy": "duckahoy.webp",
+          "mgcshaps": "mgcshaps.webp",
+          "espial": "espial.webp",
+          "facemakr": "facemakr.webp",
+          "flcninvd": "flcninvd.webp",
+          "fracfevr": "fracfevr.webp",
+          "frogmstr": "frogmstr.webp",
+          "frogger": "frogger.webp",
+          "galaxian": "galaxian.webp",
+          "apshai": "apshai.webp",
+          "gorf": "gorf.webp",
+          "gridrunr": "gridrunr.webp",
+          "gyruss": "gyruss.webp",
+          "hopalong": "hopalong.webp",
+          "isoccer": "isoccer.webp",
+          "jackattk": "jackattk.webp",
+          "jawbreak": "jawbreak.webp",
+          "juice": "juice.webp",
+          "jukebox": "jukebox.webp",
+          "jmpmanjr": "jmpmanjr.webp",
+          "jungleh": "jungleh.webp",
+          "kidskeys": "kidskeys.webp",
+          "kindcomp": "kindcomp.webp",
+          "lazarian": "lazarian.webp",
+          "lazrzone": "lazrzone.webp",
+          "leeper": "leeper.webp",
+          "linklogc": "linklogc.webp",
+          "ldrun": "ldrun.webp",
+          "logiclvl": "logiclvl.webp",
+          "lleeper": "lleeper.webp",
+          "mbrewery": "mbrewery.webp",
+          "mstrtype": "mstrtype.webp",
+          "mileage": "mileage.webp",
+          "mazemstr": "mazemstr.webp",
+          "memmanor": "memmanor.webp",
+          "mine2049": "mine2049.webp",
+          "moondust": "moondust.webp",
+          "mpatrol": "mpatrol.webp",
+          "motorman": "motorman.webp",
+          "mking": "mking.webp",
+          "mrcool": "mrcool.webp",
+          "mrtnt": "mrtnt.webp",
+          "mspacman": "mspacman.webp",
+          "novablst": "novablst.webp",
+          "numbrnab": "numbrnab.webp",
+          "numbrtmb": "numbrtmb.webp",
+          "oilswell": "oilswell.webp",
+          "omegrace": "omegrace.webp",
+          "pacman": "pacman.webp",
+          "paintbrs": "paintbrs.webp",
+          "pastfind": "pastfind.webp",
+          "pnutpanc": "pnutpanc.webp",
+          "pipes": "pipes.webp",
+          "thepit": "thepit.webp",
+          "pitfall": "pitfall.webp",
+          "pitstop": "pitstop.webp",
+          "pitstop1": "pitstop1.webp",
+          "polepos": "polepos.webp",
+          "popeye": "popeye.webp",
+          "qbert": "qbert.webp",
+          "qbert1": "qbert1.webp",
+          "qbert2": "qbert2.webp",
+          "rackemup": "rackemup.webp",
+          "ranch": "ranch.webp",
+          "retrobal": "retrobal.webp",
+          "riveraid": "riveraid.webp",
+          "robotron": "robotron.webp",
+          "roottoot": "roottoot.webp",
+          "sammylf": "sammylf.webp",
+          "saveny": "saveny.webp",
+          "seaspell": "seaspell.webp",
+          "seafox": "seafox.webp",
+          "seahorse": "seahorse.webp",
+          "serptine": "serptine.webp",
+          "letter": "letter.webp",
+          "solarfox": "solarfox.webp",
+          "songmakr": "songmakr.webp",
+          "spaceric": "spaceric.webp",
+          "spitball": "spitball.webp",
+          "spyhunt": "spyhunt.webp",
+          "starpost": "starpost.webp",
+          "starrngr": "starrngr.webp",
+          "stix": "stix.webp",
+          "storymac": "storymac.webp",
+          "sprsmash": "sprsmash.webp",
+          "tankwars": "tankwars.webp",
+          "tapper": "tapper.webp",
+          "tenpins": "tenpins.webp",
+          "threshld": "threshld.webp",
+          "timbound": "timbound.webp",
+          "toothinv": "toothinv.webp",
+          "toybzr": "toybzr.webp",
+          "trashman": "trashman.webp",
+          "upgrabs": "upgrabs.webp",
+          "webster": "webster.webp",
+          "wiztype": "wiztype.webp",
+          "wowmv": "wowmv.webp",
+          "zenji": "zenji.webp",
+          "zonerngr": "zonerngr.webp",
+          "afterwar": "afterwar.webp",
+          "aspargp": "aspargp.webp",
+          "arcade": "arcade.webp",
+          "badlands": "badlands.webp",
+          "batman": "batman.webp",
+          "battlcmd": "battlcmd.webp",
+          "ddragon": "ddragon.webp",
+          "ddragonm": "ddragonm.webp",
+          "fortapoc": "fortapoc.webp",
+          "ghostbst": "ghostbst.webp",
+          "kungfum": "kungfum.webp",
+          "lastninj": "lastninj.webp",
+          "leadbg": "leadbg.webp",
+          "megafun": "megafun.webp",
+          "narco": "narco.webp",
+          "navyseal": "navyseal.webp",
+          "pang": "pang.webp",
+          "parkptrl": "parkptrl.webp",
+          "pwrplay": "pwrplay.webp",
+          "satan": "satan.webp",
+          "beast": "beast.webp",
+          "spacegun": "spacegun.webp",
+          "szaxxon": "szaxxon.webp",
+          "toki": "toki.webp",
+          "ttennis": "ttennis.webp",
+          "vindicat": "vindicat.webp",
+          "wboy": "wboy.webp",
+          "zaxxon": "zaxxon.webp",
+          "calcres": "calcres.webp",
+          "muistio": "muistio.webp",
+          "designer": "designer.webp",
+          "finadv": "finadv.webp",
+          "heswrite": "heswrite.webp",
+          "heswrit1": "heswrit1.webp",
+          "simonbas": "simonbas.webp",
+          "magicdsk": "magicdsk.webp",
+          "supsnap2": "supsnap2.webp",
+          "supsnap4p": "supsnap4p.webp",
+          "supsnap5": "supsnap5.webp",
+          "supsnap522p1": "supsnap522p1.webp",
+          "supsnap522p2": "supsnap522p2.webp",
+          "fcc": "fcc.webp",
+          "fccg": "fccg.webp",
+          "fccgo": "fccgo.webp",
+          "pop": "pop.webp"
+        }
+      },
+      {
+        "list": "c64_cass",
+        "description": "Commodore 64 cassettes",
+        "interface": "cbm_cass",
+        "kind": "cassette",
+        "catalogUrl": "software/c64_cass.json",
+        "availableUrl": "software/c64_cass.available.json",
+        "extensions": [
+          "tap",
+          "wav"
+        ],
+        "entries": 1100,
+        "mountable": true,
+        "filter": "PAL",
+        "slots": [
+          "tape"
+        ],
+        "boot": {
+          "delay": 3,
+          "command": "LOAD{ENTER}RUN{ENTER}",
+          "play": true
+        },
+        "art": {
+          "180": "180.webp",
+          "720": "720.webp",
+          "1942": "1942.webp",
+          "1985": "1985.webp",
+          "10thframe": "10thframe.webp",
+          "1942a": "1942a.webp",
+          "1985a": "1985a.webp",
+          "3dpinbl": "3dpinbl.webp",
+          "3dpool": "3dpool.webp",
+          "3dpoolk": "3dpoolk.webp",
+          "a3dpool": "a3dpool.webp",
+          "5thgear": "5thgear.webp",
+          "5thgearp": "5thgearp.webp",
+          "aardvark": "aardvark.webp",
+          "aceofaces": "aceofaces.webp",
+          "ace2088": "ace2088.webp",
+          "acrojet": "acrojet.webp",
+          "advbball": "advbball.webp",
+          "advpinb": "advpinb.webp",
+          "advbasil": "advbasil.webp",
+          "ahdiddums": "ahdiddums.webp",
+          "airborne": "airborne.webp",
+          "airwolf": "airwolf.webp",
+          "airwolf2": "airwolf2.webp",
+          "alice": "alice.webp",
+          "alleykat": "alleykat.webp",
+          "altbeast": "altbeast.webp",
+          "altworld": "altworld.webp",
+          "amaurote": "amaurote.webp",
+          "americup": "americup.webp",
+          "anarchy": "anarchy.webp",
+          "android2": "android2.webp",
+          "andycapp": "andycapp.webp",
+          "anglebl": "anglebl.webp",
+          "annihiltr": "annihiltr.webp",
+          "annihiltrr": "annihiltrr.webp",
+          "antplant": "antplant.webp",
+          "aquanaut": "aquanaut.webp",
+          "arcadecl": "arcadecl.webp",
+          "arcadia": "arcadia.webp",
+          "archon2": "archon2.webp",
+          "arkanoid": "arkanoid.webp",
+          "arkanoidi": "arkanoidi.webp",
+          "arknoid2": "arknoid2.webp",
+          "armagedn": "armagedn.webp",
+          "armagednv": "armagednv.webp",
+          "armalyte": "armalyte.webp",
+          "armourdillo": "armourdillo.webp",
+          "armymoves": "armymoves.webp",
+          "asterixa": "asterixa.webp",
+          "asylum": "asylum.webp",
+          "atomicrk": "atomicrk.webp",
+          "atcamel": "atcamel.webp",
+          "aufwiede": "aufwiede.webp",
+          "augidoggi": "augidoggi.webp",
+          "automania": "automania.webp",
+          "avenger": "avenger.webp",
+          "bcbill": "bcbill.webp",
+          "backreal": "backreal.webp",
+          "ballcrz": "ballcrz.webp",
+          "barb2": "barb2.webp",
+          "baskmast": "baskmast.webp",
+          "batmancc": "batmancc.webp",
+          "bisland": "bisland.webp",
+          "bships": "bships.webp",
+          "bthrtime": "bthrtime.webp",
+          "bvalley": "bvalley.webp",
+          "bazbill": "bazbill.webp",
+          "bcquest": "bcquest.webp",
+          "bcquest2": "bcquest2.webp",
+          "bbuggysim": "bbuggysim.webp",
+          "beachhead": "beachhead.webp",
+          "beachhd2": "beachhd2.webp",
+          "beatit": "beatit.webp",
+          "bettrdead": "bettrdead.webp",
+          "beyondff": "beyondff.webp",
+          "icepalace": "icepalace.webp",
+          "biff": "biff.webp",
+          "bignoseaa": "bignoseaa.webp",
+          "bigfoot": "bigfoot.webp",
+          "btbarney": "btbarney.webp",
+          "biongran": "biongran.webp",
+          "blacklam": "blacklam.webp",
+          "blktiger": "blktiger.webp",
+          "blaggerh": "blaggerh.webp",
+          "blazeout": "blazeout.webp",
+          "bloodbro": "bloodbro.webp",
+          "blueangl": "blueangl.webp",
+          "bluemax": "bluemax.webp",
+          "bmax2001": "bmax2001.webp",
+          "bluethndr": "bluethndr.webp",
+          "bluesbro": "bluesbro.webp",
+          "bmxracers": "bmxracers.webp",
+          "bmxracersa": "bmxracersa.webp",
+          "bmxracersa2": "bmxracersa2.webp",
+          "bmxracersa3": "bmxracersa3.webp",
+          "bmxsim": "bmxsim.webp",
+          "bmxtrials": "bmxtrials.webp",
+          "bdash4h": "bdash4h.webp",
+          "bombjack": "bombjack.webp",
+          "bombjacke": "bombjacke.webp",
+          "bombjack2": "bombjack2.webp",
+          "bombjack2e": "bombjack2e.webp",
+          "bombo": "bombo.webp",
+          "bombuzal": "bombuzal.webp",
+          "bonanzab": "bonanzab.webp",
+          "boogaboo": "boogaboo.webp",
+          "booty": "booty.webp",
+          "bootys": "bootys.webp",
+          "bbobsb": "bbobsb.webp",
+          "brainstrm": "brainstrm.webp",
+          "breakthruu": "breakthruu.webp",
+          "bbloodax": "bbloodax.webp",
+          "brucelee": "brucelee.webp",
+          "bublbobl": "bublbobl.webp",
+          "bublboblf": "bublboblf.webp",
+          "bubldizzy": "bubldizzy.webp",
+          "buggyboy": "buggyboy.webp",
+          "bulldog": "bulldog.webp",
+          "bullseye": "bullseye.webp",
+          "bumpset": "bumpset.webp",
+          "burgerchs": "burgerchs.webp",
+          "btime": "btime.webp",
+          "codehunt": "codehunt.webp",
+          "cabal": "cabal.webp",
+          "cavelon": "cavelon.webp",
+          "cavemania": "cavemania.webp",
+          "caveriban": "caveriban.webp",
+          "cavxydrap": "cavxydrap.webp",
+          "chainreac": "chainreac.webp",
+          "challengr": "challengr.webp",
+          "champbask": "champbask.webp",
+          "chiller": "chiller.webp",
+          "chimera": "chimera.webp",
+          "chinamin": "chinamin.webp",
+          "chinjgglr": "chinjgglr.webp",
+          "chipscha": "chipscha.webp",
+          "chubbgris": "chubbgris.webp",
+          "ciphoid9": "ciphoid9.webp",
+          "circusatt": "circusatt.webp",
+          "cliffhgr": "cliffhgr.webp",
+          "cluedo": "cluedo.webp",
+          "collaps": "collaps.webp",
+          "cobra": "cobra.webp",
+          "cobrao": "cobrao.webp",
+          "comblynx": "comblynx.webp",
+          "combatsc": "combatsc.webp",
+          "cometgam": "cometgam.webp",
+          "comicbak": "comicbak.webp",
+          "commando": "commando.webp",
+          "commandoa": "commandoa.webp",
+          "commandoe": "commandoe.webp",
+          "comporgel": "comporgel.webp",
+          "circusp": "circusp.webp",
+          "convoyra": "convoyra.webp",
+          "corp": "corp.webp",
+          "cosmconv": "cosmconv.webp",
+          "cosmcruis": "cosmcruis.webp",
+          "crackdow": "crackdow.webp",
+          "crballoon": "crballoon.webp",
+          "crazycar": "crazycar.webp",
+          "crazycart": "crazycart.webp",
+          "crzykong": "crzykong.webp",
+          "crzykonga": "crzykonga.webp",
+          "creature": "creature.webp",
+          "critmass": "critmass.webp",
+          "critmassd": "critmassd.webp",
+          "ccastles": "ccastles.webp",
+          "sherwood": "sherwood.webp",
+          "cybermis": "cybermis.webp",
+          "cybotron": "cybotron.webp",
+          "cyclons": "cyclons.webp",
+          "cylu": "cylu.webp",
+          "daleydec": "daleydec.webp",
+          "daleydech": "daleydech.webp",
+          "dmousedt": "dmousedt.webp",
+          "darkstar": "darkstar.webp",
+          "daysofth": "daysofth.webp",
+          "deathorg": "deathorg.webp",
+          "decathln": "decathln.webp",
+          "deceptor": "deceptor.webp",
+          "deflektr": "deflektr.webp",
+          "delta": "delta.webp",
+          "demonblue": "demonblue.webp",
+          "denarius": "denarius.webp",
+          "desrtfox": "desrtfox.webp",
+          "dsrthawk": "dsrthawk.webp",
+          "dicktrac": "dicktrac.webp",
+          "dizzyrapd": "dizzyrapd.webp",
+          "docthede": "docthede.webp",
+          "dominate": "dominate.webp",
+          "donalddp": "donalddp.webp",
+          "dkong": "dkong.webp",
+          "dkongo": "dkongo.webp",
+          "dbldare": "dbldare.webp",
+          "ddragon": "ddragon.webp",
+          "dbltake": "dbltake.webp",
+          "doughboy": "doughboy.webp",
+          "dlair": "dlair.webp",
+          "dlairp": "dlairp.webp",
+          "dreamwar": "dreamwar.webp",
+          "drelbs": "drelbs.webp",
+          "druid": "druid.webp",
+          "ducksht": "ducksht.webp",
+          "dynamicd": "dynamicd.webp",
+          "dynadan": "dynadan.webp",
+          "dynastyw": "dynastyw.webp",
+          "emotion": "emotion.webp",
+          "eagleemp": "eagleemp.webp",
+          "eddduck": "eddduck.webp",
+          "election": "election.webp",
+          "enduro": "enduro.webp",
+          "enduroa": "enduroa.webp",
+          "enghumpty": "enghumpty.webp",
+          "erebus": "erebus.webp",
+          "escapemc": "escapemc.webp",
+          "eu5aside": "eu5aside.webp",
+          "excaliba": "excaliba.webp",
+          "fairligh": "fairligh.webp",
+          "falconp": "falconp.webp",
+          "fallguy": "fallguy.webp",
+          "fwdizzy": "fwdizzy.webp",
+          "fastfood": "fastfood.webp",
+          "ferrari": "ferrari.webp",
+          "feud": "feud.webp",
+          "fightn": "fightn.webp",
+          "fightpil": "fightpil.webp",
+          "ffight": "ffight.webp",
+          "findkeep": "findkeep.webp",
+          "fireant": "fireant.webp",
+          "firelord": "firelord.webp",
+          "firelordh": "firelordh.webp",
+          "fmansam": "fmansam.webp",
+          "fstrike": "fstrike.webp",
+          "fstrikee": "fstrikee.webp",
+          "flak": "flak.webp",
+          "flightpa": "flightpa.webp",
+          "flintstn": "flintstn.webp",
+          "flyfther": "flyfther.webp",
+          "flyfthera": "flyfthera.webp",
+          "fshark": "fshark.webp",
+          "foty": "foty.webp",
+          "fforest": "fforest.webp",
+          "forceone": "forceone.webp",
+          "forgottn": "forgottn.webp",
+          "f1sim": "f1sim.webp",
+          "fortapoc": "fortapoc.webp",
+          "foxxfb": "foxxfb.webp",
+          "fbruno": "fbruno.webp",
+          "fbrunoe": "fbrunoe.webp",
+          "fbrunow": "fbrunow.webp",
+          "frankenjr": "frankenjr.webp",
+          "freddy": "freddy.webp",
+          "frogger64": "frogger64.webp",
+          "frontlin": "frontlin.webp",
+          "fruitms": "fruitms.webp",
+          "fungus": "fungus.webp",
+          "futurekn": "futurekn.webp",
+          "galgames": "galgames.webp",
+          "galgamesa": "galgamesa.webp",
+          "galivan": "galivan.webp",
+          "gameover2": "gameover2.webp",
+          "gangster": "gangster.webp",
+          "gaplus": "gaplus.webp",
+          "garfldwt": "garfldwt.webp",
+          "glhotshot": "glhotshot.webp",
+          "gauntlet": "gauntlet.webp",
+          "gauntletk": "gauntletk.webp",
+          "gauntletu": "gauntletu.webp",
+          "gauntldd": "gauntldd.webp",
+          "gemini": "gemini.webp",
+          "getrdyrd": "getrdyrd.webp",
+          "ghostbst": "ghostbst.webp",
+          "ghostbsta": "ghostbsta.webp",
+          "ghostbst2": "ghostbst2.webp",
+          "gng": "gng.webp",
+          "ghouls": "ghouls.webp",
+          "ghoulsng": "ghoulsng.webp",
+          "gilligan": "gilligan.webp",
+          "gliderri": "gliderri.webp",
+          "glugglug": "glugglug.webp",
+          "goldglory": "goldglory.webp",
+          "goldnaxe": "goldnaxe.webp",
+          "goldnaxev": "goldnaxev.webp",
+          "golf": "golf.webp",
+          "golfmstr": "golfmstr.webp",
+          "goonies": "goonies.webp",
+          "glarceny": "glarceny.webp",
+          "gpsimult": "gpsimult.webp",
+          "grandms": "grandms.webp",
+          "graphsed": "graphsed.webp",
+          "greatesc": "greatesc.webp",
+          "gberet": "gberet.webp",
+          "gremlins": "gremlins.webp",
+          "gribblys": "gribblys.webp",
+          "gridrunn": "gridrunn.webp",
+          "gpadrian": "gpadrian.webp",
+          "gryphon": "gryphon.webp",
+          "gryzor": "gryzor.webp",
+          "gryzoro": "gryzoro.webp",
+          "guadalca": "guadalca.webp",
+          "guardian": "guardian.webp",
+          "guardang": "guardang.webp",
+          "gunship": "gunship.webp",
+          "gunstar": "gunstar.webp",
+          "gutz": "gutz.webp",
+          "gyroscope": "gyroscope.webp",
+          "hero": "hero.webp",
+          "heroa": "heroa.webp",
+          "hacker2": "hacker2.webp",
+          "hallthngs": "hallthngs.webp",
+          "hardball": "hardball.webp",
+          "hardballc": "hardballc.webp",
+          "headbang": "headbang.webp",
+          "showjump": "showjump.webp",
+          "hawkeye": "hawkeye.webp",
+          "headovrh": "headovrh.webp",
+          "headovrho": "headovrho.webp",
+          "headcoach": "headcoach.webp",
+          "heartlnd": "heartlnd.webp",
+          "hektik": "hektik.webp",
+          "hektika": "hektika.webp",
+          "helm": "helm.webp",
+          "hotgt": "hotgt.webp",
+          "heroqst": "heroqst.webp",
+          "hexpert": "hexpert.webp",
+          "highfron": "highfron.webp",
+          "highlndr": "highlndr.webp",
+          "hobbit": "hobbit.webp",
+          "hobbita": "hobbita.webp",
+          "holinone": "holinone.webp",
+          "hpoker": "hpoker.webp",
+          "hoodoov": "hoodoov.webp",
+          "hoppinmad": "hoppinmad.webp",
+          "horaceski": "horaceski.webp",
+          "hotwheel": "hotwheel.webp",
+          "hotshot": "hotshot.webp",
+          "howrduck": "howrduck.webp",
+          "humanrace": "humanrace.webp",
+          "hunchbk": "hunchbk.webp",
+          "hunchadv": "hunchadv.webp",
+          "horace": "horace.webp",
+          "hfro": "hfro.webp",
+          "huntmoon": "huntmoon.webp",
+          "hustler": "hustler.webp",
+          "huxleypig": "huxleypig.webp",
+          "hyperspt": "hyperspt.webp",
+          "hyperbowl": "hyperbowl.webp",
+          "iball": "iball.webp",
+          "iball2": "iball2.webp",
+          "icehuntr": "icehuntr.webp",
+          "ikari": "ikari.webp",
+          "impact": "impact.webp",
+          "impmiss": "impmiss.webp",
+          "impmissc": "impmissc.webp",
+          "indydoom": "indydoom.webp",
+          "infiltrt": "infiltrt.webp",
+          "ik": "ik.webp",
+          "ikp": "ikp.webp",
+          "intrugby": "intrugby.webp",
+          "intsoccr": "intsoccr.webp",
+          "inttenns": "inttenns.webp",
+          "eaglnest": "eaglnest.webp",
+          "intobliv": "intobliv.webp",
+          "jacknipr": "jacknipr.webp",
+          "jeepcmnd": "jeepcmnd.webp",
+          "joeblade": "joeblade.webp",
+          "jbsquash": "jbsquash.webp",
+          "judgedre": "judgedre.webp",
+          "juice": "juice.webp",
+          "jumpjet": "jumpjet.webp",
+          "jungleqt": "jungleqt.webp",
+          "jungleqta": "jungleqta.webp",
+          "kaktus": "kaktus.webp",
+          "kane": "kane.webp",
+          "kayleth": "kayleth.webp",
+          "kennedy": "kennedy.webp",
+          "kentilla": "kentilla.webp",
+          "kettle": "kettle.webp",
+          "kgbsspy": "kgbsspy.webp",
+          "killedun": "killedun.webp",
+          "killmchn": "killmchn.webp",
+          "kinetik": "kinetik.webp",
+          "klax": "klax.webp",
+          "kntrider": "kntrider.webp",
+          "knightym": "knightym.webp",
+          "knightmr": "knightmr.webp",
+          "knuckleb": "knuckleb.webp",
+          "kokotoni": "kokotoni.webp",
+          "kong": "kong.webp",
+          "konga": "konga.webp",
+          "kongsb": "kongsb.webp",
+          "kongokng": "kongokng.webp",
+          "krakout": "krakout.webp",
+          "kwah": "kwah.webp",
+          "kwiksnax": "kwiksnax.webp",
+          "labyrinth": "labyrinth.webp",
+          "lanclords": "lanclords.webp",
+          "lastmiss": "lastmiss.webp",
+          "lastninja": "lastninja.webp",
+          "lastninjaa": "lastninjaa.webp",
+          "lastv8": "lastv8.webp",
+          "lastv8a": "lastv8a.webp",
+          "lawwest": "lawwest.webp",
+          "lazforce": "lazforce.webp",
+          "lazwheel": "lazwheel.webp",
+          "lazyjon": "lazyjon.webp",
+          "leadbgee": "leadbgee.webp",
+          "lkage": "lkage.webp",
+          "knucker": "knucker.webp",
+          "lic2killd": "lic2killd.webp",
+          "lcp": "lcp.webp",
+          "laswat": "laswat.webp",
+          "lotus": "lotus.webp",
+          "lotusg": "lotusg.webp",
+          "magmax": "magmax.webp",
+          "magcarpet": "magcarpet.webp",
+          "magdizzy": "magdizzy.webp",
+          "magnetro": "magnetro.webp",
+          "majik": "majik.webp",
+          "manicmin": "manicmin.webp",
+          "marble": "marble.webp",
+          "mario": "mario.webp",
+          "mask2": "mask2.webp",
+          "mstrchs": "mstrchs.webp",
+          "matchpnt": "matchpnt.webp",
+          "matchpnt1": "matchpnt1.webp",
+          "matrix": "matrix.webp",
+          "megaapoc": "megaapoc.webp",
+          "mermaidm": "mermaidm.webp",
+          "metrobli": "metrobli.webp",
+          "metrox": "metrox.webp",
+          "metroxg": "metroxg.webp",
+          "miamichs": "miamichs.webp",
+          "miamivic": "miamivic.webp",
+          "microball": "microball.webp",
+          "rhythm": "rhythm.webp",
+          "rhythmp": "rhythmp.webp",
+          "midnghth": "midnghth.webp",
+          "midway": "midway.webp",
+          "migalley": "migalley.webp",
+          "mrpopquiz": "mrpopquiz.webp",
+          "milkrace": "milkrace.webp",
+          "missile": "missile.webp",
+          "missilea": "missilea.webp",
+          "missomega": "missomega.webp",
+          "monopole": "monopole.webp",
+          "mcarlo": "mcarlo.webp",
+          "montyont": "montyont.webp",
+          "mordnqst": "mordnqst.webp",
+          "mbigmac": "mbigmac.webp",
+          "motox": "motox.webp",
+          "motorman": "motorman.webp",
+          "motormana": "motormana.webp",
+          "motormas": "motormas.webp",
+          "munchman": "munchman.webp",
+          "munchmana": "munchmana.webp",
+          "mushalley": "mushalley.webp",
+          "mutants": "mutants.webp",
+          "mystindus": "mystindus.webp",
+          "mystnile": "mystnile.webp",
+          "nomad": "nomad.webp",
+          "national": "national.webp",
+          "nebulus": "nebulus.webp",
+          "nemwar": "nemwar.webp",
+          "neoclyps": "neoclyps.webp",
+          "neutzone": "neutzone.webp",
+          "neutrlizr": "neutrlizr.webp",
+          "tnes": "tnes.webp",
+          "nycity": "nycity.webp",
+          "tnzs": "tnzs.webp",
+          "nghtracr": "nghtracr.webp",
+          "ninja": "ninja.webp",
+          "nmassacr": "nmassacr.webp",
+          "nonterra": "nonterra.webp",
+          "ohno": "ohno.webp",
+          "oink": "oink.webp",
+          "oinkc": "oinkc.webp",
+          "olympski": "olympski.webp",
+          "octennis": "octennis.webp",
+          "oncue": "oncue.webp",
+          "offootb": "offootb.webp",
+          "omahd": "omahd.webp",
+          "ontiles": "ontiles.webp",
+          "opthunder": "opthunder.webp",
+          "opwolf": "opwolf.webp",
+          "opwolfo": "opwolfo.webp",
+          "orbitron": "orbitron.webp",
+          "outrun": "outrun.webp",
+          "outback": "outback.webp",
+          "outlaw": "outlaw.webp",
+          "outlaws": "outlaws.webp",
+          "overland": "overland.webp",
+          "pod": "pod.webp",
+          "pacland": "pacland.webp",
+          "pacmania": "pacmania.webp",
+          "pakacuda": "pakacuda.webp",
+          "pandora": "pandora.webp",
+          "panther": "panther.webp",
+          "paperboy": "paperboy.webp",
+          "paperboya": "paperboya.webp",
+          "paperboye": "paperboye.webp",
+          "paradroid": "paradroid.webp",
+          "parallax": "parallax.webp",
+          "parkptrl": "parkptrl.webp",
+          "pastfind": "pastfind.webp",
+          "pedro": "pedro.webp",
+          "penetrtr": "penetrtr.webp",
+          "periscup": "periscup.webp",
+          "peterbea": "peterbea.webp",
+          "phmpeg": "phmpeg.webp",
+          "pilot64": "pilot64.webp",
+          "pinballwz": "pinballwz.webp",
+          "pingpong": "pingpong.webp",
+          "pingpongi": "pingpongi.webp",
+          "pitstop2": "pitstop2.webp",
+          "pitstop2r": "pitstop2r.webp",
+          "platoon": "platoon.webp",
+          "plumbcra": "plumbcra.webp",
+          "polepos": "polepos.webp",
+          "polterge": "polterge.webp",
+          "popeye": "popeye.webp",
+          "postrpstr": "postrpstr.webp",
+          "pdrift": "pdrift.webp",
+          "presiden": "presiden.webp",
+          "princecl": "princecl.webp",
+          "proskate": "proskate.webp",
+          "prodigy": "prodigy.webp",
+          "proski": "proski.webp",
+          "prosnook": "prosnook.webp",
+          "prohibit": "prohibit.webp",
+          "protium": "protium.webp",
+          "prowler": "prowler.webp",
+          "psychos": "psychos.webp",
+          "pubgames": "pubgames.webp",
+          "pulsewr": "pulsewr.webp",
+          "punchy": "punchy.webp",
+          "pyjamarm": "pyjamarm.webp",
+          "quartet": "quartet.webp",
+          "quedex": "quedex.webp",
+          "qgoldegg": "qgoldegg.webp",
+          "holygrail": "holygrail.webp",
+          "quinwarr": "quinwarr.webp",
+          "radrampr": "radrampr.webp",
+          "ragbeast": "ragbeast.webp",
+          "raidmosc": "raidmosc.webp",
+          "rbisland": "rbisland.webp",
+          "rallydrv": "rallydrv.webp",
+          "rallycro": "rallycro.webp",
+          "rambo3o": "rambo3o.webp",
+          "rampage": "rampage.webp",
+          "ramparts": "ramparts.webp",
+          "ranarama": "ranarama.webp",
+          "rasputin": "rasputin.webp",
+          "rastan": "rastan.webp",
+          "realgb": "realgb.webp",
+          "realm": "realm.webp",
+          "realmimp": "realmimp.webp",
+          "rebound": "rebound.webp",
+          "redheat": "redheat.webp",
+          "redheato": "redheato.webp",
+          "redled": "redled.webp",
+          "redmax": "redmax.webp",
+          "redmaxc": "redmaxc.webp",
+          "renegade": "renegade.webp",
+          "fractala": "fractala.webp",
+          "retrogra": "retrogra.webp",
+          "returnoz": "returnoz.webp",
+          "revcamel": "revcamel.webp",
+          "talladeg": "talladeg.webp",
+          "rigelsrev": "rigelsrev.webp",
+          "rivrresc": "rivrresc.webp",
+          "rivrresca": "rivrresca.webp",
+          "roadblstk": "roadblstk.webp",
+          "roadrunn": "roadrunn.webp",
+          "roadrunnwe": "roadrunnwe.webp",
+          "roadwars": "roadwars.webp",
+          "robbers": "robbers.webp",
+          "robinresc": "robinresc.webp",
+          "robocodk": "robocodk.webp",
+          "robocop": "robocop.webp",
+          "robocopo": "robocopo.webp",
+          "rockstar": "rockstar.webp",
+          "rocknwrs": "rocknwrs.webp",
+          "rocknwrsa": "rocknwrsa.webp",
+          "rodland": "rodland.webp",
+          "rollarnd": "rollarnd.webp",
+          "rollrbal": "rollrbal.webp",
+          "rollrbrd": "rollrbrd.webp",
+          "rthunder": "rthunder.webp",
+          "rthunderu": "rthunderu.webp",
+          "roomten": "roomten.webp",
+          "icecastl": "icecastl.webp",
+          "runtheg": "runtheg.webp",
+          "runthego": "runthego.webp",
+          "rygar": "rygar.webp",
+          "salamandi": "salamandi.webp",
+          "sanxion": "sanxion.webp",
+          "saracen": "saracen.webp",
+          "savage": "savage.webp",
+          "scooby": "scooby.webp",
+          "scorpion": "scorpion.webp",
+          "scorpionp": "scorpionp.webp",
+          "sdadrian": "sdadrian.webp",
+          "sekaa": "sekaa.webp",
+          "sentinel": "sentinel.webp",
+          "sentinelu": "sentinelu.webp",
+          "tsentinl": "tsentinl.webp",
+          "shadowsk": "shadowsk.webp",
+          "shadowso": "shadowso.webp",
+          "shamus": "shamus.webp",
+          "shanghai": "shanghai.webp",
+          "topfuel": "topfuel.webp",
+          "shrtcirc": "shrtcirc.webp",
+          "shrtcirco": "shrtcirco.webp",
+          "sidewize": "sidewize.webp",
+          "sigma7": "sigma7.webp",
+          "sservice": "sservice.webp",
+          "silkwormv": "silkwormv.webp",
+          "sirencit": "sirencit.webp",
+          "sirencitd": "sirencitd.webp",
+          "skateord": "skateord.webp",
+          "skatnusa": "skatnusa.webp",
+          "skooldaze": "skooldaze.webp",
+          "skytwice": "skytwice.webp",
+          "skylinea": "skylinea.webp",
+          "slamball": "slamball.webp",
+          "slapfight": "slapfight.webp",
+          "slapfighti": "slapfighti.webp",
+          "slayer": "slayer.webp",
+          "slayerp": "slayerp.webp",
+          "slimemine": "slimemine.webp",
+          "slinky": "slinky.webp",
+          "snare": "snare.webp",
+          "snokie": "snokie.webp",
+          "soloflig": "soloflig.webp",
+          "solomon": "solomon.webp",
+          "sonofbla": "sonofbla.webp",
+          "sorcery": "sorcery.webp",
+          "sos": "sos.webp",
+          "sdoubt": "sdoubt.webp",
+          "sharrier": "sharrier.webp",
+          "spacehnt": "spacehnt.webp",
+          "sinvasion": "sinvasion.webp",
+          "spacewalk": "spacewalk.webp",
+          "speedking": "speedking.webp",
+          "sboatrace": "sboatrace.webp",
+          "spiktrans": "spiktrans.webp",
+          "spindizzy": "spindizzy.webp",
+          "spitfire": "spitfire.webp",
+          "sfireace": "sfireace.webp",
+          "splitpers": "splitpers.webp",
+          "splitpersd": "splitpersd.webp",
+          "spore": "spore.webp",
+          "spriteman": "spriteman.webp",
+          "spyhunt": "spyhunt.webp",
+          "spyvspy": "spyvspy.webp",
+          "squirm": "squirm.webp",
+          "starion": "starion.webp",
+          "starlift": "starlift.webp",
+          "starquak": "starquak.webp",
+          "steel": "steel.webp",
+          "steelp": "steelp.webp",
+          "stegslug": "stegslug.webp",
+          "stellar7": "stellar7.webp",
+          "stircraz": "stircraz.webp",
+          "stix": "stix.webp",
+          "storm": "storm.webp",
+          "stormlord": "stormlord.webp",
+          "stranglp": "stranglp.webp",
+          "streetcb": "streetcb.webp",
+          "strtgang": "strtgang.webp",
+          "streetha": "streetha.webp",
+          "ssbaseba": "ssbaseba.webp",
+          "ssbasket": "ssbasket.webp",
+          "sssoccer": "sssoccer.webp",
+          "strtsurf": "strtsurf.webp",
+          "strtwarr": "strtwarr.webp",
+          "strike": "strike.webp",
+          "sfcobra": "sfcobra.webp",
+          "spoker": "spoker.webp",
+          "spoker2": "spoker2.webp",
+          "strontium": "strontium.webp",
+          "stuntbk": "stuntbk.webp",
+          "stuntbks": "stuntbks.webp",
+          "subhunt": "subhunt.webp",
+          "subterra": "subterra.webp",
+          "sexpress": "sexpress.webp",
+          "summrck": "summrck.webp",
+          "summrct": "summrct.webp",
+          "sumgamesk": "sumgamesk.webp",
+          "sumgames2": "sumgames2.webp",
+          "sumgames2r": "sumgames2r.webp",
+          "suprcycle": "suprcycle.webp",
+          "suprcycleu": "suprcycleu.webp",
+          "suprdogf": "suprdogf.webp",
+          "suprgran": "suprgran.webp",
+          "shangon": "shangon.webp",
+          "suprhuey2": "suprhuey2.webp",
+          "suprleag": "suprleag.webp",
+          "suproswa": "suproswa.webp",
+          "suprseymr": "suprseymr.webp",
+          "suprskra": "suprskra.webp",
+          "ssprint": "ssprint.webp",
+          "sstuntmn": "sstuntmn.webp",
+          "suprtrux": "suprtrux.webp",
+          "suprtruxe": "suprtruxe.webp",
+          "szaxxon": "szaxxon.webp",
+          "suprkid": "suprkid.webp",
+          "ssicehoc": "ssicehoc.webp",
+          "sweep": "sweep.webp",
+          "tbird": "tbird.webp",
+          "taipan": "taipan.webp",
+          "taladega": "taladega.webp",
+          "tapper": "tapper.webp",
+          "tarzan": "tarzan.webp",
+          "technoco": "technoco.webp",
+          "tmht": "tmht.webp",
+          "tcresta": "tcresta.webp",
+          "tcrestai": "tcrestai.webp",
+          "terrorml": "terrorml.webp",
+          "testdriv": "testdriv.webp",
+          "tetris": "tetris.webp",
+          "theystol": "theystol.webp",
+          "thingbou": "thingbou.webp",
+          "thingspr": "thingspr.webp",
+          "thrust": "thrust.webp",
+          "thrusta": "thrusta.webp",
+          "tbladeu": "tbladeu.webp",
+          "thndcats": "thndcats.webp",
+          "thndcatse": "thndcatse.webp",
+          "thndforc": "thndforc.webp",
+          "tilt": "tilt.webp",
+          "timetrav": "timetrav.webp",
+          "timetunn": "timetunn.webp",
+          "tintinmn": "tintinmn.webp",
+          "tokenofg": "tokenofg.webp",
+          "tom": "tom.webp",
+          "tomahawk": "tomahawk.webp",
+          "tombxeiop": "tombxeiop.webp",
+          "topgun": "topgun.webp",
+          "trailblz": "trailblz.webp",
+          "trailblzg": "trailblzg.webp",
+          "transylv": "transylv.webp",
+          "trap": "trap.webp",
+          "trivfruit": "trivfruit.webp",
+          "trolwall": "trolwall.webp",
+          "trbochrg": "trbochrg.webp",
+          "turbo64": "turbo64.webp",
+          "turbboat": "turbboat.webp",
+          "turboes": "turboes.webp",
+          "toutrun": "toutrun.webp",
+          "turrican": "turrican.webp",
+          "turtljmp": "turtljmp.webp",
+          "typhoon": "typhoon.webp",
+          "ufo": "ufo.webp",
+          "uchimata": "uchimata.webp",
+          "untouch": "untouch.webp",
+          "uridium": "uridium.webp",
+          "vampire": "vampire.webp",
+          "vjackpot": "vjackpot.webp",
+          "velociped": "velociped.webp",
+          "velociped2": "velociped2.webp",
+          "venom": "venom.webp",
+          "veryfirst": "veryfirst.webp",
+          "thevindc": "thevindc.webp",
+          "thevindci": "thevindci.webp",
+          "war": "war.webp",
+          "wgtrhyme": "wgtrhyme.webp",
+          "wantedmm": "wantedmm.webp",
+          "warcars": "warcars.webp",
+          "warhawk": "warhawk.webp",
+          "watrpolo": "watrpolo.webp",
+          "explfist": "explfist.webp",
+          "explfistmh": "explfistmh.webp",
+          "westbank": "westbank.webp",
+          "westgame": "westgame.webp",
+          "wheelwal": "wheelwal.webp",
+          "whodare2": "whodare2.webp",
+          "whodare2a": "whodare2a.webp",
+          "wildrwest": "wildrwest.webp",
+          "willowpa": "willowpa.webp",
+          "wimbledo": "wimbledo.webp",
+          "wintcamp": "wintcamp.webp",
+          "wingames": "wingames.webp",
+          "wingamesk": "wingamesk.webp",
+          "wingamesu": "wingamesu.webp",
+          "wintolym": "wintolym.webp",
+          "wiz": "wiz.webp",
+          "wizbiz": "wizbiz.webp",
+          "wizardry": "wizardry.webp",
+          "wizball": "wizball.webp",
+          "wizballo": "wizballo.webp",
+          "wboy": "wboy.webp",
+          "wcsoccer": "wcsoccer.webp",
+          "wcupcarn": "wcupcarn.webp",
+          "wrldgames": "wrldgames.webp",
+          "wrldgamesu": "wrldgamesu.webp",
+          "wsb": "wsb.webp",
+          "wsbi": "wsbi.webp",
+          "x15alpha": "x15alpha.webp",
+          "xevious": "xevious.webp",
+          "xeviousu": "xeviousu.webp",
+          "yabbadab": "yabbadab.webp",
+          "yeti": "yeti.webp",
+          "yiear": "yiear.webp",
+          "yieari": "yieari.webp",
+          "yiear2": "yiear2.webp",
+          "yogisesc": "yogisesc.webp",
+          "yogisesc1": "yogisesc1.webp",
+          "zagamiss": "zagamiss.webp",
+          "zamzara": "zamzara.webp",
+          "zaxxon": "zaxxon.webp",
+          "zodiac": "zodiac.webp",
+          "zoids": "zoids.webp",
+          "zolyx": "zolyx.webp",
+          "zonerngr": "zonerngr.webp",
+          "zorro": "zorro.webp",
+          "10hits2": "10hits2.webp",
+          "10hits3": "10hits3.webp",
+          "10hits4": "10hits4.webp",
+          "4horror": "4horror.webp",
+          "4meghero": "4meghero.webp",
+          "4soccer": "4soccer.webp",
+          "6hits": "6hits.webp",
+          "6hitsa": "6hitsa.webp",
+          "actionp": "actionp.webp",
+          "atfrainbow": "atfrainbow.webp",
+          "arcadef4": "arcadef4.webp",
+          "boelite1": "boelite1.webp",
+          "boelite2": "boelite2.webp",
+          "chartbus": "chartbus.webp",
+          "cnflcts1": "cnflcts1.webp",
+          "epyxepic": "epyxepic.webp",
+          "gauntxev": "gauntxev.webp",
+          "giants": "giants.webp",
+          "goldcol": "goldcol.webp",
+          "goldcol3": "goldcol3.webp",
+          "gps": "gps.webp",
+          "hitsvol1": "hitsvol1.webp",
+          "jonnyjimp": "jonnyjimp.webp",
+          "liveammo": "liveammo.webp",
+          "qadvent": "qadvent.webp",
+          "qcartoon": "qcartoon.webp",
+          "qcoinops": "qcoinops.webp",
+          "qcombat": "qcombat.webp",
+          "qfightrs": "qfightrs.webp",
+          "qracers": "qracers.webp",
+          "qsuphits": "qsuphits.webp",
+          "suprcasb": "suprcasb.webp",
+          "tsam": "tsam.webp",
+          "trio": "trio.webp",
+          "zzapsizz2": "zzapsizz2.webp"
+        }
+      },
+      {
+        "list": "c64_flop_orig",
+        "description": "Commodore 64 original disks",
+        "interface": "floppy_5_25",
+        "kind": "floppy",
+        "catalogUrl": "software/c64_flop_orig.json",
+        "availableUrl": "software/c64_flop_orig.available.json",
+        "extensions": [
+          "g64",
+          "d64",
+          "g41",
+          "g71"
+        ],
+        "entries": 59,
+        "mountable": true,
+        "filter": "PAL",
+        "slots": [
+          "iec8"
+        ],
+        "boot": {
+          "delay": 3,
+          "command": "LOAD\"*\",8,1{ENTER}RUN{ENTER}"
+        },
+        "art": {
+          "aztecchl": "aztecchl.webp",
+          "basil": "basil.webp",
+          "bionicco": "bionicco.webp",
+          "bldrdash": "bldrdash.webp",
+          "commando": "commando.webp",
+          "dotc": "dotc.webp",
+          "elktrgld": "elktrgld.webp",
+          "impmiss": "impmiss.webp",
+          "jacknpr": "jacknpr.webp",
+          "miamivic": "miamivic.webp",
+          "mule": "mule.webp",
+          "rambo3": "rambo3.webp",
+          "rambo3n": "rambo3n.webp",
+          "sthassle": "sthassle.webp",
+          "spoker": "spoker.webp",
+          "terramex": "terramex.webp",
+          "toutrun": "toutrun.webp",
+          "gameset": "gameset.webp",
+          "sprbas64": "sprbas64.webp"
+        }
+      },
+      {
+        "list": "c64_flop_misc",
+        "description": "Commodore 64 miscellaneous disks",
+        "interface": "floppy_5_25",
+        "kind": "floppy",
+        "catalogUrl": "software/c64_flop_misc.json",
+        "availableUrl": "software/c64_flop_misc.available.json",
+        "extensions": [
+          "d64",
+          "g64",
+          "g41",
+          "g71"
+        ],
+        "entries": 59,
+        "mountable": true,
+        "filter": "PAL",
+        "slots": [
+          "iec8"
+        ],
+        "boot": {
+          "delay": 3,
+          "command": "LOAD\"*\",8,1{ENTER}RUN{ENTER}"
+        },
+        "art": {
+          "bopnrumb": "bopnrumb.webp",
+          "fcc": "fcc.webp",
+          "spacetax": "spacetax.webp",
+          "getrdynu": "getrdynu.webp"
+        }
+      },
+      {
+        "list": "c64_quik",
+        "description": "Commodore 64 quickload",
+        "interface": "cbm_quik",
+        "kind": "quickload",
+        "catalogUrl": "software/c64_quik.json",
+        "availableUrl": "software/c64_quik.available.json",
+        "extensions": [
+          "t64",
+          "p00",
+          "prg"
+        ],
+        "entries": 1,
+        "mountable": true,
+        "filter": "PAL",
+        "boot": {
+          "delay": 3,
+          "command": "RUN{ENTER}"
+        }
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "port": "ROW0",
+      "mask": 128,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "CRSR ↑ ↓",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{DOWN}"
+        ],
+        [
+          "{UP}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 64,
+      "keys": [
+        "F3"
+      ],
+      "label": "F5",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{F5}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 32,
+      "keys": [
+        "F2"
+      ],
+      "label": "F3",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{F3}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 16,
+      "keys": [
+        "F1"
+      ],
+      "label": "F1",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{F1}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 8,
+      "keys": [
+        "F4"
+      ],
+      "label": "F7",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{F7}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 4,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "CRSR ← →",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{RIGHT}"
+        ],
+        [
+          "{LEFT}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 2,
+      "keys": [
+        "Enter"
+      ],
+      "label": "Return",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "\r"
+        ]
+      ]
+    },
+    {
+      "port": "ROW0",
+      "mask": 1,
+      "keys": [
+        "Backspace"
+      ],
+      "label": "INST DEL",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "\b"
+        ],
+        [
+          "{INSERT}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 128,
+      "keys": [
+        "ShiftLeft"
+      ],
+      "label": "Shift (Left)",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{SHIFT_1}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 64,
+      "keys": [
+        "KeyE"
+      ],
+      "label": "E",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "E"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 32,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "S",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "S"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 16,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "Z",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "Z"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 8,
+      "keys": [
+        "Digit4",
+        "Numpad4"
+      ],
+      "label": "4",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "4"
+        ],
+        [
+          "$"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 4,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "A",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "A"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 2,
+      "keys": [
+        "KeyW"
+      ],
+      "label": "W",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "W"
+        ]
+      ]
+    },
+    {
+      "port": "ROW1",
+      "mask": 1,
+      "keys": [
+        "Digit3",
+        "Numpad3"
+      ],
+      "label": "3",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "3"
+        ],
+        [
+          "#"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 128,
+      "keys": [
+        "KeyX"
+      ],
+      "label": "X",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "X"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 64,
+      "keys": [
+        "KeyT"
+      ],
+      "label": "T",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "T"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 32,
+      "keys": [
+        "KeyF"
+      ],
+      "label": "F",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "F"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 16,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "C",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "C"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 8,
+      "keys": [
+        "Digit6",
+        "Numpad6"
+      ],
+      "label": "6",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "6"
+        ],
+        [
+          "&"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 4,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "D",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "D"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 2,
+      "keys": [
+        "KeyR"
+      ],
+      "label": "R",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "R"
+        ]
+      ]
+    },
+    {
+      "port": "ROW2",
+      "mask": 1,
+      "keys": [
+        "Digit5",
+        "Numpad5"
+      ],
+      "label": "5",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "5"
+        ],
+        [
+          "%"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 128,
+      "keys": [
+        "KeyV"
+      ],
+      "label": "V",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "V"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 64,
+      "keys": [
+        "KeyU"
+      ],
+      "label": "U",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "U"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 32,
+      "keys": [
+        "KeyH"
+      ],
+      "label": "H",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "H"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 16,
+      "keys": [
+        "KeyB"
+      ],
+      "label": "B",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "B"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 8,
+      "keys": [
+        "Digit8",
+        "Numpad8"
+      ],
+      "label": "8",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "8"
+        ],
+        [
+          "("
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 4,
+      "keys": [
+        "KeyG"
+      ],
+      "label": "G",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "G"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 2,
+      "keys": [
+        "KeyY"
+      ],
+      "label": "Y",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "Y"
+        ]
+      ]
+    },
+    {
+      "port": "ROW3",
+      "mask": 1,
+      "keys": [
+        "Digit7",
+        "Numpad7"
+      ],
+      "label": "7",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "7"
+        ],
+        [
+          "'"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 128,
+      "keys": [
+        "KeyN"
+      ],
+      "label": "N",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "N"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 64,
+      "keys": [
+        "KeyO"
+      ],
+      "label": "O",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "O"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 32,
+      "keys": [
+        "KeyK"
+      ],
+      "label": "K",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "K"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 16,
+      "keys": [
+        "KeyM"
+      ],
+      "label": "M",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "M"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 8,
+      "keys": [
+        "Digit0",
+        "Numpad0"
+      ],
+      "label": "0",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "0"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 4,
+      "keys": [
+        "KeyJ"
+      ],
+      "label": "J",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "J"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 2,
+      "keys": [
+        "KeyI"
+      ],
+      "label": "I",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "I"
+        ]
+      ]
+    },
+    {
+      "port": "ROW4",
+      "mask": 1,
+      "keys": [
+        "Digit9",
+        "Numpad9"
+      ],
+      "label": "9",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "9"
+        ],
+        [
+          ")"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 128,
+      "keys": [
+        "Comma"
+      ],
+      "label": ",",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          ","
+        ],
+        [
+          "<"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 64,
+      "keys": [
+        "BracketLeft"
+      ],
+      "label": "@",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "@"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 32,
+      "keys": [
+        "Semicolon"
+      ],
+      "label": ":",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          ":"
+        ],
+        [
+          "["
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 16,
+      "keys": [
+        "Period"
+      ],
+      "label": ".",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "."
+        ],
+        [
+          ">"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 8,
+      "keys": [
+        "Equal"
+      ],
+      "label": "-",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "-"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 4,
+      "keys": [
+        "KeyL"
+      ],
+      "label": "L",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "L"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 2,
+      "keys": [
+        "KeyP"
+      ],
+      "label": "P",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "P"
+        ]
+      ]
+    },
+    {
+      "port": "ROW5",
+      "mask": 1,
+      "keys": [
+        "Minus"
+      ],
+      "label": "+",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "+"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 128,
+      "keys": [
+        "Slash"
+      ],
+      "label": "/",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "/"
+        ],
+        [
+          "?"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 64,
+      "keys": [
+        "End"
+      ],
+      "label": "↑ π",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "↑"
+        ],
+        [
+          "π"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 32,
+      "keys": [
+        "Backslash"
+      ],
+      "label": "=",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "="
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 16,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "Shift (Right)",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{SHIFT_1}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 8,
+      "keys": [
+        "Home"
+      ],
+      "label": "CLR HOME",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{HOME}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 4,
+      "keys": [
+        "Quote"
+      ],
+      "label": ";",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          ";"
+        ],
+        [
+          "]"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 2,
+      "keys": [
+        "BracketRight"
+      ],
+      "label": "*",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "*"
+        ]
+      ]
+    },
+    {
+      "port": "ROW6",
+      "mask": 1,
+      "keys": [
+        "PageDown"
+      ],
+      "label": "£",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "£"
+        ]
+      ]
+    },
+    {
+      "port": "ROW7",
+      "mask": 128,
+      "keys": [
+        "F9"
+      ],
+      "label": "RUN STOP",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 64,
+      "keys": [
+        "KeyQ"
+      ],
+      "label": "Q",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "Q"
+        ]
+      ]
+    },
+    {
+      "port": "ROW7",
+      "mask": 32,
+      "keys": [
+        "AltLeft"
+      ],
+      "label": "CBM",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "ROW7",
+      "mask": 16,
+      "keys": [
+        "Space"
+      ],
+      "label": "Space",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          " "
+        ]
+      ]
+    },
+    {
+      "port": "ROW7",
+      "mask": 8,
+      "keys": [
+        "Digit2",
+        "Numpad2"
+      ],
+      "label": "2",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "2"
+        ],
+        [
+          "\""
+        ]
+      ]
+    },
+    {
+      "port": "ROW7",
+      "mask": 4,
+      "keys": [
+        "Pause"
+      ],
+      "label": "CTRL",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "{LCONTROL}"
+        ]
+      ]
+    },
+    {
+      "port": "ROW7",
+      "mask": 2,
+      "keys": [
+        "Backquote"
+      ],
+      "label": "←",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "←"
+        ]
+      ]
+    },
+    {
+      "port": "ROW7",
+      "mask": 1,
+      "keys": [
+        "Digit1",
+        "Numpad1"
+      ],
+      "label": "1",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "chars": [
+        [
+          "1"
+        ],
+        [
+          "!"
+        ]
+      ]
+    },
+    {
+      "port": "RESTORE",
+      "mask": 1,
+      "keys": [
+        "F10"
+      ],
+      "label": "RESTORE",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true
+    },
+    {
+      "port": "LOCK",
+      "mask": 128,
+      "keys": [
+        "CapsLock"
+      ],
+      "label": "SHIFT LOCK",
+      "type": "IPT_KEYBOARD",
+      "activeLow": true,
+      "toggle": true,
+      "chars": [
+        [
+          "{CAPSLOCK}"
+        ]
+      ]
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 1,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 2,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 4,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 8,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "joy2:JOY",
+      "mask": 32,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    }
+  ],
+  "naturalKeyboard": {
+    "alternates": {
+      "\t": "    ",
+      "a": "A",
+      "b": "B",
+      "c": "C",
+      "d": "D",
+      "e": "E",
+      "f": "F",
+      "g": "G",
+      "h": "H",
+      "i": "I",
+      "j": "J",
+      "k": "K",
+      "l": "L",
+      "m": "M",
+      "n": "N",
+      "o": "O",
+      "p": "P",
+      "q": "Q",
+      "r": "R",
+      "s": "S",
+      "t": "T",
+      "u": "U",
+      "v": "V",
+      "w": "W",
+      "x": "X",
+      "y": "Y",
+      "z": "Z",
+      " ": " ",
+      "¡": "!",
+      "«": "<<",
+      "»": ">>",
+      "¼": "1/4",
+      "½": "1/2",
+      "¾": "3/4",
+      "¿": "?",
+      "À": "A",
+      "Á": "A",
+      "Â": "A",
+      "Ã": "A",
+      "Ä": "A",
+      "Å": "A",
+      "Æ": "AE",
+      "Ç": "C",
+      "È": "E",
+      "É": "E",
+      "Ê": "E",
+      "Ë": "E",
+      "Ì": "I",
+      "Í": "I",
+      "Î": "I",
+      "Ï": "I",
+      "Ð": "D",
+      "Ñ": "N",
+      "Ò": "O",
+      "Ó": "O",
+      "Ô": "O",
+      "Õ": "O",
+      "Ö": "O",
+      "×": "X",
+      "Ø": "O",
+      "Ù": "U",
+      "Ú": "U",
+      "Û": "U",
+      "Ü": "U",
+      "Ý": "Y",
+      "ß": "SS",
+      "‐": "-",
+      "‑": "-",
+      "‒": "-",
+      "–": "-",
+      "—": "-",
+      "―": "-",
+      "‘": "'",
+      "’": "'",
+      "‚": "'",
+      "‛": "'",
+      "“": "\"",
+      "”": "\"",
+      "„": "\"",
+      "‟": "\"",
+      "․": ".",
+      "‥": "..",
+      "…": "...",
+      "⁇": "??",
+      "⁈": "?!",
+      "⁉": "!?",
+      "！": "!",
+      "＂": "\"",
+      "＃": "#",
+      "＄": "$",
+      "％": "%",
+      "＆": "&",
+      "＇": "'",
+      "（": "(",
+      "）": ")",
+      "＊": "*",
+      "＋": "+",
+      "，": ",",
+      "－": "-",
+      "．": ".",
+      "／": "/",
+      "０": "0",
+      "１": "1",
+      "２": "2",
+      "３": "3",
+      "４": "4",
+      "５": "5",
+      "６": "6",
+      "７": "7",
+      "８": "8",
+      "９": "9",
+      "：": ":",
+      "；": ";",
+      "＜": "<",
+      "＝": "=",
+      "＞": ">",
+      "？": "?",
+      "＠": "@",
+      "Ａ": "A",
+      "Ｂ": "B",
+      "Ｃ": "C",
+      "Ｄ": "D",
+      "Ｅ": "E",
+      "Ｆ": "F",
+      "Ｇ": "G",
+      "Ｈ": "H",
+      "Ｉ": "I",
+      "Ｊ": "J",
+      "Ｋ": "K",
+      "Ｌ": "L",
+      "Ｍ": "M",
+      "Ｎ": "N",
+      "Ｏ": "O",
+      "Ｐ": "P",
+      "Ｑ": "Q",
+      "Ｒ": "R",
+      "Ｓ": "S",
+      "Ｔ": "T",
+      "Ｕ": "U",
+      "Ｖ": "V",
+      "Ｗ": "W",
+      "Ｘ": "X",
+      "Ｙ": "Y",
+      "Ｚ": "Z",
+      "［": "[",
+      "］": "]",
+      "｟": "((",
+      "｠": "))",
+      "￡": "£",
+      "￩": "←",
+      "￪": "↑"
+    }
+  },
+  "dipDefaults": [
+    {
+      "port": "JOYSWAP",
+      "mask": 1,
+      "value": 0,
+      "name": "Swap joystick ports",
+      "config": true,
+      "settings": [
+        {
+          "value": 1,
+          "name": "Joystick in swapped port"
+        },
+        {
+          "value": 0,
+          "name": "Joystick in assigned port"
+        }
+      ]
+    }
+  ],
+  "ports": [
+    {
+      "tag": "ROW0",
+      "init": 255
+    },
+    {
+      "tag": "ROW1",
+      "init": 255
+    },
+    {
+      "tag": "ROW2",
+      "init": 255
+    },
+    {
+      "tag": "ROW3",
+      "init": 255
+    },
+    {
+      "tag": "ROW4",
+      "init": 255
+    },
+    {
+      "tag": "ROW5",
+      "init": 255
+    },
+    {
+      "tag": "ROW6",
+      "init": 255
+    },
+    {
+      "tag": "ROW7",
+      "init": 255
+    },
+    {
+      "tag": "RESTORE",
+      "init": 1
+    },
+    {
+      "tag": "LOCK",
+      "init": 255
+    },
+    {
+      "tag": "JOYSWAP",
+      "init": 0
+    },
+    {
+      "tag": "joy2:JOY",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

@@ -1,0 +1,893 @@
+import { AttoPeriod, Attotime, hzToAttoseconds, secondsToAttoseconds } from "./attotime.js";
+/**
+ * MAME's scheduling quantum where the machine configures none:
+ * `machine().config().maximum_quantum(attotime::from_hz(60))` in
+ * `device_scheduler::rebuild_execute_list` (emu/schedule.cpp). A configured
+ * `set_maximum_quantum` can only be shorter.
+ */
+const DEFAULT_QUANTUM_SECONDS = 1 / 60;
+/**
+ * Attoseconds a device timer's expiry may stand off the time MAME has for it.
+ * Device timers keep floating-point seconds, so a timer armed for a whole number
+ * of a processor's cycles comes back a few attoseconds either side of that cycle
+ * (a cycle is about 1e11): short of it, the processor would stop a cycle early.
+ */
+const TIMER_SLOP = 16;
+/** MAME's screen timing: `m_frame_period`, and `m_scantime` as a period. */
+export function screenPeriods(screen) {
+    const frame = screen.frameAttoseconds !== undefined
+        ? BigInt(screen.frameAttoseconds)
+        : BigInt(hzToAttoseconds(screen.refresh));
+    return {
+        frame: new Attotime().setExact(frame),
+        line: new AttoPeriod(Number(frame / BigInt(Math.max(1, screen.vtotal)))),
+    };
+}
+/**
+ * Execute the frame schedule lowered from MAME CPU clocks, screen timing, and
+ * callback configuration. Device cores remain reusable runtime primitives;
+ * the generated machine owns when they run and when source callbacks fire.
+ */
+export class GeneratedFrameRunner {
+    machine;
+    processors;
+    video;
+    eventPhase;
+    onEvent;
+    onLine;
+    onSynchronize;
+    onRound;
+    perfectInterleave;
+    nextTimerSeconds;
+    onRoundEnd;
+    /** The open window's round length in attoseconds, from perfectInterleave. */
+    windowQuantum;
+    onPresented;
+    aroundPresent;
+    /** MAME `m_frame_period` and `m_scantime`. */
+    framePeriod;
+    /**
+     * The raster `screen_device::configure` gave the screen, when it is not
+     * set_raw's: its height, width and VBLANK start line (visarea bottom + 1).
+     * A height of 0 is set_raw's own. MAME keeps `m_vblank_start_time` across
+     * configure, so the beam keeps its time and only its labels move: the
+     * SNES PPU turning overscan on makes the line its VBLANK tick fires at 240
+     * where it was 225, still at the same instant. Saved, as MAME's screen
+     * saves m_width, m_height and m_visarea.
+     */
+    screenRaster = { height: 0, width: 0, vbstart: 0 };
+    linePeriod;
+    /** When the frame in progress began: a whole number of frame periods. */
+    frameBase = new Attotime();
+    /** MAME `m_basetime`: where the last round ended. */
+    base = new Attotime();
+    /** Where the lines being paid began, and where they end. */
+    roundStart = new Attotime();
+    roundEnd = new Attotime();
+    /** The round in progress's target, which a processor left short pulls back. */
+    target = new Attotime();
+    scratch = new Attotime();
+    /** The processor whose slice is executing, if any. */
+    running;
+    /** The processor last asked after by tag (secondsAhead). */
+    clockProcessor;
+    /** True while a perfect-quantum window runs processors one instruction at a time. */
+    lockstepping = false;
+    /** Work was synchronized during the running slice. */
+    synchronizeRequested = false;
+    /** The round in progress: its first line and its length. */
+    roundFirstLine = 0;
+    roundLines = 1;
+    /** Where in the lines being paid the running processor's slice began. */
+    runStartLines = 0;
+    eventsByLine = new Map();
+    periodicEvents = [];
+    /**
+     * Lines at which the schedule must hand over to the next processor.
+     *
+     * MAME runs every processor to `min(basetime + quantum, next timer expiry)`
+     * and only then executes timers, so what a processor does between two
+     * scheduled events is atomic as far as the others are concerned. The board's
+     * frame events are those timers, so the interval between them is the
+     * quantum. Interleaving once per scanline instead splits work MAME keeps
+     * whole: Gauntlet's sound board answers its power-on handshake with six
+     * writes to one latch, and a 68010 let in among them banks a response the
+     * main board never asked for and resets the sound board for good (#88).
+     */
+    boundaryLines;
+    /** Every line is a boundary when the board schedules work on every line. */
+    perLineSchedule;
+    /**
+     * MAME's scheduling quantum in attoseconds, the machine's own
+     * `set_maximum_quantum` or the default: no MAME round is longer, so a round
+     * of lines is several of them (see runProcessors).
+     */
+    machineQuantum;
+    /**
+     * MAME's perfect quantum, where the board names its processor: rounds of
+     * that processor's minimum_quantum(), run as any other round (each
+     * processor taking the whole cycles of its own that fit, schedule.cpp
+     * timeslice) and ended at the soonest timer, rather than the
+     * furthest-behind-first lockstep.
+     */
+    perfectRounds;
+    /** The processors in the order a round runs them (see roundOrder). */
+    order;
+    suspendable;
+    /**
+     * Scanlines (fractional) left in a `perfect_quantum` window, during which
+     * the processors run in lockstep.
+     */
+    fineLines = 0;
+    /**
+     * MAME `set_perfect_quantum`: the scheduler's quantum is the named
+     * processor's minimum, so every processor interleaves instruction by
+     * instruction for the life of the machine, not for a window. A C64 asks
+     * for it on its 6510, and with a 1541 attached the two talk over a serial
+     * bus whose bit windows are 20 microseconds -- a third of a scanline.
+     */
+    permanentLockstep;
+    frames = 0;
+    /** Lines the beam has passed that the round in progress has not run yet. */
+    pendingLines = 0;
+    origin;
+    /** No frame has run since the machine was built or reset. */
+    fromOrigin = true;
+    /**
+     * The beam is on the line it stood on at time zero. MAME arms its first
+     * VBLANK and scanline timers against that position, and a timer due exactly
+     * where the beam stands is due a frame later, so nothing fires there.
+     */
+    atOrigin = false;
+    /**
+     * The frame in progress will be presented when the beam next reaches
+     * `vbstart` and has not been yet. MAME takes its snapshot at the start of
+     * VBLANK before any device timer due at that same instant (its
+     * `vblank_begin` timer was armed a frame earlier), so device time must not
+     * reach that instant until the frame is presented.
+     */
+    awaitingPresent = false;
+    constructor(options) {
+        this.machine = options.machine;
+        this.video = options.video;
+        this.eventPhase = options.eventPhase ?? 'before-processors';
+        this.onEvent = options.onEvent;
+        this.onLine = options.onLine;
+        this.onSynchronize = options.onSynchronize;
+        this.onRound = options.onRound;
+        this.perfectInterleave = options.perfectInterleave;
+        this.nextTimerSeconds = options.nextTimerSeconds;
+        this.onRoundEnd = options.onRoundEnd;
+        this.onPresented = options.onPresented;
+        this.aroundPresent = options.aroundPresent;
+        this.origin = options.origin ?? 'line0';
+        const clocks = new Map([
+            ...options.machine.execution.cpus.map(cpu => [cpu.tag, cpu.cycleClock ?? cpu.clock]),
+            ...(options.machine.execution.participants ?? []).map(participant => [participant.tag, participant.cycleClock ?? participant.clock]),
+        ]);
+        const denominator = options.machine.execution.screen.refresh * options.machine.execution.screen.vtotal;
+        const periods = screenPeriods(options.machine.execution.screen);
+        this.framePeriod = periods.frame;
+        this.linePeriod = periods.line;
+        this.processors = options.processors.map(processor => {
+            const clock = processor.clock ?? clocks.get(processor.tag);
+            if (clock === undefined) {
+                throw new Error(`generated frame plan has no execute-participant clock for "${processor.tag}"`);
+            }
+            const cycle = new AttoPeriod(hzToAttoseconds(clock));
+            return { processor, cycle, cyclesPerLine: this.linePeriod.total / cycle.total, local: new Attotime() };
+        });
+        // MAME's perfect quantum is the named processor's minimum_quantum(): its
+        // cycle times its execute_min_cycles(). A 5A22 rounds every master cycle,
+        // and the S-SMP, whose cycle is ten of those, runs only once a whole one
+        // of its own fits before the target -- which is when its port writes
+        // become visible to the 5A22. The grid restarts at every timer expiry
+        // (nextTimerSeconds). Run furthest-behind-first instead, the S-SMP ran
+        // early and the 5A22 saw an answer microseconds before MAME does.
+        const perfectTag = options.machine.execution.perfectQuantumTag;
+        const perfectProcessor = perfectTag ? this.processors.find(entry => entry.processor.tag === perfectTag) : undefined;
+        const perfectMinCycles = options.machine.execution.executeDevices?.find(device => device.tag === perfectTag)?.minCycles ?? 1;
+        const perfectQuantumAttos = options.machine.execution.perfectQuantum === true && perfectProcessor
+            ? perfectProcessor.cycle.total * perfectMinCycles
+            : undefined;
+        this.perfectRounds = options.perfectRounds === true && perfectQuantumAttos !== undefined && this.processors.length > 1;
+        this.permanentLockstep = options.machine.execution.perfectQuantum === true &&
+            this.processors.length > 1 && !this.perfectRounds;
+        this.order = Int32Array.from(this.processors, (_, index) => index);
+        this.suspendable = this.processors.some(entry => entry.processor.suspended);
+        for (const event of options.machine.execution.frameEvents) {
+            if (event.frequency) {
+                this.periodicEvents.push({
+                    event,
+                    eventsPerLine: event.frequency / denominator,
+                    carry: 0,
+                });
+                continue;
+            }
+            const lineEvents = this.eventsByLine.get(event.line) ?? [];
+            lineEvents.push(event);
+            this.eventsByLine.set(event.line, lineEvents);
+        }
+        // A periodic event has no fixed line and may fire several times within
+        // one, and a scanline-updated screen renders on every line, so both keep
+        // the per-line schedule MAME's own timers would force anyway.
+        this.perLineSchedule = this.periodicEvents.length > 0 ||
+            options.machine.execution.perfectQuantum === true ||
+            options.machine.execution.screen.updateMode === 'scanline' ||
+            // A driver's own emu_timers end MAME timeslices wherever they expire,
+            // and they are armed against raster positions; a round spanning lines
+            // would measure each re-arm from a beam the device clock has run past.
+            (options.machine.execution.genericTimers ?? []).some(timer => timer.driver);
+        // A scanline TIMER fires on every increment, whether or not its callback
+        // has work on that line, and MAME ends every timeslice there. The frame
+        // events keep only the lines with work, so the timer's own cadence is
+        // added back as boundaries: MCR's scantimer fires every line (a round of
+        // 116 lines starved Rampage's sound board), Gauntlet's every 32.
+        const scanlineTimerLines = [];
+        const vtotal = options.machine.execution.screen.vtotal;
+        for (const callback of options.machine.callbacks ?? []) {
+            if (callback.signal !== 'configure_scanline')
+                continue;
+            const increment = Number(callback.scanlineIncrement ?? 0);
+            const start = Number(callback.scanlineStart ?? 0);
+            if (!(increment > 0))
+                continue;
+            for (let line = ((start % increment) + increment) % increment; line < vtotal; line += increment) {
+                scanlineTimerLines.push(line);
+            }
+        }
+        const machineQuantum = options.maximumQuantum;
+        const configuredQuantum = secondsToAttoseconds(machineQuantum !== undefined && machineQuantum > 0
+            ? Math.min(machineQuantum, DEFAULT_QUANTUM_SECONDS)
+            : DEFAULT_QUANTUM_SECONDS);
+        // And no shorter than the perfect interleave (add_quantum's m_actual =
+        // max(requested, m_quantum_minimum)): the second shortest minimum_quantum
+        // of every device that executes. On the SNES that is the S-SMP's, two of
+        // its cycles, so a round is ~976 ns, not one 5A22 master cycle.
+        const interleave = this.perfectInterleave?.();
+        const floor = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : 0;
+        this.machineQuantum = perfectQuantumAttos !== undefined && this.perfectRounds
+            ? Math.max(Math.min(configuredQuantum, perfectQuantumAttos), Math.min(configuredQuantum, floor))
+            : configuredQuantum;
+        // The lines MAME's own timers fall on, where the lines since the last one
+        // are handed to the processors. A declared scanline TIMER's cadence
+        // (Gauntlet's 32 lines keep its sound board's reply burst whole, MCR's
+        // single line keeps Rampage's handshake alive), the frame events, and the
+        // screen's three timers: VBLANK start, VBLANK end and scanline 0
+        // (screen_device's m_vblank_begin_timer, m_vblank_end_timer and
+        // m_scanline0_timer). Between two of them a round is as long as MAME's:
+        // to the soonest timer, and no longer than the quantum (runProcessors).
+        // Each fires at the start of its line (time_until_pos(line)), so a round
+        // ends there and only there (runLine).
+        this.boundaryLines = new Set([
+            ...this.eventsByLine.keys(),
+            ...scanlineTimerLines,
+            options.machine.execution.screen.vbstart,
+            (options.machine.execution.screen.vbend ?? 0) % Math.max(1, vtotal),
+            0,
+        ]);
+    }
+    /**
+     * MAME `device_t::set_unscaled_clock` on a processor: from here on it runs
+     * at the new rate. Missile Command halves its CPU for the lines its video
+     * fetches steal, and puts it back at the top of the frame.
+     */
+    setClock(tag, cycleClock) {
+        for (const entry of this.processors) {
+            if (entry.processor.tag !== tag)
+                continue;
+            entry.cycle = new AttoPeriod(hzToAttoseconds(cycleClock));
+            entry.cyclesPerLine = this.linePeriod.total / entry.cycle.total;
+        }
+    }
+    /**
+     * MAME `scheduler::perfect_quantum(duration)`: interleave as finely as the
+     * processors allow for this long.
+     *
+     * It is a quantum, not a run. The request does not run the other processor
+     * *now*: the writer is mid-routine, and on Gauntlet the two instructions
+     * after the command write are the ones that arm the buffer the answer
+     * belongs in. In the window every processor executes one instruction at a
+     * time in emulated-time order, which is what MAME's minimum quantum does.
+     */
+    quantumWindow(seconds) {
+        const denominator = this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
+        if (!(this.fineLines > 0)) {
+            const interleave = this.perfectInterleave?.();
+            this.windowQuantum = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : undefined;
+        }
+        this.fineLines = Math.max(this.fineLines, Math.max(seconds, 0) * denominator);
+    }
+    /**
+     * MAME `scheduler().synchronize()` from inside a processor's slice: end the
+     * slice after the instruction in progress. The processors after it in the
+     * round run only up to where it stopped, the posted work runs, and the
+     * round resumes -- so no processor observes the work before the time it
+     * was posted. Answers whether a slice was running to end; outside one the
+     * work is already due.
+     */
+    requestSynchronize() {
+        if (!this.running)
+            return false;
+        this.synchronizeRequested = true;
+        this.running.processor.abort?.();
+        return true;
+    }
+    /**
+     * The frame period in seconds. MAME's screen arms its VBLANK-start timer
+     * every frame, so a timer armed further off than this is never the
+     * soonest and never ends a timeslice (emu_timer::adjust).
+     */
+    get frameSeconds() {
+        return this.framePeriod.seconds;
+    }
+    /** When the frame in progress began, at its origin line, in seconds of emulated time. */
+    get frameStartSeconds() {
+        return this.frameBase.seconds;
+    }
+    get frameCount() {
+        return this.frames;
+    }
+    /**
+     * How far behind the beam a processor stands at a line boundary, in
+     * scanlines. A round spanning lines runs on its last line, so at each
+     * earlier boundary the beam has moved on while the processor still stands
+     * where the previous round left it: the lines of the round in progress it
+     * has not run, less whatever its last slice ran past the end of the round
+     * before. An NES OAM DMA steals 513 cycles inside one instruction, which
+     * leaves the CPU four lines past where its round ended.
+     */
+    linesBehind(tag) {
+        const scheduled = this.processors.find(entry => entry.processor.tag === tag);
+        if (!scheduled)
+            return this.pendingLines;
+        return this.pendingLines + this.base.since(scheduled.local) / this.linePeriod.total;
+    }
+    /**
+     * How far a processor stands past the round's base, in seconds, or past
+     * the round's target once every processor has run to it (onRoundEnd).
+     * The board keeps time by its processors' cycle counts, so this is where
+     * the round stands on that clock.
+     */
+    secondsAhead(tag, ofTarget = false) {
+        const scheduled = this.clockProcessor?.processor.tag === tag
+            ? this.clockProcessor
+            : this.clockProcessor = this.processors.find(entry => entry.processor.tag === tag);
+        return scheduled ? scheduled.local.since(ofTarget ? this.target : this.base) / 1e18 : 0;
+    }
+    /**
+     * The beam at the scheduler's base, where MAME's `machine().time()` stands
+     * between timeslices: the line a frame event or the presentation falls on,
+     * exactly, whatever fraction of a cycle the processors stopped short of it.
+     */
+    baseBeam() {
+        const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+        return (this.originLine + this.base.since(this.frameBase) / this.linePeriod.total) % vtotal;
+    }
+    /** How far a processor stands past the round's base, in its own cycles. */
+    get cyclesAhead() {
+        return this.processors.map(entry => entry.local.since(this.base) / entry.cycle.total);
+    }
+    reset() {
+        for (const processor of this.processors)
+            processor.local.clear();
+        this.frameBase.clear();
+        this.base.clear();
+        for (const event of this.periodicEvents)
+            event.carry = 0;
+        this.fineLines = 0;
+        this.frames = 0;
+        this.fromOrigin = true;
+        this.awaitingPresent = false;
+    }
+    /**
+     * The line the beam stands on at time zero. A screen whose VBLANK starts at
+     * its last line + 1 or beyond (the Spectrum's 311 of 0-310, Missile
+     * Command's 256) wraps to line 0, where the frame already starts.
+     */
+    get originLine() {
+        const screen = this.machine.execution.screen;
+        return this.origin === 'vbstart' && screen.vbstart > 0 && screen.vbstart < screen.vtotal ? screen.vbstart : 0;
+    }
+    /** Save-state roots (machine-state.ts): the times and counters, never the schedule. */
+    stateKeys() {
+        return ['processors', 'frameBase', 'base', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin', 'screenRaster'];
+    }
+    /**
+     * Whether this frame is presented at the end of its last line, where the
+     * beam next reaches `vbstart`: every frame-mode screen under MAME's origin,
+     * since its frames run from VBLANK to VBLANK.
+     */
+    get presentsAtEnd() {
+        return this.origin === 'vbstart' && this.machine.execution.screen.updateMode !== 'scanline' && this.originLine > 0;
+    }
+    frame(framebuffer) {
+        const screen = this.machine.execution.screen;
+        const vtotal = Math.max(1, screen.vtotal);
+        const origin = this.originLine;
+        let rendered = false;
+        this.pendingLines = 0;
+        this.awaitingPresent = this.presentsAtEnd;
+        for (let index = 0; index < vtotal; index++) {
+            const line = (origin + index) % vtotal;
+            this.atOrigin = this.fromOrigin && index === 0 && this.origin === 'vbstart';
+            if (this.runLine(line, framebuffer))
+                rendered = true;
+        }
+        this.atOrigin = false;
+        this.fromOrigin = false;
+        if (this.presentsAtEnd) {
+            // The beam reaches vbstart again: what the processors still owe is
+            // paid, and the frame is presented, as MAME presents at VBLANK.
+            if (this.pendingLines > 0) {
+                this.runProcessors(this.pendingLines, (origin + vtotal - 1) % vtotal);
+                this.pendingLines = 0;
+            }
+            this.present(framebuffer);
+            rendered = true;
+        }
+        else if (this.pendingLines > 0) {
+            // The next frame starts at its origin, which is scanline 0's timer.
+            this.runProcessors(this.pendingLines, (origin + vtotal - 1) % vtotal);
+            this.pendingLines = 0;
+        }
+        this.presented();
+        this.frameBase.addTime(this.framePeriod);
+        this.frames++;
+        // A board whose vbstart sits outside the emulated line range never hit the
+        // in-loop presentation above; keep the end-of-frame fallback for it.
+        if (screen.updateMode !== 'scanline' && !rendered)
+            this.video?.render(framebuffer);
+    }
+    present(framebuffer) {
+        const video = this.video;
+        if (!video)
+            return;
+        if (this.aroundPresent)
+            this.aroundPresent(() => video.render(framebuffer));
+        else
+            video.render(framebuffer);
+    }
+    presented() {
+        if (!this.awaitingPresent)
+            return;
+        this.awaitingPresent = false;
+        this.onPresented?.();
+    }
+    /** One scanline of the schedule; answers whether it presented the frame. */
+    runLine(line, framebuffer) {
+        const screen = this.machine.execution.screen;
+        let rendered = false;
+        this.onLine?.(line, 'before-processors', framebuffer);
+        // A scheduled event ends the quantum, so what the processors owe from
+        // the lines since the last one is paid before the event — and before the
+        // frame this line may present — rather than after it.
+        if (this.pendingLines > 0 && this.boundaryLines.has(line)) {
+            this.runProcessors(this.pendingLines, line - 1);
+            this.pendingLines = 0;
+        }
+        if (this.eventPhase === 'before-processors' && !this.atOrigin)
+            this.dispatchLine(line, framebuffer);
+        // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
+        // of the scanline, before CPUs execute the interval leading to the next
+        // line. Drawing afterwards can combine sprite RAM from two states across
+        // one frame; on a rotated screen that appears as vertical sprite tears.
+        if (screen.updateMode === 'scanline')
+            this.video?.renderLine?.(framebuffer, line);
+        // MAME's screen device runs screen_update at the start of VBLANK, not at
+        // the end of the frame. The remaining post-vbstart scanlines still run
+        // their CPU slices afterwards, so a game that erases and redraws sprites
+        // in its VBLANK handler is sampled between the two halves when the
+        // presentation is deferred to the frame boundary (Berzerk's player).
+        if (this.origin === 'line0' && screen.updateMode !== 'scanline' && line === screen.vbstart) {
+            this.present(framebuffer);
+            rendered = true;
+            this.presented();
+        }
+        this.pendingLines++;
+        // A boundary line's timer fired at its start, above; its end is no timer
+        // of MAME's, so the round runs on through it. Ending one there as well
+        // split Venture's round at line 279, and its main CPU saw a PIA edge the
+        // sound CPU raised earlier in that round, which MAME's had run past (#275).
+        const inQuantumWindow = this.fineLines > 0;
+        if (this.perLineSchedule || inQuantumWindow) {
+            this.runProcessors(this.pendingLines, line);
+            this.pendingLines = 0;
+        }
+        this.onLine?.(line, 'after-processors', framebuffer);
+        if (this.eventPhase === 'after-processors' && !this.atOrigin)
+            this.dispatchLine(line, framebuffer);
+        return rendered;
+    }
+    /**
+     * Run every enabled processor for `lines` scanlines' worth of cycles: one
+     * MAME timeslice, bounded by the next scheduled event.
+     *
+     * This is `device_scheduler::timeslice()`, in its attoseconds. Lines fall at
+     * `frame base + index * m_scantime`, and a frame's base is a whole number of
+     * `m_frame_period`s: the two truncate differently, and that is what decides
+     * which instruction a VBLANK lands before. MAME's Donkey Kong takes its NMI
+     * one instruction earlier in frame 8, because VBLANK has fallen about 1e-6 of
+     * a cycle before the cycle that would have started the next one.
+     *
+     * A processor that synchronizes stops short, and the round's target drops
+     * to where it stopped for every processor after it -- MAME's
+     * `if (exec->m_localtime < target) target = exec->m_localtime`. Processors
+     * before it have already run to the full target and stay ahead, as they do
+     * in MAME. The posted work then runs and the round continues from there.
+     *
+     * MAME's round is also no longer than the machine's quantum, and each
+     * processor in it runs whole cycles: one left short of the target by a
+     * fraction of a cycle ends the round there for the rest (`target =
+     * max(m_localtime, m_basetime)`). Donkey Kong's 400 kHz sound CPU decides
+     * this way where each of its 3 MHz Z80's rounds starts.
+     */
+    runProcessors(lines, lastLine) {
+        const processors = this.processors;
+        const base = this.base;
+        const end = this.roundEnd;
+        const target = this.target;
+        const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+        const endIndex = ((lastLine - this.originLine + vtotal) % vtotal) + 1;
+        if (endIndex >= vtotal)
+            end.set(this.frameBase).addTime(this.framePeriod);
+        else
+            end.setPeriodsFrom(this.frameBase, endIndex, this.linePeriod);
+        this.roundStart.set(base);
+        this.roundFirstLine = lastLine - lines + 1;
+        this.roundLines = lines;
+        // Work posted outside any slice (a line callback, an event) is due now.
+        this.onSynchronize?.('base');
+        while (base.before(end)) {
+            this.onRound?.();
+            if (this.permanentLockstep) {
+                this.lockstep(end);
+                continue;
+            }
+            // A perfect_quantum window is rounds of the perfect interleave, run by
+            // the same rules as any other round.
+            const windowed = this.fineLines > 0;
+            if (windowed && this.windowQuantum === undefined) {
+                this.lockstep(this.windowEnd(end));
+                continue;
+            }
+            target.set(end);
+            this.lowerTarget(windowed ? this.windowQuantum : this.machineQuantum);
+            // MAME's round ends at the soonest timer, so every processor stands
+            // at its expiry when it fires.
+            let slop = 0;
+            let timerAttos;
+            if (this.nextTimerSeconds) {
+                const seconds = this.nextTimerSeconds(this.linesAt(base));
+                // A timer standing on the base itself, give or take that slop, is one
+                // the devices could not fire there: it is due at the instant the frame
+                // is presented, and their time is held short of it for the snapshot.
+                // It bounds nothing: Green Beret's K005849 arms its scanline timer for
+                // that instant, and a bound of no attoseconds never ended the round.
+                if (seconds > 0 && Number.isFinite(seconds)) {
+                    const attos = secondsToAttoseconds(seconds);
+                    if (attos > TIMER_SLOP) {
+                        timerAttos = attos;
+                        if (this.lowerTarget(attos))
+                            slop = TIMER_SLOP;
+                    }
+                }
+            }
+            // A perfect round whose leading processors are stopped (stoppedLead)
+            // runs to the timer or the lines' end rather than one quantum, the
+            // stopped ones last. Nothing they could do is lost: they read nothing
+            // and burn every cycle, and the only things that wake one -- a timer,
+            // or a line another processor drives, which synchronizes -- end the
+            // round. Stopped first in MAME's order, each would already stand at the
+            // end of the quantum such a cut falls in, so that is where it is run to
+            // (stoppedTarget).
+            let order = this.roundOrder();
+            let stoppedFrom = order.length;
+            const lead = this.perfectRounds && !windowed ? this.stoppedLead() : 0;
+            if (lead > 0) {
+                target.set(end);
+                slop = timerAttos !== undefined && this.lowerTarget(timerAttos) ? TIMER_SLOP : 0;
+                this.extendedFrom.set(base);
+                this.extendedTo.set(target);
+                const stopped = [...order].filter(index => index < lead);
+                order = Int32Array.from([...[...order].filter(index => index >= lead), ...stopped]);
+                stoppedFrom = order.length - stopped.length;
+            }
+            else if (this.perfectRounds && !windowed) {
+                // Rounds nobody runs in pass at once, short of the timer and the end;
+                // the round's target is then taken again from where the base stands.
+                const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity));
+                if (skipped > 0) {
+                    target.set(end);
+                    this.lowerTarget(this.machineQuantum);
+                    if (timerAttos !== undefined)
+                        this.lowerTarget(timerAttos - skipped);
+                }
+            }
+            for (let position = 0; position < order.length; position++) {
+                const scheduled = processors[order[position]];
+                const local = scheduled.local;
+                // A stopped processor's end: the round's, or past a cut, the end of
+                // MAME's quantum the cut falls in.
+                const runTo = position >= stoppedFrom ? this.stoppedTarget(target) : target;
+                const cycles = scheduled.cycle.within(local, runTo, slop);
+                // Less than a cycle to the target: MAME neither runs it nor moves on.
+                if (cycles === 0)
+                    continue;
+                if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
+                    local.addPeriods(cycles, scheduled.cycle);
+                    scheduled.processor.eat?.(cycles);
+                    this.pullTarget(local, slop);
+                    continue;
+                }
+                this.running = scheduled;
+                this.runStartLines = local.since(this.roundStart) / this.linePeriod.total;
+                this.synchronizeRequested = false;
+                // A window's slice is an instruction against a target of a cycle or
+                // so, as a lockstep step is (see the board's lockstepping).
+                this.lockstepping = windowed || this.perfectRounds;
+                let executed;
+                try {
+                    executed = scheduled.processor.run(cycles);
+                }
+                finally {
+                    this.lockstepping = false;
+                }
+                this.running = undefined;
+                local.addPeriods(executed, scheduled.cycle);
+                // A processor that synchronized ends the round where it stopped:
+                // MAME's `target = max(m_localtime, m_basetime)`, its local time after
+                // the run, not the time it posted the work. Venture's sound 6502
+                // stops two cycles past its 6532 read; from the read, every round
+                // after was 1.1 us short and its main CPU's PIA poll fell into the
+                // next one (#275).
+                if (this.synchronizeRequested && executed < cycles)
+                    this.pullTarget(local, slop);
+                // Whole cycles left it short of the target (MAME skips a waiting
+                // device, which then stands wherever it stopped).
+                if (!this.synchronizeRequested && scheduled.processor.suspended?.() !== 'waiting')
+                    this.pullTarget(local, slop);
+                this.synchronizeRequested = false;
+            }
+            this.onSynchronize?.('target');
+            this.onRoundEnd?.(this.linesAt(target));
+            if (windowed) {
+                this.fineLines -= target.since(base) / this.linePeriod.total;
+                if (!(this.fineLines > 1e-9))
+                    this.fineLines = 0;
+            }
+            base.set(target);
+        }
+        // Every processor stands at the end of the lines being paid, give or take
+        // the instruction that carried it past. Work one posted from that last
+        // instruction is due a few cycles on; it runs here, not at the first
+        // round of the next lines, so nothing is left posted between lines: a
+        // line event, or a save state taken between frames, finds none.
+        this.onSynchronize?.();
+    }
+    /** Where a stopped round (runProcessors) began and the end it was given. */
+    extendedFrom = new Attotime();
+    extendedTo = new Attotime();
+    stoppedScratch = new Attotime();
+    /**
+     * How many processors, from the first in configured order, are stopped
+     * (GeneratedFrameProcessor.stopped) and run: a round they lead can be
+     * extended. Every other processor comes after them in MAME's order, so a
+     * line one of those drives reaches a stopped one at the end of the quantum
+     * it falls in. None when no processor is left to run.
+     */
+    stoppedLead() {
+        const processors = this.processors;
+        let lead = 0;
+        while (lead < processors.length) {
+            const processor = processors[lead].processor;
+            if (!processor.stopped?.() || processor.suspended?.() || (processor.enabled && !processor.enabled()))
+                break;
+            lead++;
+        }
+        return lead;
+    }
+    /**
+     * A stopped processor's end in a round extended for it: the round's own,
+     * or, where the round was cut short (a synchronize, a timer armed inside
+     * it), the end of the quantum the cut falls in, counted from the round's
+     * start as MAME's rounds are.
+     */
+    stoppedTarget(target) {
+        if (!target.before(this.extendedTo))
+            return target;
+        const quantum = this.machineQuantum;
+        const into = target.since(this.extendedFrom);
+        const quanta = Math.max(1, Math.ceil(into / quantum));
+        const boundary = this.stoppedScratch.set(this.extendedFrom).add(quanta * quantum);
+        return boundary.before(this.extendedTo) ? boundary : this.extendedTo;
+    }
+    /** Bring the target down to `attos` past the base; answers whether it moved. */
+    /**
+     * Under a perfect quantum most rounds run nobody: the 5A22 is part way
+     * through an instruction and the S-SMP not yet a whole cycle behind. MAME
+     * steps its base through them a quantum at a time with no effect; they are
+     * passed at once, to just short of the first round in which a processor has
+     * a whole cycle of its own (and never past a timer, which bounds `end`).
+     */
+    skipIdleRounds(room) {
+        const quantum = this.machineQuantum;
+        let soonest = Infinity;
+        for (const scheduled of this.processors) {
+            if (scheduled.processor.suspended?.() === 'waiting')
+                continue;
+            const due = scheduled.local.since(this.base) + scheduled.cycle.total;
+            if (due < soonest)
+                soonest = due;
+        }
+        if (!(soonest > quantum) || !Number.isFinite(soonest))
+            return 0;
+        const rounds = Math.min(Math.floor((soonest - 1) / quantum), Math.floor((room - 1) / quantum));
+        if (!(rounds > 0))
+            return 0;
+        this.base.add(rounds * quantum);
+        return rounds * quantum;
+    }
+    lowerTarget(attos) {
+        const candidate = this.scratch.set(this.base).add(attos);
+        if (!candidate.before(this.target))
+            return false;
+        this.target.set(candidate);
+        return true;
+    }
+    /** MAME's `target = max(m_localtime, m_basetime)` for a processor left short. */
+    pullTarget(reached, slop) {
+        if (this.target.since(reached) <= slop)
+            return;
+        this.target.set(reached.before(this.base) ? this.base : reached);
+    }
+    /** A time within the lines being paid, as the line it falls on. */
+    linesAt(time) {
+        return this.roundFirstLine + time.since(this.roundStart) / this.linePeriod.total;
+    }
+    /** The end of the open perfect_quantum window, or `end` if that comes first. */
+    windowEnd(end) {
+        const window = this.scratch.set(this.base).add(Math.floor(this.fineLines * this.linePeriod.total));
+        return window.before(end) ? window : end;
+    }
+    /**
+     * The round's order: the processors as configured, with any suspended
+     * device moved after the active ones (MAME `rebuild_execute_list`). Donkey
+     * Kong's 8257 waits behind its sound CPU, and runs between the CPUs once
+     * a request releases it.
+     */
+    roundOrder() {
+        const order = this.order;
+        if (!this.suspendable)
+            return order;
+        const processors = this.processors;
+        let next = 0;
+        for (let index = 0; index < processors.length; index++) {
+            if (!processors[index].processor.suspended?.())
+                order[next++] = index;
+        }
+        for (let index = 0; index < processors.length; index++) {
+            if (processors[index].processor.suspended?.())
+                order[next++] = index;
+        }
+        return order;
+    }
+    /**
+     * The beam as the running processor sees it, `elapsedCycles` into its
+     * slice: MAME's screen_device::vpos() reads the executing CPU's own local
+     * time. Undefined outside a slice. Without it a round of many lines showed
+     * every read the round's last line, and a game polling for VBLANK
+     * (Phoenix, Rampage) never saw the beam move.
+     */
+    runningBeam(elapsedCycles) {
+        const running = this.running;
+        // A one-line round is already resolved inside the line by the board's
+        // instruction-time device clock, which boards such as the 2600 position
+        // sprites by; only a round spanning lines needs the processor's position.
+        if (!running || this.roundLines <= 1)
+            return undefined;
+        return this.roundFirstLine + this.runStartLines + elapsedCycles / running.cyclesPerLine;
+    }
+    /**
+     * The running processor's position, `elapsedCycles` into its slice, as
+     * lines since the frame began at `originLine`; undefined outside a slice.
+     * A round never spans the origin, so its first line places it in the frame
+     * and the processor's progress through it is added unwrapped: a slice that
+     * overruns the frame's last line comes out past `vtotal`, never back at 0.
+     *
+     * Unlike `runningBeam`, a one-line round counts too. Its slice starts where
+     * the last one overran to (`runStartLines`), and progress through the line
+     * measured as `elapsed / target` restarted at 0: Gyruss's i8039 DAC stepped
+     * back a fifth of a line at every round seam (#194).
+     */
+    runningFrameLines(elapsedCycles) {
+        const running = this.running;
+        if (!running)
+            return undefined;
+        const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+        const first = ((this.roundFirstLine - this.originLine) % vtotal + vtotal) % vtotal;
+        return first + this.runStartLines + elapsedCycles / running.cyclesPerLine;
+    }
+    /**
+     * The `perfect_quantum` window: up to `until`, the window's end or the
+     * round's, the processor furthest behind in emulated time executes one
+     * instruction, then any work that instruction synchronized runs.
+     */
+    lockstep(until) {
+        const processors = this.processors;
+        const base = this.base;
+        const end = this.target.set(until);
+        // Subtracting spent lines leaves floating-point residue: a window of 4e-16
+        // lines advanced the round by nothing, forever. Under an attosecond it is over.
+        if (!base.before(end)) {
+            this.fineLines = 0;
+            return;
+        }
+        for (;;) {
+            // Every instruction in the window is a round of its own.
+            this.onRound?.();
+            let behind;
+            let owed = 0;
+            const order = this.roundOrder();
+            for (let position = 0; position < order.length; position++) {
+                const scheduled = processors[order[position]];
+                const cycles = scheduled.cycle.within(scheduled.local, end);
+                if (cycles === 0)
+                    continue;
+                if (scheduled.processor.enabled && !scheduled.processor.enabled()) {
+                    scheduled.local.addPeriods(cycles, scheduled.cycle);
+                    scheduled.processor.eat?.(cycles);
+                    continue;
+                }
+                if (scheduled.processor.suspended?.() === 'waiting')
+                    continue;
+                const debt = end.since(scheduled.local);
+                if (!behind || debt > owed) {
+                    behind = scheduled;
+                    owed = debt;
+                }
+            }
+            if (!behind)
+                break;
+            this.running = behind;
+            this.runStartLines = behind.local.since(this.roundStart) / this.linePeriod.total;
+            this.lockstepping = true;
+            try {
+                behind.local.addPeriods(behind.processor.run(1), behind.cycle);
+            }
+            finally {
+                this.lockstepping = false;
+            }
+            this.running = undefined;
+            this.synchronizeRequested = false;
+            this.onSynchronize?.();
+        }
+        if (this.fineLines > 0 && !this.permanentLockstep) {
+            this.fineLines -= end.since(base) / this.linePeriod.total;
+            if (!(this.fineLines > 1e-9))
+                this.fineLines = 0;
+        }
+        base.set(end);
+    }
+    dispatchLine(line, framebuffer) {
+        for (const event of this.eventsByLine.get(line) ?? [])
+            this.onEvent?.(event);
+        for (const scheduled of this.periodicEvents) {
+            scheduled.carry += scheduled.eventsPerLine;
+            while (scheduled.carry >= 1) {
+                scheduled.carry -= 1;
+                this.onEvent?.(scheduled.event);
+            }
+        }
+        // A screen whose vblank starts at its last line + 1 (the Spectrum's 311 of
+        // 0-310) starts it on line 0 of the next frame, as MAME's raster wraps.
+        const screen = this.machine.execution.screen;
+        const vtotal = Math.max(1, screen.vtotal);
+        if (line === screen.vbstart % vtotal)
+            this.video?.vblank();
+        // MAME's vblank_end timer is first armed from time zero, so a screen whose
+        // vblank ends on line 0 counts its first frame a whole frame later.
+        if (line === (screen.vbend ?? 0) % vtotal && (line > 0 || this.frameCount > 0))
+            this.video?.vblankEnd?.();
+    }
+}

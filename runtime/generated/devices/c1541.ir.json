@@ -1,0 +1,69 @@
+{
+  "type": "C1541",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "iec8:c1541"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "iec8:c1541"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "C1541",
+    "className": "c1541_device",
+    "shortName": "c1541",
+    "description": "Commodore 1541 Disk Drive",
+    "sourceFile": "src/devices/bus/cbmiec/c1541.cpp",
+    "sourceLine": 168,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(C1541,                      c1541_device,                      \"c1541\",    \"Commodore 1541 Disk Drive\")"
+  },
+  "methods": [
+    {
+      "name": "device_rom_region",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/cbmiec/c1541.cpp",
+      "sourceLine": 247,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ROM_NAME"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "c1541"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/cbmiec/c1541.cpp",
+    "src/devices/bus/cbmiec/c1541.h"
+  ],
+  "composedOf": [
+    "ALPS_3255190X",
+    "C64H156",
+    "FLOPPY_CONNECTOR",
+    "M6502",
+    "MOS6522"
+  ]
+}

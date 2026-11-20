@@ -1,0 +1,1124 @@
+{
+  "game": "elevator",
+  "title": "Elevator Action (BA3, 4 PCB version, 1.1) (Taito, 1983)",
+  "family": "taitosj",
+  "dataPath": "games/arcade/elevator",
+  "board": {
+    "family": "taitosj",
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "z80",
+        "clock": 4000000,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 24575,
+            "kind": "rom"
+          },
+          {
+            "start": 24576,
+            "end": 32767,
+            "kind": "handler",
+            "read": "bank.mainbank",
+            "bank": "mainbank"
+          },
+          {
+            "start": 32768,
+            "end": 34815,
+            "kind": "ram"
+          },
+          {
+            "start": 34816,
+            "end": 34816,
+            "kind": "handler",
+            "mirror": 2046,
+            "read": "taitosj_state.fake_data_r",
+            "write": "taitosj_state.fake_data_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 34817,
+            "end": 34817,
+            "kind": "handler",
+            "mirror": 2046,
+            "read": "taitosj_state.fake_status_r"
+          },
+          {
+            "start": 36864,
+            "end": 49151,
+            "kind": "handler",
+            "share": "characterram",
+            "write": "taitosj_state.characterram_w",
+            "writeHandlerOwnsRam": true,
+            "handlerWidth": 8
+          },
+          {
+            "start": 49152,
+            "end": 50175,
+            "kind": "ram"
+          },
+          {
+            "start": 50176,
+            "end": 51199,
+            "kind": "ram",
+            "share": "videoram[0]"
+          },
+          {
+            "start": 51200,
+            "end": 52223,
+            "kind": "ram",
+            "share": "videoram[1]"
+          },
+          {
+            "start": 52224,
+            "end": 53247,
+            "kind": "ram",
+            "share": "videoram[2]"
+          },
+          {
+            "start": 53248,
+            "end": 53343,
+            "kind": "ram",
+            "share": "colscrolly"
+          },
+          {
+            "start": 53344,
+            "end": 53503,
+            "kind": "ram"
+          },
+          {
+            "start": 53504,
+            "end": 53759,
+            "kind": "ram",
+            "share": "spriteram"
+          },
+          {
+            "start": 53760,
+            "end": 53887,
+            "kind": "ram",
+            "mirror": 128,
+            "share": "paletteram"
+          },
+          {
+            "start": 54016,
+            "end": 54016,
+            "kind": "ram",
+            "mirror": 255,
+            "share": "video_priority",
+            "writeOnly": true
+          },
+          {
+            "start": 54272,
+            "end": 54275,
+            "kind": "ram",
+            "mirror": 240,
+            "share": "collision_reg",
+            "readOnly": true
+          },
+          {
+            "start": 54276,
+            "end": 54276,
+            "kind": "handler",
+            "mirror": 243,
+            "read": "taitosj_state.gfxrom_r"
+          },
+          {
+            "start": 54280,
+            "end": 54280,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "port.IN0"
+          },
+          {
+            "start": 54281,
+            "end": 54281,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "port.IN1"
+          },
+          {
+            "start": 54282,
+            "end": 54282,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "port.DSW1"
+          },
+          {
+            "start": 54283,
+            "end": 54283,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "port.IN2"
+          },
+          {
+            "start": 54284,
+            "end": 54284,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "port.IN3"
+          },
+          {
+            "start": 54285,
+            "end": 54285,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "port.IN4"
+          },
+          {
+            "start": 54286,
+            "end": 54287,
+            "kind": "handler",
+            "mirror": 240,
+            "write": "ay1.address_data_w"
+          },
+          {
+            "start": 54287,
+            "end": 54287,
+            "kind": "handler",
+            "mirror": 240,
+            "read": "ay1.data_r"
+          },
+          {
+            "start": 54528,
+            "end": 54533,
+            "kind": "ram",
+            "mirror": 240,
+            "share": "scroll",
+            "writeOnly": true
+          },
+          {
+            "start": 54534,
+            "end": 54535,
+            "kind": "ram",
+            "mirror": 240,
+            "share": "colorbank",
+            "writeOnly": true
+          },
+          {
+            "start": 54536,
+            "end": 54536,
+            "kind": "handler",
+            "mirror": 240,
+            "write": "taitosj_state.collision_reg_clear_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 54537,
+            "end": 54538,
+            "kind": "ram",
+            "mirror": 240,
+            "share": "gfxpointer",
+            "writeOnly": true
+          },
+          {
+            "start": 54539,
+            "end": 54539,
+            "kind": "handler",
+            "mirror": 240,
+            "write": "taitosj_state.soundlatch_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 54540,
+            "end": 54540,
+            "kind": "handler",
+            "mirror": 240,
+            "write": "taitosj_state.sound_semaphore2_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 54541,
+            "end": 54541,
+            "kind": "handler",
+            "mirror": 240,
+            "write": "watchdog.reset_w"
+          },
+          {
+            "start": 54542,
+            "end": 54542,
+            "kind": "handler",
+            "mirror": 240,
+            "write": "taitosj_state.bankswitch_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 54543,
+            "end": 54543,
+            "kind": "nop",
+            "mirror": 240,
+            "readOnly": true
+          },
+          {
+            "start": 54784,
+            "end": 54784,
+            "kind": "ram",
+            "mirror": 255,
+            "share": "video_mode",
+            "writeOnly": true
+          },
+          {
+            "start": 55040,
+            "end": 57343,
+            "kind": "nop"
+          },
+          {
+            "start": 57344,
+            "end": 65535,
+            "kind": "rom"
+          },
+          {
+            "start": 34816,
+            "end": 34817,
+            "kind": "handler",
+            "mirror": 2046,
+            "read": "bmcu.data_r",
+            "write": "bmcu.data_w",
+            "handlerWidth": 8
+          }
+        ]
+      },
+      {
+        "tag": "audiocpu",
+        "type": "z80",
+        "clock": 3000000,
+        "region": "audiocpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 16383,
+            "kind": "rom"
+          },
+          {
+            "start": 16384,
+            "end": 17407,
+            "kind": "ram"
+          },
+          {
+            "start": 18432,
+            "end": 18433,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "ay2.address_data_w"
+          },
+          {
+            "start": 18433,
+            "end": 18433,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "ay2.data_r"
+          },
+          {
+            "start": 18434,
+            "end": 18435,
+            "kind": "handler",
+            "mirror": 2040,
+            "write": "ay3.address_data_w"
+          },
+          {
+            "start": 18435,
+            "end": 18435,
+            "kind": "handler",
+            "mirror": 2040,
+            "read": "ay3.data_r"
+          },
+          {
+            "start": 18436,
+            "end": 18437,
+            "kind": "handler",
+            "mirror": 2042,
+            "write": "ay4.address_data_w"
+          },
+          {
+            "start": 18437,
+            "end": 18437,
+            "kind": "handler",
+            "mirror": 2042,
+            "read": "ay4.data_r"
+          },
+          {
+            "start": 20480,
+            "end": 20480,
+            "kind": "handler",
+            "mirror": 2044,
+            "read": "taitosj_state.soundlatch_r",
+            "write": "taitosj_state.soundlatch_clear7_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 20481,
+            "end": 20481,
+            "kind": "handler",
+            "mirror": 2044,
+            "read": "taitosj_state.soundlatch_flags_r",
+            "write": "taitosj_state.sound_semaphore2_clear_w",
+            "handlerWidth": 8
+          },
+          {
+            "start": 57344,
+            "end": 61439,
+            "kind": "rom"
+          }
+        ]
+      }
+    ],
+    "ranges": [
+      {
+        "start": 0,
+        "end": 24575,
+        "kind": "rom"
+      },
+      {
+        "start": 24576,
+        "end": 32767,
+        "kind": "handler",
+        "read": "bank.mainbank",
+        "bank": "mainbank"
+      },
+      {
+        "start": 32768,
+        "end": 34815,
+        "kind": "ram"
+      },
+      {
+        "start": 34816,
+        "end": 34816,
+        "kind": "handler",
+        "mirror": 2046,
+        "read": "taitosj_state.fake_data_r",
+        "write": "taitosj_state.fake_data_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 34817,
+        "end": 34817,
+        "kind": "handler",
+        "mirror": 2046,
+        "read": "taitosj_state.fake_status_r"
+      },
+      {
+        "start": 36864,
+        "end": 49151,
+        "kind": "handler",
+        "share": "characterram",
+        "write": "taitosj_state.characterram_w",
+        "writeHandlerOwnsRam": true,
+        "handlerWidth": 8
+      },
+      {
+        "start": 49152,
+        "end": 50175,
+        "kind": "ram"
+      },
+      {
+        "start": 50176,
+        "end": 51199,
+        "kind": "ram",
+        "share": "videoram[0]"
+      },
+      {
+        "start": 51200,
+        "end": 52223,
+        "kind": "ram",
+        "share": "videoram[1]"
+      },
+      {
+        "start": 52224,
+        "end": 53247,
+        "kind": "ram",
+        "share": "videoram[2]"
+      },
+      {
+        "start": 53248,
+        "end": 53343,
+        "kind": "ram",
+        "share": "colscrolly"
+      },
+      {
+        "start": 53344,
+        "end": 53503,
+        "kind": "ram"
+      },
+      {
+        "start": 53504,
+        "end": 53759,
+        "kind": "ram",
+        "share": "spriteram"
+      },
+      {
+        "start": 53760,
+        "end": 53887,
+        "kind": "ram",
+        "mirror": 128,
+        "share": "paletteram"
+      },
+      {
+        "start": 54016,
+        "end": 54016,
+        "kind": "ram",
+        "mirror": 255,
+        "share": "video_priority",
+        "writeOnly": true
+      },
+      {
+        "start": 54272,
+        "end": 54275,
+        "kind": "ram",
+        "mirror": 240,
+        "share": "collision_reg",
+        "readOnly": true
+      },
+      {
+        "start": 54276,
+        "end": 54276,
+        "kind": "handler",
+        "mirror": 243,
+        "read": "taitosj_state.gfxrom_r"
+      },
+      {
+        "start": 54280,
+        "end": 54280,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "port.IN0"
+      },
+      {
+        "start": 54281,
+        "end": 54281,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "port.IN1"
+      },
+      {
+        "start": 54282,
+        "end": 54282,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "port.DSW1"
+      },
+      {
+        "start": 54283,
+        "end": 54283,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "port.IN2"
+      },
+      {
+        "start": 54284,
+        "end": 54284,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "port.IN3"
+      },
+      {
+        "start": 54285,
+        "end": 54285,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "port.IN4"
+      },
+      {
+        "start": 54286,
+        "end": 54287,
+        "kind": "handler",
+        "mirror": 240,
+        "write": "ay1.address_data_w"
+      },
+      {
+        "start": 54287,
+        "end": 54287,
+        "kind": "handler",
+        "mirror": 240,
+        "read": "ay1.data_r"
+      },
+      {
+        "start": 54528,
+        "end": 54533,
+        "kind": "ram",
+        "mirror": 240,
+        "share": "scroll",
+        "writeOnly": true
+      },
+      {
+        "start": 54534,
+        "end": 54535,
+        "kind": "ram",
+        "mirror": 240,
+        "share": "colorbank",
+        "writeOnly": true
+      },
+      {
+        "start": 54536,
+        "end": 54536,
+        "kind": "handler",
+        "mirror": 240,
+        "write": "taitosj_state.collision_reg_clear_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 54537,
+        "end": 54538,
+        "kind": "ram",
+        "mirror": 240,
+        "share": "gfxpointer",
+        "writeOnly": true
+      },
+      {
+        "start": 54539,
+        "end": 54539,
+        "kind": "handler",
+        "mirror": 240,
+        "write": "taitosj_state.soundlatch_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 54540,
+        "end": 54540,
+        "kind": "handler",
+        "mirror": 240,
+        "write": "taitosj_state.sound_semaphore2_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 54541,
+        "end": 54541,
+        "kind": "handler",
+        "mirror": 240,
+        "write": "watchdog.reset_w"
+      },
+      {
+        "start": 54542,
+        "end": 54542,
+        "kind": "handler",
+        "mirror": 240,
+        "write": "taitosj_state.bankswitch_w",
+        "handlerWidth": 8
+      },
+      {
+        "start": 54543,
+        "end": 54543,
+        "kind": "nop",
+        "mirror": 240,
+        "readOnly": true
+      },
+      {
+        "start": 54784,
+        "end": 54784,
+        "kind": "ram",
+        "mirror": 255,
+        "share": "video_mode",
+        "writeOnly": true
+      },
+      {
+        "start": 55040,
+        "end": 57343,
+        "kind": "nop"
+      },
+      {
+        "start": 57344,
+        "end": 65535,
+        "kind": "rom"
+      },
+      {
+        "start": 34816,
+        "end": 34817,
+        "kind": "handler",
+        "mirror": 2046,
+        "read": "bmcu.data_r",
+        "write": "bmcu.data_w",
+        "handlerWidth": 8
+      }
+    ],
+    "customs": [
+      {
+        "port": "IN4",
+        "mask": 240,
+        "member": "input_port_4_f0_r",
+        "handler": "taitosj_state.input_port_4_f0_r",
+        "activeLow": false
+      }
+    ],
+    "screen": {
+      "width": 256,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 16,
+      "refresh": 59.18560606060606,
+      "frameAttoseconds": "16895999999932416",
+      "htotal": 384,
+      "vtotal": 264,
+      "vbstart": 240,
+      "vbend": 16,
+      "updateMode": "frame",
+      "physicalAspect": [
+        4,
+        3
+      ],
+      "rotate": 0
+    },
+    "clocks": {
+      "namco06": 48000,
+      "wsg": 96000
+    },
+    "videoMode": "handler"
+  },
+  "sound": {
+    "kind": "stream",
+    "clock": 48000,
+    "deviceTag": "ay1",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 73728,
+      "loads": [
+        {
+          "file": "ba3__01.2764.ic1",
+          "offset": 0,
+          "size": 8192,
+          "crc": "da775a24"
+        },
+        {
+          "file": "ba3__02.2764.ic2",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "fbfd8b3a"
+        },
+        {
+          "file": "ba3__03-1.2764.ic3",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "a2e69833"
+        },
+        {
+          "file": "ba3__04-1.2764.ic6",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "2b78c462"
+        }
+      ]
+    },
+    {
+      "region": "audiocpu",
+      "size": 65536,
+      "loads": [
+        {
+          "file": "ba3__09.2732.ic70",
+          "offset": 0,
+          "size": 4096,
+          "crc": "6d5f57cb"
+        },
+        {
+          "file": "ba3__10.2732.ic71",
+          "offset": 4096,
+          "size": 4096,
+          "crc": "f0a769a1"
+        }
+      ]
+    },
+    {
+      "region": "pal",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "ww15.pal16l8.ic24.jed.bin",
+          "offset": 0,
+          "size": 279,
+          "crc": "c3ec20d6"
+        }
+      ]
+    },
+    {
+      "region": "bmcu:mcu",
+      "size": 2048,
+      "loads": [
+        {
+          "file": "ba3__11.mc68705p3.ic24",
+          "offset": 0,
+          "size": 2048,
+          "crc": "9ce75afc"
+        }
+      ]
+    },
+    {
+      "region": "gfx",
+      "size": 32768,
+      "loads": [
+        {
+          "file": "ba3__05.2764.ic4",
+          "offset": 0,
+          "size": 8192,
+          "crc": "6c4ee58f"
+        },
+        {
+          "file": "ba3__06.2764.ic5",
+          "offset": 8192,
+          "size": 8192,
+          "crc": "41ab0afc"
+        },
+        {
+          "file": "ba3__07.2764.ic9",
+          "offset": 16384,
+          "size": 8192,
+          "crc": "efe43731"
+        },
+        {
+          "file": "ba3__08.2764.ic10",
+          "offset": 24576,
+          "size": 8192,
+          "crc": "3ca20696"
+        }
+      ]
+    },
+    {
+      "region": "proms",
+      "size": 256,
+      "loads": [
+        {
+          "file": "eb16.ic22",
+          "offset": 0,
+          "size": 256,
+          "crc": "b833b5ea"
+        }
+      ]
+    },
+    {
+      "region": "bmcu:mcu:bootstrap",
+      "size": 115,
+      "romSet": "m68705p5",
+      "loads": [
+        {
+          "file": "bootstrap.bin",
+          "offset": 0,
+          "size": 115,
+          "crc": "f70a8620"
+        }
+      ]
+    }
+  ],
+  "hiscore": {
+    "rows": [
+      {
+        "cpu": "maincpu",
+        "space": "program",
+        "address": 33616,
+        "length": 3,
+        "first": 0,
+        "last": 1
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "port": "IN0",
+      "mask": 1,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 2,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 4,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 8,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN0",
+      "mask": 16,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "activeLow": true
+    },
+    {
+      "port": "IN0",
+      "mask": 32,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 1,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN1",
+      "mask": 2,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN1",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN1",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": true,
+      "ways": 8
+    },
+    {
+      "port": "IN1",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_BUTTON1",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN1",
+      "mask": 32,
+      "keys": [],
+      "label": "IPT_BUTTON2",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 16,
+      "keys": [
+        "Digit6"
+      ],
+      "label": "IPT_COIN2",
+      "type": "IPT_COIN2",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 32,
+      "keys": [
+        "Digit5"
+      ],
+      "label": "IPT_COIN1",
+      "type": "IPT_COIN1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 64,
+      "keys": [
+        "Digit1"
+      ],
+      "label": "IPT_START1",
+      "type": "IPT_START1",
+      "activeLow": true
+    },
+    {
+      "port": "IN2",
+      "mask": 128,
+      "keys": [
+        "Digit2"
+      ],
+      "label": "IPT_START2",
+      "type": "IPT_START2",
+      "activeLow": true
+    },
+    {
+      "port": "IN3",
+      "mask": 16,
+      "keys": [
+        "Digit9"
+      ],
+      "label": "IPT_SERVICE1",
+      "type": "IPT_SERVICE1",
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "DSW1",
+      "mask": 3,
+      "value": 3,
+      "name": "Bonus Life"
+    },
+    {
+      "port": "DSW1",
+      "mask": 4,
+      "value": 4,
+      "name": "Free Play"
+    },
+    {
+      "port": "DSW1",
+      "mask": 24,
+      "value": 24,
+      "name": "Lives"
+    },
+    {
+      "port": "DSW1",
+      "mask": 32,
+      "value": 32,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW1",
+      "mask": 64,
+      "value": 64,
+      "name": "Flip Screen"
+    },
+    {
+      "port": "DSW1",
+      "mask": 128,
+      "value": 0,
+      "name": "Cabinet"
+    },
+    {
+      "port": "DSW2",
+      "mask": 15,
+      "value": 0,
+      "name": "Coin A"
+    },
+    {
+      "port": "DSW2",
+      "mask": 240,
+      "value": 0,
+      "name": "Coin B"
+    },
+    {
+      "port": "DSW3",
+      "mask": 3,
+      "value": 3,
+      "name": "Difficulty"
+    },
+    {
+      "port": "DSW3",
+      "mask": 4,
+      "value": 4,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW3",
+      "mask": 8,
+      "value": 8,
+      "name": "Unknown"
+    },
+    {
+      "port": "DSW3",
+      "mask": 16,
+      "value": 16,
+      "name": "Coinage Display"
+    },
+    {
+      "port": "DSW3",
+      "mask": 32,
+      "value": 32,
+      "name": "Year Display"
+    },
+    {
+      "port": "DSW3",
+      "mask": 64,
+      "value": 64,
+      "name": "Hit Detection"
+    },
+    {
+      "port": "DSW3",
+      "mask": 128,
+      "value": 128,
+      "name": "Coin Slots"
+    }
+  ],
+  "ports": [
+    {
+      "tag": "IN0",
+      "init": 255
+    },
+    {
+      "tag": "IN1",
+      "init": 255
+    },
+    {
+      "tag": "IN2",
+      "init": 255
+    },
+    {
+      "tag": "IN3",
+      "init": 239
+    },
+    {
+      "tag": "IN4",
+      "init": 15
+    },
+    {
+      "tag": "DSW1",
+      "init": 127
+    },
+    {
+      "tag": "DSW2",
+      "init": 0
+    },
+    {
+      "tag": "DSW3",
+      "init": 255
+    }
+  ],
+  "runtimeUrl": "../runtime/generated/audio/",
+  "menuUrl": "./"
+}

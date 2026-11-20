@@ -1,0 +1,306 @@
+{
+  "type": "TECMO_SPRITE",
+  "uses": [
+    {
+      "game": "rygar",
+      "tags": [
+        "spritegen"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TECMO_SPRITE",
+    "className": "tecmo_spr_device",
+    "shortName": "tecmo_spr",
+    "description": "Tecmo Chained Sprites",
+    "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+    "sourceLine": 19,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TECMO_SPRITE, tecmo_spr_device, \"tecmo_spr\", \"Tecmo Chained Sprites\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pri_cb"
+                },
+                "property": "resolve_safe"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+      "sourceLine": 36,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gaiden_draw_sprites",
+      "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, const uint16_t *spriteram, int sprite_sizey, int spr_offset_y, bool flip_screen",
+      "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+      "sourceLine": 74,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites_8bit",
+      "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, const uint8_t *spriteram, int size, int video_type, bool flip_screen",
+      "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+      "sourceLine": 203,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_wc90_sprites",
+      "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, const uint8_t *spriteram, int size",
+      "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+      "sourceLine": 280,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tbowl_draw_sprites",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, int xscroll, const uint8_t *spriteram",
+      "sourceFile": "src/mame/shared/tecmo_spr.cpp",
+      "sourceLine": 327,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tecmo_spr_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&palette_tag, const gfx_decode_entry *gfxinfo",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_info"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxinfo"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_palette"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "palette_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tecmo_spr_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&palette_tag, const gfx_decode_entry *gfxinfo",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_info"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxinfo"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_palette"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "palette_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_bootleg",
+      "parameters": "bool bootleg",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_yoffset",
+      "parameters": "int yoffset",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tecmo_spr_device::tecmo_spr_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&palette_tag, const gfx_decode_entry *gfxinfo",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 16,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_info"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxinfo"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_palette"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "palette_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tecmo_spr_device::set_bootleg",
+      "parameters": "bool bootleg",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tecmo_spr_device::set_yoffset",
+      "parameters": "int yoffset",
+      "sourceFile": "src/mame/shared/tecmo_spr.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/shared/tecmo_spr.cpp",
+    "src/mame/shared/tecmo_spr.h"
+  ]
+}

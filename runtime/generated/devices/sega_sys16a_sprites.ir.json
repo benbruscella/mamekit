@@ -1,0 +1,2445 @@
+{
+  "type": "SEGA_SYS16A_SPRITES",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "sprites"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SEGA_SYS16A_SPRITES",
+    "className": "sega_sys16a_sprite_device",
+    "shortName": "sega_sys16a_sprite",
+    "description": "Sega System 16A Sprites",
+    "sourceFile": "src/mame/sega/sega16sp.cpp",
+    "sourceLine": 23,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SEGA_SYS16A_SPRITES,    sega_sys16a_sprite_device,    \"sega_sys16a_sprite\",    \"Sega System 16A Sprites\")"
+  },
+  "methods": [
+    {
+      "name": "sprite_device",
+      "parameters": "const machine_config &mconfig, device_type type, const char *tag, device_t *owner, int dirty_granularity = 3",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "force_clear"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bitmap",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects",
+      "parameters": "auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "iterate_dirty_rects"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "action"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects",
+      "parameters": "const rectangle &cliprect, auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "iterate_dirty_rects"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "action"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spriteram",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spriteram_bytes",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spriteram_elements",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_spriteram",
+      "parameters": "uint16_t *base, uint32_t bytes",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteram_bytes"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bytes"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_spriteram_bytes"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "uint16_t"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_origin",
+      "parameters": "int32_t xorigin = 0, int32_t yorigin = 0",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_xorigin",
+      "parameters": "int32_t xorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_yorigin",
+      "parameters": "int32_t yorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "copy_to_buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memcpy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram_bytes"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear__1"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bitmap"
+                    },
+                    "property": "cliprect"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear",
+      "parameters": "const rectangle &cliprect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "iterate_dirty_rects"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                {
+                  "kind": "lambda",
+                  "parameters": [
+                    "rect"
+                  ],
+                  "body": [
+                    {
+                      "op": "call",
+                      "expression": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_bitmap"
+                          },
+                          "property": "fill"
+                        },
+                        "args": [
+                          {
+                            "kind": "unary",
+                            "operator": "~",
+                            "operand": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "kind": "identifier",
+                            "name": "rect"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "clean"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "force_clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bitmap"
+                },
+                "property": "fill"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "clean_all"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_async",
+      "parameters": "const rectangle &cliprect, bool clearit = true",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 124,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/sega16sp.cpp",
+      "sourceLine": 53,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sprite_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bank"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 152,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "spriteram",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "owner"
+                  },
+                  "args": []
+                },
+                "property": "memshare"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "tag"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "spriteram"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_spriteram"
+                  },
+                  "args": [
+                    {
+                      "kind": "cast",
+                      "valueType": "uint16_t",
+                      "pointer": true,
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "spriteram"
+                          },
+                          "property": "ptr"
+                        },
+                        "args": []
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "spriteram"
+                        },
+                        "property": "bytes"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_buffer"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty",
+      "parameters": "const rectangle &rect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mark_dirty__4"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "left"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "right"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty",
+      "parameters": "int32_t left, int32_t right, int32_t top, int32_t bottom",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 172,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "dirty"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "left"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_xorigin"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "right"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_xorigin"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "top"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_yorigin"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bottom"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_yorigin"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::sprite_device",
+      "parameters": "const machine_config &mconfig, device_type type, const char *tag, device_t *owner, int dirty_granularity = 3",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "force_clear"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::xorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::yorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::bitmap",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::iterate_dirty_rects",
+      "parameters": "auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::spriteram",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::spriteram_bytes",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::spriteram_elements",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_spriteram",
+      "parameters": "uint16_t *base, uint32_t bytes",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteram_bytes"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bytes"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_spriteram_bytes"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "uint16_t"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_origin",
+      "parameters": "int32_t xorigin = 0, int32_t yorigin = 0",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xorigin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xorigin"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yorigin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "yorigin"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_xorigin",
+      "parameters": "int32_t xorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_yorigin",
+      "parameters": "int32_t yorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::copy_to_buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 107,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memcpy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram_bytes"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear__1"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bitmap"
+                    },
+                    "property": "cliprect"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::force_clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bitmap"
+                },
+                "property": "fill"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "clean_all"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::draw_async",
+      "parameters": "const rectangle &cliprect, bool clearit = true",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 125,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::mark_dirty",
+      "parameters": "const rectangle &rect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mark_dirty__4"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "left"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "right"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_write",
+      "parameters": "uint16_t data",
+      "sourceFile": "src/mame/sega/sega16sp.cpp",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "src",
+            "valueType": "auto*",
+            "value": {
+              "kind": "cast",
+              "valueType": "uint32_t",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "spriteram"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "dst",
+            "valueType": "auto*",
+            "value": {
+              "kind": "cast",
+              "valueType": "uint32_t",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "buffer"
+                },
+                "args": []
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "spriteram_bytes"
+                  },
+                  "args": []
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 4
+                }
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "temp",
+                "valueType": "uint32_t",
+                "value": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "src"
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "assignment",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "src"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "postfix": true
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "dst"
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "unary",
+                  "operator": "*",
+                  "operand": {
+                    "kind": "assignment",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "dst"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "postfix": true
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "temp"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "spriteram"
+                },
+                "args": []
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 65535
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_bank",
+      "parameters": "int banknum, int offset",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_bank"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "banknum"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "offset"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_flip",
+      "parameters": "bool flip",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 32,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_local_origin",
+      "parameters": "int x, int y",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_xoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "x"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_yoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "y"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_local_origin",
+      "parameters": "int x, int y, int xf, int yf",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xf"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "yf"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_local_originx",
+      "parameters": "int x",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 48,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_xoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "x"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_yoffs"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_local_originy",
+      "parameters": "int y",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_yoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "y"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_xoffs"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sega_16bit_sprite_device::set_bank",
+      "parameters": "int banknum, int offset",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "identifier",
+                "name": "m_bank"
+              },
+              "index": {
+                "kind": "identifier",
+                "name": "banknum"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "offset"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sega_16bit_sprite_device::set_flip",
+      "parameters": "bool flip",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sega_16bit_sprite_device::set_local_origin",
+      "parameters": "int x, int y",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_xoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "x"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_yoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "y"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sega_16bit_sprite_device::set_local_originx",
+      "parameters": "int x",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 49,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_xoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "x"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_yoffs"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sega_16bit_sprite_device::set_local_originy",
+      "parameters": "int y",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 54,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_yoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "y"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_xoffs"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+      "sourceFile": "src/mame/sega/sega16sp.cpp",
+      "sourceLine": 474,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16a_draw_layer",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info, bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int flags, int priority",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_draw_layer",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info, bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int flags, int priority",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1064,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_reset",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1185,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "latch_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 261
+                    }
+                  ]
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "index"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_virtual_tilemap",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info, bitmap_ind16 &bitmap, const rectangle &cliprect, uint16_t pages, uint16_t xscroll, uint16_t yscroll, uint32_t flags, uint32_t priority",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 582,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bitmap=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::bitmap=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects__1",
+      "parameters": "auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects__2",
+      "parameters": "const rectangle &cliprect, auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear__0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear__1"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bitmap"
+                    },
+                    "property": "cliprect"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear__1",
+      "parameters": "const rectangle &cliprect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty__1",
+      "parameters": "const rectangle &rect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mark_dirty__4"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "left"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "right"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty__4",
+      "parameters": "int32_t left, int32_t right, int32_t top, int32_t bottom",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 172,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_local_origin__2",
+      "parameters": "int x, int y",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 33,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_xoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "x"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_yoffs"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "identifier",
+                "name": "y"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_local_origin__4",
+      "parameters": "int x, int y, int xf, int yf",
+      "sourceFile": "src/mame/sega/sega16sp.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "x"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "y"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xf"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "yf"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_origin"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "y"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/sega/sega16sp.cpp",
+    "src/mame/sega/sega16sp.h",
+    "src/devices/video/sprite.h",
+    "src/devices/video/sprite.cpp",
+    "src/mame/sega/segaic16.h",
+    "src/mame/sega/segaic16.cpp"
+  ]
+}

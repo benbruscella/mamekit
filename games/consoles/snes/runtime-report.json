@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 2,
+  "game": "snes",
+  "family": "snes",
+  "boardMode": "generated",
+  "playable": true,
+  "playabilityBasis": "source-complete",
+  "generationGaps": [],
+  "silentGaps": [],
+  "playableWithoutSound": false,
+  "sourceCoverage": {
+    "covered": 166,
+    "total": 213,
+    "percent": 77.9
+  },
+  "requirements": {
+    "cpus": [
+      {
+        "name": "maincpu:_5A22",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "soundcpu:S_SMP",
+        "status": "executable",
+        "source": "src/devices/machine/s_smp.cpp:57"
+      }
+    ],
+    "devices": [
+      {
+        "name": "scpu_irq:INPUT_MERGER_ANY_HIGH",
+        "status": "executable",
+        "source": "src/devices/machine/input_merger.cpp:43"
+      },
+      {
+        "name": "screen:SCREEN",
+        "status": "declarative-host"
+      },
+      {
+        "name": "ppu:SNES_PPU",
+        "status": "executable",
+        "source": "src/devices/video/snes_ppu.cpp:181"
+      },
+      {
+        "name": "ctrl1:SNES_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/snes_ctrl/ctrl.cpp:27"
+      },
+      {
+        "name": "ctrl2:SNES_CONTROL_PORT",
+        "status": "executable",
+        "source": "src/devices/bus/snes_ctrl/ctrl.cpp:27"
+      },
+      {
+        "name": "speaker:SPEAKER",
+        "status": "declarative-host"
+      },
+      {
+        "name": "s_dsp:S_DSP",
+        "status": "executable",
+        "source": "src/devices/sound/s_dsp.cpp:155"
+      },
+      {
+        "name": "snsslot:SNS_CART_SLOT",
+        "status": "executable",
+        "source": "src/devices/bus/snes/snes_slot.cpp:58"
+      }
+    ],
+    "handlers": [
+      {
+        "name": "maincpu.memsel_w",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.rddivh_r",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.rddivl_r",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.rdmpyh_r",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.rdmpyl_r",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.wrdivh_w",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.wrdivl_w",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.wrdvdd_w",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.wrmpya_w",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "maincpu.wrmpyb_w",
+        "status": "executable",
+        "source": "src/devices/cpu/g65816/g65816.cpp:107"
+      },
+      {
+        "name": "soundcpu.io_r",
+        "status": "executable",
+        "source": "src/devices/machine/s_smp.cpp:57"
+      },
+      {
+        "name": "soundcpu.io_w",
+        "status": "executable",
+        "source": "src/devices/machine/s_smp.cpp:57"
+      }
+    ],
+    "callbacks": [
+      {
+        "name": "soundcpu.dsp_io_read_callback -> s_dsp.dsp_io_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1342"
+      },
+      {
+        "name": "soundcpu.dsp_io_write_callback -> s_dsp.dsp_io_w",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1343"
+      },
+      {
+        "name": "scpu_irq.output_handler -> maincpu",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1349"
+      },
+      {
+        "name": "screen.set_screen_update -> snes_state.screen_update",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1355"
+      },
+      {
+        "name": "ppu.open_bus_callback -> snes_console_state.snes_open_bus_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1358"
+      },
+      {
+        "name": "ctrl1.set_onscreen_callback -> snes_console_state.onscreen_cb",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1362"
+      },
+      {
+        "name": "ctrl2.set_onscreen_callback -> snes_console_state.onscreen_cb",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1364"
+      },
+      {
+        "name": "ctrl2.set_gunlatch_callback -> snes_console_state.gun_latch_cb",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1365"
+      },
+      {
+        "name": "snsslot.irq_callback -> scpu_irq.in_w_1",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1377"
+      },
+      {
+        "name": "snsslot.open_bus_callback -> snes_console_state.snes_open_bus_r",
+        "status": "generated",
+        "source": "src/mame/nintendo/snes.cpp:1378"
+      }
+    ],
+    "composition": [
+      {
+        "name": "games/consoles/snes/generated/board.ts",
+        "status": "generated"
+      }
+    ]
+  },
+  "parserGaps": [],
+  "handlerCompiler": {
+    "sourceMethods": 130,
+    "compiledMethods": 130,
+    "blockedMethods": 0,
+    "usedCompiledHandlers": 0,
+    "usedBlockedHandlers": 0
+  },
+  "executionCompiler": {
+    "cpuPlans": 2,
+    "frameCallbacks": 0,
+    "screenUpdate": "snes_state.screen_update",
+    "screenUpdateCompiled": true,
+    "screenUpdateDiagnostics": []
+  },
+  "summary": {
+    "executable": 20,
+    "generated": 11,
+    "declarative-host": 2,
+    "blocked": 0,
+    "missing": 0
+  }
+}

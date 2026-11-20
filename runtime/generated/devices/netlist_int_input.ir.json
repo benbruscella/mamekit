@@ -1,0 +1,25 @@
+{
+  "type": "NETLIST_INT_INPUT",
+  "uses": [
+    {
+      "game": "mario",
+      "tags": [
+        "snd_nl:dac"
+      ]
+    }
+  ],
+  "status": "declarative-host",
+  "definition": {
+    "type": "NETLIST_INT_INPUT",
+    "className": "netlist_mame_int_input_device",
+    "shortName": "nl_int_out",
+    "description": "Netlist Integer Output",
+    "sourceFile": "src/devices/machine/netlist.cpp",
+    "sourceLine": 53,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NETLIST_INT_INPUT,     netlist_mame_int_input_device,     \"nl_int_out\",    \"Netlist Integer Output\")"
+  },
+  "methods": [],
+  "dslFiles": [],
+  "sourceFiles": []
+}

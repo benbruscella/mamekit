@@ -1,0 +1,250 @@
+{
+  "type": "TOAPLAN_SCU",
+  "uses": [
+    {
+      "game": "wardner",
+      "tags": [
+        "scu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TOAPLAN_SCU",
+    "className": "toaplan_scu_device",
+    "shortName": "toaplan_scu",
+    "description": "Toaplan SCU",
+    "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+    "sourceLine": 39,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TOAPLAN_SCU, toaplan_scu_device, \"toaplan_scu\", \"Toaplan SCU\")"
+  },
+  "methods": [
+    {
+      "name": "toaplan_scu_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock = 0",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 57,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "decode_gfx"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxinfo"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "gfx"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                "property": "set_colorbase"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_colbase"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pri_cb"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 76,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites_common",
+      "parameters": "auto &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 85,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites__bitmap_ind16__rectangle__u16__u32",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites__bitmap_rgb32__rectangle__u16__u32",
+      "parameters": "bitmap_rgb32 &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 125,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_xoffsets",
+      "parameters": "int xoffs, int xoffs_flipped",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs_flipped"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_colorbase",
+      "parameters": "u16 base",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 21,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "toaplan_scu_device::set_xoffsets",
+      "parameters": "int xoffs, int xoffs_flipped",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 14,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xoffs_flipped"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs_flipped"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "toaplan_scu_device::set_colorbase",
+      "parameters": "u16 base",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_sprites",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, u16* spriteram, u32 bytes",
+      "sourceFile": "src/mame/toaplan/toaplan_scu.cpp",
+      "sourceLine": 119,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/toaplan/toaplan_scu.cpp",
+    "src/mame/toaplan/toaplan_scu.h"
+  ]
+}

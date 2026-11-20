@@ -1,0 +1,95 @@
+Arcade Video game published 45 years ago:
+
+Donkey Kong (c) 1981 Nintendo of America, Incorporated.
+
+Export version for North America. For more information about the game itself, please see the original Japanese upright version entry.
+
+- TECHNICAL -
+
+[Blue Upright model] 
+The blue uprights (which are the most common), are a very rectangular affair, with quite a lot of artwork. They have orange-ish sticker style side-art (with Mario and Kong on them), with control panel, marquee, and monitor bezel graphics to match. This game does not use a standard arcade monitor. It requires a 'Nintendo Compatible' monitor (a normal monitor will display the picture like that of a photographic negative). This simple little monitor change basically launched the entire Nintendo Vs. Unisystem later on. Because only Donkey Kong series games and Vs. titles would work on these monitors (forcing operators to buy conversion kits for those games instead of a competitors game). 
+
+[Red Upright model] 
+The red upright versions are actually "Radar Scope" cabinets that have been factory-converted to Donkey Kong. These are fairly rare and feature slightly different gameplay.
+
+- TRIVIA -
+
+Donkey Kong was released on July 31, 1981 in the USA.
+
+Donkey Kong was to be Nintendo's first big breakthrough into the western - and particularly American - arcade scene. Before Donkey Kong, Nintendo was having difficulty establishing itself in these markets. After the game's massive success Nintendo quickly established their headquarters of Nintendo of America to ensure that the game was being distributed properly. 
+
+Mario was named after Mario Segale, the landlord of Nintendo of America's first warehouse location in Seattle (though it was debated whether this occurred before or well after the game was released). Mario was originally called 'Jumpman'; only the arcade version of Donkey Kong has ever called the hero Jumpman; most home coversions, particularly the NES version, game him the Mario name.
+
+Accounts differ as to how Nintendo of America felt about the game before its release. Many sources claim that they all felt sure it would be an absolute disaster while others say they were more optimistic.
+
+Although Mario is a plumber in later games, his career in Donkey Kong is that of a carpenter. Mario's appearance (and consequently his career) was dictated by the primitive graphics hardware of the time - the only way to have his arms appear 'separate' to his torso was to have them as a different color - hence he wears 'dungarees'. The mustache is present merely to indicate where Mario's mouth is, again due to the low graphics resolution imposed by hardware limitations. Mario wears a hat so his head is distinguishable from the game's black backgrounds. 
+
+About 60,000 units were sold in the US. Oddly, despite it being one of the ten best selling games of the golden age of video games, it never reached #1 on Replay's popularity charts. Instead, it was stuck at #2 behind mega hits "Pac-Man" and "Ms. Pac-Man" - the two best selling games ever. 
+
+Donkey Kong inspired a catchy hit song by Buckner and Garcia called 'Do The Donkey Kong' released on the 'Pac-Man Fever' album. 
+
+A Donkey Kong unit appears in the 1983 movie 'WarGames', the 1984 movie 'Gremlins', the 1985 movie 'The Heavenly Kid', and the sitcom 'Two and a Half Men' (Season 5, Episode 2 - People Who Love Peepholes). 
+
+MB (Milton Bradley) released a board game based on this video game (same name) in 1982. Save the girl and avoid the barrels and fireballs as in the video game. The gameboard is laid out like the video game's Ramp Stage. 'Can You Battle Donkey Kong and Save the Fair Maiden?'. 
+
+Donkey Kong also spawned a cartoon series of the same name : Ruby-Spears Productions. Produced by Joe Ruby and Ken Spears. Originally aired September 17, 1983 as part of 'Saturday Supercade' on CBS. Mario was voiced by veteran voice actor Peter Cullen, while Donkey Kong's voice was provided by the late actor/comedian Soupy Sales (1926-2009). 
+
+Michael Jackson used to own this game (Blue Upright model). It was sold at the official Michael Jackson Auction on April 24, 2009.
+
+- UPDATES -
+
+The original Japanese version had all four stages displayed in their original, logical order 1-2-3-4.
+For this US version, they changed it to match the 'How High Can You Try/Get?' theme, with the stage order as follows : 
+L-01: 1-4 
+L-02: 1-3-4 
+L-03: 1-2-3-4 (as in all levels of the Japanese version) 
+L-04: 1-2-1-3-4 
+L-05: 1-2-1-3-1-4 
+L-06 through L-21 all remain the same as L-05 
+L-22: 1 (Kill screen).
+
+- PORTS -
+
+NOTE: Only ports released in North America are listed here. For ports released in other regions, please see the original Japanese upright version entry.
+
+* CONSOLES: 
+[US] Atari 2600 (1982) "Donkey Kong [Model 2451]"
+[US] Colecovision (1982) "Donkey Kong [Model 2411]"
+[US] Mattel Intellivision (1982) "Donkey Kong [Model 2471]"
+[US] Nintendo NES (june.1986) "Donkey Kong [Model NES-DK-USA]"
+[US] Atari XEGS
+[US] Atari 2600 (1988) "Donkey Kong [Model CX26143]"
+[US] Atari 7800 (1988) "Donkey Kong [Model CX7848]"
+
+* HANDHELDS: 
+[US] Nintendo Game Boy (june.1994) "Donkey Kong [Model DMG-QD-USA]"
+
+* COMPUTERS: 
+[US] Tandy Color Computer (1982) "Dunkey Munkey"
+[US] Tandy Color Computer (1982) "Donkey King"
+[US] Tandy Color Computer (1983) "The King"
+[US] Tandy Color Computer (1983) "Monkey Kong"
+[US] PC [Booter] (1983) "Donkey Kong"
+[US] PC [Booter] (1983) "Gorilla Gorilla" : part of the "FriendlyWare P.C. Arcade" suite.
+[US] Atari 800 (1983) "Donkey Kong [Model RX8031]"
+[US] TI99/4A (1983) "Donkey Kong [Model RX8512]"
+[US] Commodore VIC-20 (1983) "Donkey Kong [Model RX8513]"
+[US] Apple II (1983)
+[US] Commodore C64 (1983) "Donkey Kong [Model RX8514]"
+[US] PC [MS-DOS] (1997) "Champ Kong" by CHAMProgramming.
+
+* OTHERS: 
+[US] VFD handheld game (1982) by Coleco. 
+[US] LCD handheld game "Game & Watch: Donkey Kong" by Nintendo : Uses a double screen.
+
+- SERIES -
+
+1. Donkey Kong (1981)
+2. Donkey Kong Junior (1982)
+3. Donkey Kong 3 (1983)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/34723/?o=2
+
+— Gaming History (arcade-history.com)

@@ -1,0 +1,4612 @@
+{
+  "type": "YM2203",
+  "uses": [
+    {
+      "game": "bublbobl",
+      "tags": [
+        "ym2203"
+      ]
+    },
+    {
+      "game": "commando",
+      "tags": [
+        "ym1",
+        "ym2"
+      ]
+    },
+    {
+      "game": "gng",
+      "tags": [
+        "ym1",
+        "ym2"
+      ]
+    },
+    {
+      "game": "gunsmoke",
+      "tags": [
+        "ym1",
+        "ym2"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "YM2203",
+    "className": "ym2203_device",
+    "shortName": "ym2203",
+    "description": "YM2203 OPN",
+    "sourceFile": "src/devices/sound/ymopn.cpp",
+    "sourceLine": 12,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(YM2203, ym2203_device, \"ym2203\", \"YM2203 OPN\")"
+  },
+  "methods": [
+    {
+      "name": "ymfm_sync_mode_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ym_generic_device::fm_mode_write"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_sync_check_interrupts",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 65,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "currently_executing"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ym_generic_device::fm_check_interrupts"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_engine"
+                    },
+                    "property": "engine_check_interrupts"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_set_timer",
+      "parameters": "uint32_t tnum, int32_t duration_in_clocks",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 80,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "duration_in_clocks"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_timer"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "tnum"
+                      }
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_ticks"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "duration_in_clocks"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "tnum"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_timer"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "tnum"
+                      }
+                    },
+                    "property": "enable"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_set_busy_end",
+      "parameters": "uint32_t clocks",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_busy_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime::from_ticks"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "clocks"
+                  },
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_is_busy",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_busy_end"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_update_irq",
+      "parameters": "bool asserted",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_update_irq"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "asserted"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_external_read",
+      "parameters": "access_class type, uint32_t address",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "type"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "ACCESS_IO"
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 0
+              },
+              "whenFalse": {
+                "kind": "call",
+                "callee": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_io_read"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "address"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_external_write",
+      "parameters": "access_class type, uint32_t address, uint8_t data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 125,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "type"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "ACCESS_IO"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_io_write"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "address"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_sync_mode_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 519,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_mode_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_sync_check_interrupts",
+      "parameters": "",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 535,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_check_interrupts"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_set_timer",
+      "parameters": "uint32_t tnum, int32_t duration_in_clocks",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 541,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_set_busy_end",
+      "parameters": "uint32_t clocks",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 547,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_is_busy",
+      "parameters": "",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 553,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_update_irq",
+      "parameters": "bool asserted",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 559,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_external_read",
+      "parameters": "access_class type, uint32_t address",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 568,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_interface::ymfm_external_write",
+      "parameters": "access_class type, uint32_t address, uint8_t data",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 572,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_update_irq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "io_read_handler",
+      "parameters": "int index = 0",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_io_read"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "io_write_handler",
+      "parameters": "int index = 0",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_io_write"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.cpp",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "set_fidelity"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "SSG_FIDELITY"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ymfm_device_base::device_start"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 134,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "tnum",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "tnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "tnum"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_busy_end"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fm_mode_write",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_mode_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fm_check_interrupts",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 147,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_check_interrupts"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "fm_timer_handler",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 148,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_timer_expired"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::irq_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 42,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_update_irq"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::io_read_handler",
+      "parameters": "int index = 0",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 45,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_io_read"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::io_write_handler",
+      "parameters": "int index = 0",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 46,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_io_write"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "index"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_sync_mode_write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 55,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "synchronize"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "timer_expired_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "FUNC"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ym_generic_device::fm_mode_write"
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_sync_check_interrupts",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 66,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "scheduler"
+                  },
+                  "args": []
+                },
+                "property": "currently_executing"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "scheduler"
+                      },
+                      "args": []
+                    },
+                    "property": "synchronize"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_expired_delegate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ym_generic_device::fm_check_interrupts"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_engine"
+                    },
+                    "property": "engine_check_interrupts"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_set_timer",
+      "parameters": "uint32_t tnum, int32_t duration_in_clocks",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 81,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "duration_in_clocks"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_timer"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "tnum"
+                      }
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_ticks"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "duration_in_clocks"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "tnum"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_timer"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "tnum"
+                      }
+                    },
+                    "property": "enable"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_update_irq",
+      "parameters": "bool asserted",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_update_irq"
+              },
+              "args": [
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "asserted"
+                  },
+                  "whenTrue": {
+                    "kind": "identifier",
+                    "name": "ASSERT_LINE"
+                  },
+                  "whenFalse": {
+                    "kind": "identifier",
+                    "name": "CLEAR_LINE"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_set_busy_end",
+      "parameters": "uint32_t clocks",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_busy_end"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "+",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "attotime::from_ticks"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "clocks"
+                  },
+                  {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "clock"
+                    },
+                    "args": []
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_is_busy",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_busy_end"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_external_read",
+      "parameters": "access_class type, uint32_t address",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 119,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "type"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "ACCESS_IO"
+                }
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 0
+              },
+              "whenFalse": {
+                "kind": "call",
+                "callee": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_io_read"
+                  },
+                  "index": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "address"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::ymfm_external_write",
+      "parameters": "access_class type, uint32_t address, uint8_t data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 126,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "type"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "ACCESS_IO"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_io_write"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "address"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::fm_mode_write",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_mode_write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::fm_check_interrupts",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 148,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_check_interrupts"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym_generic_device::fm_timer_handler",
+      "parameters": "s32 param",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 149,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_engine"
+                },
+                "property": "engine_timer_expired"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "param"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, device_type type",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 168,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 177,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "status_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 180,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "read_status"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 181,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "address_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 184,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "write_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 185,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "write_data"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 204,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 210,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_stream"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "set_sample_rate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_chip"
+                        },
+                        "property": "sample_rate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_pre_save",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 217,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "orig_size",
+            "valueType": "auto",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                "property": "size"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "ymfm_saved_state",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::ymfm_saved_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "save_restore"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_save_blob"
+                  },
+                  "property": "size"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "orig_size"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "__throw"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "emu_fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "State size changed for ymfm chip"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 232,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "ymfm_saved_state",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::ymfm_saved_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "save_restore"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 301,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ymfm_device_base::update_internal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "stream"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ym2203::SSG_OUTPUTS"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_streams",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 246,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_chip"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_internal",
+      "parameters": "sound_stream &stream, int output_shift = 0",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 253,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "MAX_SAMPLES",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 256
+            }
+          },
+          {
+            "op": "declare",
+            "name": "output",
+            "value": {
+              "kind": "identifier",
+              "name": "__local_update_internal_output"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "outcount",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::min"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "output_count"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "cast",
+                  "valueType": "u32",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "std::size"
+                    },
+                    "args": [
+                      {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "output"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "property": "data"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "numsamples",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "stream"
+                },
+                "property": "samples"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "numsamples"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sampindex"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MAX_SAMPLES"
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "cursamples",
+                "valueType": "int",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::min"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "numsamples"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MAX_SAMPLES"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chip"
+                    },
+                    "property": "generate"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "output"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "cursamples"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "outnum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "outnum"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "outcount"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "outnum"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "eff_outnum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "%",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "outnum"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "output_shift"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "OUTPUTS"
+                      }
+                    }
+                  },
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "index",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "index"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cursamples"
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "index"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put_int"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "eff_outnum"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "sampindex"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "index"
+                              }
+                            },
+                            {
+                              "kind": "index",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "output"
+                                  },
+                                  "index": {
+                                    "kind": "identifier",
+                                    "name": "index"
+                                  }
+                                },
+                                "property": "data"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "outnum"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::update_internal",
+      "parameters": "sound_stream &stream, int output_shift = 0",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 254,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "MAX_SAMPLES",
+            "valueType": "int",
+            "value": {
+              "kind": "number",
+              "value": 256
+            }
+          },
+          {
+            "op": "declare",
+            "name": "output",
+            "value": {
+              "kind": "identifier",
+              "name": "__local_ymfm_device_base_update_internal_output"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "outcount",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::min"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "output_count"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "cast",
+                  "valueType": "u32",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "std::size"
+                    },
+                    "args": [
+                      {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "output"
+                          },
+                          "index": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        },
+                        "property": "data"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "numsamples",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "stream"
+                },
+                "property": "samples"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "numsamples"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sampindex"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MAX_SAMPLES"
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "cursamples",
+                "valueType": "int",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::min"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "numsamples"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "MAX_SAMPLES"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chip"
+                    },
+                    "property": "generate"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "output"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "cursamples"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "outnum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "outnum"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "outcount"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "outnum"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "declare",
+                    "name": "eff_outnum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "%",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "outnum"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "output_shift"
+                        }
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "OUTPUTS"
+                      }
+                    }
+                  },
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "index",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "index"
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "cursamples"
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "index"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put_int"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "eff_outnum"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "sampindex"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "index"
+                              }
+                            },
+                            {
+                              "kind": "index",
+                              "object": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "index",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "output"
+                                  },
+                                  "index": {
+                                    "kind": "identifier",
+                                    "name": "index"
+                                  }
+                                },
+                                "property": "data"
+                              },
+                              "index": {
+                                "kind": "identifier",
+                                "name": "outnum"
+                              }
+                            },
+                            {
+                              "kind": "number",
+                              "value": 32768
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::ymfm_device_base",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, device_type type",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 168,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::read",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 178,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "read"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::status_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 181,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "read_status"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::write",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 182,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::address_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 185,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "write_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::data_w",
+      "parameters": "u8 data",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 186,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "write_data"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 187,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ym_generic_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "OUTPUTS"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_chip"
+                    },
+                    "property": "sample_rate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "clock"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "ymfm_saved_state",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::ymfm_saved_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "save_restore"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_save_blob"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 205,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "reset"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::device_clock_changed",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 211,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_stream"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "set_sample_rate"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_chip"
+                        },
+                        "property": "sample_rate"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::device_pre_save",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 218,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "orig_size",
+            "valueType": "auto",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                "property": "size"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "ymfm_saved_state",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::ymfm_saved_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "save_restore"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_save_blob"
+                  },
+                  "property": "size"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "orig_size"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "__throw"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "emu_fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "State size changed for ymfm chip"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 233,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "state",
+            "valueType": "ymfm_saved_state",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "new::ymfm_saved_state"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_save_blob"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_chip"
+                },
+                "property": "save_restore"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 241,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_internal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "stream"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::update_streams",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 247,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_chip"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_ssg_device_base",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, device_type type",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 294,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_ssg_device_base::ymfm_ssg_device_base",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, device_type type",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 294,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_ssg_device_base::sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 302,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ymfm_device_base::update_internal"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "stream"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ym2203::SSG_OUTPUTS"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_a_read_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_read_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_read_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 27,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_read_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_a_write_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_write_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_b_write_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_write_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "read_data"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym2203_device::port_a_read_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 24,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_read_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym2203_device::port_b_read_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_read_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym2203_device::port_a_write_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_write_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym2203_device::port_b_write_callback",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "io_write_handler"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ym2203_device::data_r",
+      "parameters": "",
+      "sourceFile": "src/devices/sound/ymopn.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update_streams"
+                  },
+                  "args": []
+                },
+                "property": "read_data"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm::roundtrip_fp",
+      "parameters": "int32_t value",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 227,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "-",
+                "operand": {
+                  "kind": "number",
+                  "value": 32768
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 32768
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "number",
+                "value": 32767
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 32767
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "scanvalue",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "cast",
+                  "valueType": "int32_t",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "value"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 31
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "exponent",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "number",
+                "value": 7
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "count_leading_zeros"
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "scanvalue"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 17
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "exponent"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::max"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "exponent"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "exponent"
+            },
+            "operator": "-=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "exponent"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "~",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clamp",
+      "parameters": "int32_t value, int32_t minval, int32_t maxval",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "minval"
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "minval"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "maxval"
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "identifier",
+                  "name": "maxval"
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "value"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "roundtrip_fp",
+      "parameters": "int32_t value",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 227,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "-",
+                "operand": {
+                  "kind": "number",
+                  "value": 32768
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "unary",
+                  "operator": "-",
+                  "operand": {
+                    "kind": "number",
+                    "value": 32768
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": ">",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "number",
+                "value": 32767
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 32767
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "scanvalue",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "^",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "cast",
+                  "valueType": "int32_t",
+                  "operand": {
+                    "kind": "identifier",
+                    "name": "value"
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 31
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "exponent",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "number",
+                "value": 7
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "count_leading_zeros"
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "operator": "<<",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "scanvalue"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 17
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "exponent"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::max"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "exponent"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "exponent"
+            },
+            "operator": "-=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "declare",
+            "name": "mask",
+            "valueType": "int32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "number",
+                  "value": 1
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "exponent"
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "~",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "mask"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "count_leading_zeros",
+      "parameters": "uint32_t value",
+      "sourceFile": "3rdparty/ymfm/src/ymfm.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "value"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 32
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "__builtin_clz"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "value"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_streams=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 246,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_chip"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ymfm_device_base::update_streams=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/devices/sound/ymfm_mame.h",
+      "sourceLine": 247,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_chip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_chip"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/sound/ymopn.cpp",
+    "src/devices/sound/ymopn.h",
+    "src/devices/sound/ymfm_mame.h",
+    "3rdparty/ymfm/src/ymfm.h",
+    "3rdparty/ymfm/src/ymfm_ssg.h",
+    "3rdparty/ymfm/src/ymfm_ssg.cpp",
+    "3rdparty/ymfm/src/ymfm_opn.h",
+    "3rdparty/ymfm/src/ymfm_adpcm.h",
+    "3rdparty/ymfm/src/ymfm_adpcm.cpp",
+    "3rdparty/ymfm/src/ymfm_fm.h",
+    "3rdparty/ymfm/src/ymfm_opn.cpp",
+    "3rdparty/ymfm/src/ymfm_fm.ipp"
+  ]
+}

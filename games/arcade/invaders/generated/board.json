@@ -1,0 +1,5097 @@
+{
+  "schemaVersion": 5,
+  "game": "invaders",
+  "family": "mw8080bw",
+  "driverFile": "src/mame/midw8080/mw8080bw.cpp",
+  "callbacks": [
+    {
+      "id": "callback:timer/mw8080bw_state.interrupt_trigger",
+      "ownerTag": "interrupt_timer",
+      "signal": "timer",
+      "operation": "adjust",
+      "targetClass": "mw8080bw_state",
+      "targetMethod": "interrupt_trigger",
+      "scanlines": [
+        96,
+        224
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 217,
+        "column": 1
+      }
+    },
+    {
+      "id": "device:mw8080bw_state.mw8080bw_root/maincpu/callback:maincpu:0",
+      "ownerTag": "maincpu",
+      "signal": "set_irq_acknowledge_callback",
+      "operation": "set_irq_acknowledge_callback",
+      "targetClass": "mw8080bw_state",
+      "targetMethod": "interrupt_vector",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 334,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:mw8080bw_state.mw8080bw_root/maincpu/callback:maincpu:1",
+      "ownerTag": "maincpu",
+      "signal": "out_inte_func",
+      "operation": "set",
+      "targetClass": "mw8080bw_state",
+      "targetMethod": "int_enable_w",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 335,
+        "column": 2
+      }
+    },
+    {
+      "id": "machine:invaders_state.invaders/callback:screen:0",
+      "ownerTag": "screen",
+      "signal": "set_screen_update",
+      "operation": "set_screen_update",
+      "targetClass": "invaders_state",
+      "targetMethod": "screen_update_invaders",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2693,
+        "column": 2
+      }
+    }
+  ],
+  "connections": [
+    {
+      "callbackId": "callback:timer/mw8080bw_state.interrupt_trigger",
+      "effect": {
+        "kind": "handler",
+        "handler": "mw8080bw_state.interrupt_trigger"
+      },
+      "transforms": [],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 217,
+        "column": 1
+      }
+    },
+    {
+      "callbackId": "device:mw8080bw_state.mw8080bw_root/maincpu/callback:maincpu:0",
+      "effect": {
+        "kind": "handler",
+        "handler": "mw8080bw_state.interrupt_vector"
+      },
+      "transforms": [],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 334,
+        "column": 2
+      }
+    },
+    {
+      "callbackId": "device:mw8080bw_state.mw8080bw_root/maincpu/callback:maincpu:1",
+      "effect": {
+        "kind": "handler",
+        "handler": "mw8080bw_state.int_enable_w"
+      },
+      "transforms": [],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 335,
+        "column": 2
+      }
+    }
+  ],
+  "execution": {
+    "regionBindings": {
+      "m_maincpu": "maincpu"
+    },
+    "cpus": [
+      {
+        "tag": "maincpu",
+        "type": "i8080",
+        "clock": 1996800,
+        "region": "maincpu",
+        "ranges": [
+          {
+            "start": 0,
+            "end": 8191,
+            "kind": "rom",
+            "readOnly": true
+          },
+          {
+            "start": 8192,
+            "end": 16383,
+            "kind": "ram",
+            "mirror": 16384,
+            "share": "main_ram"
+          },
+          {
+            "start": 16384,
+            "end": 24575,
+            "kind": "rom",
+            "readOnly": true
+          }
+        ],
+        "mask": 32767,
+        "io": {
+          "ranges": [
+            {
+              "start": 0,
+              "end": 0,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "port.IN0"
+            },
+            {
+              "start": 1,
+              "end": 1,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "port.IN1"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "port.IN2"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "nop",
+              "readOnly": true
+            },
+            {
+              "start": 3,
+              "end": 3,
+              "kind": "handler",
+              "write": "soundboard.p1_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 5,
+              "end": 5,
+              "kind": "handler",
+              "write": "soundboard.p2_w",
+              "handlerWidth": 8
+            },
+            {
+              "start": 6,
+              "end": 6,
+              "kind": "handler",
+              "write": "watchdog.reset_w"
+            },
+            {
+              "start": 3,
+              "end": 3,
+              "kind": "handler",
+              "mirror": 4,
+              "read": "mb14241.shift_result_r"
+            },
+            {
+              "start": 2,
+              "end": 2,
+              "kind": "handler",
+              "write": "mb14241.shift_count_w"
+            },
+            {
+              "start": 4,
+              "end": 4,
+              "kind": "handler",
+              "write": "mb14241.shift_data_w"
+            }
+          ],
+          "globalMask": 7
+        },
+        "cycleClock": 1996800,
+        "source": {
+          "file": "src/mame/midw8080/mw8080bw.cpp",
+          "line": 332,
+          "column": 2
+        }
+      }
+    ],
+    "participants": [
+      {
+        "tag": "maincpu",
+        "kind": "cpu",
+        "clock": 1996800,
+        "cycleClock": 1996800
+      }
+    ],
+    "startHandlers": [
+      "invaders_state.machine_start"
+    ],
+    "resetHandlers": [
+      "mw8080bw_state.machine_reset"
+    ],
+    "streamsUpdateFrequency": 50,
+    "executeDevices": [
+      {
+        "tag": "maincpu",
+        "minCycles": 4
+      }
+    ],
+    "screen": {
+      "width": 260,
+      "height": 224,
+      "xOffset": 0,
+      "yOffset": 0,
+      "refresh": 59.541984732824424,
+      "frameAttoseconds": "16794871794828800",
+      "htotal": 320,
+      "vtotal": 262,
+      "vbstart": 224,
+      "vbend": 0,
+      "updateMode": "frame",
+      "physicalAspect": [
+        4,
+        3
+      ],
+      "rotate": 270,
+      "ownerTag": "screen",
+      "ownerKind": "screen",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 338,
+        "column": 2
+      }
+    },
+    "customs": [
+      {
+        "port": "IN0",
+        "mask": 6,
+        "member": "invaders_sw6_sw7_r",
+        "handler": "invaders_state.invaders_sw6_sw7_r",
+        "activeLow": false
+      },
+      {
+        "port": "IN0",
+        "mask": 112,
+        "member": "invaders_in0_control_r",
+        "handler": "invaders_state.invaders_in0_control_r",
+        "activeLow": false
+      },
+      {
+        "port": "IN0",
+        "mask": 128,
+        "member": "invaders_sw5_r",
+        "handler": "invaders_state.invaders_sw5_r",
+        "activeLow": false
+      },
+      {
+        "port": "IN1",
+        "mask": 112,
+        "member": "invaders_in1_control_r",
+        "handler": "invaders_state.invaders_in1_control_r",
+        "activeLow": false
+      },
+      {
+        "port": "IN2",
+        "mask": 112,
+        "member": "invaders_in2_control_r",
+        "handler": "invaders_state.invaders_in2_control_r",
+        "activeLow": false
+      }
+    ],
+    "inputMembers": [
+      {
+        "member": "m_cabinet_type",
+        "tags": [
+          "CAB"
+        ]
+      },
+      {
+        "member": "m_player_controls",
+        "tags": [
+          "CONTP1",
+          "CONTP2"
+        ]
+      }
+    ],
+    "frameEvents": [
+      {
+        "callbackId": "callback:timer/mw8080bw_state.interrupt_trigger",
+        "ownerTag": "interrupt_timer",
+        "signal": "timer",
+        "line": 96,
+        "state": 96,
+        "source": {
+          "file": "src/mame/midw8080/mw8080bw.cpp",
+          "line": 217,
+          "column": 1
+        }
+      },
+      {
+        "callbackId": "callback:timer/mw8080bw_state.interrupt_trigger",
+        "ownerTag": "interrupt_timer",
+        "signal": "timer",
+        "line": 224,
+        "state": 224,
+        "source": {
+          "file": "src/mame/midw8080/mw8080bw.cpp",
+          "line": 217,
+          "column": 1
+        }
+      }
+    ],
+    "screenUpdate": {
+      "handler": "invaders_state.screen_update_invaders",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_v.cpp",
+        "line": 356,
+        "column": 1
+      }
+    }
+  },
+  "devices": [
+    {
+      "id": "device:mw8080bw_state.mw8080bw_root/maincpu",
+      "tag": "maincpu",
+      "type": "I8080",
+      "member": "m_maincpu",
+      "clock": 1996800,
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 332,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:mw8080bw_state.mw8080bw_root/screen",
+      "tag": "screen",
+      "type": "SCREEN",
+      "member": "m_screen",
+      "configuration": [
+        {
+          "method": "set_raw",
+          "args": [
+            4992000,
+            320,
+            0,
+            260,
+            262,
+            0,
+            224
+          ]
+        }
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 338,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:invaders_state.invaders/watchdog",
+      "tag": "watchdog",
+      "type": "WATCHDOG_TIMER",
+      "member": "m_watchdog",
+      "clock": 0,
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2690,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:invaders_state.invaders/mb14241",
+      "tag": "mb14241",
+      "type": "MB14241",
+      "member": "m_mb14241",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2696,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:invaders_state.invaders/soundboard",
+      "tag": "soundboard",
+      "type": "INVADERS_AUDIO",
+      "className": "invaders_audio_device",
+      "classHierarchy": [
+        "invaders_audio_device"
+      ],
+      "startHandler": "invaders_audio_device.device_start"
+    },
+    {
+      "id": "device:invaders_audio_device.device_add_mconfig/mono",
+      "tag": "soundboard:mono",
+      "type": "SPEAKER",
+      "hostTag": "soundboard",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_a.cpp",
+        "line": 3281,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:invaders_audio_device.device_add_mconfig/snsnd",
+      "tag": "soundboard:snsnd",
+      "type": "SN76477",
+      "hostTag": "soundboard",
+      "member": "m_sn",
+      "clock": 0,
+      "configuration": [
+        {
+          "method": "set_noise_params",
+          "args": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "method": "set_decay_res",
+          "args": [
+            0
+          ]
+        },
+        {
+          "method": "set_attack_params",
+          "args": [
+            0,
+            100000
+          ]
+        },
+        {
+          "method": "set_amp_res",
+          "args": [
+            56000
+          ]
+        },
+        {
+          "method": "set_feedback_res",
+          "args": [
+            10000
+          ]
+        },
+        {
+          "method": "set_vco_params",
+          "args": [
+            0,
+            1e-7,
+            8200
+          ]
+        },
+        {
+          "method": "set_pitch_voltage",
+          "args": [
+            5
+          ]
+        },
+        {
+          "method": "set_slf_params",
+          "args": [
+            0.000001,
+            120000
+          ]
+        },
+        {
+          "method": "set_oneshot_params",
+          "args": [
+            0,
+            0
+          ]
+        },
+        {
+          "method": "set_vco_mode",
+          "args": [
+            1
+          ]
+        },
+        {
+          "method": "set_mixer_params",
+          "args": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "method": "set_envelope_params",
+          "args": [
+            1,
+            0
+          ]
+        },
+        {
+          "method": "set_enable",
+          "args": [
+            1
+          ]
+        }
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_a.cpp",
+        "line": 3283,
+        "column": 2
+      }
+    },
+    {
+      "id": "device:invaders_audio_device.device_add_mconfig/discrete",
+      "tag": "soundboard:discrete",
+      "type": "DISCRETE",
+      "hostTag": "soundboard",
+      "member": "m_discrete",
+      "configuration": [
+        {
+          "method": "set_intf",
+          "args": [
+            [
+              {
+                "node": 1073741904,
+                "factory": "discrete_node_factory<discrete_dss_lfsr_noise_node>::create",
+                "type": 2,
+                "active_inputs": 6,
+                "input_node": [
+                  1,
+                  1,
+                  7515,
+                  12,
+                  0,
+                  6,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1,
+                  7515,
+                  12,
+                  0,
+                  6,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "clock_type": 3,
+                  "bitlength": 17,
+                  "reset_value": 131071,
+                  "feedback_bitsel0": 4,
+                  "feedback_bitsel1": 16,
+                  "feedback_function0": 0,
+                  "feedback_function1": 1,
+                  "feedback_function2": 10,
+                  "feedback_function2_mask": 1,
+                  "flags": 0,
+                  "output_bit": 12
+                },
+                "name": "DISCRETE_LFSR_NOISE",
+                "mod_name": "dss_lfsr_noise"
+              },
+              {
+                "node": 1073741832,
+                "factory": "discrete_node_factory<discrete_dss_input_logic_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741824,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  12,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_INPUTX_LOGIC",
+                "mod_name": "dss_input_logic"
+              },
+              {
+                "node": 1073741984,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  0,
+                  1073741832,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  1073741832,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 0,
+                  "r2": 100000,
+                  "r3": 1000000,
+                  "r4": 0,
+                  "c": 0.000001,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP",
+                "mod_name": "dst_op_amp"
+              },
+              {
+                "node": 1073741992,
+                "factory": "discrete_node_factory<discrete_dss_op_amp_osc_node>::create",
+                "type": 2,
+                "active_inputs": 1,
+                "input_node": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 1000000,
+                  "r2": 470000,
+                  "r3": 100000,
+                  "r4": 120000,
+                  "r5": 1000000,
+                  "r6": 0,
+                  "r7": 0,
+                  "r8": 0,
+                  "c": 1e-7,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_OSCILLATOR",
+                "mod_name": "dss_op_amp_osc"
+              },
+              {
+                "node": 1073742000,
+                "factory": "discrete_node_factory<discrete_dss_op_amp_osc_node>::create",
+                "type": 2,
+                "active_inputs": 2,
+                "input_node": [
+                  1,
+                  1073741992,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073741992,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 289,
+                  "r1": 1000000,
+                  "r2": 470000,
+                  "r3": 680000,
+                  "r4": 1000000,
+                  "r5": 1000000,
+                  "r6": 0,
+                  "r7": 0,
+                  "r8": 0,
+                  "c": 4.7e-10,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_VCO1",
+                "mod_name": "dss_op_amp_osc"
+              },
+              {
+                "node": 1073741912,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  1073742000,
+                  1073741984,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742000,
+                  1073741984,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 680000,
+                  "r2": 680000,
+                  "r3": 2700000,
+                  "r4": 680000,
+                  "c": 0,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP",
+                "mod_name": "dst_op_amp"
+              },
+              {
+                "node": 1073741840,
+                "factory": "discrete_node_factory<discrete_dss_input_data_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741824,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_INPUT_DATA",
+                "mod_name": "dss_input_data"
+              },
+              {
+                "node": 1073742064,
+                "factory": "discrete_node_factory<discrete_dst_comp_adder_node>::create",
+                "type": 2,
+                "active_inputs": 1,
+                "input_node": [
+                  1073741840,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741840,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 1,
+                  "cDefault": 0,
+                  "length": 4,
+                  "c": [
+                    40000,
+                    68000,
+                    82000,
+                    100000,
+                    0,
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                "name": "DISCRETE_COMP_ADDER",
+                "mod_name": "dst_comp_adder"
+              },
+              {
+                "node": 1073742072,
+                "factory": "discrete_node_factory<discrete_dsd_555_astbl_node>::create",
+                "type": 2,
+                "active_inputs": 5,
+                "input_node": [
+                  1,
+                  1073742064,
+                  75000,
+                  0,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742064,
+                  75000,
+                  1e-7,
+                  -1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "options": 4,
+                  "v_pos": 5,
+                  "v_charge": 4.4,
+                  "v_out_high": 3.4
+                },
+                "name": "DISCRETE_555_ASTABLE",
+                "mod_name": "dsd_555_astbl"
+              },
+              {
+                "node": 1073742080,
+                "factory": "discrete_node_factory<discrete_dst_rcfilter_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742072,
+                  100,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742072,
+                  100,
+                  0.0000047,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_RCFILTER",
+                "mod_name": "dst_rcfilter"
+              },
+              {
+                "node": 1073741920,
+                "factory": "discrete_node_factory<discrete_dst_rcfilter_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742080,
+                  200,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742080,
+                  200,
+                  0.000009999999999999999,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_RCFILTER",
+                "mod_name": "dst_rcfilter"
+              },
+              {
+                "node": 1073741848,
+                "factory": "discrete_node_factory<discrete_dss_input_logic_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741824,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_INPUT_LOGIC",
+                "mod_name": "dss_input_logic"
+              },
+              {
+                "node": 1073742144,
+                "factory": "discrete_node_factory<discrete_dsd_555_astbl_node>::create",
+                "type": 2,
+                "active_inputs": 5,
+                "input_node": [
+                  1073741848,
+                  100000,
+                  47000,
+                  0,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741848,
+                  100000,
+                  47000,
+                  0.000001,
+                  -1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "options": 0,
+                  "v_pos": 5,
+                  "v_charge": -1,
+                  "v_out_high": -1
+                },
+                "name": "DISCRETE_555_ASTABLE",
+                "mod_name": "dsd_555_astbl"
+              },
+              {
+                "node": 1073742152,
+                "factory": "discrete_node_factory<discrete_dss_squarewfix_node>::create",
+                "type": 2,
+                "active_inputs": 6,
+                "input_node": [
+                  1,
+                  480,
+                  1,
+                  50,
+                  0,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  480,
+                  1,
+                  50,
+                  0.5,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_SQUAREWFIX",
+                "mod_name": "dss_squarewfix"
+              },
+              {
+                "node": 1073742160,
+                "factory": "discrete_node_factory<discrete_dst_logic_and_node>::create",
+                "type": 2,
+                "active_inputs": 4,
+                "input_node": [
+                  1073741848,
+                  1073742152,
+                  1073742144,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741848,
+                  1073742152,
+                  1073742144,
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_LOGIC_AND3",
+                "mod_name": "dst_logic_and"
+              },
+              {
+                "node": 1073741928,
+                "factory": "discrete_node_factory<discrete_dst_gain_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742160,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742160,
+                  3.4,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_GAIN",
+                "mod_name": "dst_gain"
+              },
+              {
+                "node": 1073741856,
+                "factory": "discrete_node_factory<discrete_dss_input_logic_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741824,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  5,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_INPUTX_LOGIC",
+                "mod_name": "dss_input_logic"
+              },
+              {
+                "node": 1073742224,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_1sht_node>::create",
+                "type": 2,
+                "active_inputs": 1,
+                "input_node": [
+                  1073741856,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741856,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 4700000,
+                  "r2": 100000,
+                  "r3": 1000000,
+                  "r4": 1000000,
+                  "r5": 2200000,
+                  "c1": 1e-7,
+                  "c2": 4.7e-10,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_ONESHOT",
+                "mod_name": "dst_op_amp_1sht"
+              },
+              {
+                "node": 1073742232,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  0,
+                  1073742224,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  1073742224,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 0,
+                  "r2": 10000,
+                  "r3": 1000000,
+                  "r4": 0,
+                  "c": 4.6999999999999995e-7,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP",
+                "mod_name": "dst_op_amp"
+              },
+              {
+                "node": 1073742240,
+                "factory": "discrete_node_factory<discrete_dss_op_amp_osc_node>::create",
+                "type": 2,
+                "active_inputs": 1,
+                "input_node": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 1000000,
+                  "r2": 10000,
+                  "r3": 100000,
+                  "r4": 120000,
+                  "r5": 1000000,
+                  "r6": 0,
+                  "r7": 0,
+                  "r8": 0,
+                  "c": 1e-7,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_OSCILLATOR",
+                "mod_name": "dss_op_amp_osc"
+              },
+              {
+                "node": 1073742248,
+                "factory": "discrete_node_factory<discrete_dss_op_amp_osc_node>::create",
+                "type": 2,
+                "active_inputs": 2,
+                "input_node": [
+                  1,
+                  1073742240,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742240,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 288,
+                  "r1": 1000000,
+                  "r2": 470000,
+                  "r3": 680000,
+                  "r4": 1000000,
+                  "r5": 1000000,
+                  "r6": 0,
+                  "r7": 0,
+                  "r8": 0,
+                  "c": 3.3e-10,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_VCO1",
+                "mod_name": "dss_op_amp_osc"
+              },
+              {
+                "node": 1073741936,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  1073742248,
+                  1073742232,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742248,
+                  1073742232,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 470000,
+                  "r2": 680000,
+                  "r3": 2700000,
+                  "r4": 680000,
+                  "c": 0,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP",
+                "mod_name": "dst_op_amp"
+              },
+              {
+                "node": 1073741864,
+                "factory": "discrete_node_factory<discrete_dss_input_logic_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741824,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  5,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_INPUTX_LOGIC",
+                "mod_name": "dss_input_logic"
+              },
+              {
+                "node": 1073742304,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_1sht_node>::create",
+                "type": 2,
+                "active_inputs": 1,
+                "input_node": [
+                  1073741864,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741864,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 4700000,
+                  "r2": 100000,
+                  "r3": 1000000,
+                  "r4": 1000000,
+                  "r5": 2200000,
+                  "c1": 0.0000022,
+                  "c2": 4.7e-10,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_ONESHOT",
+                "mod_name": "dst_op_amp_1sht"
+              },
+              {
+                "node": 1073742312,
+                "factory": "discrete_node_factory<discrete_dst_tvca_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 5,
+                "input_node": [
+                  1073742304,
+                  0,
+                  0,
+                  1073741904,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742304,
+                  0,
+                  0,
+                  1073741904,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "r1": 2700000,
+                  "r2": 680000,
+                  "r3": 0,
+                  "r4": 680000,
+                  "r5": 10000,
+                  "r6": 0,
+                  "r7": 680000,
+                  "r8": 0,
+                  "r9": 0,
+                  "r10": 0,
+                  "r11": 0,
+                  "c1": 0.000001,
+                  "c2": 0,
+                  "c3": 0,
+                  "c4": 0,
+                  "v1": 11.5,
+                  "v2": 0,
+                  "v3": 0,
+                  "vP": 12,
+                  "f0": 0,
+                  "f1": 0,
+                  "f2": 1,
+                  "f3": 0,
+                  "f4": 0,
+                  "f5": 0
+                },
+                "name": "DISCRETE_OP_AMP_TRIG_VCA",
+                "mod_name": "dst_tvca_op_amp"
+              },
+              {
+                "node": 1073742320,
+                "factory": "discrete_node_factory<discrete_dst_rcfilter_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742312,
+                  5600,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742312,
+                  5600,
+                  1e-7,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_RCFILTER",
+                "mod_name": "dst_rcfilter"
+              },
+              {
+                "node": 1073741944,
+                "factory": "discrete_node_factory<discrete_dst_rcfilter_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742320,
+                  12400,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742320,
+                  12400,
+                  1e-7,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_RCFILTER",
+                "mod_name": "dst_rcfilter"
+              },
+              {
+                "node": 1073741872,
+                "factory": "discrete_node_factory<discrete_dss_input_logic_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741824,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  5,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_INPUTX_LOGIC",
+                "mod_name": "dss_input_logic"
+              },
+              {
+                "node": 1073742384,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_1sht_node>::create",
+                "type": 2,
+                "active_inputs": 1,
+                "input_node": [
+                  1073741872,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741872,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 4700000,
+                  "r2": 100000,
+                  "r3": 1000000,
+                  "r4": 1000000,
+                  "r5": 2200000,
+                  "c1": 0.000001,
+                  "c2": 4.7e-10,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_ONESHOT",
+                "mod_name": "dst_op_amp_1sht"
+              },
+              {
+                "node": 1073742392,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  0,
+                  1073742384,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  0,
+                  1073742384,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 0,
+                  "r2": 10000,
+                  "r3": 1500000,
+                  "r4": 0,
+                  "c": 2.1999999999999998e-7,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP",
+                "mod_name": "dst_op_amp"
+              },
+              {
+                "node": 1073742400,
+                "factory": "discrete_node_factory<discrete_dst_adder_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  1073742392,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742392,
+                  -0.5,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_ADDER2",
+                "mod_name": "dst_adder"
+              },
+              {
+                "node": 1073742408,
+                "factory": "discrete_node_factory<discrete_dst_clamp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742400,
+                  0,
+                  12,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742400,
+                  0,
+                  12,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_CLAMP",
+                "mod_name": "dst_clamp"
+              },
+              {
+                "node": 1073742416,
+                "factory": "discrete_node_factory<discrete_dst_crfilter_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073741904,
+                  1330000,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741904,
+                  1330000,
+                  1e-7,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_CRFILTER",
+                "mod_name": "dst_crfilter"
+              },
+              {
+                "node": 1073742424,
+                "factory": "discrete_node_factory<discrete_dst_gain_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1073742416,
+                  1073741824,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073742416,
+                  0.24812030075187969,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_GAIN",
+                "mod_name": "dst_gain"
+              },
+              {
+                "node": 1073742432,
+                "factory": "discrete_node_factory<discrete_dss_op_amp_osc_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  1073742424,
+                  1073742408,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742424,
+                  1073742408,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 321,
+                  "r1": 1748120.3007518796,
+                  "r2": 1000000,
+                  "r3": 560000,
+                  "r4": 2200000,
+                  "r5": 1000000,
+                  "r6": 4700000,
+                  "r7": 3300000,
+                  "r8": 0,
+                  "c": 3.3e-10,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP_VCO2",
+                "mod_name": "dss_op_amp_osc"
+              },
+              {
+                "node": 1073742440,
+                "factory": "discrete_node_factory<discrete_dst_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 3,
+                "input_node": [
+                  1,
+                  1073742432,
+                  1073742408,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073742432,
+                  1073742408,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 256,
+                  "r1": 560000,
+                  "r2": 470000,
+                  "r3": 2700000,
+                  "r4": 560000,
+                  "c": 0,
+                  "vN": 0,
+                  "vP": 12
+                },
+                "name": "DISCRETE_OP_AMP",
+                "mod_name": "dst_op_amp"
+              },
+              {
+                "node": 1073741952,
+                "factory": "discrete_node_factory<discrete_dst_tvca_op_amp_node>::create",
+                "type": 2,
+                "active_inputs": 5,
+                "input_node": [
+                  1073741872,
+                  0,
+                  0,
+                  1073742440,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1073741872,
+                  0,
+                  0,
+                  1073742440,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "r1": 2700000,
+                  "r2": 560000,
+                  "r3": 0,
+                  "r4": 560000,
+                  "r5": 1000,
+                  "r6": 0,
+                  "r7": 560000,
+                  "r8": 0,
+                  "r9": 0,
+                  "r10": 0,
+                  "r11": 0,
+                  "c1": 1e-7,
+                  "c2": 0,
+                  "c3": 0,
+                  "c4": 0,
+                  "v1": 5,
+                  "v2": 0,
+                  "v3": 0,
+                  "vP": 12,
+                  "f0": 0,
+                  "f1": 0,
+                  "f2": 1,
+                  "f3": 0,
+                  "f4": 0,
+                  "f5": 0
+                },
+                "name": "DISCRETE_OP_AMP_TRIG_VCA",
+                "mod_name": "dst_tvca_op_amp"
+              },
+              {
+                "node": 1073742544,
+                "factory": "discrete_node_factory<discrete_dst_mixer_node>::create",
+                "type": 2,
+                "active_inputs": 7,
+                "input_node": [
+                  1,
+                  1073741912,
+                  1073741920,
+                  1073741928,
+                  1073741936,
+                  1073741944,
+                  1073741952,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  1,
+                  1073741912,
+                  1073741920,
+                  1073741928,
+                  1073741936,
+                  1073741944,
+                  1073741952,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": {
+                  "type": 1,
+                  "r": [
+                    200000,
+                    10200,
+                    150000,
+                    200000,
+                    14400,
+                    150000,
+                    0,
+                    0
+                  ],
+                  "r_node": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "c": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1e-9,
+                    0,
+                    0
+                  ],
+                  "rI": 0,
+                  "rF": 100000,
+                  "cF": 0,
+                  "cAmp": 1e-7,
+                  "vRef": 0,
+                  "gain": 1
+                },
+                "name": "DISCRETE_MIXER6",
+                "mod_name": "dst_mixer"
+              },
+              {
+                "node": 1073744224,
+                "factory": "discrete_node_factory<discrete_dso_output_node>::create",
+                "type": 8,
+                "active_inputs": 2,
+                "input_node": [
+                  1073742544,
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  0,
+                  2500,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_OUTPUT",
+                "mod_name": "dso_output"
+              },
+              {
+                "node": 1073741824,
+                "factory": "discrete_node_factory<discrete_special_node>::create",
+                "type": 0,
+                "active_inputs": 0,
+                "input_node": [
+                  1073741824,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "initial": [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "custom": 0,
+                "name": "DISCRETE_SOUND_END",
+                "mod_name": "special"
+              }
+            ]
+          ]
+        }
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_a.cpp",
+        "line": 3299,
+        "column": 2
+      }
+    }
+  ],
+  "handlers": [
+    {
+      "id": "handler:mw8080bw_state.interrupt_trigger",
+      "ownerClass": "mw8080bw_state",
+      "method": "interrupt_trigger",
+      "parameters": "int param",
+      "body": "int const vpos = m_screen->vpos();\n\tuint8_t const counter = vpos_to_vysnc_chain_counter(vpos);\n\n\tif (m_int_enable)\n\t{\n\t\tm_maincpu->set_input_line(0, ASSERT_LINE);\n\t\tm_interrupt_time = machine().time();\n\t}\n\telse\n\t\tm_maincpu->set_input_line(0, CLEAR_LINE);\n\n\t// set up for next interrupt\n\tuint8_t next_counter;\n\tint next_vblank;\n\tif (counter == MW8080BW_INT_TRIGGER_COUNT_1)\n\t{\n\t\tnext_counter = MW8080BW_INT_TRIGGER_COUNT_2;\n\t\tnext_vblank = MW8080BW_INT_TRIGGER_VBLANK_2;\n\t}\n\telse\n\t{\n\t\tnext_counter = MW8080BW_INT_TRIGGER_COUNT_1;\n\t\tnext_vblank = MW8080BW_INT_TRIGGER_VBLANK_1;\n\t}\n\n\tint const next_vpos = vysnc_chain_counter_to_vpos(next_counter, next_vblank);\n\tm_interrupt_timer->adjust(m_screen->time_until_pos(next_vpos));",
+      "constants": {
+        "CLEAR_LINE": 0,
+        "ASSERT_LINE": 1,
+        "MW8080BW_INT_TRIGGER_COUNT_1": 128,
+        "MW8080BW_INT_TRIGGER_VBLANK_1": 0,
+        "MW8080BW_INT_TRIGGER_COUNT_2": 218,
+        "MW8080BW_INT_TRIGGER_VBLANK_2": 1
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "vpos"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "counter",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vpos_to_vysnc_chain_counter"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "vpos"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_int_enable"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_interrupt_time"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "time"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_maincpu"
+                    },
+                    "property": "set_input_line"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "CLEAR_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "next_counter",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "next_vblank",
+            "valueType": "int"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "counter"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "MW8080BW_INT_TRIGGER_COUNT_1"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "next_counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MW8080BW_INT_TRIGGER_COUNT_2"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "next_vblank"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MW8080BW_INT_TRIGGER_VBLANK_2"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "next_counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MW8080BW_INT_TRIGGER_COUNT_1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "next_vblank"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MW8080BW_INT_TRIGGER_VBLANK_1"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "next_vpos",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vysnc_chain_counter_to_vpos"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "next_counter"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "next_vblank"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_interrupt_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen"
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "next_vpos"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 217,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.vpos_to_vysnc_chain_counter",
+      "ownerClass": "mw8080bw_state",
+      "method": "vpos_to_vysnc_chain_counter",
+      "parameters": "int vpos",
+      "body": "// convert from a vertical position to the actual values on the vertical sync counters\n\tuint8_t counter;\n\tint vblank = (vpos >= MW8080BW_VBSTART);\n\n\tif (vblank)\n\t\tcounter = vpos - MW8080BW_VBSTART + MW8080BW_VCOUNTER_START_VBLANK;\n\telse\n\t\tcounter = vpos + MW8080BW_VCOUNTER_START_NO_VBLANK;\n\n\treturn counter;",
+      "constants": {
+        "MW8080BW_VBSTART": 224,
+        "MW8080BW_VCOUNTER_START_NO_VBLANK": 32,
+        "MW8080BW_VCOUNTER_START_VBLANK": 218
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "counter",
+            "valueType": "uint8_t"
+          },
+          {
+            "op": "declare",
+            "name": "vblank",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": ">=",
+              "left": {
+                "kind": "identifier",
+                "name": "vpos"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "MW8080BW_VBSTART"
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "vblank"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "vpos"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "MW8080BW_VBSTART"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MW8080BW_VCOUNTER_START_VBLANK"
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "counter"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "vpos"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "counter"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 188,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.vysnc_chain_counter_to_vpos",
+      "ownerClass": "mw8080bw_state",
+      "method": "vysnc_chain_counter_to_vpos",
+      "parameters": "uint8_t counter, int vblank",
+      "body": "// convert from the vertical sync counters to an actual vertical position\n\tint vpos;\n\n\tif (vblank)\n\t\tvpos = counter - MW8080BW_VCOUNTER_START_VBLANK + MW8080BW_VBSTART;\n\telse\n\t\tvpos = counter - MW8080BW_VCOUNTER_START_NO_VBLANK;\n\n\treturn vpos;",
+      "constants": {
+        "MW8080BW_VBSTART": 224,
+        "MW8080BW_VCOUNTER_START_NO_VBLANK": 32,
+        "MW8080BW_VCOUNTER_START_VBLANK": 218
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "int"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "vblank"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "counter"
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "MW8080BW_VCOUNTER_START_VBLANK"
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MW8080BW_VBSTART"
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "counter"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "vpos"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 203,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mb14241_device.shift_result_r",
+      "ownerClass": "mb14241_device",
+      "method": "shift_result_r",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2819,
+        "column": 2
+      }
+    },
+    {
+      "id": "handler:mb14241_device.shift_data_w",
+      "ownerClass": "mb14241_device",
+      "method": "shift_data_w",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2824,
+        "column": 2
+      }
+    },
+    {
+      "id": "handler:mb14241_device.shift_count_w",
+      "ownerClass": "mb14241_device",
+      "method": "shift_count_w",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2822,
+        "column": 2
+      }
+    },
+    {
+      "id": "handler:watchdog_timer_device.reset_w",
+      "ownerClass": "watchdog_timer_device",
+      "method": "reset_w",
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2826,
+        "column": 2
+      }
+    },
+    {
+      "id": "handler:invaders_audio_device.p1_w",
+      "ownerClass": "invaders_audio_device",
+      "method": "p1_w",
+      "parameters": "u8 data",
+      "body": "m_sn->enable_w(BIT(~data, 0));    // saucer sound\n\n\tm_discrete->write(INVADERS_NODE(INVADERS_MISSILE_EN, 1), data & 0x02);\n\tm_discrete->write(INVADERS_NODE(INVADERS_EXPLOSION_EN, 1), data & 0x04);\n\tm_discrete->write(INVADERS_NODE(INVADERS_INVADER_HIT_EN, 1), data & 0x08);\n\tm_discrete->write(INVADERS_NODE(INVADERS_BONUS_MISSLE_BASE_EN, 1), data & 0x10);\n\n\tmachine().sound().system_mute(!BIT(data, 5));\n\n\t// D6 and D7 are not connected",
+      "constants": {
+        "INVADERS_BONUS_MISSLE_BASE_EN": 3,
+        "INVADERS_INVADER_HIT_EN": 4,
+        "INVADERS_EXPLOSION_EN": 5,
+        "INVADERS_MISSILE_EN": 6
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_sn"
+                },
+                "property": "enable_w"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "BIT"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "~",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "data"
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_MISSILE_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_EXPLOSION_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 4
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_INVADER_HIT_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 8
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_BONUS_MISSLE_BASE_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "sound"
+                  },
+                  "args": []
+                },
+                "property": "system_mute"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "BIT"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "data"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 5
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_a.cpp",
+        "line": 3251,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_audio_device.p2_w",
+      "ownerClass": "invaders_audio_device",
+      "method": "p2_w",
+      "parameters": "u8 data",
+      "body": "u8 const changed(data ^ m_p2);\n\tm_p2 = data;\n\n\tm_discrete->write(INVADERS_NODE(INVADERS_FLEET_DATA, 1), data & 0x0f);\n\tm_discrete->write(INVADERS_NODE(INVADERS_SAUCER_HIT_EN, 1), data & 0x10);\n\n\tif (BIT(changed, 5)) m_flip_screen_out(BIT(data, 5));\n\n\t// D6 and D7 are not connected",
+      "constants": {
+        "INVADERS_SAUCER_HIT_EN": 1,
+        "INVADERS_FLEET_DATA": 2
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "changed",
+            "valueType": "u8",
+            "value": {
+              "kind": "cast",
+              "valueType": "u8",
+              "operand": {
+                "kind": "binary",
+                "operator": "^",
+                "left": {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_FLEET_DATA"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_discrete"
+                },
+                "property": "write"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "INVADERS_NODE"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "INVADERS_SAUCER_HIT_EN"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "changed"
+                },
+                {
+                  "kind": "number",
+                  "value": 5
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_flip_screen_out"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "data"
+                        },
+                        {
+                          "kind": "number",
+                          "value": 5
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_a.cpp",
+        "line": 3266,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.machine_start",
+      "ownerClass": "mw8080bw_state",
+      "method": "machine_start",
+      "body": "mw8080bw_state::machine_start__base();\n\n\tm_flip_screen = 0U;\n\n\tsave_item(NAME(m_flip_screen));",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mw8080bw_state::machine_start__base"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flip_screen"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip_screen"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2533,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.machine_start",
+      "ownerClass": "invaders_state",
+      "method": "machine_start",
+      "body": "mw8080bw_state::machine_start();\n\n\tm_flip_screen = 0U;\n\n\tsave_item(NAME(m_flip_screen));",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mw8080bw_state::machine_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flip_screen"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flip_screen"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2533,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.machine_reset",
+      "ownerClass": "mw8080bw_state",
+      "method": "machine_reset",
+      "body": "int vpos = vysnc_chain_counter_to_vpos(MW8080BW_INT_TRIGGER_COUNT_1, MW8080BW_INT_TRIGGER_VBLANK_1);\n\tm_interrupt_timer->adjust(m_screen->time_until_pos(vpos));\n\n\tm_interrupt_time = attotime::zero;",
+      "constants": {
+        "MW8080BW_INT_TRIGGER_COUNT_1": 128,
+        "MW8080BW_INT_TRIGGER_VBLANK_1": 0,
+        "attotime::zero": 0
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vysnc_chain_counter_to_vpos"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MW8080BW_INT_TRIGGER_COUNT_1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MW8080BW_INT_TRIGGER_VBLANK_1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_interrupt_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_screen"
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "vpos"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interrupt_time"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "attotime::zero"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 282,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.interrupt_vector",
+      "ownerClass": "mw8080bw_state",
+      "method": "interrupt_vector",
+      "parameters": "int irqline",
+      "body": "int vpos = m_screen->vpos();\n\t// MAME scheduling quirks cause this to happen more often than you might think, in fact far too often\n\tif (machine().time() < m_interrupt_time)\n\t\tvpos++;\n\tuint8_t counter = vpos_to_vysnc_chain_counter(vpos);\n\tuint8_t vector = 0xc7 | ((counter & 0x40) >> 2) | ((~counter & 0x40) >> 3);\n\n\tm_maincpu->set_input_line(0, CLEAR_LINE);\n\treturn vector;",
+      "constants": {
+        "CLEAR_LINE": 0
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "vpos",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_screen"
+                },
+                "property": "vpos"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "machine"
+                    },
+                    "args": []
+                  },
+                  "property": "time"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_interrupt_time"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "vpos"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "counter",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "vpos_to_vysnc_chain_counter"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "vpos"
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "vector",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "number",
+                  "value": 199
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "counter"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 64
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "unary",
+                    "operator": "~",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "counter"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 64
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_maincpu"
+                },
+                "property": "set_input_line"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CLEAR_LINE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "vector"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 255,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.int_enable_w",
+      "ownerClass": "mw8080bw_state",
+      "method": "int_enable_w",
+      "parameters": "int state",
+      "body": "m_int_enable = state;",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_int_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 249,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.screen_update_invaders",
+      "ownerClass": "invaders_state",
+      "method": "screen_update_invaders",
+      "parameters": "screen_device &screen, bitmap_rgb32 &bitmap, const rectangle &cliprect",
+      "body": "uint8_t x = 0;\n\tuint8_t y = MW8080BW_VCOUNTER_START_NO_VBLANK;\n\tuint8_t video_data = 0;\n\n\twhile (1)\n\t{\n\t\t// plot the current pixel\n\t\tpen_t pen = (video_data & 0x01) ? rgb_t::white() : rgb_t::black();\n\n\t\tif (m_flip_screen)\n\t\t\tbitmap.pix(MW8080BW_VBSTART - 1 - (y - MW8080BW_VCOUNTER_START_NO_VBLANK), MW8080BW_HPIXCOUNT - 1 - x) = pen;\n\t\telse\n\t\t\tbitmap.pix(y - MW8080BW_VCOUNTER_START_NO_VBLANK, x) = pen;\n\n\t\t// next pixel\n\t\tvideo_data = video_data >> 1;\n\t\tx = x + 1;\n\n\t\t// end of line?\n\t\tif (x == 0)\n\t\t{\n\t\t\t// yes, flush out the shift register\n\t\t\tfor (int i = 0; i < 4; i++)\n\t\t\t{\n\t\t\t\tpen = (video_data & 0x01) ? rgb_t::white() : rgb_t::black();\n\n\t\t\t\tif (m_flip_screen)\n\t\t\t\t\tbitmap.pix(MW8080BW_VBSTART - 1 - (y - MW8080BW_VCOUNTER_START_NO_VBLANK), MW8080BW_HPIXCOUNT - 1 - (256 + i)) = pen;\n\t\t\t\telse\n\t\t\t\t\tbitmap.pix(y - MW8080BW_VCOUNTER_START_NO_VBLANK, 256 + i) = pen;\n\n\t\t\t\tvideo_data = video_data >> 1;\n\t\t\t}\n\n\t\t\t// next row, video_data is now 0, so the next line will start with 4 blank pixels\n\t\t\ty = y + 1;\n\n\t\t\t// end of screen?\n\t\t\tif (y == 0)\n\t\t\t\tbreak;\n\t\t}\n\t\telse if ((x & 0x07) == 0x04) // the video RAM is read at every 8 pixels starting with pixel 4\n\t\t{\n\t\t\toffs_t const offs = (offs_t(y) << 5) | (x >> 3);\n\t\t\tvideo_data = m_main_ram[offs];\n\t\t}\n\t}\n\n\treturn 0;",
+      "constants": {
+        "MW8080BW_VBSTART": 224,
+        "MW8080BW_VCOUNTER_START_NO_VBLANK": 32,
+        "MW8080BW_HPIXCOUNT": 260
+      },
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "x",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "declare",
+            "name": "y",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "identifier",
+              "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+            }
+          },
+          {
+            "op": "declare",
+            "name": "video_data",
+            "valueType": "uint8_t",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "while",
+            "condition": {
+              "kind": "number",
+              "value": 1
+            },
+            "body": [
+              {
+                "op": "declare",
+                "name": "pen",
+                "valueType": "pen_t",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "video_data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "rgb_t::white"
+                    },
+                    "args": []
+                  },
+                  "whenFalse": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "rgb_t::black"
+                    },
+                    "args": []
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "identifier",
+                  "name": "m_flip_screen"
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "bitmap"
+                        },
+                        "property": "pix"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "MW8080BW_VBSTART"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "y"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "MW8080BW_HPIXCOUNT"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "x"
+                          }
+                        }
+                      ]
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "pen"
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "bitmap"
+                        },
+                        "property": "pix"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "y"
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                          }
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "x"
+                        }
+                      ]
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "pen"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "video_data"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": ">>",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "video_data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "x"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "x"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "i",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "i"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "i"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "pen"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "video_data"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "rgb_t::white"
+                            },
+                            "args": []
+                          },
+                          "whenFalse": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "rgb_t::black"
+                            },
+                            "args": []
+                          }
+                        }
+                      },
+                      {
+                        "op": "if",
+                        "condition": {
+                          "kind": "identifier",
+                          "name": "m_flip_screen"
+                        },
+                        "then": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "bitmap"
+                                },
+                                "property": "pix"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "MW8080BW_VBSTART"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "y"
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                    }
+                                  }
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "-",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "MW8080BW_HPIXCOUNT"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "number",
+                                      "value": 256
+                                    },
+                                    "right": {
+                                      "kind": "identifier",
+                                      "name": "i"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "pen"
+                            }
+                          }
+                        ],
+                        "else": [
+                          {
+                            "op": "assign",
+                            "target": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "bitmap"
+                                },
+                                "property": "pix"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "-",
+                                  "left": {
+                                    "kind": "identifier",
+                                    "name": "y"
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "MW8080BW_VCOUNTER_START_NO_VBLANK"
+                                  }
+                                },
+                                {
+                                  "kind": "binary",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "number",
+                                    "value": 256
+                                  },
+                                  "right": {
+                                    "kind": "identifier",
+                                    "name": "i"
+                                  }
+                                }
+                              ]
+                            },
+                            "operator": "=",
+                            "value": {
+                              "kind": "identifier",
+                              "name": "pen"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "video_data"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": ">>",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "video_data"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "y"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "y"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "break"
+                      }
+                    ]
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "x"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 4
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "declare",
+                        "name": "offs",
+                        "valueType": "offs_t",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "|",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "<<",
+                            "left": {
+                              "kind": "cast",
+                              "valueType": "offs_t",
+                              "operand": {
+                                "kind": "identifier",
+                                "name": "y"
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 5
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "x"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 3
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "video_data"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_main_ram"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "offs"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_v.cpp",
+        "line": 356,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_audio_device.device_start",
+      "ownerClass": "invaders_audio_device",
+      "method": "device_start",
+      "body": "m_p2 = 0U;\n\n\tsave_item(NAME(m_p2));",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_a.cpp",
+        "line": 3303,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.invaders_sw6_sw7_r",
+      "ownerClass": "invaders_state",
+      "method": "invaders_sw6_sw7_r",
+      "body": "// upright PCB : switches visible\n\t// cocktail PCB: HI\n\n\tif (is_cabinet_cocktail())\n\t\treturn 0x03;\n\telse\n\t\treturn ioport(\"SW6SW7\")->read();",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_cabinet_cocktail"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 3
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "ioport"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "SW6SW7"
+                        }
+                      ]
+                    },
+                    "property": "read"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2544,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.is_cabinet_cocktail",
+      "ownerClass": "invaders_state",
+      "method": "is_cabinet_cocktail",
+      "body": "return BIT(m_cabinet_type->read(), 0);",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cabinet_type"
+                    },
+                    "property": "read"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2595,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.invaders_in0_control_r",
+      "ownerClass": "invaders_state",
+      "method": "invaders_in0_control_r",
+      "body": "// upright PCB : P1 controls\n\t// cocktail PCB: HI\n\n\tif (is_cabinet_cocktail())\n\t\treturn 0x07;\n\telse\n\t\treturn m_player_controls[0]->read();",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_cabinet_cocktail"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 7
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_player_controls"
+                      },
+                      "index": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "property": "read"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2568,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.invaders_sw5_r",
+      "ownerClass": "invaders_state",
+      "method": "invaders_sw5_r",
+      "body": "// upright PCB : switch visible\n\t// cocktail PCB: HI\n\n\tif (is_cabinet_cocktail())\n\t\treturn 0x01;\n\telse\n\t\treturn ioport(\"SW5\")->read();",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "is_cabinet_cocktail"
+              },
+              "args": []
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "ioport"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "SW5"
+                        }
+                      ]
+                    },
+                    "property": "read"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2556,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.direct_coin_count",
+      "ownerClass": "invaders_state",
+      "method": "direct_coin_count",
+      "parameters": "ioport_field &field, u32 param, ioport_value oldval, ioport_value newval",
+      "body": "machine().bookkeeping().coin_counter_w(0, newval);",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "machine"
+                      },
+                      "args": []
+                    },
+                    "property": "bookkeeping"
+                  },
+                  "args": []
+                },
+                "property": "coin_counter_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "identifier",
+                  "name": "newval"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 175,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.invaders_in1_control_r",
+      "ownerClass": "invaders_state",
+      "method": "invaders_in1_control_r",
+      "body": "return m_player_controls[0]->read();",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_player_controls"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2580,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:invaders_state.invaders_in2_control_r",
+      "ownerClass": "invaders_state",
+      "method": "invaders_in2_control_r",
+      "body": "// upright PCB : P1 controls\n\t// cocktail PCB: P2 controls\n\n\treturn m_player_controls[is_cabinet_cocktail() ? 1 : 0]->read();",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_player_controls"
+                  },
+                  "index": {
+                    "kind": "conditional",
+                    "condition": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "is_cabinet_cocktail"
+                      },
+                      "args": []
+                    },
+                    "whenTrue": {
+                      "kind": "number",
+                      "value": 1
+                    },
+                    "whenFalse": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                },
+                "property": "read"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2586,
+        "column": 1
+      }
+    },
+    {
+      "id": "handler:mw8080bw_state.machine_start__base",
+      "ownerClass": "mw8080bw_state",
+      "method": "machine_start__base",
+      "body": "m_interrupt_timer = timer_alloc(FUNC(mw8080bw_state::interrupt_trigger), this);",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_interrupt_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "timer_alloc"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "FUNC"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "mw8080bw_state::interrupt_trigger"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 276,
+        "column": 1
+      }
+    }
+  ],
+  "maps": [
+    {
+      "id": "map:mw8080bw_state.main_map",
+      "className": "mw8080bw_state",
+      "name": "main_map",
+      "ranges": [
+        {
+          "id": "map:mw8080bw_state.main_map/range0",
+          "start": 0,
+          "end": 8191,
+          "raw": "map(0x0000, 0x1fff).rom().nopw()",
+          "props": {
+            "start": 0,
+            "end": 8191,
+            "raw": "map(0x0000, 0x1fff).rom().nopw()",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 316,
+            "sourceColumn": 2,
+            "sourceEndLine": 316,
+            "rom": true,
+            "nopw": true
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 316,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:mw8080bw_state.main_map/range1",
+          "start": 8192,
+          "end": 16383,
+          "raw": "map(0x2000, 0x3fff).mirror(0x4000).ram().share(\"main_ram\")",
+          "props": {
+            "start": 8192,
+            "end": 16383,
+            "raw": "map(0x2000, 0x3fff).mirror(0x4000).ram().share(\"main_ram\")",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 317,
+            "sourceColumn": 2,
+            "sourceEndLine": 317,
+            "mirror": 16384,
+            "ram": true,
+            "share": "main_ram"
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 317,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:mw8080bw_state.main_map/range2",
+          "start": 16384,
+          "end": 24575,
+          "raw": "map(0x4000, 0x5fff).rom().nopw()",
+          "props": {
+            "start": 16384,
+            "end": 24575,
+            "raw": "map(0x4000, 0x5fff).rom().nopw()",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 318,
+            "sourceColumn": 2,
+            "sourceEndLine": 318,
+            "rom": true,
+            "nopw": true
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 318,
+            "column": 2
+          }
+        }
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 313,
+        "column": 1
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map_noshift",
+      "className": "invaders_state",
+      "name": "io_map_noshift",
+      "ranges": [
+        {
+          "id": "map:invaders_state.io_map_noshift/range0",
+          "start": 0,
+          "end": 0,
+          "raw": "map(0x00, 0x00).mirror(0x04).portr(\"IN0\")",
+          "props": {
+            "start": 0,
+            "end": 0,
+            "raw": "map(0x00, 0x00).mirror(0x04).portr(\"IN0\")",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2604,
+            "sourceColumn": 2,
+            "sourceEndLine": 2604,
+            "mirror": 4,
+            "portRead": "IN0"
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2604,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map_noshift/range1",
+          "start": 1,
+          "end": 1,
+          "raw": "map(0x01, 0x01).mirror(0x04).portr(\"IN1\")",
+          "props": {
+            "start": 1,
+            "end": 1,
+            "raw": "map(0x01, 0x01).mirror(0x04).portr(\"IN1\")",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2605,
+            "sourceColumn": 2,
+            "sourceEndLine": 2605,
+            "mirror": 4,
+            "portRead": "IN1"
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2605,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map_noshift/range2",
+          "start": 2,
+          "end": 2,
+          "raw": "map(0x02, 0x02).mirror(0x04).portr(\"IN2\")",
+          "props": {
+            "start": 2,
+            "end": 2,
+            "raw": "map(0x02, 0x02).mirror(0x04).portr(\"IN2\")",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2606,
+            "sourceColumn": 2,
+            "sourceEndLine": 2606,
+            "mirror": 4,
+            "portRead": "IN2"
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2606,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map_noshift/range3",
+          "start": 2,
+          "end": 2,
+          "raw": "map(0x02, 0x02).nopw()",
+          "props": {
+            "start": 2,
+            "end": 2,
+            "raw": "map(0x02, 0x02).nopw()",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2608,
+            "sourceColumn": 2,
+            "sourceEndLine": 2608,
+            "nopw": true
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2608,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map_noshift/range4",
+          "start": 3,
+          "end": 3,
+          "raw": "map(0x03, 0x03).w(\"soundboard\", FUNC(invaders_audio_device::p1_w))",
+          "write": "soundboard.p1_w",
+          "props": {
+            "start": 3,
+            "end": 3,
+            "raw": "map(0x03, 0x03).w(\"soundboard\", FUNC(invaders_audio_device::p1_w))",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2609,
+            "sourceColumn": 2,
+            "sourceEndLine": 2609
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2609,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map_noshift/range5",
+          "start": 5,
+          "end": 5,
+          "raw": "map(0x05, 0x05).w(\"soundboard\", FUNC(invaders_audio_device::p2_w))",
+          "write": "soundboard.p2_w",
+          "props": {
+            "start": 5,
+            "end": 5,
+            "raw": "map(0x05, 0x05).w(\"soundboard\", FUNC(invaders_audio_device::p2_w))",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2610,
+            "sourceColumn": 2,
+            "sourceEndLine": 2610
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2610,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map_noshift/range6",
+          "start": 6,
+          "end": 6,
+          "raw": "map(0x06, 0x06).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+          "write": "watchdog.reset_w",
+          "props": {
+            "start": 6,
+            "end": 6,
+            "raw": "map(0x06, 0x06).w(m_watchdog, FUNC(watchdog_timer_device::reset_w))",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2611,
+            "sourceColumn": 2,
+            "sourceEndLine": 2611
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2611,
+            "column": 2
+          }
+        }
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2601,
+        "column": 1
+      }
+    },
+    {
+      "id": "map:invaders_state.io_map",
+      "className": "invaders_state",
+      "name": "io_map",
+      "ranges": [
+        {
+          "id": "map:invaders_state.io_map/range0",
+          "start": 3,
+          "end": 3,
+          "raw": "map(0x03, 0x03).mirror(0x04).r(m_mb14241, FUNC(mb14241_device::shift_result_r))",
+          "read": "mb14241.shift_result_r",
+          "props": {
+            "start": 3,
+            "end": 3,
+            "raw": "map(0x03, 0x03).mirror(0x04).r(m_mb14241, FUNC(mb14241_device::shift_result_r))",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2618,
+            "sourceColumn": 2,
+            "sourceEndLine": 2618,
+            "mirror": 4
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2618,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map/range1",
+          "start": 2,
+          "end": 2,
+          "raw": "map(0x02, 0x02).w(m_mb14241, FUNC(mb14241_device::shift_count_w))",
+          "write": "mb14241.shift_count_w",
+          "props": {
+            "start": 2,
+            "end": 2,
+            "raw": "map(0x02, 0x02).w(m_mb14241, FUNC(mb14241_device::shift_count_w))",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2620,
+            "sourceColumn": 2,
+            "sourceEndLine": 2620
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2620,
+            "column": 2
+          }
+        },
+        {
+          "id": "map:invaders_state.io_map/range2",
+          "start": 4,
+          "end": 4,
+          "raw": "map(0x04, 0x04).w(m_mb14241, FUNC(mb14241_device::shift_data_w))",
+          "write": "mb14241.shift_data_w",
+          "props": {
+            "start": 4,
+            "end": 4,
+            "raw": "map(0x04, 0x04).w(m_mb14241, FUNC(mb14241_device::shift_data_w))",
+            "sourceFile": "src/mame/midw8080/mw8080bw.cpp",
+            "sourceLine": 2621,
+            "sourceColumn": 2,
+            "sourceEndLine": 2621
+          },
+          "source": {
+            "file": "src/mame/midw8080/mw8080bw.cpp",
+            "line": 2621,
+            "column": 2
+          }
+        }
+      ],
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw.cpp",
+        "line": 2614,
+        "column": 1
+      }
+    }
+  ],
+  "stateMembers": [
+    {
+      "name": "m_phantom2_cloud_counter",
+      "bits": 16
+    },
+    {
+      "name": "m_maze_tone_timing_state",
+      "bits": 8
+    },
+    {
+      "name": "m_int_enable",
+      "bits": 1,
+      "initial": 1
+    },
+    {
+      "name": "m_flip_screen",
+      "bits": 8
+    }
+  ],
+  "video": {
+    "gfx": [],
+    "tilemaps": [],
+    "initialState": {
+      "m_phantom2_cloud_counter": 0,
+      "m_maze_tone_timing_state": 0,
+      "m_rev_shift_res": 0,
+      "m_controller_select": 0,
+      "m_trench_width": 0,
+      "m_trench_center": 0,
+      "m_bright_control": 0,
+      "m_brightness": 0,
+      "m_flip_screen": 0
+    },
+    "bitmap": {
+      "member": "m_main_ram",
+      "rowStart": 32,
+      "rows": 224,
+      "bytesPerRow": 32,
+      "xOffset": 4,
+      "lsbFirst": true,
+      "flipXMember": "m_flip_screen",
+      "flipYMember": "m_flip_screen",
+      "black": 4278190080,
+      "white": 4294967295,
+      "source": {
+        "file": "src/mame/midw8080/mw8080bw_v.cpp",
+        "line": 356,
+        "column": 1
+      }
+    },
+    "source": {
+      "file": "src/mame/midw8080/mw8080bw_v.cpp",
+      "line": 356,
+      "column": 1
+    }
+  },
+  "sound": {
+    "kind": "stream",
+    "deviceTag": "soundboard:snsnd",
+    "deviceTags": [
+      "soundboard:snsnd",
+      "soundboard:discrete"
+    ],
+    "deviceType": "SN76477",
+    "writeMethods": [],
+    "enableMethods": [],
+    "controlOffset": -1,
+    "routes": [
+      {
+        "chip": 0,
+        "channel": -1,
+        "gain": 0.5,
+        "target": "soundboard:mono"
+      },
+      {
+        "chip": 1,
+        "channel": -1,
+        "gain": 0.5,
+        "target": "soundboard:mono"
+      }
+    ]
+  },
+  "videoExecution": {
+    "bitmapMembers": []
+  }
+}

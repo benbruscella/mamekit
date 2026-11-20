@@ -1,0 +1,1297 @@
+{
+  "type": "K051960",
+  "uses": [
+    {
+      "game": "tmnt",
+      "tags": [
+        "k051960"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "K051960",
+    "className": "k051960_device",
+    "shortName": "k051960",
+    "description": "Konami 051960 Sprite Generator",
+    "sourceFile": "src/mame/konami/k051960.cpp",
+    "sourceLine": 77,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(K051960, k051960_device, \"k051960\", \"Konami 051960 Sprite Generator\")"
+  },
+  "methods": [
+    {
+      "name": "k051960_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, u32 clock",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 139,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_plane_order",
+      "parameters": "int order",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "order"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "K051960_PLANEORDER_BASE"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_info"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "gfxinfo"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "K051960_PLANEORDER_MIA"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_info"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "gfxinfo_reverse"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "K051960_PLANEORDER_GRADIUS3"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "set_info"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "gfxinfo_gradius3"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Unknown plane_order\n"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 183,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    "args": []
+                  },
+                  "property": "started"
+                },
+                "args": []
+              }
+            },
+            "then": []
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "palette"
+                        },
+                        "args": []
+                      },
+                      "property": "device"
+                    },
+                    "args": []
+                  },
+                  "property": "started"
+                },
+                "args": []
+              }
+            },
+            "then": []
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "screen"
+                  },
+                  "args": []
+                },
+                "property": "register_vblank_callback"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "vblank_state_delegate"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "identifier",
+                        "name": "k051960_device::vblank_callback"
+                      }
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_k051960_cb"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_firq_handler"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_firq_scanline"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "time_until_pos"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_nmi_handler"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_nmi_scanline"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "time_until_pos"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "decode_gfx"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "gfx"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                },
+                "property": "set_colors"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "palette"
+                        },
+                        "args": []
+                      },
+                      "property": "entries"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "gfx"
+                        },
+                        "args": [
+                          {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        ]
+                      },
+                      "property": "depth"
+                    },
+                    "args": []
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "VERBOSE"
+              },
+              "right": {
+                "kind": "unary",
+                "operator": "!",
+                "operand": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "palette"
+                      },
+                      "args": []
+                    },
+                    "property": "shadows_enabled"
+                  },
+                  "args": []
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_ram"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ram"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_romoffset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_control"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_shadow_config"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_spriterombank"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ram"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffer"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 237,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "number",
+                "value": 5
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "k051937_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_romoffset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "vblank_callback",
+      "parameters": "screen_device &screen, bool state",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 250,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_control"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_irq_handler"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "ASSERT_LINE"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_control"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 4
+                  }
+                ]
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "memcpy"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_buffer"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_ram"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "sizeof"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_buffer"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "declare",
+                "name": "active",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "i",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "i"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "m_buffer"
+                      }
+                    ]
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "active"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "BIT"
+                      },
+                      "args": [
+                        {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_buffer"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "i"
+                          }
+                        },
+                        {
+                          "kind": "number",
+                          "value": 7
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "declare",
+                "name": "ticks",
+                "valueType": "u32",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "active"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "-",
+                      "left": {
+                        "kind": "number",
+                        "value": 128
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "active"
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 18
+                    }
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_sprites_busy"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_ticks"
+                      },
+                      "args": [
+                        {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "ticks"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 4
+                          }
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_fetchromdata",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 293,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 311,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_w",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 325,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051937_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 332,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051937_w",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 345,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_sprites_draw",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap, int min_priority, int max_priority",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 418,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "firq_scanline",
+      "parameters": "int param",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 275,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_scanline",
+      "parameters": "int param",
+      "sourceFile": "src/mame/konami/k051960.cpp",
+      "sourceLine": 284,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "irq_handler",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nmi_handler",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051937_shadow_mode",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 36,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_priority_shadows",
+      "parameters": "bool pri",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_device::irq_handler",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 31,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_device::nmi_handler",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 35,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_device::k051937_shadow_mode",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "k051960_device::set_priority_shadows",
+      "parameters": "bool pri",
+      "sourceFile": "src/mame/konami/k051960.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/konami/k051960.cpp",
+    "src/mame/konami/k051960.h"
+  ]
+}

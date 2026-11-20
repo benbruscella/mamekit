@@ -1,0 +1,226 @@
+{
+  "type": "NAMCO_54XX",
+  "uses": [
+    {
+      "game": "galaga",
+      "tags": [
+        "54xx"
+      ]
+    },
+    {
+      "game": "polepos",
+      "tags": [
+        "54xx"
+      ]
+    },
+    {
+      "game": "xevious",
+      "tags": [
+        "54xx"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NAMCO_54XX",
+    "className": "namco_54xx_device",
+    "shortName": "namco54",
+    "description": "Namco 54xx",
+    "sourceFile": "src/mame/namco/namco54.cpp",
+    "sourceLine": 112,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NAMCO_54XX, namco_54xx_device, \"namco54\", \"Namco 54xx\")"
+  },
+  "methods": [
+    {
+      "name": "reset",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4402,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "K_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4408,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R0_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4413,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w",
+      "parameters": "offs_t offset, uint8_t data, uint8_t mem_mask",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4418,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R1_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4426,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4432,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4443,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4473,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_latched_cmd"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4437,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_discrete",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4363,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_basenote",
+      "parameters": "int node",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4365,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_54xx_device::set_discrete",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4363,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "namco_54xx_device::set_basenote",
+      "parameters": "int node",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 4366,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "NODE_INDEX",
+      "parameters": "int x",
+      "sourceFile": "src/mame/namco/namco54.cpp",
+      "sourceLine": 3923,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/namco/namco54.cpp",
+    "src/mame/namco/namco54.h",
+    "src/devices/sound/discrete.h",
+    "src/devices/machine/rescap.h",
+    "src/devices/sound/disc_cls.h",
+    "src/devices/sound/disc_wav.h",
+    "src/devices/sound/discrete.cpp",
+    "src/devices/sound/disc_sys.hxx",
+    "src/devices/sound/disc_wav.hxx",
+    "src/devices/sound/disc_mth.hxx",
+    "src/devices/sound/disc_inp.hxx",
+    "src/devices/sound/disc_flt.hxx",
+    "src/devices/sound/disc_dev.hxx",
+    "src/devices/sound/disc_mth.h",
+    "src/devices/sound/disc_flt.h",
+    "src/devices/sound/disc_dev.h",
+    "src/devices/cpu/mb88xx/mb88xx.h",
+    "src/devices/cpu/mb88xx/mb88xx.cpp"
+  ],
+  "composedOf": [
+    "MB8844"
+  ]
+}

@@ -1,0 +1,1686 @@
+{
+  "type": "CBM_IEC_SLOT",
+  "uses": [
+    {
+      "game": "c64",
+      "tags": [
+        "iec10",
+        "iec11",
+        "iec4",
+        "iec8",
+        "iec9"
+      ]
+    },
+    {
+      "game": "c64p",
+      "tags": [
+        "iec10",
+        "iec11",
+        "iec4",
+        "iec8",
+        "iec9"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "CBM_IEC_SLOT",
+    "className": "cbm_iec_slot_device",
+    "shortName": "cbm_iec_slot",
+    "description": "CBM IEC slot",
+    "sourceFile": "src/devices/bus/cbmiec/cbmiec.cpp",
+    "sourceLine": 213,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(CBM_IEC_SLOT, cbm_iec_slot_device, \"cbm_iec_slot\", \"CBM IEC slot\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.cpp",
+      "sourceLine": 260,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "bus",
+            "valueType": "cbm_iec_device*",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "device",
+                "valueType": "auto*",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "owner"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "device"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "device"
+                    },
+                    "property": "owner"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "bus"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "device"
+                    },
+                    "property": "subdevice"
+                  },
+                  "args": [
+                    {
+                      "kind": "string",
+                      "value": "iec_bus"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bus"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "then": [
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "dev",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "DYNAMIC_CAST"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_card_device"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "string",
+                  "value": "device_cbm_iec_interface"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "dev"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "bus"
+                    },
+                    "property": "add_device"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "this"
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_card_device"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, int address, auto &&opts, char const *dflt",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 122,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add",
+      "parameters": "machine_config &config, auto &&_bus_tag, const char *_default_drive",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec4"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec8"
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "_default_drive"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec9"
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec10"
+                },
+                {
+                  "kind": "number",
+                  "value": 10
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec11"
+                },
+                {
+                  "kind": "number",
+                  "value": 11
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "_bus_tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_address",
+      "parameters": "int address",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 143,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "address"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_address",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 145,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_address"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::cbm_iec_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, int address, auto &&opts, char const *dflt",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 123,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_address"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "address"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::add",
+      "parameters": "machine_config &config, auto &&_bus_tag, const char *_default_drive",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 132,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec4"
+                },
+                {
+                  "kind": "number",
+                  "value": 4
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec8"
+                },
+                {
+                  "kind": "number",
+                  "value": 8
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "_default_drive"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec9"
+                },
+                {
+                  "kind": "number",
+                  "value": 9
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec10"
+                },
+                {
+                  "kind": "number",
+                  "value": 10
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC_SLOT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "string",
+                  "value": "iec11"
+                },
+                {
+                  "kind": "number",
+                  "value": 11
+                },
+                {
+                  "kind": "identifier",
+                  "name": "cbm_iec_devices"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "CBM_IEC"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "_bus_tag"
+                    }
+                  ]
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::set_address",
+      "parameters": "int address",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 144,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_address"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "address"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_iec_slot_device::get_address",
+      "parameters": "",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.h",
+      "sourceLine": 146,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_address"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cbm_iec_devices",
+      "parameters": "device_slot_interface &device",
+      "sourceFile": "src/devices/bus/cbmiec/cbmiec.cpp",
+      "sourceLine": 494,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1540"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1540"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1541"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1541"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1541c"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1541C"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1541ii"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1541II"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "fsd1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "FSD1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "fsd2"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "FSD2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "csd1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CSD1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1541dd"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1541_DOLPHIN_DOS"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1541pd"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1541_PROFESSIONAL_DOS_V1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1541pdc"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1541_PROLOGIC_DOS_CLASSIC"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1570"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1570"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1571"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1571"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1581"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1581"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "indusgt"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "INDUS_GT"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "cmdhd"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CMD_HD"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "fd2000"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "FD2000"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "fd4000"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "FD4000"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "interpod"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CBM_INTERPOD"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "minichief"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MINI_CHIEF"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "serialbox"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "CBM_SERIAL_BOX"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "diag264"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "DIAG264_SERIAL_LOOPBACK"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "nl10"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C64_NL10_INTERFACE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "vic1515"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "VIC1515"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "vic1520"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "VIC1520"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c1526"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C1526"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "technica"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "TECHNICA"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "bluechip"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "BLUE_CHIP"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "cmdrc2"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "COMMANDER_C2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "enh2000"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "ENHANCER_2000"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "fd148"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "FD148"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "msdsd1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MSD_SD1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "msdsd2"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MSD_SD2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "mps1200"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MPS1200"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "mps1250"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "MPS1250"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "device"
+                },
+                "property": "option_add"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "c5181"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "XETEC_C5181"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/bus/cbmiec/cbmiec.cpp",
+    "src/devices/bus/cbmiec/cbmiec.h"
+  ]
+}

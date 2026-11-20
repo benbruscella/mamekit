@@ -1,0 +1,113 @@
+{
+  "game": "upndown",
+  "title": "Up'n Down (315-5030) (Sega, 1983)",
+  "fullname": "Up'n Down (315-5030)",
+  "year": "1983",
+  "manufacturer": "Sega",
+  "family": "system1",
+  "driverFile": "src/mame/sega/system1.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Jarek Parchanski, Nicola Salmoria, Mirko Buffoni",
+  "credits": {
+    "people": [
+      {
+        "name": "Jarek Parchanski",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Mirko Buffoni",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Nicola Salmoria",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 6,
+        "firstRelease": "0.148",
+        "lastRelease": "0.272"
+      },
+      {
+        "name": "kmg",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.244",
+        "lastRelease": "0.244"
+      },
+      {
+        "name": "David Haywood",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.166",
+        "lastRelease": "0.166"
+      },
+      {
+        "name": "f205v",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.228",
+        "lastRelease": "0.228"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.262",
+        "lastRelease": "0.262"
+      },
+      {
+        "name": "negunma",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.253",
+        "lastRelease": "0.253"
+      },
+      {
+        "name": "sasuke",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.273",
+        "lastRelease": "0.273"
+      },
+      {
+        "name": "Wayder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.259",
+        "lastRelease": "0.259"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-05-29",
+    "commits": 361,
+    "authors": 43,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

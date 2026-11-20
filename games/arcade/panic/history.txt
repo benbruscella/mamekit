@@ -1,0 +1,60 @@
+Arcade Video game published 46 years ago:
+
+Space Panic (c) 1980 Universal Company, Limited.
+
+Influential computer game designer and writer Chris Crawford calls Space Panic "the granddaddy of all platform games", as it predates Nintendo's Donkey Kong (from 1981) which is often cited as the original platform game.
+
+Space Panic lacks Donkey Kong's jump mechanic - the main character instead digs holes in the platforms into which he must lure the aliens. He must then hit them to knock them out of the hole and off the screen. In later levels, two or more holes must be lined up vertically in order to dispose of the aliens. There is also a limited supply of oxygen, which functions as a timer.
+
+- TECHNICAL -
+
+Main CPU : Zilog Z80 (@ 1.802666 Mhz)
+Sound Chips : DAC
+
+Players : 2
+Control : 4-way joystick
+Buttons : 2
+
+- TRIVIA -
+
+Space Panic was released in November 1980 in Japan and in February 1981 in the USA. It was the first platform game and like the title Heiyanko Alien, employs a digging mechanic. This digging into bricks ability would be borrowed my the computer and arcade game Lode Runner a couple of years later.
+
+As was typical of Universal at the time, the cabinet came beautifully detailed in colorful artwork. This included art around the coin door and extended above the monitor.
+
+Licensed to ADP Automaten for the German market.
+Licensed to Inder for the Spanish market.
+
+- PORTS -
+
+* CONSOLES:
+[US] Colecovision (1983) "Space Panic [Model 2447]"
+[JP] Casio PV-1000
+
+* COMPUTERS:
+[US] Apple II (1981) "Apple Panic"
+Microbee (198?) "Apple Panic"
+PC-DOS (1982) "Apple Panic"
+Vic-20 (1982) "Apple Panic [Model VI-AP-C]"
+[US] TRS-80 (1982) "Apple Panic"
+Atari XE (1982) "Apple Panic"
+[US] Apple II (1983) "Apple Panic"
+[US] VTech Laser-VZ "Vz Panik"
+
+- SERIES -
+
+Cosmic Series
+
+1. Cosmic Monsters [Upright model] (1979)
+2. Cosmic Monsters 2 (1979)
+3. Cosmic Guerilla (1979)
+4. Cosmic Alien (1980)
+5. Devil Zone (1980)
+6. Zero Hour (1980)
+7. Space Panic (1980)
+8. Cosmic Avenger (1981)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/2551/?o=2
+
+— Gaming History (arcade-history.com)

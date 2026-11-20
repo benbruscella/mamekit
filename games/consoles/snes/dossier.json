@@ -1,0 +1,617 @@
+{
+  "game": "snes",
+  "title": "Super Nintendo Entertainment System / Super Famicom (NTSC) (Nintendo, 1989)",
+  "fullname": "Super Nintendo Entertainment System / Super Famicom (NTSC)",
+  "year": "1989",
+  "company": "Nintendo",
+  "family": "snes",
+  "driverFile": "src/mame/nintendo/snes.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Angelo Salese, R. Belmont, Anthony Kruize, Fabio Priuli",
+  "cpus": [
+    {
+      "tag": "maincpu",
+      "type": "5a22",
+      "clock": 21477272,
+      "region": "maincpu",
+      "ranges": [
+        {
+          "start": 8257536,
+          "end": 8388607,
+          "kind": "ram",
+          "share": "wram"
+        },
+        {
+          "start": 16898,
+          "end": 16898,
+          "kind": "handler",
+          "write": "maincpu.wrmpya_w"
+        },
+        {
+          "start": 16899,
+          "end": 16899,
+          "kind": "handler",
+          "write": "maincpu.wrmpyb_w"
+        },
+        {
+          "start": 16900,
+          "end": 16900,
+          "kind": "handler",
+          "write": "maincpu.wrdivl_w"
+        },
+        {
+          "start": 16901,
+          "end": 16901,
+          "kind": "handler",
+          "write": "maincpu.wrdivh_w"
+        },
+        {
+          "start": 16902,
+          "end": 16902,
+          "kind": "handler",
+          "write": "maincpu.wrdvdd_w"
+        },
+        {
+          "start": 16909,
+          "end": 16909,
+          "kind": "handler",
+          "write": "maincpu.memsel_w"
+        },
+        {
+          "start": 16916,
+          "end": 16916,
+          "kind": "handler",
+          "read": "maincpu.rddivl_r"
+        },
+        {
+          "start": 16917,
+          "end": 16917,
+          "kind": "handler",
+          "read": "maincpu.rddivh_r"
+        },
+        {
+          "start": 16918,
+          "end": 16918,
+          "kind": "handler",
+          "read": "maincpu.rdmpyl_r"
+        },
+        {
+          "start": 16919,
+          "end": 16919,
+          "kind": "handler",
+          "read": "maincpu.rdmpyh_r"
+        }
+      ]
+    },
+    {
+      "tag": "soundcpu",
+      "type": "s_smp",
+      "clock": 2048000,
+      "region": "soundcpu",
+      "ranges": [
+        {
+          "start": 240,
+          "end": 255,
+          "kind": "handler",
+          "read": "soundcpu.io_r",
+          "write": "soundcpu.io_w"
+        }
+      ]
+    }
+  ],
+  "sound": {
+    "kind": "stream",
+    "clock": 48000,
+    "deviceTag": "s_dsp",
+    "speakerFilter": {
+      "type": "highpass",
+      "frequency": 20,
+      "q": 0.7071067,
+      "source": {
+        "file": "src/emu/audio_effects/filter.cpp",
+        "line": 67
+      }
+    }
+  },
+  "screen": {
+    "width": 512,
+    "height": 225,
+    "xOffset": 0,
+    "yOffset": 0,
+    "refresh": 60.09847552103154,
+    "frameAttoseconds": "16639357177202100",
+    "htotal": 682,
+    "vtotal": 262,
+    "vbstart": 225,
+    "vbend": 0,
+    "updateMode": "partial",
+    "variableWidth": true,
+    "physicalAspect": [
+      4,
+      3
+    ],
+    "rotate": 0
+  },
+  "roms": [
+    {
+      "region": "maincpu",
+      "size": 16777216,
+      "loads": []
+    },
+    {
+      "region": "soundcpu:sound_ipl",
+      "size": 64,
+      "romSet": "s_smp",
+      "loads": [
+        {
+          "file": "spc700.rom",
+          "offset": 0,
+          "size": 64,
+          "crc": "44bb3a40"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 1,
+      "keys": [
+        "KeyZ"
+      ],
+      "label": "B",
+      "type": "IPT_BUTTON2",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 2,
+      "keys": [
+        "Space",
+        "KeyX"
+      ],
+      "label": "Y",
+      "type": "IPT_BUTTON1",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 4,
+      "keys": [
+        "ShiftRight"
+      ],
+      "label": "IPT_SELECT",
+      "type": "IPT_SELECT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 8,
+      "keys": [
+        "Enter"
+      ],
+      "label": "IPT_START",
+      "type": "IPT_START",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 16,
+      "keys": [
+        "ArrowUp"
+      ],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 32,
+      "keys": [
+        "ArrowDown"
+      ],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 64,
+      "keys": [
+        "ArrowLeft"
+      ],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 128,
+      "keys": [
+        "ArrowRight"
+      ],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 256,
+      "keys": [
+        "KeyC"
+      ],
+      "label": "A",
+      "type": "IPT_BUTTON3",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 512,
+      "keys": [
+        "KeyA"
+      ],
+      "label": "X",
+      "type": "IPT_BUTTON4",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 1024,
+      "keys": [
+        "KeyS"
+      ],
+      "label": "L",
+      "type": "IPT_BUTTON5",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl1:JOYPAD",
+      "mask": 2048,
+      "keys": [
+        "KeyD"
+      ],
+      "label": "R",
+      "type": "IPT_BUTTON6",
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 1,
+      "keys": [],
+      "label": "B",
+      "type": "IPT_BUTTON2",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 2,
+      "keys": [],
+      "label": "Y",
+      "type": "IPT_BUTTON1",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 4,
+      "keys": [],
+      "label": "IPT_SELECT",
+      "type": "IPT_SELECT",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 8,
+      "keys": [],
+      "label": "IPT_START",
+      "type": "IPT_START",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 16,
+      "keys": [],
+      "label": "IPT_JOYSTICK_UP",
+      "type": "IPT_JOYSTICK_UP",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 32,
+      "keys": [],
+      "label": "IPT_JOYSTICK_DOWN",
+      "type": "IPT_JOYSTICK_DOWN",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 64,
+      "keys": [],
+      "label": "IPT_JOYSTICK_LEFT",
+      "type": "IPT_JOYSTICK_LEFT",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 128,
+      "keys": [],
+      "label": "IPT_JOYSTICK_RIGHT",
+      "type": "IPT_JOYSTICK_RIGHT",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 256,
+      "keys": [],
+      "label": "A",
+      "type": "IPT_BUTTON3",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 512,
+      "keys": [],
+      "label": "X",
+      "type": "IPT_BUTTON4",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 1024,
+      "keys": [],
+      "label": "L",
+      "type": "IPT_BUTTON5",
+      "player": 2,
+      "activeLow": false
+    },
+    {
+      "port": "ctrl2:JOYPAD",
+      "mask": 2048,
+      "keys": [],
+      "label": "R",
+      "type": "IPT_BUTTON6",
+      "player": 2,
+      "activeLow": false
+    }
+  ],
+  "dipDefaults": [
+    {
+      "port": "OPTIONS",
+      "mask": 1,
+      "value": 0,
+      "name": "Hi-Res pixels blurring (TV effect)",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "Off"
+        },
+        {
+          "value": 1,
+          "name": "On"
+        }
+      ]
+    },
+    {
+      "port": "DEBUG1",
+      "mask": 3,
+      "value": 0,
+      "name": "Select BG1 priority",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "All"
+        },
+        {
+          "value": 1,
+          "name": "BG1B (lower) only"
+        },
+        {
+          "value": 2,
+          "name": "BG1A (higher) only"
+        }
+      ]
+    },
+    {
+      "port": "DEBUG1",
+      "mask": 12,
+      "value": 0,
+      "name": "Select BG2 priority",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "All"
+        },
+        {
+          "value": 4,
+          "name": "BG2B (lower) only"
+        },
+        {
+          "value": 8,
+          "name": "BG2A (higher) only"
+        }
+      ]
+    },
+    {
+      "port": "DEBUG1",
+      "mask": 48,
+      "value": 0,
+      "name": "Select BG3 priority",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "All"
+        },
+        {
+          "value": 16,
+          "name": "BG3B (lower) only"
+        },
+        {
+          "value": 32,
+          "name": "BG3A (higher) only"
+        }
+      ]
+    },
+    {
+      "port": "DEBUG1",
+      "mask": 192,
+      "value": 0,
+      "name": "Select BG4 priority",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "All"
+        },
+        {
+          "value": 64,
+          "name": "BG4B (lower) only"
+        },
+        {
+          "value": 128,
+          "name": "BG4A (higher) only"
+        }
+      ]
+    },
+    {
+      "port": "DEBUG3",
+      "mask": 112,
+      "value": 0,
+      "name": "Select OAM priority",
+      "config": true,
+      "settings": [
+        {
+          "value": 0,
+          "name": "All"
+        },
+        {
+          "value": 16,
+          "name": "OAM0 only"
+        },
+        {
+          "value": 32,
+          "name": "OAM1 only"
+        },
+        {
+          "value": 48,
+          "name": "OAM2 only"
+        },
+        {
+          "value": 64,
+          "name": "OAM3 only"
+        }
+      ]
+    }
+  ],
+  "credits": {
+    "people": [
+      {
+        "name": "Angelo Salese",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.194",
+        "lastRelease": "0.194"
+      },
+      {
+        "name": "Anthony Kruize",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Fabio Priuli",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "R. Belmont",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "AmatCoder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 5,
+        "firstRelease": "0.214",
+        "lastRelease": "0.238"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.241",
+        "lastRelease": "0.241"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.210",
+        "lastRelease": "0.210"
+      },
+      {
+        "name": "ArcadeShadow",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.221",
+        "lastRelease": "0.221"
+      },
+      {
+        "name": "Ryan Holtz",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.216",
+        "lastRelease": "0.216"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.225",
+        "lastRelease": "0.225"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-04-14",
+    "commits": 139,
+    "authors": 24,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "historyText": "Console published 36 years ago:\n\nSuper Famicom (c) 1990 Nintendo Co., Ltd.\n\n- TECHNICAL -\n\nModel # SHVC-001\n\n- TRIVIA -\n\nTo compete with the popular Famicom, NEC launched the PC-Engine in 1987, and Sega followed suit with the Sega Mega Drive in 1988. Both systems were built on 16-bit architectures and offered improved graphics and sound over the 8-bit Famicom. Nintendo executives were in no rush to design a new system, but they reconsidered when they began to see their dominance in the market slipping.\n\nDesigned by Masayuki Uemura, the designer of the original Famicom, the Super Famicom was released in Japan on Wednesday, November 21, 1990 for 25,000 Yens.\n\nIt was an instant success; Nintendo's initial shipment of 300,000 units sold out within hours, and the resulting social disturbance led the Japanese government to ask video game manufacturers to schedule future console releases on weekends.\n\nThe system's release also gained the attention of the Yakuza, leading to a decision to ship the devices at night to avoid robbery.\n\nWith the Super Famicom quickly outselling its chief rivals, Nintendo reasserted itself as the leader of the Japanese console market. Nintendo's success was partially due to its retention of most of its key third-party developers from its earlier system, including Capcom, Konami, Tecmo, Square, Koei, and Enix.\n\nExport releases:\n[US] \"Super Nintendo [Model SNS-001]\"\n[EU] \"Super Nintendo [Model SNSP-001]\"\n\n17.17 millions units were sold in Japan and 49.10 millions worldwide (including export releases).\n\nThe Super Famicom was officially discontinued in September 2003 in Japan.\n\n- STAFF -\n\nDesigned by: Masayuki Uemura\n\n- SERIES -\n\n1. FAMICOM [Family Computer] [Model HVC-001] (1983)\n2. Super Famicom [Model SHVC-001] (1990)\n3. Nintendo 64 (1996)\n4. Nintendo GameCube (2001)\n5. Nintendo Wii (2006)\n6. Nintendo Wii U (2012)\n\n- CONTRIBUTE -\n\nEdit this entry: https://www.arcade-history.com/game/83311/?o=2",
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)",
+  "cart": {
+    "list": "snes",
+    "entries": 3731,
+    "boards": 32
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "game": "mario",
+  "title": "Mario Bros. (US, revision E) (Nintendo of America, 1983)",
+  "fullname": "Mario Bros. (US, revision E)",
+  "year": "1983",
+  "manufacturer": "Nintendo of America",
+  "family": "mario",
+  "driverFile": "src/mame/nintendo/mario.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Mirko Buffoni, Couriersud",
+  "credits": {
+    "people": [
+      {
+        "name": "Couriersud",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Mirko Buffoni",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "AJR",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.195",
+        "lastRelease": "0.195"
+      },
+      {
+        "name": "anikom15",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.175",
+        "lastRelease": "0.175"
+      },
+      {
+        "name": "Phil Bennett",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.146",
+        "lastRelease": "0.146"
+      },
+      {
+        "name": "Ryan Holtz",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.206",
+        "lastRelease": "0.206"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-02-27",
+    "commits": 163,
+    "authors": 30,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

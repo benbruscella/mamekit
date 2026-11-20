@@ -1,0 +1,5930 @@
+{
+  "schemaVersion": 1,
+  "type": "NEOGEO_CART_SLOT",
+  "className": "neogeo_cart_slot_device",
+  "description": "Neo Geo Cartridge Slot",
+  "hierarchy": [
+    "device_rom_image_interface",
+    "device_cartrom_image_interface",
+    "neogeo_cart_slot_device"
+  ],
+  "sourceFiles": [
+    "src/devices/bus/neogeo/slot.cpp",
+    "src/devices/bus/neogeo/slot.h",
+    "src/devices/imagedev/cartrom.h",
+    "src/devices/imagedev/cartrom.cpp"
+  ],
+  "imageInterface": true,
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "NEOGEO_STD": 0,
+    "NEOGEO_FATFURY2": 1,
+    "NEOGEO_KOF98": 2,
+    "NEOGEO_MSLUGX": 3,
+    "NEOGEO_ZUPAPA": 4,
+    "NEOGEO_MSLUG3H": 5,
+    "NEOGEO_GANRYU": 6,
+    "NEOGEO_S1945P": 7,
+    "NEOGEO_PREIS2": 8,
+    "NEOGEO_BANGBD": 9,
+    "NEOGEO_NITD": 10,
+    "NEOGEO_SENGOK3": 11,
+    "NEOGEO_KOF99K": 12,
+    "NEOGEO_KOF2K1": 13,
+    "NEOGEO_KOF2KN": 14,
+    "NEOGEO_KOF99": 15,
+    "NEOGEO_GAROU": 16,
+    "NEOGEO_GAROUH": 17,
+    "NEOGEO_MSLUG3": 18,
+    "NEOGEO_MSLUG3A": 19,
+    "NEOGEO_KOF2K": 20,
+    "NEOGEO_MSLUG4": 21,
+    "NEOGEO_MSLUG4P": 22,
+    "NEOGEO_ROTD": 23,
+    "NEOGEO_PNYAA": 24,
+    "NEOGEO_KOF2K2": 25,
+    "NEOGEO_MATRIM": 26,
+    "NEOGEO_SAMSHO5": 27,
+    "NEOGEO_SAMSHO5S": 28,
+    "NEOGEO_KOF2K2P": 29,
+    "NEOGEO_MSLUG5": 30,
+    "NEOGEO_SVC": 31,
+    "NEOGEO_KOF2K3": 32,
+    "NEOGEO_KOF2K3H": 33,
+    "NEOGEO_CTHD2K3": 34,
+    "NEOGEO_CT2K3SP": 35,
+    "NEOGEO_CT2K3SA": 36,
+    "NEOGEO_MATRIMBL": 37,
+    "NEOGEO_SVCBOOT": 38,
+    "NEOGEO_SVCPLUS": 39,
+    "NEOGEO_SVCPLUSA": 40,
+    "NEOGEO_SVCSPLUS": 41,
+    "NEOGEO_KOF2K2B": 42,
+    "NEOGEO_KOF2K2MP": 43,
+    "NEOGEO_KOF2K2MP2": 44,
+    "NEOGEO_KOF2K3B": 45,
+    "NEOGEO_KOF2K3P": 46,
+    "NEOGEO_KOF2K3UP": 47,
+    "NEOGEO_GAROUBL": 48,
+    "NEOGEO_KOF97ORO": 49,
+    "NEOGEO_KF10THEP": 50,
+    "NEOGEO_KF2K5UNI": 51,
+    "NEOGEO_KF2K4SE": 52,
+    "NEOGEO_LANS2K4": 53,
+    "NEOGEO_SAMSHO5B": 54,
+    "NEOGEO_MSLUG3B6": 55,
+    "NEOGEO_MSLUG5P": 56,
+    "NEOGEO_MSLUG5B": 57,
+    "NEOGEO_KOG": 58,
+    "NEOGEO_SBP": 59,
+    "NEOGEO_KOF10TH": 60,
+    "NEOGEO_VLINER": 61,
+    "NEOGEO_JOCKEYGP": 62,
+    "NEOGEO_CART_SLOT": 1180451506
+  },
+  "members": [
+    {
+      "name": "m_type",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_cart",
+      "valueType": "device_neogeo_cart_interface*",
+      "initial": 0,
+      "objectType": "device_neogeo_cart_interface"
+    },
+    {
+      "name": "slot_list",
+      "valueType": "neogeo_slot",
+      "fields": [
+        {
+          "name": "pcb_id",
+          "bits": 32,
+          "signed": true
+        },
+        {
+          "name": "slot_option",
+          "valueType": "char*"
+        }
+      ],
+      "arrayLength": 63,
+      "initialValues": [
+        {
+          "pcb_id": 0,
+          "slot_option": "rom"
+        },
+        {
+          "pcb_id": 61,
+          "slot_option": "rom_vliner"
+        },
+        {
+          "pcb_id": 1,
+          "slot_option": "rom_fatfur2"
+        },
+        {
+          "pcb_id": 2,
+          "slot_option": "rom_kof98"
+        },
+        {
+          "pcb_id": 3,
+          "slot_option": "rom_mslugx"
+        },
+        {
+          "pcb_id": 4,
+          "slot_option": "cmc42_zupapa"
+        },
+        {
+          "pcb_id": 5,
+          "slot_option": "cmc42_mslug3h"
+        },
+        {
+          "pcb_id": 6,
+          "slot_option": "cmc42_ganryu"
+        },
+        {
+          "pcb_id": 7,
+          "slot_option": "cmc42_s1945p"
+        },
+        {
+          "pcb_id": 8,
+          "slot_option": "cmc42_preisle2"
+        },
+        {
+          "pcb_id": 9,
+          "slot_option": "cmc42_bangbead"
+        },
+        {
+          "pcb_id": 10,
+          "slot_option": "cmc42_nitd"
+        },
+        {
+          "pcb_id": 11,
+          "slot_option": "cmc42_sengoku3"
+        },
+        {
+          "pcb_id": 12,
+          "slot_option": "cmc42_kof99k"
+        },
+        {
+          "pcb_id": 13,
+          "slot_option": "cmc50_kof2001"
+        },
+        {
+          "pcb_id": 14,
+          "slot_option": "cmc50_kof2000n"
+        },
+        {
+          "pcb_id": 62,
+          "slot_option": "cmc50_jockeygp"
+        },
+        {
+          "pcb_id": 15,
+          "slot_option": "sma_kof99"
+        },
+        {
+          "pcb_id": 16,
+          "slot_option": "sma_garou"
+        },
+        {
+          "pcb_id": 17,
+          "slot_option": "sma_garouh"
+        },
+        {
+          "pcb_id": 18,
+          "slot_option": "sma_mslug3"
+        },
+        {
+          "pcb_id": 19,
+          "slot_option": "sma_mslug3a"
+        },
+        {
+          "pcb_id": 20,
+          "slot_option": "sma_kof2k"
+        },
+        {
+          "pcb_id": 21,
+          "slot_option": "pcm2_mslug4"
+        },
+        {
+          "pcb_id": 22,
+          "slot_option": "pcm2_ms4p"
+        },
+        {
+          "pcb_id": 23,
+          "slot_option": "pcm2_rotd"
+        },
+        {
+          "pcb_id": 24,
+          "slot_option": "pcm2_pnyaa"
+        },
+        {
+          "pcb_id": 25,
+          "slot_option": "k2k2_kof2k2"
+        },
+        {
+          "pcb_id": 26,
+          "slot_option": "k2k2_matrim"
+        },
+        {
+          "pcb_id": 27,
+          "slot_option": "k2k2_samsh5"
+        },
+        {
+          "pcb_id": 28,
+          "slot_option": "k2k2_sams5s"
+        },
+        {
+          "pcb_id": 29,
+          "slot_option": "k2k2_kf2k2p"
+        },
+        {
+          "pcb_id": 30,
+          "slot_option": "pvc_mslug5"
+        },
+        {
+          "pcb_id": 31,
+          "slot_option": "pvc_svc"
+        },
+        {
+          "pcb_id": 32,
+          "slot_option": "pvc_kf2k3"
+        },
+        {
+          "pcb_id": 33,
+          "slot_option": "pvc_kf2k3h"
+        },
+        {
+          "pcb_id": 34,
+          "slot_option": "boot_cthd2k3"
+        },
+        {
+          "pcb_id": 35,
+          "slot_option": "boot_ct2k3sp"
+        },
+        {
+          "pcb_id": 36,
+          "slot_option": "boot_ct2k3sa"
+        },
+        {
+          "pcb_id": 37,
+          "slot_option": "boot_matrimbl"
+        },
+        {
+          "pcb_id": 38,
+          "slot_option": "boot_svcboot"
+        },
+        {
+          "pcb_id": 39,
+          "slot_option": "boot_svcplus"
+        },
+        {
+          "pcb_id": 40,
+          "slot_option": "boot_svcplusa"
+        },
+        {
+          "pcb_id": 41,
+          "slot_option": "boot_svcsplus"
+        },
+        {
+          "pcb_id": 42,
+          "slot_option": "boot_kf2k2b"
+        },
+        {
+          "pcb_id": 43,
+          "slot_option": "boot_kf2k2mp"
+        },
+        {
+          "pcb_id": 44,
+          "slot_option": "boot_kf2k2mp2"
+        },
+        {
+          "pcb_id": 45,
+          "slot_option": "boot_kf2k3bl"
+        },
+        {
+          "pcb_id": 46,
+          "slot_option": "boot_kf2k3pl"
+        },
+        {
+          "pcb_id": 47,
+          "slot_option": "boot_kf2k3upl"
+        },
+        {
+          "pcb_id": 48,
+          "slot_option": "boot_garoubl"
+        },
+        {
+          "pcb_id": 49,
+          "slot_option": "boot_kof97oro"
+        },
+        {
+          "pcb_id": 50,
+          "slot_option": "boot_kf10thep"
+        },
+        {
+          "pcb_id": 51,
+          "slot_option": "boot_kf2k5uni"
+        },
+        {
+          "pcb_id": 52,
+          "slot_option": "boot_kf2k4se"
+        },
+        {
+          "pcb_id": 53,
+          "slot_option": "boot_lans2004"
+        },
+        {
+          "pcb_id": 54,
+          "slot_option": "boot_samsho5b"
+        },
+        {
+          "pcb_id": 55,
+          "slot_option": "boot_mslug3b6"
+        },
+        {
+          "pcb_id": 56,
+          "slot_option": "boot_ms5plus"
+        },
+        {
+          "pcb_id": 57,
+          "slot_option": "boot_mslug5b"
+        },
+        {
+          "pcb_id": 58,
+          "slot_option": "boot_kog"
+        },
+        {
+          "pcb_id": 59,
+          "slot_option": "boot_sbp"
+        },
+        {
+          "pcb_id": 60,
+          "slot_option": "boot_kf10th"
+        }
+      ]
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "is_readable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 24,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_writeable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 27,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_creatable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "image_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 44,
+        "column": 1
+      }
+    },
+    {
+      "name": "image_brief_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 47,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_software_list_loader",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "rom_software_list_loader::instance"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.cpp",
+        "line": 27,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_readable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 25,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_writeable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 28,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::is_creatable",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 29,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "romimage"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 30,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_rom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "rom"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cartridge"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 45,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_cartrom_image_interface::image_brief_type_name",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/imagedev/cartrom.h",
+        "line": 48,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "DYNAMIC_CAST"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "get_card_device"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "string",
+                  "value": "device_neogeo_cart_interface"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 121,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_cart_type",
+      "parameters": "const char *slot",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "neogeo_get_pcb_id"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "slot"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 218,
+        "column": 1
+      }
+    },
+    {
+      "name": "call_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "loaded_through_softlist"
+                  },
+                  "args": []
+                },
+                "then": [
+                  {
+                    "op": "declare",
+                    "name": "ROM16",
+                    "valueType": "uint16_t*"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "ROM8",
+                    "valueType": "uint8_t*"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "len",
+                    "valueType": "uint32_t"
+                  },
+                  {
+                    "op": "declare",
+                    "name": "pcb_name",
+                    "valueType": "auto*",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_feature"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "slot"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "identifier",
+                      "name": "pcb_name"
+                    },
+                    "then": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "set_cart_type"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "pcb_name"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "maincpu"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "rom_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM16"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_rom_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM16"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "maincpu"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "fixed"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "fixed_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM8"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_fixed_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "fixed"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_software_region"
+                        },
+                        "args": [
+                          {
+                            "kind": "string",
+                            "value": "audiocpu"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "len"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "audiocpu"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "audio_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "len"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65536
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audio_base"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ROM8"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "audiocpu"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "ROM8"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65536
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "audiocpu"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "ymsnd:adpcma"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "ym_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM8"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ym_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "ymsnd:adpcma"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_software_region"
+                        },
+                        "args": [
+                          {
+                            "kind": "string",
+                            "value": "ymsnd:adpcmb"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "len"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "ymsnd:adpcmb"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "ymdelta_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ymdelta_base"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ROM8"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "ymsnd:adpcmb"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "else": []
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "len"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_software_region_length"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "sprites"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "sprites_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "ROM8"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_sprites_base"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "memcpy"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "sprites"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "len"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "!=",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_software_region"
+                        },
+                        "args": [
+                          {
+                            "kind": "string",
+                            "value": "audiocrypt"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "len"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "get_software_region_length"
+                          },
+                          "args": [
+                            {
+                              "kind": "string",
+                              "value": "audiocrypt"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "audiocrypt_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "ROM8"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audiocrypt_base"
+                          },
+                          "args": []
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "memcpy"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "ROM8"
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "get_software_region"
+                              },
+                              "args": [
+                                {
+                                  "kind": "string",
+                                  "value": "audiocrypt"
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "len"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "audio_alloc"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "len"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 65536
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "decrypt_all"
+                      },
+                      "args": [
+                        {
+                          "kind": "cast",
+                          "valueType": "uint8_t",
+                          "pointer": true,
+                          "operand": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "member",
+                              "object": {
+                                "kind": "identifier",
+                                "name": "m_cart"
+                              },
+                              "property": "get_rom_base"
+                            },
+                            "args": []
+                          }
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_rom_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_fixed_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_fixed_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ym_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ym_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ymdelta_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_ymdelta_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audio_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audio_size"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audiocrypt_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_audiocrypt_size"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "optimize_sprites"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_base"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_cart"
+                            },
+                            "property": "get_sprites_size"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "std::make_pair"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::error_condition"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::string"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 227,
+        "column": 1
+      }
+    },
+    {
+      "name": "call_unload",
+      "parameters": "",
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 317,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_default_card_software",
+      "parameters": "get_default_card_software_hook &hook",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "software_get_default_slot"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "rom"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 325,
+        "column": 1
+      }
+    },
+    {
+      "name": "rom_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "rom_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 334,
+        "column": 1
+      },
+      "returnWidth": 16
+    },
+    {
+      "name": "banksel_w",
+      "parameters": "uint16_t data",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "banksel_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 346,
+        "column": 1
+      }
+    },
+    {
+      "name": "ram_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "ram_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 356,
+        "column": 1
+      },
+      "returnWidth": 16
+    },
+    {
+      "name": "ram_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask = ~0",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "ram_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mem_mask"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 368,
+        "column": 1
+      }
+    },
+    {
+      "name": "addon_r",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "addon_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 378,
+        "column": 1
+      },
+      "returnWidth": 16
+    },
+    {
+      "name": "protection_r",
+      "parameters": "address_space &space, offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "protection_r"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "space"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "number",
+                  "value": 65535
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 390,
+        "column": 1
+      },
+      "returnWidth": 16
+    },
+    {
+      "name": "protection_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask = ~0",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "protection_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "offset"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "mem_mask"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 402,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 191,
+        "column": 1
+      }
+    },
+    {
+      "name": "is_reset_on_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 205,
+        "column": 1
+      }
+    },
+    {
+      "name": "image_interface",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "neo_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 207,
+        "column": 1
+      }
+    },
+    {
+      "name": "file_extensions",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "bin"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 208,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_type",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_type"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 223,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "get_rom_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_rom_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_rom_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 224,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_rom_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_rom_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_rom_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 231,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_fixed_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_fixed_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_fixed_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 237,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_fixed_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_fixed_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_fixed_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 243,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_sprites_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_sprites_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_sprites_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 249,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_sprites_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_sprites_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_sprites_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 255,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_audio_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audio_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audio_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 261,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_audio_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audio_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audio_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 267,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_audiocrypt_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audiocrypt_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audiocrypt_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 273,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_audiocrypt_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audiocrypt_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audiocrypt_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 279,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_ym_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ym_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ym_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 285,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_ym_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ym_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ym_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 291,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_ymdelta_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ymdelta_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ymdelta_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 297,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_ymdelta_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ymdelta_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ymdelta_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 303,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_sprites_opt_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_sprites_opt_base"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 309,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_sprites_opt_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_sprites_opt_size"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 311,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_fixed_bank_type",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_fixed_bank_type"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 312,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "get_bank_base",
+      "parameters": "uint16_t sel",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_bank_base"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "sel"
+                  }
+                ]
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 314,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_special_bank",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_special_bank"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 315,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "get_helper",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_helper"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 316,
+        "column": 1
+      },
+      "returnWidth": 16
+    },
+    {
+      "name": "late_decrypt_all",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "decrypt_all"
+                  },
+                  "args": [
+                    {
+                      "kind": "cast",
+                      "valueType": "uint8_t",
+                      "pointer": true,
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_rom_base"
+                        },
+                        "args": []
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_rom_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_sprites_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_sprites_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_fixed_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_fixed_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ym_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ym_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ymdelta_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ymdelta_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audio_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audio_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audiocrypt_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audiocrypt_size"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 317,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::neogeo_cart_slot_device",
+      "parameters": "machine_config const &mconfig, char const *tag, device_t *owner, auto &&opts, char const *dflt",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_options"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "opts"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "dflt"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 192,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::is_reset_on_load",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 205,
+        "column": 37
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::image_interface",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "neo_cart"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 208,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::file_extensions",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "string",
+              "value": "bin"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 209,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_type",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_type"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 223,
+        "column": 38
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_rom_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_rom_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_rom_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 225,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_rom_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_rom_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_rom_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 232,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_fixed_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_fixed_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_fixed_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 238,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_fixed_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_fixed_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_fixed_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 244,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_sprites_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_sprites_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_sprites_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 250,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_sprites_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_sprites_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_sprites_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 256,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_audio_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audio_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audio_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 262,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_audio_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audio_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audio_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 268,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_audiocrypt_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audiocrypt_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audiocrypt_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 274,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_audiocrypt_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_audiocrypt_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_audiocrypt_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 280,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_ym_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ym_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ym_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 286,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_ym_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ym_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ym_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 292,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_ymdelta_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ymdelta_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ymdelta_base"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 298,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_ymdelta_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "user_loadable"
+                    },
+                    "args": []
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_region_ymdelta_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_cart"
+                        },
+                        "property": "get_ymdelta_size"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 304,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_sprites_opt_base",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_sprites_opt_base"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 310,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_sprites_opt_size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_sprites_opt_size"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 312,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_fixed_bank_type",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_fixed_bank_type"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 313,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_bank_base",
+      "parameters": "uint16_t sel",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_bank_base"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "sel"
+                  }
+                ]
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 315,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_special_bank",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_special_bank"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 316,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "neogeo_cart_slot_device::get_helper",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_cart"
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_cart"
+                  },
+                  "property": "get_helper"
+                },
+                "args": []
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 317,
+        "column": 1
+      },
+      "returnWidth": 16
+    },
+    {
+      "name": "neogeo_cart_slot_device::late_decrypt_all",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_cart"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_cart"
+                    },
+                    "property": "decrypt_all"
+                  },
+                  "args": [
+                    {
+                      "kind": "cast",
+                      "valueType": "uint8_t",
+                      "pointer": true,
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "get_rom_base"
+                        },
+                        "args": []
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_rom_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_sprites_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_sprites_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_fixed_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_fixed_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ym_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ym_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ymdelta_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_ymdelta_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audio_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audio_size"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audiocrypt_base"
+                      },
+                      "args": []
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "get_audiocrypt_size"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.h",
+        "line": 318,
+        "column": 1
+      }
+    },
+    {
+      "name": "neogeo_get_pcb_id",
+      "parameters": "const char *slot",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "__range0",
+                "value": {
+                  "kind": "identifier",
+                  "name": "slot_list"
+                }
+              },
+              {
+                "op": "declare",
+                "name": "__range0_index",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "__range0_index"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "__range0"
+                },
+                "property": "length"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "__range0_index"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "unary",
+                  "operator": "!",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "strcmp"
+                    },
+                    "args": [
+                      {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "__range0"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "__range0_index"
+                          }
+                        },
+                        "property": "slot_option"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "slot"
+                      }
+                    ]
+                  }
+                },
+                "then": [
+                  {
+                    "op": "return",
+                    "value": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "__range0"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "__range0_index"
+                        }
+                      },
+                      "property": "pcb_id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/bus/neogeo/slot.cpp",
+        "line": 206,
+        "column": 1
+      }
+    }
+  ],
+  "structs": {
+    "neogeo_slot": [
+      {
+        "name": "pcb_id",
+        "bits": 32,
+        "signed": true
+      },
+      {
+        "name": "slot_option",
+        "valueType": "char*"
+      }
+    ]
+  },
+  "start": "device_start",
+  "summary": {
+    "methods": 78,
+    "compiledMethods": 78,
+    "diagnostics": 0
+  },
+  "slot": {
+    "member": "m_cart",
+    "options": {},
+    "cards": {
+      "rom": "neogeo_cart_slot/neogeo_rom",
+      "rom_vliner": "neogeo_cart_slot/neogeo_vliner_cart",
+      "rom_fatfur2": "neogeo_cart_slot/neogeo_fatfury2_cart",
+      "rom_kof98": "neogeo_cart_slot/neogeo_kof98_cart",
+      "rom_mslugx": "neogeo_cart_slot/neogeo_mslugx_cart",
+      "cmc42_zupapa": "neogeo_cart_slot/neogeo_cmc_zupapa_cart",
+      "cmc42_mslug3h": "neogeo_cart_slot/neogeo_cmc_mslug3h_cart",
+      "cmc42_ganryu": "neogeo_cart_slot/neogeo_cmc_ganryu_cart",
+      "cmc42_s1945p": "neogeo_cart_slot/neogeo_cmc_s1945p_cart",
+      "cmc42_preisle2": "neogeo_cart_slot/neogeo_cmc_preisle2_cart",
+      "cmc42_bangbead": "neogeo_cart_slot/neogeo_cmc_bangbead_cart",
+      "cmc42_nitd": "neogeo_cart_slot/neogeo_cmc_nitd_cart",
+      "cmc42_sengoku3": "neogeo_cart_slot/neogeo_cmc_sengoku3_cart",
+      "cmc42_kof99k": "neogeo_cart_slot/neogeo_cmc_kof99k_cart",
+      "cmc50_kof2001": "neogeo_cart_slot/neogeo_cmc_kof2001_cart",
+      "cmc50_kof2000n": "neogeo_cart_slot/neogeo_cmc_kof2000n_cart",
+      "cmc50_jockeygp": "neogeo_cart_slot/neogeo_cmc_jockeygp_cart",
+      "sma_kof99": "neogeo_cart_slot/neogeo_sma_kof99_cart",
+      "sma_garou": "neogeo_cart_slot/neogeo_sma_garou_cart",
+      "sma_garouh": "neogeo_cart_slot/neogeo_sma_garouh_cart",
+      "sma_mslug3": "neogeo_cart_slot/neogeo_sma_mslug3_cart",
+      "sma_mslug3a": "neogeo_cart_slot/neogeo_sma_mslug3a_cart",
+      "sma_kof2k": "neogeo_cart_slot/neogeo_sma_kof2000_cart",
+      "pcm2_mslug4": "neogeo_cart_slot/neogeo_pcm2_mslug4_cart",
+      "pcm2_rotd": "neogeo_cart_slot/neogeo_pcm2_rotd_cart",
+      "pcm2_pnyaa": "neogeo_cart_slot/neogeo_pcm2_pnyaa_cart",
+      "pcm2_ms4p": "neogeo_cart_slot/neogeo_pcm2_ms4plus_cart",
+      "k2k2_kof2k2": "neogeo_cart_slot/neogeo_k2k2_kof2002_cart",
+      "k2k2_matrim": "neogeo_cart_slot/neogeo_k2k2_matrim_cart",
+      "k2k2_samsh5": "neogeo_cart_slot/neogeo_k2k2_samsho5_cart",
+      "k2k2_sams5s": "neogeo_cart_slot/neogeo_k2k2_samsho5sp_cart",
+      "k2k2_kf2k2p": "neogeo_cart_slot/neogeo_k2k2_kf2k2pls_cart",
+      "pvc_mslug5": "neogeo_cart_slot/neogeo_pvc_mslug5_cart",
+      "pvc_svc": "neogeo_cart_slot/neogeo_pvc_svc_cart",
+      "pvc_kf2k3": "neogeo_cart_slot/neogeo_pvc_kof2003_cart",
+      "pvc_kf2k3h": "neogeo_cart_slot/neogeo_pvc_kof2003h_cart",
+      "boot_cthd2k3": "neogeo_cart_slot/neogeo_cthd2k3_cart",
+      "boot_ct2k3sp": "neogeo_cart_slot/neogeo_ct2k3sp_cart",
+      "boot_ct2k3sa": "neogeo_cart_slot/neogeo_ct2k3sa_cart",
+      "boot_matrimbl": "neogeo_cart_slot/neogeo_matrimbl_cart",
+      "boot_svcboot": "neogeo_cart_slot/neogeo_svcboot_cart",
+      "boot_svcplus": "neogeo_cart_slot/neogeo_svcplus_cart",
+      "boot_svcplusa": "neogeo_cart_slot/neogeo_svcplusa_cart",
+      "boot_svcsplus": "neogeo_cart_slot/neogeo_svcsplus_cart",
+      "boot_kf2k2b": "neogeo_cart_slot/neogeo_kof2002b_cart",
+      "boot_kf2k2mp": "neogeo_cart_slot/neogeo_kf2k2mp_cart",
+      "boot_kf2k2mp2": "neogeo_cart_slot/neogeo_kf2k2mp2_cart",
+      "boot_kf2k3bl": "neogeo_cart_slot/neogeo_kf2k3bl_cart",
+      "boot_kf2k3pl": "neogeo_cart_slot/neogeo_kf2k3pl_cart",
+      "boot_kf2k3upl": "neogeo_cart_slot/neogeo_kf2k3upl_cart",
+      "boot_garoubl": "neogeo_cart_slot/neogeo_garoubl_cart",
+      "boot_kof97oro": "neogeo_cart_slot/neogeo_kof97oro_cart",
+      "boot_kf10thep": "neogeo_cart_slot/neogeo_kf10thep_cart",
+      "boot_kf2k5uni": "neogeo_cart_slot/neogeo_kf2k5uni_cart",
+      "boot_kf2k4se": "neogeo_cart_slot/neogeo_kf2k4se_cart",
+      "boot_lans2004": "neogeo_cart_slot/neogeo_lans2004_cart",
+      "boot_samsho5b": "neogeo_cart_slot/neogeo_samsho5b_cart",
+      "boot_mslug3b6": "neogeo_cart_slot/neogeo_mslug3b6_cart",
+      "boot_ms5plus": "neogeo_cart_slot/neogeo_ms5plus_cart",
+      "boot_mslug5b": "neogeo_cart_slot/neogeo_mslug5b_cart",
+      "boot_kog": "neogeo_cart_slot/neogeo_kog_cart",
+      "boot_kf10th": "neogeo_cart_slot/neogeo_kof10th_cart",
+      "boot_sbp": "neogeo_cart_slot/neogeo_sbp_cart"
+    }
+  },
+  "hotMethods": [
+    "is_readable",
+    "is_writeable",
+    "is_creatable",
+    "image_type_name",
+    "image_brief_type_name",
+    "get_software_list_loader",
+    "device_rom_image_interface::is_readable",
+    "device_rom_image_interface::is_writeable",
+    "device_rom_image_interface::is_creatable",
+    "device_rom_image_interface::image_type_name",
+    "device_rom_image_interface::image_brief_type_name",
+    "device_cartrom_image_interface::image_type_name",
+    "device_cartrom_image_interface::image_brief_type_name",
+    "device_start",
+    "set_cart_type",
+    "call_load",
+    "call_unload",
+    "get_default_card_software",
+    "rom_r",
+    "banksel_w",
+    "ram_r",
+    "ram_w",
+    "addon_r",
+    "protection_r",
+    "protection_w",
+    "neogeo_cart_slot_device",
+    "is_reset_on_load",
+    "image_interface",
+    "file_extensions",
+    "get_type",
+    "get_rom_base",
+    "get_rom_size",
+    "get_fixed_base",
+    "get_fixed_size",
+    "get_sprites_base",
+    "get_sprites_size",
+    "get_audio_base",
+    "get_audio_size",
+    "get_audiocrypt_base",
+    "get_audiocrypt_size",
+    "get_ym_base",
+    "get_ym_size",
+    "get_ymdelta_base",
+    "get_ymdelta_size",
+    "get_sprites_opt_base",
+    "get_sprites_opt_size",
+    "get_fixed_bank_type",
+    "get_bank_base",
+    "get_special_bank",
+    "get_helper",
+    "late_decrypt_all",
+    "neogeo_cart_slot_device::neogeo_cart_slot_device",
+    "neogeo_cart_slot_device::is_reset_on_load",
+    "neogeo_cart_slot_device::image_interface",
+    "neogeo_cart_slot_device::file_extensions",
+    "neogeo_cart_slot_device::get_type",
+    "neogeo_cart_slot_device::get_rom_base",
+    "neogeo_cart_slot_device::get_rom_size",
+    "neogeo_cart_slot_device::get_fixed_base",
+    "neogeo_cart_slot_device::get_fixed_size",
+    "neogeo_cart_slot_device::get_sprites_base",
+    "neogeo_cart_slot_device::get_sprites_size",
+    "neogeo_cart_slot_device::get_audio_base",
+    "neogeo_cart_slot_device::get_audio_size",
+    "neogeo_cart_slot_device::get_audiocrypt_base",
+    "neogeo_cart_slot_device::get_audiocrypt_size",
+    "neogeo_cart_slot_device::get_ym_base",
+    "neogeo_cart_slot_device::get_ym_size",
+    "neogeo_cart_slot_device::get_ymdelta_base",
+    "neogeo_cart_slot_device::get_ymdelta_size",
+    "neogeo_cart_slot_device::get_sprites_opt_base",
+    "neogeo_cart_slot_device::get_sprites_opt_size",
+    "neogeo_cart_slot_device::get_fixed_bank_type",
+    "neogeo_cart_slot_device::get_bank_base",
+    "neogeo_cart_slot_device::get_special_bank",
+    "neogeo_cart_slot_device::get_helper",
+    "neogeo_cart_slot_device::late_decrypt_all",
+    "neogeo_get_pcb_id"
+  ]
+}

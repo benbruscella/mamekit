@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "type": "FILTER_VOLUME",
+  "className": "filter_volume_device",
+  "description": "Volume Filter",
+  "hierarchy": [
+    "filter_volume_device"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/flt_vol.cpp",
+    "src/devices/sound/flt_vol.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "FILTER_VOLUME": 1816679994
+  },
+  "members": [
+    {
+      "name": "m_gain",
+      "valueType": "float",
+      "initial": 1
+    },
+    {
+      "name": "m_stream",
+      "valueType": "sound_stream*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SAMPLE_RATE_OUTPUT_ADAPTIVE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_gain",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_vol.cpp",
+        "line": 27,
+        "column": 1
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "put"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "i"
+                    },
+                    {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "stream"
+                          },
+                          "property": "get"
+                        },
+                        "args": [
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "identifier",
+                            "name": "i"
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "identifier",
+                        "name": "m_gain",
+                        "floating": true
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_vol.cpp",
+        "line": 38,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_gain",
+      "parameters": "float gain",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_gain",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "gain",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_vol.cpp",
+        "line": 45,
+        "column": 1
+      }
+    },
+    {
+      "name": "gain",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_gain",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_vol.h",
+        "line": 20,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_volume_device::gain",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_gain",
+              "floating": true
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_vol.h",
+        "line": 20,
+        "column": 44
+      }
+    },
+    {
+      "name": "set_gain=",
+      "parameters": "float gain, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_gain",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "gain",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_vol.cpp",
+        "line": 45,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 6,
+    "compiledMethods": 6,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "sound_stream_update",
+    "set_gain",
+    "gain",
+    "filter_volume_device::gain",
+    "set_gain="
+  ]
+}

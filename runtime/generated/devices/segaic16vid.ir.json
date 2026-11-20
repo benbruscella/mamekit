@@ -1,0 +1,3348 @@
+{
+  "type": "SEGAIC16VID",
+  "uses": [
+    {
+      "game": "shinobi",
+      "tags": [
+        "segaic16vid"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "SEGAIC16VID",
+    "className": "segaic16_video_device",
+    "shortName": "segaic16_video",
+    "description": "Sega 16-bit Video",
+    "sourceFile": "src/mame/sega/segaic16.cpp",
+    "sourceLine": 528,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(SEGAIC16VID, segaic16_video_device, \"segaic16_video\", \"Sega 16-bit Video\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 542,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_gfxdecode"
+                  },
+                  "property": "started"
+                },
+                "args": []
+              }
+            },
+            "then": []
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_display_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_pagelatch_cb"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 552,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_display_enable",
+      "parameters": "int enable",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 563,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_display_enable"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_display_enable"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_fill_latch",
+      "parameters": "int i, uint16_t* latched_pageselect, uint16_t* latched_yscroll, uint16_t* latched_xscroll, uint16_t* textram",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1160,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_init",
+      "parameters": "int which, int type, int colorbase, int xoffs, int numbanks",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1199,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "get_text_info",
+            "valueType": "auto",
+            "value": {
+              "kind": "string",
+              "value": ""
+            }
+          },
+          {
+            "op": "declare",
+            "name": "get_tile_info",
+            "valueType": "auto",
+            "value": {
+              "kind": "string",
+              "value": ""
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "info"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "STRUCT_OF"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "tilemap_info"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "which"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "type"
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "numbanks"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "bank"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "banksize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "number",
+                "value": 8192
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "numbanks"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "xoffs"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xoffs"
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "which"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "textram"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_textram"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "tileram"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_tileram"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Invalid tilemap index specified in tilemap_init\n"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "type"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "TILEMAP_HANGON"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_text_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16a_text_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_tile_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16a_tile_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "numpages"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 4
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "draw_layer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "tilemap_16a_draw_layer"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "reset"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latch_timer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "TILEMAP_16A"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_text_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16a_text_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_tile_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16a_tile_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "numpages"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "draw_layer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "tilemap_16a_draw_layer"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "reset"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latch_timer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "TILEMAP_16B"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_text_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16b_text_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_tile_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16b_tile_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "numpages"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 16
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "draw_layer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "tilemap_16b_draw_layer"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "reset"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "tilemap_16b_reset"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latch_timer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "segaic16_video_device::tilemap_16b_latch_values"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "TILEMAP_16B_ALT"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_text_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16b_alt_text_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "get_tile_info"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "string",
+                      "value": "tilemap_16b_alt_tile_info"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "numpages"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 16
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "draw_layer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "tilemap_16b_draw_layer"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "reset"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "tilemap_16b_reset"
+                    }
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latch_timer"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "timer_alloc"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "FUNC"
+                          },
+                          "args": [
+                            {
+                              "kind": "identifier",
+                              "name": "segaic16_video_device::tilemap_16b_latch_values"
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "this"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Invalid tilemap type specified in tilemap_init\n"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "textmap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "machine"
+                        },
+                        "args": []
+                      },
+                      "property": "tilemap"
+                    },
+                    "args": []
+                  },
+                  "property": "create"
+                },
+                "args": [
+                  {
+                    "kind": "unary",
+                    "operator": "*",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "m_gfxdecode"
+                    }
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "get_text_info"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "TILEMAP_SCAN_ROWS"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 8
+                  },
+                  {
+                    "kind": "number",
+                    "value": 8
+                  },
+                  {
+                    "kind": "number",
+                    "value": 64
+                  },
+                  {
+                    "kind": "number",
+                    "value": 28
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "textmap_info"
+              },
+              "property": "rambase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "textram"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "textmap_info"
+              },
+              "property": "bank"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "bank"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "textmap_info"
+              },
+              "property": "banksize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "banksize"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "textmap"
+                },
+                "property": "set_user_data"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "textmap_info"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "textmap"
+                },
+                "property": "set_palette_offset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "colorbase"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "textmap"
+                },
+                "property": "set_transparent_pen"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "textmap"
+                },
+                "property": "set_scrolldx"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "unary",
+                    "operator": "-",
+                    "operand": {
+                      "kind": "number",
+                      "value": 192
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "xoffs"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "unary",
+                    "operator": "-",
+                    "operand": {
+                      "kind": "number",
+                      "value": 192
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "xoffs"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "textmap"
+                },
+                "property": "set_scrolldy"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "pagenum",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "pagenum"
+              },
+              "right": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "numpages"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "pagenum"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "tilemaps"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "pagenum"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "unary",
+                  "operator": "&",
+                  "operand": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "machine"
+                            },
+                            "args": []
+                          },
+                          "property": "tilemap"
+                        },
+                        "args": []
+                      },
+                      "property": "create"
+                    },
+                    "args": [
+                      {
+                        "kind": "unary",
+                        "operator": "*",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "m_gfxdecode"
+                        }
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "get_tile_info"
+                      },
+                      {
+                        "kind": "identifier",
+                        "name": "TILEMAP_SCAN_ROWS"
+                      },
+                      {
+                        "kind": "number",
+                        "value": 8
+                      },
+                      {
+                        "kind": "number",
+                        "value": 8
+                      },
+                      {
+                        "kind": "number",
+                        "value": 64
+                      },
+                      {
+                        "kind": "number",
+                        "value": 32
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "tmap_info"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "pagenum"
+                    }
+                  },
+                  "property": "rambase"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "tileram"
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "pagenum"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 64
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 32
+                    }
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "tmap_info"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "pagenum"
+                    }
+                  },
+                  "property": "bank"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "bank"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "tmap_info"
+                    },
+                    "index": {
+                      "kind": "identifier",
+                      "name": "pagenum"
+                    }
+                  },
+                  "property": "banksize"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "banksize"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "tilemaps"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "pagenum"
+                      }
+                    },
+                    "property": "set_user_data"
+                  },
+                  "args": [
+                    {
+                      "kind": "unary",
+                      "operator": "&",
+                      "operand": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "info"
+                          },
+                          "property": "tmap_info"
+                        },
+                        "index": {
+                          "kind": "identifier",
+                          "name": "pagenum"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "tilemaps"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "pagenum"
+                      }
+                    },
+                    "property": "set_palette_offset"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "colorbase"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "tilemaps"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "pagenum"
+                      }
+                    },
+                    "property": "set_transparent_pen"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "tilemaps"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "pagenum"
+                      }
+                    },
+                    "property": "set_scrolldx"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "info"
+                        },
+                        "property": "tilemaps"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "pagenum"
+                      }
+                    },
+                    "property": "set_scrolldy"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "flip"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "rowscroll"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "colscroll"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "bank"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latched_xscroll"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latched_yscroll"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "latched_pageselect"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_draw",
+      "parameters": "screen_device &screen, bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int map, int priority, int priority_mark",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1316,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_reset",
+      "parameters": "screen_device &screen",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1337,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "reset"
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "unary",
+                    "operator": "*",
+                    "operand": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "reset"
+                    }
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "info"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_bank",
+      "parameters": "int which, int banknum, int offset",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1353,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "index",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "bank"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "banknum"
+                }
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "offset"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "bank"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "banknum"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "offset"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "machine"
+                          },
+                          "args": []
+                        },
+                        "property": "tilemap"
+                      },
+                      "args": []
+                    },
+                    "property": "mark_all_dirty"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_flip",
+      "parameters": "int which, int flip",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1373,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "flip"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "flip"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "flip"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "flip"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "flip"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "flip"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "textmap"
+                    },
+                    "property": "set_flip"
+                  },
+                  "args": [
+                    {
+                      "kind": "conditional",
+                      "condition": {
+                        "kind": "identifier",
+                        "name": "flip"
+                      },
+                      "whenTrue": {
+                        "kind": "binary",
+                        "operator": "|",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "TILEMAP_FLIPX"
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "TILEMAP_FLIPY"
+                        }
+                      },
+                      "whenFalse": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "pagenum",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "pagenum"
+                  },
+                  "right": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "numpages"
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "pagenum"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "info"
+                            },
+                            "property": "tilemaps"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "pagenum"
+                          }
+                        },
+                        "property": "set_flip"
+                      },
+                      "args": [
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "identifier",
+                            "name": "flip"
+                          },
+                          "whenTrue": {
+                            "kind": "binary",
+                            "operator": "|",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "TILEMAP_FLIPX"
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "TILEMAP_FLIPY"
+                            }
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_rowscroll",
+      "parameters": "int which, int enable",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1396,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "rowscroll"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "rowscroll"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_set_colscroll",
+      "parameters": "int which, int enable",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1416,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bg_tilemap"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "enable"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "info"
+                },
+                "property": "colscroll"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "enable"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "update_partial"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "screen"
+                          },
+                          "args": []
+                        },
+                        "property": "vpos"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "colscroll"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "enable"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tileram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1436,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tileram_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask = ~0",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1442,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "textram_r",
+      "parameters": "offs_t offset",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1449,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "textram_w",
+      "parameters": "offs_t offset, uint16_t data, uint16_t mem_mask = ~0",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1455,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rotate_init",
+      "parameters": "int which, int type, int colorbase",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1473,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "info",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_rotate"
+                },
+                "index": {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "info"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "STRUCT_OF"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "rotate_info"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "index"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "which"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "type"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "colorbase"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "colorbase"
+            }
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "which"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "number",
+                    "value": 0
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "rotateram"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_rotateram"
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Invalid rotate index specified in rotate_init\n"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "type"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "ROTATE_YBOARD"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "ramsize"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2048
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "Invalid rotate system specified in rotate_init\n"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "member",
+              "object": {
+                "kind": "identifier",
+                "name": "info"
+              },
+              "property": "buffer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "ALLOC16"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "ramsize"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "colorbase"
+                    }
+                  ]
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_pointer"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "member",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "info"
+                      },
+                      "property": "buffer"
+                    }
+                  ]
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "info"
+                    },
+                    "property": "ramsize"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                {
+                  "kind": "identifier",
+                  "name": "which"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rotate_draw",
+      "parameters": "int which, bitmap_ind16 &bitmap, const rectangle &cliprect, bitmap_ind8 &priority_bitmap, bitmap_ind16 &srcbitmap",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1520,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rotate_control_r",
+      "parameters": "",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1582,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16a_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 798,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16a_text_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 810,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1010,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_text_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1024,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_alt_tile_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1037,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_alt_text_info",
+      "parameters": "tilemap_t &tilemap, tile_data &tileinfo, tilemap_memory_index tile_index",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1051,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_latch_values",
+      "parameters": "int param",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1168,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "segaic16_video_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&decode_tag",
+      "sourceFile": "src/mame/sega/segaic16.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "decode_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "segaic16_video_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&decode_tag = 0",
+      "sourceFile": "src/mame/sega/segaic16.h",
+      "sourceLine": 126,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "decode_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "segaic16_video_device::segaic16_video_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&decode_tag",
+      "sourceFile": "src/mame/sega/segaic16.h",
+      "sourceLine": 120,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "set_tag"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "decode_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16a_draw_layer",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info, bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int flags, int priority",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_draw_layer",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info, bitmap_ind16 &bitmap, const rectangle &cliprect, int which, int flags, int priority",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1064,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "tilemap_16b_reset",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 1185,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "latch_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "screen"
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 261
+                    }
+                  ]
+                },
+                {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "info"
+                  },
+                  "property": "index"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_virtual_tilemap",
+      "parameters": "screen_device &screen, segaic16_video_device::tilemap_info *info, bitmap_ind16 &bitmap, const rectangle &cliprect, uint16_t pages, uint16_t xscroll, uint16_t yscroll, uint32_t flags, uint32_t priority",
+      "sourceFile": "src/mame/sega/segaic16.cpp",
+      "sourceLine": 582,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/sega/segaic16.cpp",
+    "src/mame/sega/segaic16.h"
+  ]
+}

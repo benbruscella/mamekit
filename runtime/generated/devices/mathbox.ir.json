@@ -1,0 +1,194 @@
+{
+  "type": "MATHBOX",
+  "uses": [
+    {
+      "game": "bzone",
+      "tags": [
+        "mathbox"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "MATHBOX",
+    "className": "mathbox_device",
+    "shortName": "mathbox",
+    "description": "Atari MATHBOX",
+    "sourceFile": "src/mame/atari/mathbox.cpp",
+    "sourceLine": 40,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(MATHBOX, mathbox_device, \"mathbox\", \"Atari MATHBOX\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/mathbox.cpp",
+      "sourceLine": 51,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_result"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_reg"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/mathbox.cpp",
+      "sourceLine": 62,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_result"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_reg"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "int16_t"
+                      }
+                    ]
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "go_w",
+      "parameters": "offs_t offset, uint8_t data",
+      "sourceFile": "src/mame/atari/mathbox.cpp",
+      "sourceLine": 69,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "status_r",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/mathbox.cpp",
+      "sourceLine": 292,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "lo_r",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/mathbox.cpp",
+      "sourceLine": 297,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "hi_r",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/mathbox.cpp",
+      "sourceLine": 302,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/atari/mathbox.cpp",
+    "src/mame/atari/mathbox.h"
+  ]
+}

@@ -1,0 +1,340 @@
+// GENERATED executable machine composition from src/mame/sanritsu/bankp.cpp; do not edit.
+import { decodeBoardIr } from '../../../../runtime/ir/decode.js';
+import { createGeneratedBoard } from '../../../../runtime/core/generated-board.js';
+import boardData from './board.json' with { type: 'json' };
+// Decoded, not asserted: a stale or hand-edited artifact fails here, naming the
+// field and its MAME source line, instead of crashing deep inside execution.
+const defined = decodeBoardIr(boardData, 'bankp');
+// Direct JavaScript for handlers whose IR shape shows nested hot loops. The
+// interpreter remains the semantic reference; these are checked against it by
+// src/gen/emit-handler-codegen.spec.ts.
+defined.compiledHandlers = {
+    ...(() => {
+        const methods = (() => {
+            const cppMin = (a, b) => (b < a ? b : a);
+            const cppMax = (a, b) => (a < b ? b : a);
+            // An aggregate initializer's struct, marked as one (execute.ts's
+            // isGeneratedStruct) through its prototype: like generatedStruct's
+            // non-enumerable marker, field walks and spreads never see it, and a
+            // literal with a prototype costs nothing next to defineProperty.
+            const cppStructPrototype = { [Symbol.for('mamekit.struct')]: true };
+            // CALL_METHOD through a table of method names: each entry's emitted method,
+            // resolved once and again only if that entry's name changes (see the
+            // CALL_METHOD emission). The last table is held, as a core keeps one until
+            // its mode changes.
+            const cppDispatch = new WeakMap();
+            let cppLastTable, cppLastEntry;
+            const cppMethodAt = (table, index) => {
+                if (!Array.isArray(table))
+                    return undefined;
+                let entry = table === cppLastTable ? cppLastEntry : undefined;
+                if (!entry) {
+                    entry = cppDispatch.get(table);
+                    if (!entry)
+                        cppDispatch.set(table, entry = { names: new Array(table.length), methods: new Array(table.length) });
+                    cppLastTable = table;
+                    cppLastEntry = entry;
+                }
+                const name = table[index];
+                if (entry.names[index] === name && name !== undefined)
+                    return entry.methods[index];
+                entry.names[index] = name;
+                return entry.methods[index] = typeof name === 'string' ? __methodTable[name] : undefined;
+            };
+            // execute.ts's clearGeneratedStruct, field names read once per struct.
+            const cppUnionElements = Symbol.for('mamekit.unionElements');
+            const cppStructKeys = new WeakMap();
+            const cppClearStruct = (target, value) => {
+                let keys = cppStructKeys.get(target);
+                if (!keys)
+                    cppStructKeys.set(target, keys = Object.keys(target));
+                for (let index = 0; index < keys.length; index++) {
+                    const key = keys[index];
+                    const field = target[key];
+                    if (ArrayBuffer.isView(field) || Array.isArray(field))
+                        field.fill(value);
+                    else if (field && typeof field === 'object')
+                        cppClearStruct(field, value);
+                    else
+                        target[key] = value;
+                }
+            };
+            // memset: typed memory fills in place; a plain array of numbers is set
+            // element by element (as the interpreter's fillGeneratedMemory writes it,
+            // count elements from 0); an array holding structs, or a pointer into a
+            // plain array, goes to the interpreter's rule, which clears each struct.
+            const cppMemset = (runtime, target, value, count) => {
+                const bytes = Number(count);
+                if (Array.isArray(target)) {
+                    for (let index = 0; index < bytes; index++) {
+                        const element = target[index];
+                        if (element !== null && typeof element === 'object') {
+                            // A struct element is cleared field by field (cppClearStruct);
+                            // anything else array-like takes the interpreter's rule.
+                            if (ArrayBuffer.isView(element) || Array.isArray(element) || element[cppUnionElements] === true) {
+                                return runtime.macro("memset", target, value, bytes);
+                            }
+                            cppClearStruct(element, value);
+                            continue;
+                        }
+                        target[index] = value;
+                    }
+                    return target;
+                }
+                if (Array.isArray(target?.source))
+                    return runtime.macro("memset", target, value, bytes);
+                if (target?.generatedPointer) {
+                    const width = target.source.BYTES_PER_ELEMENT ?? 1;
+                    target.source.fill(value, target.offset, target.offset + Math.ceil(bytes / width));
+                    return target;
+                }
+                target.fill(value, 0, bytes);
+                return target;
+            };
+            // A 64-bit local held as two unsigned 32-bit halves (splitWideLocals):
+            // the halves of any value, and unsigned 64-bit shifts of a pair, exactly as
+            // execute.ts's wide operators answer them (a shift of 64 or more is 0).
+            const cppLo64 = (v) => typeof v === 'bigint' ? Number(BigInt.asUintN(32, v)) : (Number(v) >>> 0);
+            const cppHi64 = (v) => typeof v === 'bigint' ? Number(BigInt.asUintN(32, v >> 32n)) : (Math.floor(Number(v) / 4294967296) >>> 0);
+            const cppShl64Lo = (lo, hi, s) => s < 0 ? cppShr64Lo(lo, hi, -s) : s === 0 ? lo : s < 32 ? (lo << s) >>> 0 : 0;
+            const cppShl64Hi = (lo, hi, s) => s < 0 ? cppShr64Hi(lo, hi, -s) : s === 0 ? hi : s < 32 ? ((hi << s) | (lo >>> (32 - s))) >>> 0 : s < 64 ? (lo << (s - 32)) >>> 0 : 0;
+            const cppShr64Lo = (lo, hi, s) => s < 0 ? cppShl64Lo(lo, hi, -s) : s === 0 ? lo : s < 32 ? ((lo >>> s) | (hi << (32 - s))) >>> 0 : s < 64 ? hi >>> (s - 32) : 0;
+            const cppShr64Hi = (lo, hi, s) => s < 0 ? cppShl64Hi(lo, hi, -s) : s === 0 ? hi : s < 32 ? hi >>> s : 0;
+            const cppStringText = (value) => typeof value === 'string' ? value
+                : typeof value === 'number' || typeof value === 'boolean' ? String(Number(value))
+                    : value === undefined || value === null ? '' : String(value);
+            function method_videoram_w_0(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["m_bg_tilemap.mark_tile_dirty"], __L1 = __l["mark_tile_dirty"], __L2 = __l["m_fg_tilemap.mark_tile_dirty"];
+                data = ((data) & 0xff);
+                runtime.writeIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 0), offset, data);
+                if (0) {
+                    (__L0 ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+                else {
+                    (__L2 ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+            }
+            function method_colorram_w_0(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["m_bg_tilemap.mark_tile_dirty"], __L1 = __l["mark_tile_dirty"], __L2 = __l["m_fg_tilemap.mark_tile_dirty"];
+                data = ((data) & 0xff);
+                runtime.writeIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), offset, data);
+                if (0) {
+                    (__L0 ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+                else {
+                    (__L2 ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+            }
+            function method_videoram_w_1(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["m_bg_tilemap.mark_tile_dirty"], __L1 = __l["mark_tile_dirty"], __L2 = __l["m_fg_tilemap.mark_tile_dirty"];
+                data = ((data) & 0xff);
+                runtime.writeIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 1), offset, data);
+                if (1) {
+                    (__L0 ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+                else {
+                    (__L2 ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+            }
+            function method_colorram_w_1(runtime, offset, data) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["m_bg_tilemap.mark_tile_dirty"], __L1 = __l["mark_tile_dirty"], __L2 = __l["m_fg_tilemap.mark_tile_dirty"];
+                data = ((data) & 0xff);
+                runtime.writeIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), offset, data);
+                if (1) {
+                    (__L0 ?? runtime.memberCall(members.m_bg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+                else {
+                    (__L2 ?? runtime.memberCall(members.m_fg_tilemap, "mark_tile_dirty", 0, __L1))(offset);
+                }
+            }
+            function method_scroll_w(runtime, data) {
+                const members = runtime.members;
+                data = ((data) & 0xff);
+                members.m_scroll_x = ((data) & 0xff);
+            }
+            function method_get_fg_tile_info(runtime, tilemap, tileinfo, tile_index) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["tileinfo.set"], __L1 = __l["set"];
+                let code = ((__add_get_fg_tile_info(runtime, runtime.readIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 0), tile_index), ((256) * (((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), tile_index)) & (3)))))) | 0);
+                let color = ((((runtime.shiftRight(runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), tile_index), 3)) | ((((members.m_color_hi ?? runtime.member("m_color_hi"))) << (5))))) | 0);
+                let flags = ((((((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 0), tile_index)) & (4))) ? (1) : (0))) | 0);
+                (__L0 ?? runtime.memberCall(tileinfo, "set", 0, __L1))(0, code, color, flags);
+                tileinfo.group = ((color) & (31));
+            }
+            function __add_get_fg_tile_info(runtime, a, b) {
+                if (typeof a === 'number' && typeof b === 'number')
+                    return a + b;
+                if (a !== null && typeof a === 'object' && a.generatedPointer === true && a.target === undefined && typeof b === 'number') {
+                    return { generatedPointer: true, source: a.source, offset: a.offset + b };
+                }
+                return runtime.add(a, b);
+            }
+            function method_get_bg_tile_info(runtime, tilemap, tileinfo, tile_index) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["tileinfo.set"], __L1 = __l["set"];
+                let code = ((__add_get_bg_tile_info(runtime, runtime.readIndex(runtime.readIndex((members.m_videoram ?? runtime.member("m_videoram")), 1), tile_index), ((256) * (((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), tile_index)) & (7)))))) | 0);
+                let color = ((((runtime.shiftRight(runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), tile_index), 4)) | ((((members.m_color_hi ?? runtime.member("m_color_hi"))) << (4))))) | 0);
+                let flags = ((((((runtime.readIndex(runtime.readIndex((members.m_colorram ?? runtime.member("m_colorram")), 1), tile_index)) & (8))) ? (1) : (0))) | 0);
+                (__L0 ?? runtime.memberCall(tileinfo, "set", 0, __L1))(1, code, color, flags);
+                tileinfo.group = ((color) & (15));
+            }
+            function __add_get_bg_tile_info(runtime, a, b) {
+                if (typeof a === 'number' && typeof b === 'number')
+                    return a + b;
+                if (a !== null && typeof a === 'object' && a.generatedPointer === true && a.target === undefined && typeof b === 'number') {
+                    return { generatedPointer: true, source: a.source, offset: a.offset + b };
+                }
+                return runtime.add(a, b);
+            }
+            function method_vblank_interrupt(runtime, device) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["device.execute"], __L1 = __l["execute"];
+                let __t0;
+                if ((members.m_nmi_mask ?? runtime.member("m_nmi_mask"))) {
+                    runtime.memberCall((__L0 ?? runtime.memberCall(device, "execute", 0, __L1))(), "pulse_input_line", 0, undefined)(-1, 0);
+                }
+            }
+            function method_screen_update(runtime, screen, bitmap, cliprect) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["m_palette.black_pen"], __L1 = __l["bitmap.fill"], __L2 = __l["fill"], __L3 = __l["flip_screen"], __L4 = __l["m_fg_tilemap.set_scrollx"], __L5 = __l["set_scrollx"], __L6 = __l["m_bg_tilemap.set_scrollx"], __L7 = __l["m_bg_tilemap.draw"], __L8 = __l["draw"], __L9 = __l["m_fg_tilemap.draw"];
+                let __t0;
+                if ((((members.m_display_on ?? runtime.member("m_display_on"))) ? 0 : 1)) {
+                    (__L1 ?? runtime.memberCall(bitmap, "fill", 0, __L2))((__L0 ?? runtime.memberCall(members.m_palette, "black_pen", 0, undefined))(), cliprect);
+                    return 0;
+                }
+                if ((__L3 ? __L3() : runtime.macro("flip_screen"))) {
+                    (__L4 ?? runtime.memberCall(members.m_fg_tilemap, "set_scrollx", 0, __L5))(0, ((240) - ((members.m_scroll_x ?? runtime.member("m_scroll_x")))));
+                    (__L6 ?? runtime.memberCall(members.m_bg_tilemap, "set_scrollx", 0, __L5))(0, 240);
+                }
+                else {
+                    (__L4 ?? runtime.memberCall(members.m_fg_tilemap, "set_scrollx", 0, __L5))(0, (members.m_scroll_x ?? runtime.member("m_scroll_x")));
+                    (__L6 ?? runtime.memberCall(members.m_bg_tilemap, "set_scrollx", 0, __L5))(0, 0);
+                }
+                switch ((members.m_priority ?? runtime.member("m_priority"))) {
+                    case 0:
+                        {
+                            (__L7 ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect, 128);
+                            (__L9 ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect);
+                            break;
+                        }
+                    case 1:
+                        {
+                            (__L7 ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect, 128);
+                            (__L9 ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect);
+                            break;
+                        }
+                    case 2:
+                        {
+                            (__L9 ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect, 128);
+                            (__L7 ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect);
+                            break;
+                        }
+                    case 3:
+                        {
+                            (__L9 ?? runtime.memberCall(members.m_fg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect, 128);
+                            (__L7 ?? runtime.memberCall(members.m_bg_tilemap, "draw", 0, __L8))(screen, bitmap, cliprect);
+                            break;
+                        }
+                }
+                return 0;
+            }
+            function method_palette(runtime, palette) {
+                const members = runtime.members;
+                const __l = runtime.links ?? runtime.calls;
+                const __L0 = __l["memregion"], __L1 = __l["rgb_t"], __L2 = __l["palette.set_indirect_color"], __L3 = __l["set_indirect_color"], __L4 = __l["palette.set_pen_indirect"], __L5 = __l["set_pen_indirect"];
+                let __t0;
+                let color_prom = (__t0 = __deref_palette(runtime, (__L0 ? __L0("proms") : runtime.macro("memregion", "proms"))), typeof __t0.base === 'function' ? (__t0.base() ?? 0) : runtime.container((__L0 ? __L0("proms") : runtime.macro("memregion", "proms")), "base"));
+                for (let i = ((0) | 0); (((i) < (32)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+                    let bit0 = ((0) | 0);
+                    let bit1 = ((0) | 0);
+                    let bit2 = ((0) | 0);
+                    bit0 = (((((__deref_palette(runtime, color_prom)) >>> (0)) & 1)) | 0);
+                    bit1 = (((((__deref_palette(runtime, color_prom)) >>> (1)) & 1)) | 0);
+                    bit2 = (((((__deref_palette(runtime, color_prom)) >>> (2)) & 1)) | 0);
+                    let r = ((__add_palette(runtime, __add_palette(runtime, ((33) * (bit0)), ((71) * (bit1))), ((151) * (bit2)))) | 0);
+                    bit0 = (((((__deref_palette(runtime, color_prom)) >>> (3)) & 1)) | 0);
+                    bit1 = (((((__deref_palette(runtime, color_prom)) >>> (4)) & 1)) | 0);
+                    bit2 = (((((__deref_palette(runtime, color_prom)) >>> (5)) & 1)) | 0);
+                    let g = ((__add_palette(runtime, __add_palette(runtime, ((33) * (bit0)), ((71) * (bit1))), ((151) * (bit2)))) | 0);
+                    bit0 = (((((__deref_palette(runtime, color_prom)) >>> (6)) & 1)) | 0);
+                    bit1 = (((((__deref_palette(runtime, color_prom)) >>> (7)) & 1)) | 0);
+                    let b = ((__add_palette(runtime, ((82) * (bit0)), ((173) * (bit1)))) | 0);
+                    (__L2 ?? runtime.memberCall(palette, "set_indirect_color", 0, __L3))(i, (__L1 ? __L1(r, g, b) : runtime.macro("rgb_t", r, g, b)));
+                    color_prom = __add_palette(runtime, color_prom, 1);
+                }
+                for (let i = ((0) | 0); (((i) < (256)) ? 1 : 0); i = ((((i) + (1))) | 0)) {
+                    let index = ((((((((i) << (1))) & (256))) | (((i) & (127))))) | 0);
+                    (__L4 ?? runtime.memberCall(palette, "set_pen_indirect", 0, __L5))(index, ((runtime.readIndex(color_prom, index)) & (15)));
+                    (__L4 ?? runtime.memberCall(palette, "set_pen_indirect", 0, __L5))(((index) | (128)), ((((runtime.readIndex(color_prom, index)) & (15))) | (16)));
+                }
+            }
+            function __add_palette(runtime, a, b) {
+                if (typeof a === 'number' && typeof b === 'number')
+                    return a + b;
+                if (a !== null && typeof a === 'object' && a.generatedPointer === true && a.target === undefined && typeof b === 'number') {
+                    return { generatedPointer: true, source: a.source, offset: a.offset + b };
+                }
+                return runtime.add(a, b);
+            }
+            function __deref_palette(runtime, p) {
+                if (p !== null && typeof p === 'object') {
+                    if (p.generatedPointer === true) {
+                        if (p.target === undefined) {
+                            const read = p.source[p.offset];
+                            if (read !== undefined && read !== null)
+                                return read;
+                        }
+                    }
+                    else if (!Array.isArray(p) && !ArrayBuffer.isView(p)) {
+                        return p;
+                    }
+                }
+                return runtime.dereference(p);
+            }
+            // CALL_METHOD's direct targets: each emitted method by its name.
+            const __methodTable = {
+                "videoram_w_0": method_videoram_w_0,
+                "colorram_w_0": method_colorram_w_0,
+                "videoram_w_1": method_videoram_w_1,
+                "colorram_w_1": method_colorram_w_1,
+                "scroll_w": method_scroll_w,
+                "get_fg_tile_info": method_get_fg_tile_info,
+                "get_bg_tile_info": method_get_bg_tile_info,
+                "vblank_interrupt": method_vblank_interrupt,
+                "screen_update": method_screen_update,
+                "palette": method_palette
+            };
+            return __methodTable;
+        })();
+        return {
+            "bankp_state.videoram_w_0": methods["videoram_w_0"],
+            "bankp_state.colorram_w_0": methods["colorram_w_0"],
+            "bankp_state.videoram_w_1": methods["videoram_w_1"],
+            "bankp_state.colorram_w_1": methods["colorram_w_1"],
+            "bankp_state.scroll_w": methods["scroll_w"],
+            "bankp_state.get_fg_tile_info": methods["get_fg_tile_info"],
+            "bankp_state.get_bg_tile_info": methods["get_bg_tile_info"],
+            "bankp_state.vblank_interrupt": methods["vblank_interrupt"],
+            "bankp_state.screen_update": methods["screen_update"],
+            "bankp_state.palette": methods["palette"],
+        };
+    })(),
+};
+// The host call names those handlers reach, resolved once into a fast table.
+defined.compiledHandlerLinks = ["bitmap.fill", "device.execute", "draw", "execute", "fill", "flip_screen", "m_bg_tilemap.draw", "m_bg_tilemap.mark_tile_dirty", "m_bg_tilemap.set_scrollx", "m_fg_tilemap.draw", "m_fg_tilemap.mark_tile_dirty", "m_fg_tilemap.set_scrollx", "m_palette.black_pen", "mark_tile_dirty", "memregion", "palette.set_indirect_color", "palette.set_pen_indirect", "rgb_t", "set", "set_indirect_color", "set_pen_indirect", "set_scrollx", "tileinfo.set"];
+export default {
+    machine: defined,
+    createBoard: (config, regions, inputs, sinks) => createGeneratedBoard(defined, config, regions, inputs, sinks),
+};

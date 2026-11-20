@@ -1,0 +1,75 @@
+{
+  "game": "1942",
+  "title": "1942 (Revision B) (Capcom, 1984)",
+  "fullname": "1942 (Revision B)",
+  "year": "1984",
+  "manufacturer": "Capcom",
+  "family": "1942",
+  "driverFile": "src/mame/capcom/1942.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman, Couriersud",
+  "credits": {
+    "people": [
+      {
+        "name": "Couriersud",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Paul Leaman",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "Jim Westfall",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.289",
+        "lastRelease": "0.289"
+      },
+      {
+        "name": "ketburai",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.265",
+        "lastRelease": "0.265"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.174",
+        "lastRelease": "0.174"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-17",
+    "commits": 174,
+    "authors": 29,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

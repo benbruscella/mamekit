@@ -1,0 +1,240 @@
+{
+  "type": "NAMCO_50XX",
+  "uses": [
+    {
+      "game": "xevious",
+      "tags": [
+        "50xx"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "NAMCO_50XX",
+    "className": "namco_50xx_device",
+    "shortName": "namco50",
+    "description": "Namco 50xx",
+    "sourceFile": "src/mame/namco/namco50.cpp",
+    "sourceLine": 211,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(NAMCO_50XX, namco_50xx_device, \"namco50\", \"Namco 50xx\")"
+  },
+  "methods": [
+    {
+      "name": "reset",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 138,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "K_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 145,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R0_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 150,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "R2_r",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 155,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 160,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 170,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "chip_select",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 180,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 185,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 195,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 227,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_rw"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_cmd"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_portO"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "O_w_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 165,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rw_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 175,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write_sync",
+      "parameters": "int param",
+      "sourceFile": "src/mame/namco/namco50.cpp",
+      "sourceLine": 190,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/namco/namco50.cpp",
+    "src/mame/namco/namco50.h",
+    "src/devices/cpu/mb88xx/mb88xx.h",
+    "src/devices/cpu/mb88xx/mb88xx.cpp"
+  ],
+  "composedOf": [
+    "MB8842"
+  ]
+}

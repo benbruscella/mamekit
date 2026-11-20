@@ -1,0 +1,2549 @@
+{
+  "schemaVersion": 1,
+  "type": "FILTER_RC",
+  "className": "filter_rc_device",
+  "description": "RC Filter",
+  "hierarchy": [
+    "filter_rc_device"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/flt_rc.cpp",
+    "src/devices/sound/flt_rc.h",
+    "src/devices/machine/rescap.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "LOWPASS_3R": 0,
+    "LOWPASS": 2,
+    "HIGHPASS": 3,
+    "AC": 4,
+    "RES_INF": -1,
+    "MIDPOINT": 0.1,
+    "B": 81,
+    "A": 0.0125,
+    "FILTER_RC": 1272116455
+  },
+  "members": [
+    {
+      "name": "m_k",
+      "valueType": "sound_stream::sample_t",
+      "initial": 0
+    },
+    {
+      "name": "m_memory",
+      "valueType": "sound_stream::sample_t",
+      "initial": 0
+    },
+    {
+      "name": "m_type",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_last_sample_rate",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "initial": 0
+    },
+    {
+      "name": "m_R1",
+      "valueType": "double",
+      "initial": 1
+    },
+    {
+      "name": "m_R2",
+      "valueType": "double",
+      "initial": 1
+    },
+    {
+      "name": "m_R3",
+      "valueType": "double",
+      "initial": 1
+    },
+    {
+      "name": "m_C",
+      "valueType": "double",
+      "initial": 0
+    },
+    {
+      "name": "m_stream",
+      "valueType": "sound_stream*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "SAMPLE_RATE_OUTPUT_ADAPTIVE"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_sample_rate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_k"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_memory"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_type"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_R1",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_R2",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_R3",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_C",
+                      "floating": true
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.cpp",
+        "line": 39,
+        "column": 1
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "memory",
+            "valueType": "sound_stream::sample_t",
+            "value": {
+              "kind": "identifier",
+              "name": "m_memory"
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_last_sample_rate"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "sample_rate"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "recalc"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_last_sample_rate"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "sample_rate"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "LOWPASS_3R"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "LOWPASS"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "sampindex",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "stream"
+                          },
+                          "property": "samples"
+                        },
+                        "args": []
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "memory"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "stream"
+                                },
+                                "property": "get"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sampindex"
+                                }
+                              ]
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "memory"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_k"
+                          }
+                        }
+                      },
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "sampindex"
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "memory"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "HIGHPASS"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "AC"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "for",
+                    "initialize": [
+                      {
+                        "op": "declare",
+                        "name": "sampindex",
+                        "valueType": "int",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ],
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "sampindex"
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "stream"
+                          },
+                          "property": "samples"
+                        },
+                        "args": []
+                      }
+                    },
+                    "iterate": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "sampindex"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      }
+                    ],
+                    "body": [
+                      {
+                        "op": "call",
+                        "expression": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "member",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "stream"
+                            },
+                            "property": "put"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 0
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "sampindex"
+                            },
+                            {
+                              "kind": "binary",
+                              "operator": "-",
+                              "left": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "member",
+                                  "object": {
+                                    "kind": "identifier",
+                                    "name": "stream"
+                                  },
+                                  "property": "get"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "identifier",
+                                    "name": "sampindex"
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "memory"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "memory"
+                        },
+                        "operator": "+=",
+                        "value": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "-",
+                            "left": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "identifier",
+                                  "name": "stream"
+                                },
+                                "property": "get"
+                              },
+                              "args": [
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "identifier",
+                                  "name": "sampindex"
+                                }
+                              ]
+                            },
+                            "right": {
+                              "kind": "identifier",
+                              "name": "memory"
+                            }
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_k"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_memory"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "memory"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.cpp",
+        "line": 58,
+        "column": 1
+      }
+    },
+    {
+      "name": "recalc",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "Req",
+            "valueType": "double"
+          },
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "LOWPASS_3R"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_C",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0,
+                        "floating": true
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_k"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1,
+                          "floating": true
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_memory"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "return"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "Req",
+                      "floating": true
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_R1",
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_R2",
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_R3",
+                            "floating": true
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_R1",
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "identifier",
+                            "name": "m_R2",
+                            "floating": true
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_R3",
+                          "floating": true
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "LOWPASS"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_C",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0,
+                        "floating": true
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_k"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1,
+                          "floating": true
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_memory"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "return"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "Req",
+                      "floating": true
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_R1",
+                      "floating": true
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "HIGHPASS"
+                  },
+                  {
+                    "kind": "identifier",
+                    "name": "AC"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "==",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_C",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0,
+                        "floating": true
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_k"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_memory"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      {
+                        "op": "return"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "Req",
+                      "floating": true
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "identifier",
+                      "name": "m_R1",
+                      "floating": true
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              },
+              {
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "filter_rc_setRC: Wrong filter type %d\n"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_type"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_k"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "number",
+                "value": 1,
+                "floating": true
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "exp"
+                },
+                "args": [
+                  {
+                    "kind": "binary",
+                    "operator": "/",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "unary",
+                        "operator": "-",
+                        "operand": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "Req",
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_C",
+                          "floating": true
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_stream"
+                        },
+                        "property": "sample_rate"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.cpp",
+        "line": 91,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_rc",
+      "parameters": "int type, double R1, double R2, double R3, double C",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "type"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R1",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R2",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R3",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 72,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_lowpass",
+      "parameters": "double R, double C",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "LOWPASS"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_set_RC",
+      "parameters": "int type, double R1, double R2, double R3, double C",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_rc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "type"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R1",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R2",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R3",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_sample_rate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 93,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_ac",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_rc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "filter_rc_device::AC"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ],
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 101,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_device::set_rc",
+      "parameters": "int type, double R1, double R2, double R3, double C",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "type"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R1",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R2",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R3",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 72,
+        "column": 103
+      }
+    },
+    {
+      "name": "filter_rc_device::set_lowpass",
+      "parameters": "double R, double C",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "LOWPASS"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_device::filter_rc_set_RC",
+      "parameters": "int type, double R1, double R2, double R3, double C",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_rc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "type"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R1",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R2",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R3",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_sample_rate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 94,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_device::set_ac",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_rc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "filter_rc_device::AC"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 10
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ],
+                  "floating": true
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 102,
+        "column": 1
+      }
+    },
+    {
+      "name": "RES_K",
+      "parameters": "double res",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "res",
+                "floating": true
+              },
+              "right": {
+                "kind": "number",
+                "value": 1000,
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rescap.h",
+        "line": 8,
+        "column": 1
+      }
+    },
+    {
+      "name": "CAP_U",
+      "parameters": "double cap",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "cap",
+                "floating": true
+              },
+              "right": {
+                "kind": "number",
+                "value": 0.000001,
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/rescap.h",
+        "line": 11,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_rc=",
+      "parameters": "int type, double R1, double R2, double R3, double C, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "type"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R1",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R2",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R3",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 72,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_lowpass=",
+      "parameters": "double R, double C, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "LOWPASS"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 83,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_set_RC=",
+      "parameters": "int type, double R1, double R2, double R3, double C, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_rc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "type"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R1",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R2",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R3",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_sample_rate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 93,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_device::set_rc=",
+      "parameters": "int type, double R1, double R2, double R3, double C, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "type"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R1",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R2",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R3",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 72,
+        "column": 103
+      }
+    },
+    {
+      "name": "filter_rc_device::set_lowpass=",
+      "parameters": "double R, double C, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_type"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "LOWPASS"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R1",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "R",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R2",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_R3",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_C",
+              "floating": true
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "C",
+              "floating": true
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "filter_rc_device::filter_rc_set_RC=",
+      "parameters": "int type, double R1, double R2, double R3, double C, u32 __assigned",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_rc"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "type"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R1",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R2",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "R3",
+                  "floating": true
+                },
+                {
+                  "kind": "identifier",
+                  "name": "C",
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_last_sample_rate"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "unary",
+              "operator": "*",
+              "operand": {
+                "kind": "identifier",
+                "name": "this"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/flt_rc.h",
+        "line": 94,
+        "column": 1
+      }
+    }
+  ],
+  "start": "device_start",
+  "summary": {
+    "methods": 19,
+    "compiledMethods": 19,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "device_start",
+    "sound_stream_update",
+    "recalc",
+    "set_rc",
+    "set_lowpass",
+    "filter_rc_set_RC",
+    "set_ac",
+    "filter_rc_device::set_rc",
+    "filter_rc_device::set_lowpass",
+    "filter_rc_device::filter_rc_set_RC",
+    "filter_rc_device::set_ac",
+    "RES_K",
+    "CAP_U",
+    "set_rc=",
+    "set_lowpass=",
+    "filter_rc_set_RC=",
+    "filter_rc_device::set_rc=",
+    "filter_rc_device::set_lowpass=",
+    "filter_rc_device::filter_rc_set_RC="
+  ]
+}

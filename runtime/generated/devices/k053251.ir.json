@@ -1,0 +1,182 @@
+{
+  "type": "K053251",
+  "uses": [
+    {
+      "game": "simpsons",
+      "tags": [
+        "k053251"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "K053251",
+    "className": "k053251_device",
+    "shortName": "k053251",
+    "description": "Konami 053251 Priority Encoder",
+    "sourceFile": "src/mame/konami/k053251.cpp",
+    "sourceLine": 128,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(K053251, k053251_device, \"k053251\", \"Konami 053251 Priority Encoder\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 139,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ram"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 148,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memset"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_ram"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "sizeof"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ram"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "reset_indexes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 158,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "reset_indexes"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, u8 data",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 167,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_priority",
+      "parameters": "u8 ci",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 176,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_palette_index",
+      "parameters": "u8 ci",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 181,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "reset_indexes",
+      "parameters": "",
+      "sourceFile": "src/mame/konami/k053251.cpp",
+      "sourceLine": 187,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/konami/k053251.cpp",
+    "src/mame/konami/k053251.h"
+  ]
+}

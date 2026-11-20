@@ -1,0 +1,2556 @@
+{
+  "type": "POLEPOS_SOUND",
+  "uses": [
+    {
+      "game": "polepos",
+      "tags": [
+        "engine"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "POLEPOS_SOUND",
+    "className": "polepos_sound_device",
+    "shortName": "polepos_sound",
+    "description": "Pole Position Custom Sound",
+    "sourceFile": "src/mame/namco/polepos_a.cpp",
+    "sourceLine": 201,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(POLEPOS_SOUND, polepos_sound_device, \"polepos_sound\", \"Pole Position Custom Sound\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/polepos_a.cpp",
+      "sourceLine": 4674,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 24000
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sample_msb"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "assignment",
+              "target": {
+                "kind": "identifier",
+                "name": "m_sample_lsb"
+              },
+              "operator": "=",
+              "value": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sample_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_filter_engine"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                },
+                "property": "opamp_m_bandpass_setup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 220
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 33
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 390
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0.01,
+                      "floating": true
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0.01,
+                      "floating": true
+                    }
+                  ],
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_filter_engine"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                },
+                "property": "opamp_m_bandpass_setup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 150
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 22
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "RES_K"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 330
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0.0047,
+                      "floating": true
+                    }
+                  ],
+                  "floating": true
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "CAP_U"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0.0047,
+                      "floating": true
+                    }
+                  ],
+                  "floating": true
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_filter_engine"
+                  },
+                  "index": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                },
+                "property": "setup"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "this"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "number",
+                  "value": 950
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 1,
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0.707,
+                    "floating": true
+                  }
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_current_position"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sample_msb"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sample_lsb"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sample_enable"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "x0"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "x1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "x2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "y0"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "y1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "y2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "a1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "a2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "b0"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "b1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "STRUCT_MEMBER"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "b2"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/namco/polepos_a.cpp",
+      "sourceLine": 4709,
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "loop",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "loop"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "loop"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_filter_engine"
+                      },
+                      "index": {
+                        "kind": "identifier",
+                        "name": "loop"
+                      }
+                    },
+                    "property": "reset"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "sourceFile": "src/mame/namco/polepos_a.cpp",
+      "sourceLine": 4720,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_sample_enable"
+              }
+            },
+            "then": [
+              {
+                "op": "return"
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "clock",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "unscaled_clock"
+                    },
+                    "args": []
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                },
+                "right": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_sample_msb"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 1
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 64
+                      }
+                    },
+                    "right": {
+                      "kind": "identifier",
+                      "name": "m_sample_lsb"
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "*",
+                "left": {
+                  "kind": "number",
+                  "value": 64
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 64
+                }
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "step",
+            "valueType": "uint32_t",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "<<",
+                "left": {
+                  "kind": "identifier",
+                  "name": "clock"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 12
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 24000
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "slot",
+            "valueType": "unsigned",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "binary",
+                "operator": ">>",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_sample_msb"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 7
+              }
+            }
+          },
+          {
+            "op": "declare",
+            "name": "volume",
+            "valueType": "double",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "TABLE"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "slot"
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "number",
+                          "value": 1,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1000,
+                              "floating": true
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 250
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1000,
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2200,
+                          "floating": true
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "number",
+                          "value": 1,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1000,
+                              "floating": true
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 250
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2200,
+                          "floating": true
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1000,
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4700,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "number",
+                          "value": 1,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1000,
+                              "floating": true
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 250
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4700,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "number",
+                            "value": 1,
+                            "floating": true
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 1000,
+                                "floating": true
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "number",
+                                "value": 1,
+                                "floating": true
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 250
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1000,
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4700,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2200,
+                          "floating": true
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "number",
+                          "value": 1,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1000,
+                              "floating": true
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 1,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 250
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "number",
+                          "value": 4700,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 2200,
+                          "floating": true
+                        }
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1000,
+                        "floating": true
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2200
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 10000
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "base",
+            "valueType": "auto*",
+            "value": {
+              "kind": "unary",
+              "operator": "&",
+              "operand": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_data"
+                },
+                "index": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "slot"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2048
+                  }
+                }
+              }
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "sampindex",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "sampindex"
+              },
+              "right": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "stream"
+                  },
+                  "property": "samples"
+                },
+                "args": []
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "sampindex"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "property": "x0",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "/",
+                        "left": {
+                          "kind": "number",
+                          "value": 3.4,
+                          "floating": true
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 255
+                        }
+                      },
+                      "right": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "base"
+                        },
+                        "index": {
+                          "kind": "binary",
+                          "operator": "&",
+                          "left": {
+                            "kind": "binary",
+                            "operator": ">>",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_current_position"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 12
+                            }
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 2047
+                          }
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "volume",
+                    "floating": true
+                  }
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "property": "x0",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "property": "x0",
+                  "floating": true
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "property": "x0",
+                  "floating": true
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_filter_engine"
+                    },
+                    "index": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  },
+                  "property": "x0",
+                  "floating": true
+                }
+              },
+              {
+                "op": "declare",
+                "name": "i_total",
+                "valueType": "double",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "loop",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "loop"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 3
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "loop"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_filter_engine"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "loop"
+                          }
+                        },
+                        "property": "step"
+                      },
+                      "args": []
+                    }
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": ">",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_filter_engine"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "loop"
+                          }
+                        },
+                        "property": "y0",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 1.5,
+                        "floating": true
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_filter_engine"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "loop"
+                            }
+                          },
+                          "property": "y0",
+                          "floating": true
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 1.5,
+                          "floating": true
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_filter_engine"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "loop"
+                          }
+                        },
+                        "property": "y0",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "-",
+                        "operand": {
+                          "kind": "number",
+                          "value": 2
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "index",
+                            "object": {
+                              "kind": "identifier",
+                              "name": "m_filter_engine"
+                            },
+                            "index": {
+                              "kind": "identifier",
+                              "name": "loop"
+                            }
+                          },
+                          "property": "y0",
+                          "floating": true
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "number",
+                            "value": 2
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "i_total",
+                      "floating": true
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "index",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_filter_engine"
+                          },
+                          "index": {
+                            "kind": "identifier",
+                            "name": "loop"
+                          }
+                        },
+                        "property": "y0",
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "TABLE"
+                        },
+                        "args": [
+                          {
+                            "kind": "identifier",
+                            "name": "loop"
+                          },
+                          {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "RES_K"
+                            },
+                            "args": [
+                              {
+                                "kind": "number",
+                                "value": 4.7,
+                                "floating": true
+                              }
+                            ],
+                            "floating": true
+                          },
+                          {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "RES_K"
+                            },
+                            "args": [
+                              {
+                                "kind": "number",
+                                "value": 7.5,
+                                "floating": true
+                              }
+                            ],
+                            "floating": true
+                          },
+                          {
+                            "kind": "call",
+                            "callee": {
+                              "kind": "identifier",
+                              "name": "RES_K"
+                            },
+                            "args": [
+                              {
+                                "kind": "number",
+                                "value": 10
+                              }
+                            ],
+                            "floating": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i_total",
+                  "floating": true
+                },
+                "operator": "*=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "r_filt_total"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "put"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "sampindex"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "i_total",
+                      "floating": true
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_current_position"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "step"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clson_w",
+      "parameters": "int state",
+      "sourceFile": "src/mame/namco/polepos_a.cpp",
+      "sourceLine": 4761,
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "state"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "polepos_engine_sound_lsb_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "polepos_engine_sound_msb_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "polepos_engine_sound_lsb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/polepos_a.cpp",
+      "sourceLine": 4774,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sample_lsb"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 62
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sample_enable"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "polepos_engine_sound_msb_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/mame/namco/polepos_a.cpp",
+      "sourceLine": 4785,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "update"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sample_msb"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "data"
+              },
+              "right": {
+                "kind": "number",
+                "value": 63
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "RES_K",
+      "parameters": "double res",
+      "sourceFile": "src/devices/machine/rescap.h",
+      "sourceLine": 8,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "res",
+                "floating": true
+              },
+              "right": {
+                "kind": "number",
+                "value": 1000,
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "CAP_U",
+      "parameters": "double cap",
+      "sourceFile": "src/devices/machine/rescap.h",
+      "sourceLine": 11,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "cap",
+                "floating": true
+              },
+              "right": {
+                "kind": "number",
+                "value": 0.000001,
+                "floating": true
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/namco/polepos_a.cpp",
+    "src/mame/namco/polepos_a.h",
+    "src/devices/sound/discrete.h",
+    "src/devices/machine/rescap.h",
+    "src/devices/sound/disc_cls.h",
+    "src/devices/sound/disc_wav.h",
+    "src/devices/sound/discrete.cpp",
+    "src/devices/sound/disc_sys.hxx",
+    "src/devices/sound/disc_wav.hxx",
+    "src/devices/sound/disc_mth.hxx",
+    "src/devices/sound/disc_inp.hxx",
+    "src/devices/sound/disc_flt.hxx",
+    "src/devices/sound/disc_dev.hxx",
+    "src/devices/sound/disc_mth.h",
+    "src/devices/sound/disc_flt.h",
+    "src/devices/sound/disc_dev.h"
+  ]
+}

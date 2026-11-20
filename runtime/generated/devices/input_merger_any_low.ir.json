@@ -1,0 +1,261 @@
+{
+  "type": "INPUT_MERGER_ANY_LOW",
+  "uses": [
+    {
+      "game": "upndown",
+      "tags": [
+        "sn_ready"
+      ]
+    },
+    {
+      "game": "wboy",
+      "tags": [
+        "sn_ready"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "INPUT_MERGER_ANY_LOW",
+    "className": "input_merger_any_low_device",
+    "shortName": "ipt_merge_any_lo",
+    "description": "Input Merger (any low)",
+    "sourceFile": "src/devices/machine/input_merger.cpp",
+    "sourceLine": 45,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(INPUT_MERGER_ANY_LOW,  input_merger_any_low_device,  \"ipt_merge_any_lo\", \"Input Merger (any low)\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 87,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_initval"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_state",
+      "parameters": "int param",
+      "sourceFile": "src/devices/machine/input_merger.cpp",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "output_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_w_1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 25,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_set",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 28,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_clear",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_merger_device::output_handler",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 22,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_merger_device::in_w_0",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 26,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_merger_device::in_w_1",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 26,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_merger_device::in_set",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 29,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_merger_device::in_clear",
+      "parameters": "u8 data = 0",
+      "sourceFile": "src/devices/machine/input_merger.h",
+      "sourceLine": 30,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "in_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/input_merger.cpp",
+    "src/devices/machine/input_merger.h"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "game": "spectrum",
+  "title": "ZX Spectrum (Sinclair Research Ltd, 1982)",
+  "fullname": "ZX Spectrum",
+  "year": "1982",
+  "manufacturer": "Sinclair Research Ltd",
+  "family": "spectrum",
+  "kind": "computer",
+  "driverFile": "src/mame/sinclair/spectrum.cpp",
+  "license": "GPL-2.0+",
+  "copyrightHolders": "Kevin Thacker",
+  "credits": {
+    "people": [
+      {
+        "name": "Kevin Thacker",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "holub",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 14,
+        "firstRelease": "0.242",
+        "lastRelease": "0.287"
+      },
+      {
+        "name": "AmatCoder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.210",
+        "lastRelease": "0.212"
+      },
+      {
+        "name": "TwistedTom",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.216",
+        "lastRelease": "0.241"
+      },
+      {
+        "name": "geecab",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.196",
+        "lastRelease": "0.196"
+      },
+      {
+        "name": "MetalliC",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.162",
+        "lastRelease": "0.162"
+      },
+      {
+        "name": "rfka01",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.227",
+        "lastRelease": "0.227"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2026-04-04",
+    "commits": 139,
+    "authors": 27,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

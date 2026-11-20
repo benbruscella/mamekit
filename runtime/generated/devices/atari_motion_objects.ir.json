@@ -1,0 +1,3385 @@
+{
+  "type": "ATARI_MOTION_OBJECTS",
+  "uses": [
+    {
+      "game": "gauntlet",
+      "tags": [
+        "mob"
+      ]
+    },
+    {
+      "game": "marble",
+      "tags": [
+        "mob"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "ATARI_MOTION_OBJECTS",
+    "className": "atari_motion_objects_device",
+    "shortName": "atarimo",
+    "description": "Atari Motion Objects",
+    "sourceFile": "src/mame/atari/atarimo.cpp",
+    "sourceLine": 121,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(ATARI_MOTION_OBJECTS, atari_motion_objects_device, \"atarimo\", \"Atari Motion Objects\")"
+  },
+  "methods": [
+    {
+      "name": "sprite_device",
+      "parameters": "const machine_config &mconfig, device_type type, const char *tag, device_t *owner, int dirty_granularity = 3",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "force_clear"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 88,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bitmap",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects",
+      "parameters": "auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "iterate_dirty_rects"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "action"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects",
+      "parameters": "const rectangle &cliprect, auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "iterate_dirty_rects"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "action"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spriteram",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spriteram_bytes",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "spriteram_elements",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_spriteram",
+      "parameters": "uint16_t *base, uint32_t bytes",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_origin",
+      "parameters": "int32_t xorigin = 0, int32_t yorigin = 0",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xorigin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xorigin"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yorigin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "yorigin"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_xorigin",
+      "parameters": "int32_t xorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_yorigin",
+      "parameters": "int32_t yorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "copy_to_buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memcpy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram_bytes"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear__1"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bitmap"
+                    },
+                    "property": "cliprect"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear",
+      "parameters": "const rectangle &cliprect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 112,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "iterate_dirty_rects"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                },
+                {
+                  "kind": "lambda",
+                  "parameters": [
+                    "rect"
+                  ],
+                  "body": [
+                    {
+                      "op": "call",
+                      "expression": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "m_bitmap"
+                          },
+                          "property": "fill"
+                        },
+                        "args": [
+                          {
+                            "kind": "unary",
+                            "operator": "~",
+                            "operand": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "kind": "identifier",
+                            "name": "rect"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "clean"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "cliprect"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "force_clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 117,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bitmap"
+                },
+                "property": "fill"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "clean_all"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw_async",
+      "parameters": "const rectangle &cliprect, bool clearit = true",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 124,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 259,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sprite_device::device_start"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "declare",
+            "name": "gfx",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxdecode"
+                },
+                "property": "gfx"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_gfxindex"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "gfx"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "__throw"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "emu_fatalerror"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "No gfxelement #%d!"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_gfxindex"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_linkmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_link_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_codemask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_code_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_colormask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_color_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_xposmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_xpos_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_yposmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_ypos_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_widthmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_width_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_heightmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_height_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_hflipmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_hflip_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vflipmask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_vflip_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_prioritymask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_priority_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_neighbormask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_neighbor_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_absolutemask"
+                },
+                "property": "set"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_absolute_entry"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tilewidth"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "gfx"
+                },
+                "property": "width"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tileheight"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "gfx"
+                },
+                "property": "height"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tilexshift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_log"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_tilewidth"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tileyshift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_log"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_tileheight"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapwidth"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_xposmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapheight"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_yposmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapxmask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitmapwidth"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmapymask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitmapheight"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_entrycount"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_linkmask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_entrybits"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_log"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_entrycount"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteramsize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "*",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bankcount"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_entrycount"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriterammask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_spriteramsize"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_slipshift"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_slipheight"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              "whenTrue": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "compute_log"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "m_slipheight"
+                  }
+                ]
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_slipramsize"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": ">>",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitmapheight"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_slipshift"
+              }
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sliprammask"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_slipramsize"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_maxperline"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_maxperline"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "MAX_PER_BANK"
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_slipram"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_slipram"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_slipramshare"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "codesize",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_codemask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_codelookup"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "codesize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "codesize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_codelookup"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "colorsize",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "round_to_powerof2"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_colormask"
+                    },
+                    "property": "mask"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_colorlookup"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "colorsize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "colorsize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_colorlookup"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "i"
+                }
+              }
+            ]
+          },
+          {
+            "op": "declare",
+            "name": "gfxsize",
+            "valueType": "int",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "codesize"
+              },
+              "right": {
+                "kind": "number",
+                "value": 256
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_gfxlookup"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "gfxsize"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "i",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "i"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "gfxsize"
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "i"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "index",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_gfxlookup"
+                  },
+                  "index": {
+                    "kind": "identifier",
+                    "name": "i"
+                  }
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_gfxindex"
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_force_update_timer"
+                },
+                "property": "adjust"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "screen"
+                      },
+                      "args": []
+                    },
+                    "property": "time_until_pos"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bank"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xscroll"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_yscroll"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 152,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "spriteram",
+            "valueType": "auto*",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "owner"
+                  },
+                  "args": []
+                },
+                "property": "memshare"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "tag"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "spriteram"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "set_spriteram"
+                  },
+                  "args": [
+                    {
+                      "kind": "cast",
+                      "valueType": "uint16_t",
+                      "pointer": true,
+                      "operand": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "member",
+                          "object": {
+                            "kind": "identifier",
+                            "name": "spriteram"
+                          },
+                          "property": "ptr"
+                        },
+                        "args": []
+                      }
+                    },
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "spriteram"
+                        },
+                        "property": "bytes"
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "save_item"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "NAME"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "m_buffer"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty",
+      "parameters": "const rectangle &rect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mark_dirty__4"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "left"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "right"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty",
+      "parameters": "int32_t left, int32_t right, int32_t top, int32_t bottom",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 172,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "dirty"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "left"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_xorigin"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "right"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_xorigin"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "top"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_yorigin"
+                  }
+                },
+                {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "bottom"
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "m_yorigin"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::sprite_device",
+      "parameters": "const machine_config &mconfig, device_type type, const char *tag, device_t *owner, int dirty_granularity = 3",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 75,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "force_clear"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::xorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 89,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::yorigin",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::bitmap",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::iterate_dirty_rects",
+      "parameters": "auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::spriteram",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::spriteram_bytes",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::spriteram_elements",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_spriteram",
+      "parameters": "uint16_t *base, uint32_t bytes",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteram"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "base"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_spriteram_bytes"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "bytes"
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                "property": "resize"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_spriteram_bytes"
+                  },
+                  "right": {
+                    "kind": "call",
+                    "callee": {
+                      "kind": "identifier",
+                      "name": "sizeof"
+                    },
+                    "args": [
+                      {
+                        "kind": "identifier",
+                        "name": "uint16_t"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_origin",
+      "parameters": "int32_t xorigin = 0, int32_t yorigin = 0",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xorigin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "xorigin"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_yorigin"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "yorigin"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_xorigin",
+      "parameters": "int32_t xorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::set_yorigin",
+      "parameters": "int32_t yorigin",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::copy_to_buffer",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 107,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "memcpy"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_buffer"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_spriteram_bytes"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 110,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear__1"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bitmap"
+                    },
+                    "property": "cliprect"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::force_clear",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 118,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_bitmap"
+                },
+                "property": "fill"
+              },
+              "args": [
+                {
+                  "kind": "unary",
+                  "operator": "~",
+                  "operand": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_dirty"
+                },
+                "property": "clean_all"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::draw_async",
+      "parameters": "const rectangle &cliprect, bool clearit = true",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 125,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::mark_dirty",
+      "parameters": "const rectangle &rect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mark_dirty__4"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "left"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "right"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "compute_log",
+      "parameters": "int value",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 82,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "round_to_powerof2",
+      "parameters": "int value",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 103,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "draw",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 163,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "apply_stain",
+      "parameters": "bitmap_ind16 &bitmap, uint16_t *pf, uint16_t const *mo, int x, int y",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 239,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 344,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "sprite_device::device_reset"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bank"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "build_active_list",
+      "parameters": "int link",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 374,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "render_object",
+      "parameters": "bitmap_ind16 &bitmap, const rectangle &cliprect, const uint16_t *entry",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 421,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "force_update",
+      "parameters": "int param",
+      "sourceFile": "src/mame/atari/atarimo.cpp",
+      "sourceLine": 358,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&screen_tag, const atari_motion_objects_config &config",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_screen"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_config"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, auto &&screen_tag, const atari_motion_objects_config &config",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 78,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_screen"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_config"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_gfxdecode",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_config",
+      "parameters": "const atari_motion_objects_config &config",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 90,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_xoffset",
+      "parameters": "int xoffset",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bank",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xscroll",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "yscroll",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "code_lookup",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "color_lookup",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gfx_lookup",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_bank",
+      "parameters": "int bank",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_xscroll",
+      "parameters": "int xscroll",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 103,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_yscroll",
+      "parameters": "int yscroll",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_scroll",
+      "parameters": "int xscroll, int yscroll",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_xscroll"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "xscroll"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_yscroll"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "yscroll"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "set_slipram",
+      "parameters": "uint16_t *ram",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "slipram",
+      "parameters": "int offset",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 111,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::atari_motion_objects_device",
+      "parameters": "const machine_config &mconfig, const char *tag, device_t *owner, uint32_t clock, auto &&screen_tag, const atari_motion_objects_config &config",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 68,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_screen"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "std::forward"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "screen_tag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_config"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "config"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_gfxdecode",
+      "parameters": "auto &&tag",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 87,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_config",
+      "parameters": "const atari_motion_objects_config &config",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 91,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_xoffset",
+      "parameters": "int xoffset",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 92,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::bank",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::xscroll",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 96,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::yscroll",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::code_lookup",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::color_lookup",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::gfx_lookup",
+      "parameters": "",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_bank",
+      "parameters": "int bank",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 101,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_xscroll",
+      "parameters": "int xscroll",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 104,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_yscroll",
+      "parameters": "int yscroll",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 105,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_scroll",
+      "parameters": "int xscroll, int yscroll",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 106,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_xscroll"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "xscroll"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_yscroll"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "yscroll"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::set_slipram",
+      "parameters": "uint16_t *ram",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 107,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::slipram",
+      "parameters": "int offset",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 111,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bitmap=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 93,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sprite_device::bitmap=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_bitmap"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "code_lookup=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 97,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_codelookup"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_codelookup"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "color_lookup=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_colorlookup"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_colorlookup"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "gfx_lookup=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_gfxlookup"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_gfxlookup"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "slipram=",
+      "parameters": "int offset, u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 111,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::code_lookup=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 98,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_codelookup"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_codelookup"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::color_lookup=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 99,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_colorlookup"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_colorlookup"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::gfx_lookup=",
+      "parameters": "u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 100,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_gfxlookup"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "__assigned"
+            }
+          },
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_gfxlookup"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "atari_motion_objects_device::slipram=",
+      "parameters": "int offset, u32 __assigned",
+      "sourceFile": "src/mame/atari/atarimo.h",
+      "sourceLine": 111,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects__1",
+      "parameters": "auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 94,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "iterate_dirty_rects__2",
+      "parameters": "const rectangle &cliprect, auto &&action",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 95,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear__0",
+      "parameters": "",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 109,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "clear__1"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_bitmap"
+                    },
+                    "property": "cliprect"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clear__1",
+      "parameters": "const rectangle &cliprect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 112,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty__1",
+      "parameters": "const rectangle &rect",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 169,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "mark_dirty__4"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "left"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "right"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "top"
+                  },
+                  "args": []
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "rect"
+                    },
+                    "property": "bottom"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mark_dirty__4",
+      "parameters": "int32_t left, int32_t right, int32_t top, int32_t bottom",
+      "sourceFile": "src/devices/video/sprite.h",
+      "sourceLine": 172,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/mame/atari/atarimo.cpp",
+    "src/mame/atari/atarimo.h",
+    "src/devices/video/sprite.h",
+    "src/devices/video/sprite.cpp"
+  ]
+}

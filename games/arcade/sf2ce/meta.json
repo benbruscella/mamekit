@@ -1,0 +1,197 @@
+{
+  "game": "sf2ce",
+  "title": "Street Fighter II': Champion Edition (World 920513) (Capcom, 1992)",
+  "fullname": "Street Fighter II': Champion Edition (World 920513)",
+  "year": "1992",
+  "manufacturer": "Capcom",
+  "family": "cps1",
+  "driverFile": "src/mame/capcom/cps1.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Paul Leaman",
+  "credits": {
+    "people": [
+      {
+        "name": "Paul Leaman",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "The Dumping Union",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 2,
+        "firstRelease": "0.140",
+        "lastRelease": "0.222"
+      },
+      {
+        "name": "john666",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.140",
+        "lastRelease": "0.140"
+      },
+      {
+        "name": "Smitdogg",
+        "headerCredit": false,
+        "machineCredit": true,
+        "notes": 1,
+        "firstRelease": "0.140",
+        "lastRelease": "0.140"
+      },
+      {
+        "name": "TwistedTom",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 5,
+        "firstRelease": "0.222",
+        "lastRelease": "0.251"
+      },
+      {
+        "name": "darq",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.157",
+        "lastRelease": "0.157"
+      },
+      {
+        "name": "Osso",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.152",
+        "lastRelease": "0.177"
+      },
+      {
+        "name": "Robbbert",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.165",
+        "lastRelease": "0.165"
+      },
+      {
+        "name": "Tafoid",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 3,
+        "firstRelease": "0.153",
+        "lastRelease": "0.153"
+      },
+      {
+        "name": "Abadede",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.257",
+        "lastRelease": "0.257"
+      },
+      {
+        "name": "BarbuDreadMon",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.275",
+        "lastRelease": "0.275"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.288",
+        "lastRelease": "0.288"
+      },
+      {
+        "name": "David Silva",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.245",
+        "lastRelease": "0.245"
+      },
+      {
+        "name": "geforcefly",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.189",
+        "lastRelease": "0.189"
+      },
+      {
+        "name": "gmx",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.222",
+        "lastRelease": "0.222"
+      },
+      {
+        "name": "hap",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.209",
+        "lastRelease": "0.209"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.208",
+        "lastRelease": "0.208"
+      },
+      {
+        "name": "Janniz",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.242",
+        "lastRelease": "0.242"
+      },
+      {
+        "name": "Sergio Galiano",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.238",
+        "lastRelease": "0.238"
+      },
+      {
+        "name": "Sonikos",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.149",
+        "lastRelease": "0.149"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.283",
+        "lastRelease": "0.283"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2007-12-17",
+    "lastCommit": "2026-06-02",
+    "commits": 594,
+    "authors": 51,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

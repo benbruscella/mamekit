@@ -1,0 +1,6906 @@
+{
+  "type": "I8039",
+  "uses": [
+    {
+      "game": "gyruss",
+      "tags": [
+        "audio2"
+      ]
+    },
+    {
+      "game": "junofrst",
+      "tags": [
+        "mcu"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "I8039",
+    "className": "i8039_device",
+    "shortName": "i8039",
+    "description": "Intel 8039",
+    "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+    "sourceLine": 187,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(I8039,   i8039_device,   \"i8039\",   \"Intel 8039\")"
+  },
+  "methods": [
+    {
+      "name": "program_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1069,
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "end",
+            "valueType": "u16",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_rom_size"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_feature_mask"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "end"
+                        }
+                      ]
+                    },
+                    "property": "rom"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "end"
+                        }
+                      ]
+                    },
+                    "property": "view"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_rom_view"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "index",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_rom_view"
+                        },
+                        "index": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "end"
+                        }
+                      ]
+                    },
+                    "property": "rom"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "data_map",
+      "parameters": "address_map &map",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1083,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "map"
+                      },
+                      "args": [
+                        {
+                          "kind": "number",
+                          "value": 0
+                        },
+                        {
+                          "kind": "binary",
+                          "operator": "-",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "m_ram_size"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        }
+                      ]
+                    },
+                    "property": "ram"
+                  },
+                  "args": []
+                },
+                "property": "share"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "data"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "opcode_fetch",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1097,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "argument_fetch",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1110,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_regptr",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1123,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update_ea",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1134,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "push_pc_psw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1151,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pull_pc_psw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1165,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "pull_pc",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1181,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_add",
+      "parameters": "u8 dat",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1196,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_addc",
+      "parameters": "u8 dat",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1213,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_jmp",
+      "parameters": "u16 address",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1231,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_call",
+      "parameters": "u16 address",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1243,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_jcc",
+      "parameters": "bool result",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1255,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_mask",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1269,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "expander_operation",
+      "parameters": "expander_op operation, u8 port",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1287,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "illegal",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1319,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1325,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1326,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1327,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1328,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1329,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1330,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1331,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1332,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1333,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1334,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "add_a_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1335,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1337,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1338,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1339,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1340,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1341,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1342,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1343,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1344,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1345,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1346,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "adc_a_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1347,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1349,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1350,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1351,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1352,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1353,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1354,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1355,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1356,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1357,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1358,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_a_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1359,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_bus_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1361,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_p1_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1362,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anl_p2_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1363,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anld_p4_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1364,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anld_p5_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1365,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anld_p6_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1366,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "anld_p7_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1367,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1369,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1370,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1371,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1372,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1373,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1374,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1375,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "call_7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1376,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clr_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1378,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clr_c",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1379,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clr_f0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1380,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "clr_f1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1381,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cpl_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1383,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cpl_c",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1384,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cpl_f0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1385,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "cpl_f1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1386,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "da_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1388,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1405,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1406,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1407,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1408,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1409,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1410,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1411,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1412,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dec_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1413,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dis_i",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1415,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "dis_tcnti",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1416,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1418,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1419,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1420,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1421,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1422,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1423,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1424,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "djnz_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1425,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "en_i",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1427,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "en_tcnti",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1428,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "en_dma",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1429,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dma_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "en_flags",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1430,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flags_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ent0_clk",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1431,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_a_p0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1441,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "bus_r"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "m_dbbo"
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_a_p1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1442,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_a_p2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1443,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ins_a_bus",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1444,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "in_a_dbb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1445,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sts"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "unary",
+              "operator": "~",
+              "operand": {
+                "kind": "number",
+                "value": 2
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_flags_enabled"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_p2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 32
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "port_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "assignment",
+                      "target": {
+                        "kind": "identifier",
+                        "name": "m_p2"
+                      },
+                      "operator": "|=",
+                      "value": {
+                        "kind": "number",
+                        "value": 32
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_dbbi"
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1458,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1459,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1460,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1461,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1462,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1463,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1464,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1465,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1466,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1467,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "inc_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1468,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1470,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1471,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1472,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1473,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1474,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1475,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1476,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jb_7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1477,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jc",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1478,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jf0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1479,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jf1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1480,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jnc",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1481,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jni",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1482,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jnibf",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1483,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_polled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_sts"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 2
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "execute_jcc"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "==",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sts"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 2
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jnt_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1484,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jnt_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1485,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jnz",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1486,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jobf",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1487,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "execute_jcc"
+              },
+              "args": [
+                {
+                  "kind": "binary",
+                  "operator": "!=",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_sts"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jtf",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1488,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jt_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1489,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jt_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1490,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jz",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1491,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1493,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1494,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1495,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1496,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1497,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1498,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1499,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmp_7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1500,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "jmpp_xa",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1501,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1503,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_psw",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1504,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1505,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1506,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1507,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1508,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1509,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1510,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1511,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1512,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1513,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1514,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_a_t",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1515,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_psw_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1517,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_sts_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1518,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sts"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "|",
+              "left": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_sts"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 15
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 240
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r0_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1519,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r1_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1520,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r2_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1521,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r3_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1522,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r4_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1523,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r5_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1524,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r6_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1525,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r7_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1526,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r0_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1527,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r1_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1528,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r2_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1529,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r3_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1530,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r4_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1531,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r5_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1532,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r6_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1533,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_r7_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1534,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_t_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1535,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_xr0_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1536,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_xr1_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1537,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_xr0_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1538,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mov_xr1_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1539,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_a_p4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1541,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_a_p5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1542,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_a_p6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1543,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_a_p7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1544,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_p4_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1545,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_p5_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1546,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_p6_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1547,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movd_p7_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1548,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movp_a_xa",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1550,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movp3_a_xa",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1551,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movx_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1553,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movx_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1554,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movx_xr0_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1555,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "movx_xr1_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1556,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "nop",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1558,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1560,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1561,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1562,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1563,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1564,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1565,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1566,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1567,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1568,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1569,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_a_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1570,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_bus_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1572,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_p1_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1573,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orl_p2_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1574,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orld_p4_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1575,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orld_p5_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1576,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orld_p6_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1577,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "orld_p7_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1578,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "outl_bus_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1580,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "outl_p0_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1581,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "bus_w"
+              },
+              "args": [
+                {
+                  "kind": "assignment",
+                  "target": {
+                    "kind": "identifier",
+                    "name": "m_dbbo"
+                  },
+                  "operator": "=",
+                  "value": {
+                    "kind": "identifier",
+                    "name": "m_a"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "outl_p1_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1582,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "outl_p2_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1583,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "out_dbb_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1584,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "burn_cycles"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dbbo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "m_a"
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sts"
+            },
+            "operator": "|=",
+            "value": {
+              "kind": "number",
+              "value": 1
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_flags_enabled"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "==",
+                "left": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_p2"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "port_w"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "assignment",
+                      "target": {
+                        "kind": "identifier",
+                        "name": "m_p2"
+                      },
+                      "operator": "|=",
+                      "value": {
+                        "kind": "number",
+                        "value": 16
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ret",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1597,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "retr",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1598,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rl_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1607,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rlc_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1608,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rr_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1610,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "rrc_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1611,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sel_mb0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1613,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sel_mb1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1614,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sel_rb0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1616,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "sel_rb1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1617,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "stop_tcnt",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1619,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strt_t",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1620,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "strt_cnt",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1621,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "swap_a",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1630,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1632,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1633,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1634,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1635,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1636,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1637,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1638,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1639,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1640,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xch_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1641,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xchd_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1643,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xchd_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1644,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1646,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1647,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1648,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1649,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1650,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1651,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1652,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_r7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1653,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_xr0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1654,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_xr1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1655,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "xrl_a_n",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1656,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_config_complete",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1811,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_t0_clk_func"
+                },
+                "property": "resolve"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_t0_clk_func"
+                  },
+                  "property": "isnull"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_t0_clk_func"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "clock"
+                        },
+                        "args": []
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 3
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prevpc"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pc"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_psw"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_f1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a11"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_prescaler"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_t1_history"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dbbi"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dbbo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_state"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_polled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_in_progress"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer_overflow"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer_flag"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tirq_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xirq_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timecount_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flags_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dma_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_program"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "space"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_PROGRAM"
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "space"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "AS_DATA"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_feature_mask"
+              },
+              "right": {
+                "kind": "number",
+                "value": 2
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "space"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "AS_IO"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_ea"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "identifier",
+                "name": "m_rom_size"
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 0
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_ea"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_regptr"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "MCS48_PC"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "PC"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_pc"
+                    }
+                  ]
+                },
+                "property": "mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 4095
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_GENPC"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "GENPC"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_pc"
+                        }
+                      ]
+                    },
+                    "property": "mask"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4095
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_GENPCBASE"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "CURPC"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_prevpc"
+                        }
+                      ]
+                    },
+                    "property": "mask"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 4095
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "MCS48_SP"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "SP"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_psw"
+                        }
+                      ]
+                    },
+                    "property": "mask"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  ]
+                },
+                "property": "noshow"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "STATE_GENFLAGS"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "GENFLAGS"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_psw"
+                        }
+                      ]
+                    },
+                    "property": "noshow"
+                  },
+                  "args": []
+                },
+                "property": "formatstr"
+              },
+              "args": [
+                {
+                  "kind": "string",
+                  "value": "%11s"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "state_add"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MCS48_A"
+                },
+                {
+                  "kind": "string",
+                  "value": "A"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_a"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "state_add"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MCS48_TC"
+                },
+                {
+                  "kind": "string",
+                  "value": "TC"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_timer"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "MCS48_TPRE"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "TPRE"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_prescaler"
+                    }
+                  ]
+                },
+                "property": "mask"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 31
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_feature_mask"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "MCS48_P0"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "P0"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_dbbo"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "state_add"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MCS48_P1"
+                },
+                {
+                  "kind": "string",
+                  "value": "P1"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_p1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "state_add"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "MCS48_P2"
+                },
+                {
+                  "kind": "string",
+                  "value": "P2"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "regnum",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<",
+              "left": {
+                "kind": "identifier",
+                "name": "regnum"
+              },
+              "right": {
+                "kind": "number",
+                "value": 8
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "regnum"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "state_add"
+                          },
+                          "args": [
+                            {
+                              "kind": "binary",
+                              "operator": "+",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "MCS48_R0"
+                              },
+                              "right": {
+                                "kind": "identifier",
+                                "name": "regnum"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "member",
+                                "object": {
+                                  "kind": "call",
+                                  "callee": {
+                                    "kind": "identifier",
+                                    "name": "string_format"
+                                  },
+                                  "args": [
+                                    {
+                                      "kind": "string",
+                                      "value": "R%d"
+                                    },
+                                    {
+                                      "kind": "identifier",
+                                      "name": "regnum"
+                                    }
+                                  ]
+                                },
+                                "property": "c_str"
+                              },
+                              "args": []
+                            },
+                            {
+                              "kind": "identifier",
+                              "name": "m_rtemp"
+                            }
+                          ]
+                        },
+                        "property": "callimport"
+                      },
+                      "args": []
+                    },
+                    "property": "callexport"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "binary",
+                "operator": "&",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_feature_mask"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 8
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "MCS48_EA"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "EA"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_ea"
+                        }
+                      ]
+                    },
+                    "property": "mask"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_feature_mask"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "state_add"
+                      },
+                      "args": [
+                        {
+                          "kind": "identifier",
+                          "name": "MCS48_STS"
+                        },
+                        {
+                          "kind": "string",
+                          "value": "STS"
+                        },
+                        {
+                          "kind": "identifier",
+                          "name": "m_sts"
+                        }
+                      ]
+                    },
+                    "property": "mask"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 243
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "MCS48_DBBI"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DBBI"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_dbbi"
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "state_add"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "MCS48_DBBO"
+                    },
+                    {
+                      "kind": "string",
+                      "value": "DBBO"
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "m_dbbo"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prevpc"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_pc"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_psw"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_f1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_a11"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_p2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_ea"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timer"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_prescaler"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_t1_history"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_sts"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dbbi"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dbbo"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_state"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_polled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_irq_in_progress"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timer_overflow"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timer_flag"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_tirq_enabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_xirq_enabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_timecount_enabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_flags_enabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_dma_enabled"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "set_icountptr"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_icount"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1924,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_pc"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_psw"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "binary",
+              "operator": "&",
+              "left": {
+                "kind": "identifier",
+                "name": "m_psw"
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "|",
+                "left": {
+                  "kind": "number",
+                  "value": 128
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 64
+                }
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_regptr"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_f1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_a11"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_tirq_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_xirq_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timecount_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer_flag"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_sts"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_flags_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dma_enabled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_in_progress"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_timer_overflow"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_irq_polled"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_dbbo"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_bus_out_cb"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 255
+                },
+                {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_ea"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 255
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_p2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 255
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_p1"
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "port_w"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 2
+                },
+                {
+                  "kind": "identifier",
+                  "name": "m_p2"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_t0_clk_func"
+                  },
+                  "property": "isnull"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_t0_clk_func"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "check_irqs",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1970,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "burn_cycles",
+      "parameters": "int count",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 2018,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_run",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 2069,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_import",
+      "parameters": "const device_state_entry &entry",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 2156,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_export",
+      "parameters": "const device_state_entry &entry",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 2182,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "state_string_export",
+      "parameters": "const device_state_entry &entry, std::string &str",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 2202,
+      "program": {
+        "operations": [
+          {
+            "op": "switch",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "entry"
+                },
+                "property": "index"
+              },
+              "args": []
+            },
+            "cases": [
+              {
+                "values": [
+                  {
+                    "kind": "identifier",
+                    "name": "STATE_GENFLAGS"
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "str"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "string_format"
+                      },
+                      "args": [
+                        {
+                          "kind": "string",
+                          "value": "%c%c%c %c%c%c%c%c%c%c%c"
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "identifier",
+                            "name": "m_irq_state"
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 73
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "identifier",
+                            "name": "m_a11"
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 77
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "identifier",
+                            "name": "m_f1"
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 49
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 128
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 67
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 64
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 65
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 32
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 48
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 16
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 66
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 8
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 63
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 4
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 115
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 2
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 115
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        },
+                        {
+                          "kind": "conditional",
+                          "condition": {
+                            "kind": "binary",
+                            "operator": "&",
+                            "left": {
+                              "kind": "identifier",
+                              "name": "m_psw"
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          "whenTrue": {
+                            "kind": "number",
+                            "value": 115
+                          },
+                          "whenFalse": {
+                            "kind": "number",
+                            "value": 46
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "break"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_set_input",
+      "parameters": "int inputnum, int state",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 2224,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p1_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 225,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 228,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p1_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 229,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 230,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bus_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 231,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bus_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 232,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "t0_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 233,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "t1_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 234,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "prog_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 235,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p1_r",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 238,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "p2_r",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 240,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_ale_clock",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 243,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_clock"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 5
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "get_t0_clock",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 245,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "m_clock"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 257,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_regptr"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_clocks_to_cycles",
+      "parameters": "u64 clocks",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 258,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_cycles_to_clocks",
+      "parameters": "u64 cycles",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 261,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_min_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 262,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "execute_max_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 263,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "program_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 344,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 347,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ram_w",
+      "parameters": "offs_t a, u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 350,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ext_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 351,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ext_w",
+      "parameters": "offs_t a, u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 354,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 355,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "port_w",
+      "parameters": "offs_t a, u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 356,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "test_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 357,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bus_r",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 358,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "bus_w",
+      "parameters": "u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 359,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "prog_w",
+      "parameters": "int v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 360,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::p1_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 225,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::p2_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 229,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::p1_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 230,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::p2_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 231,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::bus_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 232,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::bus_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 233,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::t0_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 234,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::t1_in_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 235,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::prog_out_cb",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 236,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::p1_r",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 239,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::p2_r",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 241,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::get_ale_clock",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 244,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "binary",
+                "operator": "/",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_clock"
+                },
+                "right": {
+                  "kind": "number",
+                  "value": 3
+                }
+              },
+              "right": {
+                "kind": "number",
+                "value": 5
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::get_t0_clock",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 246,
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "/",
+              "left": {
+                "kind": "identifier",
+                "name": "m_clock"
+              },
+              "right": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 257,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update_regptr"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::execute_clocks_to_cycles",
+      "parameters": "u64 clocks",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 259,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::execute_cycles_to_clocks",
+      "parameters": "u64 cycles",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 262,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::execute_min_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 263,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::execute_max_cycles",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 264,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::program_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 344,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::ram_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 348,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::ram_w",
+      "parameters": "offs_t a, u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 351,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_data"
+                },
+                "property": "write_byte"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "a"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "v"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::ext_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 352,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::ext_w",
+      "parameters": "offs_t a, u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 355,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_io"
+                },
+                "property": "write_byte"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "a"
+                },
+                {
+                  "kind": "identifier",
+                  "name": "v"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::port_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 356,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::port_w",
+      "parameters": "offs_t a, u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 357,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "index",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_port_out_cb"
+                },
+                "index": {
+                  "kind": "binary",
+                  "operator": "-",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "a"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "v"
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::test_r",
+      "parameters": "offs_t a",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 358,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::bus_r",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 359,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::bus_w",
+      "parameters": "u8 v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 360,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mcs48_cpu_device::prog_w",
+      "parameters": "int v",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 361,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_0",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_0",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_1",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_1",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_2",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_2",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_3",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_3",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_4",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_4",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_5",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_5",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_6",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_6",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_7",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_7",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_8",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_8",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_9",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_9",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_10",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_10",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_11",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_11",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_12",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_12",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_13",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_13",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_read_14",
+      "parameters": "",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "__state_write_14",
+      "parameters": "u64 value",
+      "sourceFile": "src/devices/cpu/mcs48/mcs48.cpp",
+      "sourceLine": 1822,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/cpu/mcs48/mcs48.cpp",
+    "src/devices/cpu/mcs48/mcs48.h"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "game": "snes",
+  "title": "Super Nintendo Entertainment System / Super Famicom (NTSC) (Nintendo, 1989)",
+  "fullname": "Super Nintendo Entertainment System / Super Famicom (NTSC)",
+  "year": "1989",
+  "manufacturer": "Nintendo",
+  "family": "snes",
+  "kind": "console",
+  "driverFile": "src/mame/nintendo/snes.cpp",
+  "license": "BSD-3-Clause",
+  "copyrightHolders": "Angelo Salese, R. Belmont, Anthony Kruize, Fabio Priuli",
+  "credits": {
+    "people": [
+      {
+        "name": "Angelo Salese",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.194",
+        "lastRelease": "0.194"
+      },
+      {
+        "name": "Anthony Kruize",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "Fabio Priuli",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "R. Belmont",
+        "headerCredit": true,
+        "machineCredit": false,
+        "notes": 0
+      },
+      {
+        "name": "AmatCoder",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 5,
+        "firstRelease": "0.214",
+        "lastRelease": "0.238"
+      },
+      {
+        "name": "cam900",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.241",
+        "lastRelease": "0.241"
+      },
+      {
+        "name": "Ivan Vangelista",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 2,
+        "firstRelease": "0.210",
+        "lastRelease": "0.210"
+      },
+      {
+        "name": "ArcadeShadow",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.221",
+        "lastRelease": "0.221"
+      },
+      {
+        "name": "Ryan Holtz",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.216",
+        "lastRelease": "0.216"
+      },
+      {
+        "name": "Vas Crabb",
+        "headerCredit": false,
+        "machineCredit": false,
+        "notes": 1,
+        "firstRelease": "0.225",
+        "lastRelease": "0.225"
+      }
+    ],
+    "source": "MAME driver header (copyright-holders) and MAMEDEV release notes",
+    "releases": {
+      "first": "0.100",
+      "last": "0.289",
+      "count": 190
+    }
+  },
+  "commitActivity": {
+    "firstCommit": "2012-08-21",
+    "lastCommit": "2025-04-14",
+    "commits": 139,
+    "authors": 24,
+    "mameRevision": "f34f02505e32c1993c6a782b6814232cbfc74e36",
+    "method": "git log --follow over the driver file"
+  },
+  "hasHistory": true,
+  "historyCredit": "Story courtesy of Gaming History (arcade-history.com)"
+}

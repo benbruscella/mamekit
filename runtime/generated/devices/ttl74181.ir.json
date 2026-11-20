@@ -1,0 +1,518 @@
+{
+  "type": "TTL74181",
+  "uses": [
+    {
+      "game": "berzerk",
+      "tags": [
+        "ls181_10c",
+        "ls181_12c"
+      ]
+    }
+  ],
+  "status": "source-resolved",
+  "definition": {
+    "type": "TTL74181",
+    "className": "ttl74181_device",
+    "shortName": "ttl74181",
+    "description": "74181 TTL",
+    "sourceFile": "src/devices/machine/74181.cpp",
+    "sourceLine": 19,
+    "sourceColumn": 1,
+    "macro": "DEFINE_DEVICE_TYPE(TTL74181, ttl74181_device, \"ttl74181\", \"74181 TTL\")"
+  },
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 44,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_a"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_b"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_m"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_c"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "device_post_load",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 60,
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "update"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "update",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 71,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_a_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 102,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "data"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_a"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_a"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "input_b_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 113,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "data"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_b"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_b"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "select_w",
+      "parameters": "uint8_t data",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 124,
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "data"
+            },
+            "operator": "&=",
+            "value": {
+              "kind": "number",
+              "value": 15
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_s"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "data"
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "data"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "update"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "mode_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 135,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "carry_w",
+      "parameters": "int state",
+      "sourceFile": "src/devices/machine/74181.cpp",
+      "sourceLine": 144,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "function_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "carry_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 37,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "generate_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "propagate_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "equals_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl74181_device::function_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 34,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl74181_device::carry_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 38,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl74181_device::generate_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 39,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl74181_device::propagate_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 40,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    },
+    {
+      "name": "ttl74181_device::equals_r",
+      "parameters": "",
+      "sourceFile": "src/devices/machine/74181.h",
+      "sourceLine": 41,
+      "program": {
+        "operations": [],
+        "diagnostics": []
+      }
+    }
+  ],
+  "dslFiles": [],
+  "sourceFiles": [
+    "src/devices/machine/74181.cpp",
+    "src/devices/machine/74181.h"
+  ]
+}

@@ -1,0 +1,260 @@
+// A CPU compiled whole as its MAME class, standing in the board as a processor.
+//
+// The device compiler compiles a CPU like any other device: its device_start,
+// device_reset, execute_set_input, execute_run and memory interfaces, from
+// MAME's own source (and, for the cores MAME generates at build time, from the
+// generated source -- mame-build.ts). The generated device already hosts
+// MAME's device_execute_interface: `runCycles` gives execute_run a slice in
+// m_icount, `abortTimeslice` swallows what is left of it, and `total_cycles`
+// counts what it has spent.
+//
+// What a board processor needs beyond that is the board's side of the same
+// interface, which this adapter is:
+// - the core's address spaces are the CPU's own maps (the bus the board built
+//   for this tag): program, IO and opcode fetches;
+// - input lines go through the board's device_input (synchronized, HOLD_LINE
+//   held until standard_irq_callback takes it);
+// - standard_irq_callback answers the vector a driver gave with the line, or
+//   its acknowledge callback's, or the core's default_irq_vector;
+// - adjust_icount (`stallCycles`) and total_cycles mid-slice (`elapsedCycles`).
+//
+// Nothing here knows which CPU it hosts.
+import { HOST_INPUT_LINES } from "../ir/board.js";
+/** MAME's address-space indices (emu/emumem.h). */
+const AS_PROGRAM = 0;
+const AS_IO = 2;
+const AS_OPCODES = 3;
+export class DeviceCpu {
+    device;
+    bus;
+    host;
+    /** What the board gave with the line: set_input_line_and_vector's vector. */
+    irqVector;
+    /** The piece of the slice in progress: its budget, as execute_run started it. */
+    target;
+    /** abort_timeslice was asked for during this slice. */
+    aborted = false;
+    constructor(device, bus, host) {
+        this.device = device;
+        this.bus = bus;
+        this.host = host;
+        const read = (address) => bus.read(address);
+        const write = (address, data) => bus.write(address, data);
+        // A 16-bit space reaches the bus's own word access, in its own byte order
+        // (the board's bus is built with the same), so a word handler is called
+        // once.
+        const wide = (index) => {
+            const config = device.spaceConfig?.(index);
+            if (!config || config.dataBits <= 8)
+                return undefined;
+            const little = config.endianness === 'little';
+            return {
+                read16: address => little
+                    ? bus.read16le?.(address) ?? (read(address) | (read(address + 1) << 8))
+                    : bus.read16be?.(address) ?? ((read(address) << 8) | read(address + 1)),
+                write16: (address, data) => {
+                    if (little) {
+                        if (bus.write16le)
+                            bus.write16le(address, data);
+                        else {
+                            write(address, data & 0xff);
+                            write(address + 1, data >>> 8);
+                        }
+                    }
+                    else if (bus.write16be)
+                        bus.write16be(address, data);
+                    else {
+                        write(address, data >>> 8);
+                        write(address + 1, data & 0xff);
+                    }
+                },
+            };
+        };
+        for (const space of device.spaceIndices?.() ?? []) {
+            if (space === AS_PROGRAM)
+                device.bindAddressSpace?.(space, read, write, wide(space));
+            else if (space === AS_IO) {
+                const inByte = (port) => bus.in?.(port) ?? 0xff;
+                const outByte = (port, data) => bus.out?.(port, data);
+                // A 16-bit port space reaches the bus's own word ports (the TMS320C1x's,
+                // the Z8002's), so a word handler sees one access.
+                // In the space's own byte order: the V30's port space is little-endian.
+                const config = device.spaceConfig?.(space);
+                const littlePorts = config?.endianness === 'little';
+                const ports = config && config.dataBits > 8 ? {
+                    read16: port => littlePorts
+                        ? bus.in16le?.(port) ?? (inByte(port) | (inByte(port + 1) << 8))
+                        : bus.in16be?.(port) ?? ((inByte(port) << 8) | inByte(port + 1)),
+                    write16: (port, data) => {
+                        if (littlePorts) {
+                            if (bus.out16le)
+                                bus.out16le(port, data);
+                            else {
+                                outByte(port, data & 0xff);
+                                outByte(port + 1, data >>> 8);
+                            }
+                        }
+                        else if (bus.out16be)
+                            bus.out16be(port, data);
+                        else {
+                            outByte(port, data >>> 8);
+                            outByte(port + 1, data & 0xff);
+                        }
+                    },
+                } : undefined;
+                device.bindAddressSpace?.(space, inByte, outByte, ports);
+            }
+            else if (space === AS_OPCODES) {
+                const fetch = (address) => (bus.readOpcode ?? bus.read).call(bus, address);
+                device.bindAddressSpace?.(space, fetch, write, wide(space) && {
+                    read16: address => bus.readOpcode
+                        ? ((bus.readOpcode(address) << 8) | bus.readOpcode(address + 1)) & 0xffff
+                        : wide(space).read16(address),
+                    write16: wide(space).write16,
+                });
+            }
+            else if (wide(space)) {
+                // Any other space a core declares (the Z8002's data, stack and special
+                // I/O spaces) that its owner did not map apart is its program space,
+                // as MAME's init_spaces falls back to it (`has_space(AS_DATA) ?
+                // space(AS_DATA) : space(AS_PROGRAM)`); bound here so it is never
+                // left reading zero.
+                device.bindAddressSpace?.(space, read, write, wide(space));
+            }
+        }
+        if (bus.installers)
+            device.bindSpaceInstallers?.(AS_PROGRAM, bus.installers);
+        device.bindCall?.('standard_irq_callback', line => this.acknowledge(Number(line)));
+        // The core raising one of its own lines (the RP2A03's APU IRQ) goes
+        // through the board's device_input, as a driver's set_input_line does.
+        device.bindCall?.('set_input_line', (line, state) => { this.host.setInputLine(Number(line), Number(state)); return 0; });
+    }
+    /** Its state is the device's, which the board saves with the devices. */
+    stateKeys() {
+        return [];
+    }
+    reset() {
+        this.device.reset();
+    }
+    /** One instruction's worth: a slice of a single cycle, as MAME's lockstep has it. */
+    step() {
+        return this.run(1);
+    }
+    /**
+     * A timeslice, as MAME's scheduler runs one: execute_run is given the
+     * cycles up to the next device timer's expiry, the timer fires, and the
+     * core resumes from wherever its icount ran out -- mid-instruction, for a
+     * core that keeps its place there (the 6502's m_inst_substate, the Z80's
+     * m_ref). The board's `parked` hook answers the cycles to the next timer
+     * for the processor whose time drives them, and the whole rest of the
+     * slice for any other. Each piece starts with the position reported
+     * (`timing`), which is what advances the device timers. What execute_run
+     * overran is spent too, as in MAME.
+     */
+    run(cycles) {
+        this.aborted = false;
+        let ran = 0;
+        do {
+            this.bus.timing?.(ran, cycles);
+            const room = cycles - ran;
+            // A one-cycle piece needs no bound (lockstep runs every slice so).
+            const until = room > 1 ? this.bus.parked?.(ran, cycles) ?? room : room;
+            const piece = Math.max(1, Math.min(room, until));
+            this.target = piece;
+            try {
+                ran += this.device.runCycles?.(piece) ?? 0;
+            }
+            finally {
+                this.target = undefined;
+            }
+        } while (ran < cycles && !this.aborted);
+        const settled = Math.min(ran, cycles);
+        this.bus.timing?.(settled, settled);
+        return ran;
+    }
+    /** MAME abort_timeslice: execute_run returns after the instruction in progress. */
+    abortTimeslice() {
+        this.aborted = true;
+        // The cycles swallowed were never run, so they come off the piece's
+        // target with m_icount, as MAME takes them off m_cycles_running: the
+        // instruction in progress still stands where it stood. Left on, the rest
+        // of that instruction read the clock at the slice's end. Marble Madness's
+        // 6502 writes the YM2151's timer control, which synchronizes, and the
+        // chip then stamped its busy flag from that clock: 2.6 ms ahead in a
+        // round of 240 lines, so the 6502 waited that long on a chip that was idle.
+        if (this.target !== undefined) {
+            const left = this.device.get(this.device.icountMember ?? 'm_icount');
+            if (left > 0)
+                this.target -= left;
+        }
+        this.device.abortTimeslice?.();
+    }
+    /** total_cycles inside a slice: what execute_run has spent of it so far. */
+    elapsedCycles() {
+        return this.target === undefined ? 0 : this.target - this.device.get(this.device.icountMember ?? 'm_icount');
+    }
+    /**
+     * MAME adjust_icount with a negative delta: hardware took cycles from the
+     * running processor (the board adds to this). They come off m_icount now.
+     */
+    get stallCycles() {
+        return 0;
+    }
+    set stallCycles(cycles) {
+        if (cycles > 0 && this.target !== undefined) {
+            this.device.set(this.device.icountMember ?? 'm_icount', this.device.get(this.device.icountMember ?? 'm_icount') - cycles);
+        }
+    }
+    setIrqLine(active, dataBus = 0xff, hold = false) {
+        if (active)
+            this.irqVector = dataBus;
+        this.host.setInputLine(0, active ? (hold ? 2 : 1) : 0);
+    }
+    setInputLine(inputnum, state) {
+        this.host.setInputLine(inputnum, state);
+    }
+    inputLine(name) {
+        return this.device.constant(name);
+    }
+    nmi() {
+        this.host.setInputLine(HOST_INPUT_LINES.INPUT_LINE_NMI, 1);
+        this.host.setInputLine(HOST_INPUT_LINES.INPUT_LINE_NMI, 0);
+    }
+    /**
+     * device_execute_interface::standard_irq_callback: a held line is released,
+     * and the vector is the driver's acknowledge callback's, else the one given
+     * with the line, else the core's own default.
+     */
+    acknowledge(line) {
+        const fallback = this.host.acknowledgeLine(line);
+        const acknowledged = this.bus.acknowledge?.(line);
+        if (acknowledged !== undefined)
+            return acknowledged;
+        const vector = this.irqVector;
+        if (line === 0 && vector !== undefined)
+            return typeof vector === 'function' ? vector() : vector;
+        return fallback;
+    }
+    get(name) {
+        return this.device.get(name);
+    }
+    set(name, value) {
+        this.device.set(name, value);
+    }
+    /** device_state_interface over the core's own state_add table. */
+    stateInt(index) {
+        return this.device.stateInt?.(index) ?? 0;
+    }
+    setStateInt(index, value) {
+        this.device.setStateInt?.(index, value);
+    }
+    invoke(name, ...args) {
+        return this.device.call(name, ...args);
+    }
+    hasMethod(name) {
+        return this.device.methodNames().includes(name);
+    }
+    methodNames() {
+        return [...this.device.methodNames()];
+    }
+}

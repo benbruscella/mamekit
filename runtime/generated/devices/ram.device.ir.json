@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "type": "RAM",
+  "className": "ram_device",
+  "description": "RAM",
+  "hierarchy": [
+    "ram_device"
+  ],
+  "sourceFiles": [
+    "src/devices/machine/ram.cpp",
+    "src/devices/machine/ram.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "RAM": 2363044739
+  },
+  "members": [
+    {
+      "name": "m_size",
+      "valueType": "u32",
+      "bits": 32,
+      "initial": 0
+    },
+    {
+      "name": "m_default_value",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 255
+    },
+    {
+      "name": "m_extra_options",
+      "valueType": "std::vector<std::pair<std::string, u32>>",
+      "memory": {
+        "kind": "growable",
+        "elementBytes": 0,
+        "element": "std::pair<std::string, u32>"
+      }
+    },
+    {
+      "name": "m_pointer",
+      "valueType": "std::unique_ptr<void, stdlib_deleter>"
+    },
+    {
+      "name": "m_default_size",
+      "valueType": "char const*",
+      "initial": 0
+    },
+    {
+      "name": "m_extra_options_string",
+      "valueType": "char const*",
+      "initial": 0
+    }
+  ],
+  "callbacks": [],
+  "timers": [],
+  "methods": [
+    {
+      "name": "size",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "identifier",
+              "name": "m_size"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/ram.h",
+        "line": 41,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "mask",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "binary",
+              "operator": "-",
+              "left": {
+                "kind": "identifier",
+                "name": "m_size"
+              },
+              "right": {
+                "kind": "number",
+                "value": 1
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/ram.h",
+        "line": 44,
+        "column": 1
+      },
+      "returnWidth": 32
+    },
+    {
+      "name": "pointer",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "cast",
+              "valueType": "uint8_t",
+              "pointer": true,
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_pointer"
+                  },
+                  "property": "get"
+                },
+                "args": []
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/ram.h",
+        "line": 46,
+        "column": 1
+      }
+    },
+    {
+      "name": "read",
+      "parameters": "offs_t offset",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "index",
+              "object": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "pointer"
+                },
+                "args": []
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "%",
+                "left": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_size"
+                }
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/ram.h",
+        "line": 50,
+        "column": 1
+      },
+      "returnWidth": 8
+    },
+    {
+      "name": "write",
+      "parameters": "offs_t offset, u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "index",
+              "object": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "pointer"
+                },
+                "args": []
+              },
+              "index": {
+                "kind": "binary",
+                "operator": "%",
+                "left": {
+                  "kind": "identifier",
+                  "name": "offset"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "m_size"
+                }
+              }
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "data"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/machine/ram.h",
+        "line": 53,
+        "column": 1
+      }
+    }
+  ],
+  "structMethods": {
+    "stdlib_deleter": [
+      {
+        "name": "__call",
+        "parameters": "void *p",
+        "program": {
+          "operations": [
+            {
+              "op": "call",
+              "expression": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "std::free"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "p"
+                  }
+                ]
+              }
+            }
+          ],
+          "diagnostics": []
+        }
+      }
+    ]
+  },
+  "summary": {
+    "methods": 5,
+    "compiledMethods": 5,
+    "diagnostics": 0
+  },
+  "hotMethods": [
+    "size",
+    "mask",
+    "pointer",
+    "read",
+    "write"
+  ]
+}

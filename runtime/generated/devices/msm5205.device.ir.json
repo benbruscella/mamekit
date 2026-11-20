@@ -1,0 +1,4832 @@
+{
+  "schemaVersion": 1,
+  "type": "MSM5205",
+  "className": "msm5205_device",
+  "description": "OKI MSM5205 ADPCM",
+  "hierarchy": [
+    "msm5205_device"
+  ],
+  "sourceFiles": [
+    "src/devices/sound/msm5205.cpp",
+    "src/devices/sound/msm5205.h"
+  ],
+  "constants": {
+    "SEEK_SET": 0,
+    "SEEK_CUR": 1,
+    "SEEK_END": 2,
+    "std::numbers::pi": 3.141592653589793,
+    "std::numbers::sqrt2": 1.4142135623730951,
+    "std::numbers::e": 2.718281828459045,
+    "std::numbers::ln2": 0.6931471805599453,
+    "std::numbers::ln10": 2.302585092994046,
+    "std::numbers::log2e": 1.4426950408889634,
+    "std::numbers::log10e": 0.4342944819032518,
+    "std::numbers::inv_pi": 0.3183098861837907,
+    "std::numbers::inv_sqrtpi": 0.5641895835477563,
+    "std::numbers::sqrt3": 1.7320508075688772,
+    "std::numbers::inv_sqrt3": 0.5773502691896258,
+    "CLEAR_LINE": 0,
+    "ASSERT_LINE": 1,
+    "HOLD_LINE": 2,
+    "MAX_INPUT_LINES": 67,
+    "INPUT_LINE_IRQ0": 0,
+    "INPUT_LINE_IRQ1": 1,
+    "INPUT_LINE_IRQ2": 2,
+    "INPUT_LINE_IRQ3": 3,
+    "INPUT_LINE_IRQ4": 4,
+    "INPUT_LINE_IRQ5": 5,
+    "INPUT_LINE_IRQ6": 6,
+    "INPUT_LINE_IRQ7": 7,
+    "INPUT_LINE_IRQ8": 8,
+    "INPUT_LINE_IRQ9": 9,
+    "INPUT_LINE_NMI": -1,
+    "INPUT_LINE_RESET": -2,
+    "INPUT_LINE_HALT": -3,
+    "AS_PROGRAM": 0,
+    "AS_DATA": 1,
+    "AS_IO": 2,
+    "AS_OPCODES": 3,
+    "S96_3B": 0,
+    "S48_3B": 1,
+    "S64_3B": 2,
+    "SEX_3B": 3,
+    "S96_4B": 4,
+    "S48_4B": 5,
+    "S64_4B": 6,
+    "SEX_4B": 7,
+    "S160": 12,
+    "S80": 13,
+    "S40": 14,
+    "S20": 15,
+    "MSM5205": 38646980,
+    "MSM6585": 441566242
+  },
+  "members": [
+    {
+      "name": "m_data",
+      "valueType": "u8",
+      "bits": 8
+    },
+    {
+      "name": "m_vck",
+      "valueType": "bool",
+      "bits": 1
+    },
+    {
+      "name": "m_reset",
+      "valueType": "bool",
+      "bits": 1
+    },
+    {
+      "name": "m_s1",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_s2",
+      "valueType": "bool",
+      "bits": 1,
+      "initial": 0
+    },
+    {
+      "name": "m_bitwidth",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 4
+    },
+    {
+      "name": "m_signal",
+      "valueType": "s32",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_step",
+      "valueType": "s32",
+      "bits": 32,
+      "signed": true
+    },
+    {
+      "name": "m_dac_bits",
+      "valueType": "u8",
+      "bits": 8,
+      "initial": 10
+    },
+    {
+      "name": "m_diff_lookup",
+      "valueType": "int",
+      "bits": 32,
+      "signed": true,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arrayLength": 784
+    },
+    {
+      "name": "m_stream",
+      "valueType": "sound_stream*"
+    },
+    {
+      "name": "m_vck_timer",
+      "valueType": "emu_timer*"
+    },
+    {
+      "name": "m_capture_timer",
+      "valueType": "emu_timer*"
+    }
+  ],
+  "callbacks": [
+    {
+      "signal": "vck_callback",
+      "member": "m_vck_cb",
+      "slots": 1,
+      "initial": 0
+    },
+    {
+      "signal": "vck_legacy_callback",
+      "member": "m_vck_legacy_cb",
+      "slots": 1,
+      "initial": 0
+    }
+  ],
+  "timers": [
+    {
+      "member": "m_vck_timer",
+      "callback": "toggle_vck"
+    },
+    {
+      "member": "m_capture_timer",
+      "callback": "update_adpcm"
+    }
+  ],
+  "methods": [
+    {
+      "name": "device_start",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "compute_tables"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_stream"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "stream_alloc"
+              },
+              "args": [
+                {
+                  "kind": "number",
+                  "value": 0
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                },
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_data"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_vck"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_reset"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s1"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_s2"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_bitwidth"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_signal"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "save_item"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "NAME"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "m_step"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 84,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_reset",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_data"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vck"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_reset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_signal"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_step"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "number",
+              "value": 0
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 109,
+        "column": 1
+      }
+    },
+    {
+      "name": "compute_tables",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "for",
+            "initialize": [
+              {
+                "op": "declare",
+                "name": "step",
+                "valueType": "int",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "condition": {
+              "kind": "binary",
+              "operator": "<=",
+              "left": {
+                "kind": "identifier",
+                "name": "step"
+              },
+              "right": {
+                "kind": "number",
+                "value": 48
+              }
+            },
+            "iterate": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "step"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "number",
+                  "value": 1
+                }
+              }
+            ],
+            "body": [
+              {
+                "op": "declare",
+                "name": "stepval",
+                "valueType": "int",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "floor"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "number",
+                        "value": 16,
+                        "floating": true
+                      },
+                      "right": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "pow"
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "operator": "/",
+                            "left": {
+                              "kind": "number",
+                              "value": 11,
+                              "floating": true
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 10,
+                              "floating": true
+                            }
+                          },
+                          {
+                            "kind": "cast",
+                            "valueType": "double",
+                            "operand": {
+                              "kind": "identifier",
+                              "name": "step"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "for",
+                "initialize": [
+                  {
+                    "op": "declare",
+                    "name": "nib",
+                    "valueType": "int",
+                    "value": {
+                      "kind": "number",
+                      "value": 0
+                    }
+                  }
+                ],
+                "condition": {
+                  "kind": "binary",
+                  "operator": "<",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "nib"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 16
+                  }
+                },
+                "iterate": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "nib"
+                    },
+                    "operator": "+=",
+                    "value": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                ],
+                "body": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "index",
+                      "object": {
+                        "kind": "identifier",
+                        "name": "m_diff_lookup"
+                      },
+                      "index": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "*",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "step"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 16
+                          }
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "nib"
+                        }
+                      }
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "binary",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "callee": {
+                          "kind": "identifier",
+                          "name": "TABLE"
+                        },
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "*",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "nib"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            },
+                            "right": {
+                              "kind": "number",
+                              "value": 0
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 0
+                          },
+                          {
+                            "kind": "unary",
+                            "operator": "-",
+                            "operand": {
+                              "kind": "number",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          },
+                          {
+                            "kind": "number",
+                            "value": 1
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "operator": "+",
+                          "left": {
+                            "kind": "binary",
+                            "operator": "+",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "*",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stepval"
+                              },
+                              "right": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "TABLE"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "*",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "nib"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                ]
+                              }
+                            },
+                            "right": {
+                              "kind": "binary",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "operator": "/",
+                                "left": {
+                                  "kind": "identifier",
+                                  "name": "stepval"
+                                },
+                                "right": {
+                                  "kind": "number",
+                                  "value": 2
+                                }
+                              },
+                              "right": {
+                                "kind": "call",
+                                "callee": {
+                                  "kind": "identifier",
+                                  "name": "TABLE"
+                                },
+                                "args": [
+                                  {
+                                    "kind": "binary",
+                                    "operator": "+",
+                                    "left": {
+                                      "kind": "binary",
+                                      "operator": "*",
+                                      "left": {
+                                        "kind": "identifier",
+                                        "name": "nib"
+                                      },
+                                      "right": {
+                                        "kind": "number",
+                                        "value": 4
+                                      }
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 2
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 0
+                                  },
+                                  {
+                                    "kind": "unary",
+                                    "operator": "-",
+                                    "operand": {
+                                      "kind": "number",
+                                      "value": 1
+                                    }
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  },
+                                  {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          "right": {
+                            "kind": "binary",
+                            "operator": "*",
+                            "left": {
+                              "kind": "binary",
+                              "operator": "/",
+                              "left": {
+                                "kind": "identifier",
+                                "name": "stepval"
+                              },
+                              "right": {
+                                "kind": "number",
+                                "value": 4
+                              }
+                            },
+                            "right": {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "TABLE"
+                              },
+                              "args": [
+                                {
+                                  "kind": "binary",
+                                  "operator": "+",
+                                  "left": {
+                                    "kind": "binary",
+                                    "operator": "*",
+                                    "left": {
+                                      "kind": "identifier",
+                                      "name": "nib"
+                                    },
+                                    "right": {
+                                      "kind": "number",
+                                      "value": 4
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "number",
+                                    "value": 3
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 0
+                                },
+                                {
+                                  "kind": "unary",
+                                  "operator": "-",
+                                  "operand": {
+                                    "kind": "number",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                },
+                                {
+                                  "kind": "number",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "right": {
+                          "kind": "binary",
+                          "operator": "/",
+                          "left": {
+                            "kind": "identifier",
+                            "name": "stepval"
+                          },
+                          "right": {
+                            "kind": "number",
+                            "value": 8
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 132,
+        "column": 1
+      }
+    },
+    {
+      "name": "vclk_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "get_prescaler"
+                },
+                "args": []
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": "&&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_vck"
+                  },
+                  "right": {
+                    "kind": "unary",
+                    "operator": "!",
+                    "operand": {
+                      "kind": "identifier",
+                      "name": "state"
+                    }
+                  }
+                },
+                "then": [
+                  {
+                    "op": "call",
+                    "expression": {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "member",
+                        "object": {
+                          "kind": "identifier",
+                          "name": "m_capture_timer"
+                        },
+                        "property": "adjust"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "attotime::from_ticks"
+                          },
+                          "args": [
+                            {
+                              "kind": "number",
+                              "value": 6
+                            },
+                            {
+                              "kind": "call",
+                              "callee": {
+                                "kind": "identifier",
+                                "name": "clock"
+                              },
+                              "args": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_vck"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 223,
+        "column": 1
+      }
+    },
+    {
+      "name": "reset_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_reset"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "identifier",
+              "name": "state"
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 240,
+        "column": 1
+      }
+    },
+    {
+      "name": "data_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "==",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitwidth"
+              },
+              "right": {
+                "kind": "number",
+                "value": 4
+              }
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_data"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "&",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 15
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_data"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "<<",
+                  "left": {
+                    "kind": "binary",
+                    "operator": "&",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "data"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 7
+                    }
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 1
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 250,
+        "column": 1
+      }
+    },
+    {
+      "name": "get_prescaler",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_s1"
+            },
+            "then": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_s2"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 48
+                  }
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "return",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "identifier",
+                    "name": "m_s2"
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 64
+                  },
+                  "whenFalse": {
+                    "kind": "number",
+                    "value": 96
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 258,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "playmode_w",
+      "parameters": "u8 data",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "s1",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "s2",
+            "valueType": "bool",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "data"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "bitwidth",
+            "valueType": "u8",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "data"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 4
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "||",
+              "left": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_s1"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "s1"
+                }
+              },
+              "right": {
+                "kind": "binary",
+                "operator": "!=",
+                "left": {
+                  "kind": "identifier",
+                  "name": "m_s2"
+                },
+                "right": {
+                  "kind": "identifier",
+                  "name": "s2"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "s1"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "s2"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "notify_clock_changed"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_bitwidth"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "bitwidth"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_bitwidth"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "bitwidth"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 276,
+        "column": 1
+      }
+    },
+    {
+      "name": "s1_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_s1"
+              },
+              "right": {
+                "kind": "cast",
+                "valueType": "bool",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s1"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "notify_clock_changed"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 300,
+        "column": 1
+      }
+    },
+    {
+      "name": "s2_w",
+      "parameters": "int state",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_s2"
+              },
+              "right": {
+                "kind": "cast",
+                "valueType": "bool",
+                "operand": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_s2"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "state"
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "notify_clock_changed"
+                  },
+                  "args": []
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 310,
+        "column": 1
+      }
+    },
+    {
+      "name": "device_clock_changed",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_stream"
+                },
+                "property": "set_sample_rate"
+              },
+              "args": [
+                {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clock"
+                  },
+                  "args": []
+                }
+              ]
+            }
+          },
+          {
+            "op": "declare",
+            "name": "prescaler",
+            "valueType": "int",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "get_prescaler"
+              },
+              "args": []
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "prescaler"
+              },
+              "right": {
+                "kind": "number",
+                "value": 0
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "declare",
+                "name": "half_period",
+                "valueType": "attotime",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "clocks_to_attotime"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "/",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "prescaler"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 2
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vck_timer"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "half_period"
+                    },
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "half_period"
+                    }
+                  ]
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TRACE_NOOP"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_vck_timer"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "identifier",
+                      "name": "attotime::never"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 326,
+        "column": 1
+      }
+    },
+    {
+      "name": "sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_signal"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "sample_scale",
+                "valueType": "sound_stream::sample_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 1,
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "cast",
+                    "valueType": "double",
+                    "operand": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 12
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "dac_mask",
+                "valueType": "int",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_dac_bits"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 12
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "whenFalse": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "number",
+                          "value": 12
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_dac_bits"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "sound_stream::sample_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "cast",
+                    "valueType": "float",
+                    "operand": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_signal"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "~",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "dac_mask"
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "sample_scale"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "fill"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "val"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 349,
+        "column": 1
+      }
+    },
+    {
+      "name": "msm5205_device::sound_stream_update",
+      "parameters": "sound_stream &stream",
+      "program": {
+        "operations": [
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_signal"
+            },
+            "then": [
+              {
+                "op": "declare",
+                "name": "sample_scale",
+                "valueType": "sound_stream::sample_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": "/",
+                  "left": {
+                    "kind": "number",
+                    "value": 1,
+                    "floating": true
+                  },
+                  "right": {
+                    "kind": "cast",
+                    "valueType": "double",
+                    "operand": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 12
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "dac_mask",
+                "valueType": "int",
+                "value": {
+                  "kind": "conditional",
+                  "condition": {
+                    "kind": "binary",
+                    "operator": ">=",
+                    "left": {
+                      "kind": "identifier",
+                      "name": "m_dac_bits"
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 12
+                    }
+                  },
+                  "whenTrue": {
+                    "kind": "number",
+                    "value": 0
+                  },
+                  "whenFalse": {
+                    "kind": "binary",
+                    "operator": "-",
+                    "left": {
+                      "kind": "binary",
+                      "operator": "<<",
+                      "left": {
+                        "kind": "number",
+                        "value": 1
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "-",
+                        "left": {
+                          "kind": "number",
+                          "value": 12
+                        },
+                        "right": {
+                          "kind": "identifier",
+                          "name": "m_dac_bits"
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  }
+                }
+              },
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "sound_stream::sample_t",
+                "value": {
+                  "kind": "binary",
+                  "operator": "*",
+                  "left": {
+                    "kind": "cast",
+                    "valueType": "float",
+                    "operand": {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_signal"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "~",
+                        "operand": {
+                          "kind": "identifier",
+                          "name": "dac_mask"
+                        }
+                      }
+                    }
+                  },
+                  "right": {
+                    "kind": "identifier",
+                    "name": "sample_scale"
+                  }
+                }
+              },
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "stream"
+                    },
+                    "property": "fill"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 0
+                    },
+                    {
+                      "kind": "identifier",
+                      "name": "val"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 349,
+        "column": 1
+      }
+    },
+    {
+      "name": "toggle_vck",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_vck"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_vck"
+              }
+            }
+          },
+          {
+            "op": "call",
+            "expression": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "m_vck_cb"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "m_vck"
+                }
+              ]
+            }
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "identifier",
+                "name": "m_vck"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_capture_timer"
+                    },
+                    "property": "adjust"
+                  },
+                  "args": [
+                    {
+                      "kind": "call",
+                      "callee": {
+                        "kind": "identifier",
+                        "name": "attotime::from_ticks"
+                      },
+                      "args": [
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "adpcm_capture_divisor"
+                          },
+                          "args": []
+                        },
+                        {
+                          "kind": "call",
+                          "callee": {
+                            "kind": "identifier",
+                            "name": "clock"
+                          },
+                          "args": []
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 166,
+        "column": 1
+      }
+    },
+    {
+      "name": "update_adpcm",
+      "parameters": "int param",
+      "program": {
+        "operations": [
+          {
+            "op": "declare",
+            "name": "new_signal",
+            "valueType": "int"
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "unary",
+              "operator": "!",
+              "operand": {
+                "kind": "call",
+                "callee": {
+                  "kind": "member",
+                  "object": {
+                    "kind": "identifier",
+                    "name": "m_vck_legacy_cb"
+                  },
+                  "property": "isunset"
+                },
+                "args": []
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "m_vck_legacy_cb"
+                  },
+                  "args": [
+                    {
+                      "kind": "number",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "identifier",
+              "name": "m_reset"
+            },
+            "then": [
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "new_signal"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_step"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "number",
+                  "value": 0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "declare",
+                "name": "val",
+                "valueType": "int",
+                "value": {
+                  "kind": "identifier",
+                  "name": "m_data"
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "new_signal"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "binary",
+                  "operator": "+",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_signal"
+                  },
+                  "right": {
+                    "kind": "index",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_diff_lookup"
+                    },
+                    "index": {
+                      "kind": "binary",
+                      "operator": "+",
+                      "left": {
+                        "kind": "binary",
+                        "operator": "*",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "m_step"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 16
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "operator": "&",
+                        "left": {
+                          "kind": "identifier",
+                          "name": "val"
+                        },
+                        "right": {
+                          "kind": "number",
+                          "value": 15
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "new_signal"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 2047
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "new_signal"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 2047
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "new_signal"
+                      },
+                      "right": {
+                        "kind": "unary",
+                        "operator": "-",
+                        "operand": {
+                          "kind": "number",
+                          "value": 2048
+                        }
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "new_signal"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "unary",
+                          "operator": "-",
+                          "operand": {
+                            "kind": "number",
+                            "value": 2048
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_step"
+                },
+                "operator": "+=",
+                "value": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "identifier",
+                    "name": "TABLE"
+                  },
+                  "args": [
+                    {
+                      "kind": "binary",
+                      "operator": "&",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "val"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 7
+                      }
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "kind": "unary",
+                      "operator": "-",
+                      "operand": {
+                        "kind": "number",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "kind": "number",
+                      "value": 2
+                    },
+                    {
+                      "kind": "number",
+                      "value": 4
+                    },
+                    {
+                      "kind": "number",
+                      "value": 6
+                    },
+                    {
+                      "kind": "number",
+                      "value": 8
+                    }
+                  ]
+                }
+              },
+              {
+                "op": "if",
+                "condition": {
+                  "kind": "binary",
+                  "operator": ">",
+                  "left": {
+                    "kind": "identifier",
+                    "name": "m_step"
+                  },
+                  "right": {
+                    "kind": "number",
+                    "value": 48
+                  }
+                },
+                "then": [
+                  {
+                    "op": "assign",
+                    "target": {
+                      "kind": "identifier",
+                      "name": "m_step"
+                    },
+                    "operator": "=",
+                    "value": {
+                      "kind": "number",
+                      "value": 48
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "if",
+                    "condition": {
+                      "kind": "binary",
+                      "operator": "<",
+                      "left": {
+                        "kind": "identifier",
+                        "name": "m_step"
+                      },
+                      "right": {
+                        "kind": "number",
+                        "value": 0
+                      }
+                    },
+                    "then": [
+                      {
+                        "op": "assign",
+                        "target": {
+                          "kind": "identifier",
+                          "name": "m_step"
+                        },
+                        "operator": "=",
+                        "value": {
+                          "kind": "number",
+                          "value": 0
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "op": "if",
+            "condition": {
+              "kind": "binary",
+              "operator": "!=",
+              "left": {
+                "kind": "identifier",
+                "name": "m_signal"
+              },
+              "right": {
+                "kind": "identifier",
+                "name": "new_signal"
+              }
+            },
+            "then": [
+              {
+                "op": "call",
+                "expression": {
+                  "kind": "call",
+                  "callee": {
+                    "kind": "member",
+                    "object": {
+                      "kind": "identifier",
+                      "name": "m_stream"
+                    },
+                    "property": "update"
+                  },
+                  "args": []
+                }
+              },
+              {
+                "op": "assign",
+                "target": {
+                  "kind": "identifier",
+                  "name": "m_signal"
+                },
+                "operator": "=",
+                "value": {
+                  "kind": "identifier",
+                  "name": "new_signal"
+                }
+              }
+            ]
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.cpp",
+        "line": 175,
+        "column": 1
+      }
+    },
+    {
+      "name": "set_prescaler_selector",
+      "parameters": "int select",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_s1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "select"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_s2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "select"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitwidth"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "select"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 4
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 23,
+        "column": 1
+      }
+    },
+    {
+      "name": "vck_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vck_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 30,
+        "column": 1
+      }
+    },
+    {
+      "name": "vck_legacy_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vck_legacy_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "adpcm_capture_divisor",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 6
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 65,
+        "column": 1
+      },
+      "returnWidth": -32
+    },
+    {
+      "name": "msm5205_device::set_prescaler_selector",
+      "parameters": "int select",
+      "program": {
+        "operations": [
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_s1"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "select"
+                },
+                {
+                  "kind": "number",
+                  "value": 0
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_s2"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "identifier",
+                "name": "BIT"
+              },
+              "args": [
+                {
+                  "kind": "identifier",
+                  "name": "select"
+                },
+                {
+                  "kind": "number",
+                  "value": 1
+                }
+              ]
+            }
+          },
+          {
+            "op": "assign",
+            "target": {
+              "kind": "identifier",
+              "name": "m_bitwidth"
+            },
+            "operator": "=",
+            "value": {
+              "kind": "conditional",
+              "condition": {
+                "kind": "call",
+                "callee": {
+                  "kind": "identifier",
+                  "name": "BIT"
+                },
+                "args": [
+                  {
+                    "kind": "identifier",
+                    "name": "select"
+                  },
+                  {
+                    "kind": "number",
+                    "value": 2
+                  }
+                ]
+              },
+              "whenTrue": {
+                "kind": "number",
+                "value": 4
+              },
+              "whenFalse": {
+                "kind": "number",
+                "value": 3
+              }
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 23,
+        "column": 92
+      }
+    },
+    {
+      "name": "msm5205_device::vck_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vck_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 31,
+        "column": 1
+      }
+    },
+    {
+      "name": "msm5205_device::vck_legacy_callback",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "call",
+              "callee": {
+                "kind": "member",
+                "object": {
+                  "kind": "identifier",
+                  "name": "m_vck_legacy_cb"
+                },
+                "property": "bind"
+              },
+              "args": []
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 32,
+        "column": 1
+      }
+    },
+    {
+      "name": "msm5205_device::adpcm_capture_divisor",
+      "parameters": "",
+      "program": {
+        "operations": [
+          {
+            "op": "return",
+            "value": {
+              "kind": "number",
+              "value": 6
+            }
+          }
+        ],
+        "diagnostics": []
+      },
+      "source": {
+        "file": "src/devices/sound/msm5205.h",
+        "line": 65,
+        "column": 35
+      },
+      "returnWidth": -32
+    }
+  ],
+  "hotMethods": [
+    "device_start",
+    "device_reset",
+    "compute_tables",
+    "vclk_w",
+    "reset_w",
+    "data_w",
+    "get_prescaler",
+    "playmode_w",
+    "s1_w",
+    "s2_w",
+    "device_clock_changed",
+    "sound_stream_update",
+    "msm5205_device::sound_stream_update",
+    "toggle_vck",
+    "update_adpcm",
+    "set_prescaler_selector",
+    "vck_callback",
+    "vck_legacy_callback",
+    "adpcm_capture_divisor",
+    "msm5205_device::set_prescaler_selector",
+    "msm5205_device::vck_callback",
+    "msm5205_device::vck_legacy_callback",
+    "msm5205_device::adpcm_capture_divisor"
+  ],
+  "start": "device_start",
+  "reset": "device_reset",
+  "summary": {
+    "methods": 23,
+    "compiledMethods": 23,
+    "diagnostics": 0
+  }
+}

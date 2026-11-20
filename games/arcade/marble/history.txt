@@ -1,0 +1,160 @@
+Arcade Video game published 42 years ago:
+
+Marble Madness (c) 1984 Atari Games Corporation.
+
+Marble Madness is an abstract maze game for one or two players. The game's goal is to guide a small glass marble over a three-dimensional maze and reach the finish line before the level's timer has expired. Any seconds that remain on the timer when the finish line is crossed are carried over to the next level. 
+
+As well as having to negotiate the marble over treacherous walkways and ramps, numerous obstacles and unfriendly creatures will try to slow the marble's progress or knock it over the edge of a platform, wasting yet more precious seconds until a replacement marble appears. The two-player game has players competing to reach the goal first. 
+
+Marble Madness features six different mazes. The race names are:
+1. Practice
+2. Beginner
+3. Intermediate
+4. Aerial
+5. Silly
+6. Ultimate
+
+- TECHNICAL -
+
+Game ID : 136033
+
+Runs on the "Atari System 1" hardware.
+
+Players : 2
+Control : trackball
+
+- TRIVIA -
+
+Marble Madness was released in December 1984. 
+
+Marble Madness was the first game to run on the new Atari System 1 hardware and was the perfect showcase for Atari to demonstrate the technical superiority of its new arcade architecture. It was also the first game to feature such impressive and cleanly rendered pseudo 3-D Graphics. The original design brief called for the trackball to be motorized and synchronize its spin with that of the marble, to simulate inertia.
+
+Mark Cerny was only 17 years old when he joined Atari and designed Marble Madness. The game was designed as part of a contest Atari ran at the time, allowing outsiders to design a game. Mark was very well known for his game-playing skills and easily won the contest. He then taught himself how to program in assembly language before joining Atari, so he found it very easy to settle in at Atari.
+
+3,270 units were produced. The original selling price was $1,795.
+
+Marble Madness was the first game to feature true stereo sound; it was the first game to truly capitalize on what in-game music could offer the player, with each level having its own distinctive, and suspense building soundtrack. Marble Madness was also one of the few games of the time to have a definite goal, in that the game ends when all levels are completed.
+
+Default highscore table (TROUBLEMAKERS) :
+#1 C R 14,500
+#2 UFO 14,000
+#3 GJL 13,500
+#4 SKP 13,000
+#5 PCT 12,500
+#6 PTR 12,000
+#7 JDH 11,500
+#8 DAT 11,000
+#9 JFS 10,500
+#10 DAR 10,000
+
+Stan Szczepanski holds the official record for this game with 187,880 points.
+
+A sequel to this classic game, entitled "Marble Madness 2 - Marble Man" was fully developed and a very small number of cabinets were built, but unfortunately the game was never released. Unlike the first game's superb trackball control, 'Marble Man' was controlled via a joystick.
+
+- SCORING -
+
+Moving the marble : 10 points per unit
+Taking a jump (Practice race only) : 3,000 to 6,000 points
+Killing Black Steelie : 1,000 points
+Going through a tunnel or tube : 2,000 or 4,000 points
+Rolling over an enemy (Silly race only) : 500 points + 3 seconds of time
+Finishing a race : race number x 1,000 points
+Finishing a race : seconds remaining x 100 points
+Finishing the game : 20,000 points + 1,000 points per second remaining
+Finishing the game : -1,000 point penalty for every death during the game.
+
+- TIPS AND TRICKS -
+
+* Hints:
+1) Anticipate your next move and start the Trak-Ball rolling in that direction ahead of time.
+2) Complete each raceway as fast as possible because extra seconds mean extra points, and the extra time from one raceway is carried over to the next raceway
+3) Try to maneuver around the Black Steelie, or try to bump him off a cliff to get rid of him permanently.
+4) Move quickly to avoid being swallowed by the green Marble Munchers.
+5) Watch for patterns, and time your movements right to pass by difficult obstacles.
+6) Some raceways have alternate paths, so explore a bit and you may find an easier way to reach the goal. Bonus points are given for paths which are more difficult.
+
+* Cancel The Timer: Begin a game and then hold down either 1 or 2 player Start and press service switch' twice. The first press will glitch the screen display slightly - the second will remove it and give you 99 seconds to complete the level. This method adds 60 seconds to the clock, after which the normal countdown will begin. The clock will not appear to be counting down during the first 60 seconds, probably because the 99-second display was overflowed by the extra 60 seconds added. This method can be used multiple times per level for virtually infinite play time.
+
+* When playing with 2 players, the winner of each level gets a bonus 5 seconds. If your opponent can make it as far as the silly race, that's an extra 25 seconds for the ultimate race, not to mention a possible extra 10 seconds with a wand. The opponent can also continue once (with the same time as the other player).
+
+* This isn't really a trick, but some people don't realize it: On the practice race, don't move when you start, and after a few seconds, a ramp will appear that will slide away the ball.
+
+- STAFF -
+
+Designer & Graphics Programmer: Mark Cerny
+Game Programmer: Bob Flanagan
+Animator: Sam Comstock
+Sound Design: Hal Canon, Brad Fuller
+Hardware Design: Sam Ly (S Ly), Jed Margolin (J Margolin), Don Paauw (D Paauw), Doug Snyder (D Snyder)
+System Support: Chris Downend (C Downend), Morgan Hoff (M Hoff), Jack Ritter (J Ritter)
+Software Support: Mike Albaugh (M Albaugh), Mike Mahar (M Mahar), Rich Moore (R Moore)
+Hardware Support: Juan Castillo (J Castillo), Erik Durfey (E Durfey), Patrick McCarthy (P McCarthy), Minh Nguyen (N Minh)
+
+- PORTS -
+
+* CONSOLES:
+Atari 7800 : Unreleased prototype
+[EU] [AU] Nintendo NES (1989) 
+[US] Nintendo NES (mar.1989) "Marble Madness [Model NES-MV]" 
+[EU] Sega Master System (1992) "Marble Madness [Model 27024]" 
+[US] Sega Genesis (1993) 
+[EU] Sega Mega Drive (1993) 
+[JP] Sega Mega Drive (aug.13, 1993) "Marble Madness [Model T-48113]" 
+[US] Sony PlayStation (dec.31, 1997) "Arcade's Greatest Hits - The Atari Collection 2 [Model SLUS-00449]" 
+[EU] Sony PlayStation (june.1998) "Arcade's Greatest Hits - The Atari Collection 2 [Model SLES-00712]" 
+[US] Sony PS2 (nov.18, 2003) "Midway Arcade Treasures [Model SLUS-20801]" 
+[US] Microsoft XBOX (nov.24, 2003) "Midway Arcade Treasures" 
+[US] Nintendo GameCube (dec.18, 2003) "Midway Arcade Treasures [Model DOL-GAKE-USA]" 
+[EU] Microsoft XBOX (feb.6, 2004) "Midway Arcade Treasures" 
+[EU] Sony PS2 (feb.6, 2004) "Midway Arcade Treasures [Model SLES-51927]" 
+[US] Microsoft XBOX 360 (nov.6, 2012) "Midway Arcade Origins" 
+[US] Sony PlayStation 3 (nov.6, 2012) "Midway Arcade Origins [Model BLUS-31083]"
+[EU] Microsoft XBOX 360 (nov.15, 2012) "Midway Arcade Origins" 
+[EU] Sony PlayStation 3 (nov.15, 2012) "Midway Arcade Origins [Model BLES-01768]"
+
+* HANDHELDS: 
+[US] Nintendo Game Boy (may.1991) "Marble Madness [Model DMG-MB-USA]" 
+[US] Sega Game Gear (1992) "Marble Madness [Model T-48058]" 
+[EU] Sega Game Gear (1992) "Marble Madness [Model T-48058-50]" 
+[EU] Nintendo Game Boy (may.21, 1992) "Marble Madness [Model DMG-MB-NOE]" 
+[US] Nintendo Game Boy Color (dec.1999) "Marble Madness [Model CGB-ANNE-USA]" 
+[EU] Nintendo Game Boy Color (mar.13, 2000) "Marble Madness [Model CGB-ANNE-USA]" 
+[US] Nintendo GBA (aug.16, 2005) "2 Games in One! Marble Madness + Klax [Model AGB-B68E-USA]" 
+[EU] Nintendo GBA (sept.16, 2005) "2 Games in One! Marble Madness + Klax [Model AGB-B68P-EUR]" 
+[US] Sony PSP (dec.13, 2005) "Midway Arcade Treasures Extended Play [Model ULUS-10059]" 
+[EU] Sony PSP (feb.24, 2006) "Midway Arcade Treasures Extended Play [Model ULES-00180]" 
+
+* COMPUTERS:
+[US] Tandy Color Computer (1985) "Marble Maze" 
+[US] Atari ST (1986)
+[US] PC [Booter] (1986)
+[US] [EU] Commodore C64 (1986)
+[US] Apple II (1986)
+[EU] Amstrad CPC (1986)
+[US] [EU] Commodore Amiga (1986)
+[EU] Sinclair ZX Spectrum (1987)
+[US] PC [MS-DOS] (1987) 
+[JP] Sharp X68000 (mar.15, 1991) 
+[JP] FM Towns PC (1991) 
+[JP] NEC PC-9801 (1991) "Marble Madness"
+[US] PC [MS Windows, CD-ROM] (jan.1, 1999) "Arcade's Greatest Hits - The Atari Collection 2" 
+[US] PC [MS Windows, CD-ROM] (aug.27, 2004) "Midway Arcade Treasures" 
+[EU] PC [MS Windows, CD-ROM] (nov.23, 2004) "Midway Arcade Treasures" 
+
+* OTHERS:
+[US] LCD handheld game (1989) by Tiger Electronics.
+[US] Mobile Phones (sept.2004) 
+[US] BlackBerry (nov.12, 2009) [Model 4315] 
+[US] Windows Mobile (feb.1, 2010) 
+[US] Apple iPhone/iPod (apr.23, 2010) [Model 367932500]
+
+- SERIES -
+
+1. Marble Madness (1984)
+2. Marble Man - Marble Madness II (1991)
+
+- CONTRIBUTE -
+
+Edit this entry: https://www.arcade-history.com/game/1559/?o=2
+
+— Gaming History (arcade-history.com)
