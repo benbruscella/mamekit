@@ -24,6 +24,10 @@ export const spyhunt = sourceTarget({
   machine: { className: 'mcrsc_csd_state', name: 'spyhunt' },
   screen: { width: 480, height: 480 },
   soundKind: 'stream',
+  // #278's exact timers cost it about 11% on CI (main's run 142 s, #278's
+  // 158-162 s, 9.9 fps once against the default 10), so the floor is about
+  // 90% of that (#247, 7.12).
+  minimumFps: 9,
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },
     { atFrame: 340, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },

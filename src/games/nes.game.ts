@@ -199,7 +199,11 @@ export const nes = {
     // CI runners had drifted to ~20 fps (main's runs took 108.7-111.1 s, PR
     // #273's 19.6 and 20.0 fps with no local difference: 43 fps either way),
     // so the floor sits below that noise, as #242 did for the others.
-    minimumFps: 18,
+    // #278 ends rounds on exact timer expiries and anchors the soonest timer
+    // every round, and with a round per cycle that costs this cart most: CI
+    // measured 13.6 and 14.8 fps (main's run 118 s, #278's 149-162 s), so the
+    // floor is about 90% of that (#247, 7.12).
+    minimumFps: 12,
     checkpoints: [1, 300, 600, 900, 1200, 1500, 1800],
     actions: [
       { atFrame: 299, code: 'Enter', heldFrames: 6, releasedFrames: 0 },

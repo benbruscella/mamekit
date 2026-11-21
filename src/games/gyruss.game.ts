@@ -9,7 +9,9 @@ export const gyruss = sourceTarget({
   frames: 1800,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
   // CI measured 27.7 fps against the floor of 34, so the floor is about 90% of that.
-  minimumFps: 25,
+  // By #278 CI measured 24.9 fps (main's run 108 s, #278's 110 s: runner
+  // noise), so the floor is about 90% of that (#247, 7.12).
+  minimumFps: 22,
   checkpoints: [1, 60, 300, 480, 720, 1200, 1800],
   actions: [
     { atFrame: 480, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },

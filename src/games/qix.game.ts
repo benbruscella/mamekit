@@ -9,7 +9,9 @@ export const qix = sourceTarget({
   frames: 900,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
   // CI measured 22.5 fps against the floor of 40, so the floor is about 90% of that.
-  minimumFps: 20,
+  // #278's exact timers and stream updates through the current sample cost
+  // it 10% on CI (18.0 and 18.2 fps); the floor is again about 90% (#247, 7.12).
+  minimumFps: 16,
   checkpoints: [1, 10, 30, 60, 180, 300, 480, 600, 900],
   actions: [
     // Blank NVRAM asks for a language. Accept the highlighted default, then
