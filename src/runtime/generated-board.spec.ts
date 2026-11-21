@@ -92,6 +92,17 @@ const inputFinders = inputState.m_ports as {
 assert.equal(inputFinders[0]!.read_safe(), 0xfe);
 assert.equal(inputFinders[1]!.read(), 0xfb);
 
+// read_safe on a port the machine doesn't declare answers its fallback, as
+// MAME's optional_ioport does, not the input layer's idle 0xff.
+const optionalState: Record<string, unknown> = {};
+bindGeneratedInputState(optionalState, [{ member: 'm_debug_port', tags: ['DEBUG'] }], {
+  has: tag => tag !== 'DEBUG',
+  read: () => 0xff,
+});
+const optionalPort = optionalState.m_debug_port as { read_safe(fallback?: number): number };
+assert.equal(optionalPort.read_safe(0), 0);
+assert.equal(optionalPort.read_safe(0x5a), 0x5a);
+
 let scopedCpuLine = '';
 const scopedBindings = generatedCpuMemberBindings({
   calls: {
