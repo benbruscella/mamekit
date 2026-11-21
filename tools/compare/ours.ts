@@ -129,9 +129,14 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
       const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tag);
       const seconds = () => cpu && generated.cpuSeconds ? generated.cpuSeconds(cpu) : 0;
-      const log = (kind: 'R' | 'W', address: number, data: number, bytes: number) => {
+      // A port access reaches the bus as the processor issues it (a Z80's
+      // OUT (n),A puts A on the high byte); MAME's tap sees it after the I/O
+      // map's global_mask, so ours masks the same way, as the bus itself does.
+      const portMask = ports ? (cpu as { io?: { globalMask?: number } } | undefined)?.io?.globalMask ?? 0xffff : undefined;
+      const log = (kind: 'R' | 'W', raw: number, data: number, bytes: number) => {
         const frame = framesRun + 1;
         if (dumping || frame < plan.io!.from || frame > plan.io!.to) return;
+        const address = portMask === undefined ? raw : raw & portMask;
         for (const { tap, index } of taps) {
           if (!(kind === 'R' ? tap.read : tap.write) || address + bytes - 1 < tap.lo || address > tap.hi) continue;
           ioLines.push(`${frame} ${kind} ${index} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
