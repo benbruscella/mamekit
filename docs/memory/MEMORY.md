@@ -24,6 +24,7 @@
 ## Scheduler, time and timers
 - [Attotime #220](attotime-220.md) · [Exact attotime #272](exact-attotime-272.md) · [Scheduler bound #255](scheduler-bound-255.md) · [MAME round rules #275](mame-round-rules-275.md) — runner on integer attotime; round rules confirmed in MAME's log
 - [Bubble Bobble #278](bublbobl-278.md) — RAM-exact: stream.update through the write's sample; device timers on exact attotime (truncated from_ticks, exact expiry + anchor)
+- [Frisky Tom #284](friskyt-284.md) — RAM-exact: pulse_input_line synchronized; idle-CPU adjust_icount lost; space.unmap() 0
 - [MAME scheduler synchronize](mame-scheduler-synchronize.md) · [Hosted MCUs in the round (#222)](hosted-mcus-in-round-222.md) · [Perfect-quantum device access](perfect-quantum-device-access.md) · [Mid-instruction timer order](mid-instruction-timer-order.md)
 - [Device clock vs beam](device-clock-vs-beam.md) · [Device clock lead #254](device-clock-lead-254.md) · [In-slice cycles #254](in-slice-cycles-254.md) · [Device machine time](device-machine-time.md) · [total_cycles mid-instruction](total-cycles-mid-instruction.md)
 - [Line event phase (#214)](line-event-phase.md) · [Frame render point](frame-render-point.md) · [Frame-boundary input](frame-boundary-input.md) · [Venture scheduler time #271](venture-scheduler-time-271.md) · [Venture silent RIOT IRQ](venture-silent-riot-irq.md)
