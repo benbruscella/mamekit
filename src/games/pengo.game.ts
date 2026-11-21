@@ -33,10 +33,10 @@ export const pengo = sourceTarget({
     },
     audio: {
       writes: 950399,
-      nonzeroWrites: 625142,
-      writeHash: 'f32991a0',
-      pcmHash: '6d38b5a2',
-      rms: 0.110106,
+      nonzeroWrites: 624611,
+      writeHash: 'd64e24fe',
+      pcmHash: '0ee4aaf5',
+      rms: 0.110424,
     },
   },
 });

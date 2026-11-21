@@ -8,7 +8,7 @@
 // disagree about what a lowered program means.
 
 import { isVideoPlanCall } from './framework-calls.ts';
-import { attotimeBinary, attotimeField, attotimeFieldAssignment, withAttotimeField } from './exact-attotime.ts';
+import { attotimeBinary, attotimeField, attotimeFieldAssignment, attotimeSecondsFromHz, attotimeSecondsFromTicks, withAttotimeField } from './exact-attotime.ts';
 import type {
   BoardIr,
   GeneratedCallback,
@@ -3064,14 +3064,14 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'HZ_TO_ATTOSECONDS') return Math.trunc(1e18 / toNumber(args[0]));
   if (name === 'ATTOSECONDS_TO_DOUBLE') return toNumber(args[0]) * 1e-18;
   if (name === 'attotime') return args.length ? toNumber(args[0]) + toNumber(args[1] ?? 0) * 1e-18 : 0;
-  if (name === 'attotime::from_hz') return 1 / Math.max(1, toNumber(args[0]));
+  if (name === 'attotime::from_hz') return attotimeSecondsFromHz(Math.max(1, toNumber(args[0])));
   // Durations are seconds here, as from_hz and from_ticks already are.
   if (name === 'attotime::from_seconds' || name === 'attotime::from_double') return toNumber(args[0]);
   if (name === 'attotime::from_msec') return toNumber(args[0]) * 1e-3;
   if (name === 'attotime::from_usec') return toNumber(args[0]) * 1e-6;
   if (name === 'attotime::from_nsec') return toNumber(args[0]) * 1e-9;
   if (name === 'attotime::from_ticks') {
-    return toNumber(args[0]) / Math.max(1, toNumber(args[1]));
+    return attotimeSecondsFromTicks(toNumber(args[0]), Math.max(1, toNumber(args[1])));
   }
   if (name === 'TILE_FLIPYX') return toNumber(args[0]) & 3;
   if (name === 'TILE_FLIPXY') {

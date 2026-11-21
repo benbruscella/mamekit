@@ -32,9 +32,9 @@ export const timeplt = sourceTarget({
     audio: {
       writes: 960000,
       nonzeroWrites: 959999,
-      writeHash: 'e332843f',
-      pcmHash: '4082dde8',
-      rms: 0.417263,
+      writeHash: '78e6f2f0',
+      pcmHash: '93ea3f99',
+      rms: 0.416762,
     },
   },
 });

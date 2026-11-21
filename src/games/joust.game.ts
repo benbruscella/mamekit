@@ -62,10 +62,10 @@ export const joust = sourceTarget({
     },
     audio: {
       writes: 4345034,
-      nonzeroWrites: 4340276,
-      writeHash: '35aed54e',
-      pcmHash: '7be41f62',
-      rms: 0.215264,
+      nonzeroWrites: 4340268,
+      writeHash: '7ce36726',
+      pcmHash: 'f3f7fcbe',
+      rms: 0.215259,
     },
   },
 });

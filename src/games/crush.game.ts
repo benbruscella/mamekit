@@ -35,10 +35,10 @@ export const crush = sourceTarget({
     },
     audio: {
       writes: 1900799,
-      nonzeroWrites: 1162252,
-      writeHash: '4ffa442e',
-      pcmHash: '3cfc3074',
-      rms: 0.084881,
+      nonzeroWrites: 1162243,
+      writeHash: 'a2fb9769',
+      pcmHash: '13462140',
+      rms: 0.084512,
     },
   },
 });

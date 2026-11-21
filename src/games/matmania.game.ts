@@ -26,10 +26,10 @@ export const matmania = sourceTarget({
     },
     audio: {
       writes: 1002700,
-      nonzeroWrites: 1002696,
-      writeHash: 'e65f1a20',
-      pcmHash: '40014447',
-      rms: 0.194829,
+      nonzeroWrites: 1002697,
+      writeHash: '98344120',
+      pcmHash: '64af45ab',
+      rms: 0.194693,
     },
   },
 });

@@ -9,7 +9,9 @@ export const qix = sourceTarget({
   frames: 900,
   // CPUs compiled whole from MAME (#249) run heavier than the hand cores:
   // CI measured 22.5 fps against the floor of 40, so the floor is about 90% of that.
-  minimumFps: 20,
+  // #278's exact timers and stream updates through the current sample cost
+  // it 10% on CI (18.0 and 18.2 fps); the floor is again about 90% (#247, 7.12).
+  minimumFps: 16,
   checkpoints: [1, 10, 30, 60, 180, 300, 480, 600, 900],
   actions: [
     // Blank NVRAM asks for a language. Accept the highlighted default, then
@@ -34,16 +36,16 @@ export const qix = sourceTarget({
       60: { video: '52eb2598', state: 'f68ea5c1' },
       180: { video: 'ce536518', state: '886ebc18' },
       300: { video: '7b0b7216', state: 'f82e911e' },
-      480: { video: 'f39b292d', state: '4a67feac' },
-      600: { video: 'fabd3c10', state: '42132372' },
-      900: { video: 'd9a33d70', state: 'fcc245ba' },
+      480: { video: '8dbed344', state: '7556166d' },
+      600: { video: '6c5538e9', state: 'c9236f92' },
+      900: { video: 'bb94aeeb', state: 'fcc245ba' },
     },
     audio: {
       writes: 902603,
-      nonzeroWrites: 902359,
-      writeHash: '8648127c',
-      pcmHash: 'a1a71032',
-      rms: 0.092517,
+      nonzeroWrites: 902357,
+      writeHash: '2364defe',
+      pcmHash: '7053cc8a',
+      rms: 0.091859,
     },
   },
 });

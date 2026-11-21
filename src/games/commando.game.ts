@@ -38,10 +38,10 @@ export const commando = sourceTarget({
     },
     audio: {
       writes: 1448755,
-      nonzeroWrites: 221860,
-      writeHash: '36590275',
-      pcmHash: '546af5c0',
-      rms: 0.025368,
+      nonzeroWrites: 222540,
+      writeHash: '7219b293',
+      pcmHash: '25b00551',
+      rms: 0.025906,
     },
   },
 });

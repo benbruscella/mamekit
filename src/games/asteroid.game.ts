@@ -30,10 +30,10 @@ export const asteroid = sourceTarget({
     },
     audio: {
       writes: 936228,
-      nonzeroWrites: 304914,
-      writeHash: '8b41277a',
-      pcmHash: '8595a005',
-      rms: 0.044814,
+      nonzeroWrites: 304913,
+      writeHash: 'ba6708e4',
+      pcmHash: '43f64515',
+      rms: 0.044511,
     },
   },
 });

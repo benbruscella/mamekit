@@ -47,7 +47,7 @@ channel 1 (ch0 = muted APU). Ours is +0.9 dB = APU route 0.90 by design;
 **Measurement traps:** harness ignores contract actions under captureAudio
 unless `captureActions: true`; a contract scenario without a golden breaks
 loadGameContracts for every tool; `pgrep -f "pattern"` matches the sampling
-loop itself (use `ts[c]`); app-build deletes dist/app on tsc OOM (8 GB heap hit
-once; MAMEKIT_TSC_HEAP env override added).
+loop itself (use `ts[c]`); app-build deletes dist/app whenever tsc fails (8 GB heap hit once;
+the MAMEKIT_TSC_HEAP override no longer exists, the heap is fixed in compileStaged).
 
 Related: [[nes-184-part3]], [[mame-oracle-tool]], [[dont-wipe-served-dist]].

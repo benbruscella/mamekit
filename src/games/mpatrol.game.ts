@@ -45,9 +45,9 @@ export const mpatrol = sourceTarget({
     audio: {
       writes: 1522799,
       nonzeroWrites: 1522799,
-      writeHash: '72d4e542',
-      pcmHash: '4d2efaa8',
-      rms: 0.072016,
+      writeHash: 'a51f7dbf',
+      pcmHash: 'e5c6da04',
+      rms: 0.071979,
     },
   },
 });

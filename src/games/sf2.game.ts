@@ -48,10 +48,10 @@ export const sf2 = sourceTarget({
     },
     audio: {
       writes: 2897510,
-      nonzeroWrites: 2026105,
-      writeHash: 'e315443b',
-      pcmHash: '3927cbeb',
-      rms: 0.104195,
+      nonzeroWrites: 2026112,
+      writeHash: '56f1b555',
+      pcmHash: '3ebba4ed',
+      rms: 0.104185,
     },
   },
 });

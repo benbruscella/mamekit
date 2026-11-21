@@ -51,9 +51,9 @@ export const galaga = sourceTarget({
     audio: {
       writes: 2059199,
       nonzeroWrites: 2059199,
-      writeHash: 'f5271a90',
-      pcmHash: 'e5d24415',
-      rms: 0.050792,
+      writeHash: '6feb49a3',
+      pcmHash: 'c0ad653b',
+      rms: 0.050961,
     },
   },
 });

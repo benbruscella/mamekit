@@ -50,10 +50,10 @@ export const gunsmoke = sourceTarget({
     },
     audio: {
       writes: 1609727,
-      nonzeroWrites: 1160263,
-      writeHash: 'bd1ba275',
-      pcmHash: '19dc2972',
-      rms: 0.084827,
+      nonzeroWrites: 1160468,
+      writeHash: 'f1c5a97e',
+      pcmHash: '5fc8f796',
+      rms: 0.084462,
     },
   },
 });

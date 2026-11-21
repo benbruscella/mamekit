@@ -57,10 +57,10 @@ export const rtype = sourceTarget({
     },
     audio: {
       writes: 1465712,
-      nonzeroWrites: 823509,
-      writeHash: '08413fd3',
-      pcmHash: 'cdf2158f',
-      rms: 0.044723,
+      nonzeroWrites: 823504,
+      writeHash: '38e631b1',
+      pcmHash: 'a33106d5',
+      rms: 0.044797,
     },
   },
 });

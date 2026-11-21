@@ -135,6 +135,75 @@ export function exactAttotimeFromHz(frequency: unknown): ExactAttotime {
   return ExactAttotime.never;
 }
 
+/**
+ * attotime.h's `from_hz`, in the seconds a duration that is not exact is held
+ * in: `HZ_TO_ATTOSECONDS(frequency)`, truncated to whole attoseconds as
+ * MAME's is.
+ */
+export function attotimeSecondsFromHz(frequency: unknown): number {
+  const hz = Number(frequency);
+  if (!(hz > 0)) return Infinity;
+  if (hz <= 1 || !Number.isInteger(hz) || hz > 0xffffffff) return 1 / hz;
+  return rememberExact(ATTOS_PER_SECOND / BigInt(hz));
+}
+
+/**
+ * The exact attotime behind durations made lately, by the seconds they were
+ * handed out as. A duration is a number of seconds wherever it goes, but a
+ * timer armed with `from_ticks(...)` straight away (the usual shape) is armed
+ * with exactly what MAME's would be, so its expiry stays on the attosecond
+ * MAME's does period after period (IrTimer.adjust). Kept small: only a value
+ * that reaches a timer unchanged needs finding.
+ */
+const EXACT_DURATIONS = new Map<number, bigint>();
+
+function rememberExact(attos: bigint): number {
+  // Divided, not multiplied by 1e-18: the nearest double to the exact value.
+  const seconds = Number(attos) / 1e18;
+  if (EXACT_DURATIONS.size >= 256) EXACT_DURATIONS.clear();
+  EXACT_DURATIONS.set(seconds, attos);
+  return seconds;
+}
+
+/**
+ * A duration in seconds as an exact attotime: the one `from_ticks`/`from_hz`
+ * made it from, when it is one of theirs, or the nearest attosecond.
+ */
+export function exactDuration(seconds: number): ExactAttotime {
+  const attos = EXACT_DURATIONS.get(seconds);
+  return attos === undefined ? exactAttotime(seconds) : exactFromAttos(attos);
+}
+
+/** An exact attotime from a total count of attoseconds. */
+export function exactFromAttos(attos: bigint): ExactAttotime {
+  const secs = attos >= 0n ? attos / ATTOS_PER_SECOND : (attos - ATTOS_PER_SECOND + 1n) / ATTOS_PER_SECOND;
+  return new ExactAttotime(Number(secs), attos - secs * ATTOS_PER_SECOND);
+}
+
+/** An exact attotime as a total count of attoseconds. */
+export function exactToAttos(time: ExactAttotime): bigint {
+  return BigInt(time.secs) * ATTOS_PER_SECOND + time.attos;
+}
+
+/**
+ * attotime.h's `from_ticks(ticks, frequency)` and device_t's
+ * `clocks_to_attotime`, in seconds: whole seconds, then the remaining ticks at
+ * `HZ_TO_ATTOSECONDS(frequency)`. Each tick is truncated, so a span of ticks
+ * lands exactly on the cycle grid of a processor at that clock (its
+ * `attoseconds_per_cycle` is the same truncation). Held as ticks / frequency,
+ * a YM2203's 49536-clock timer was 16512 as longer than MAME's, and the
+ * error grew with every period it re-armed for (#278).
+ */
+export function attotimeSecondsFromTicks(ticks: unknown, frequency: unknown): number {
+  const count = Number(ticks);
+  const hz = Number(frequency);
+  if (!(hz > 0)) return Infinity;
+  if (!Number.isSafeInteger(count) || count < 0 || !Number.isInteger(hz) || hz > 0xffffffff) return count / hz;
+  const whole = Math.floor(count / hz);
+  const remainder = BigInt(count - whole * hz);
+  return rememberExact(BigInt(whole) * ATTOS_PER_SECOND + remainder * (ATTOS_PER_SECOND / BigInt(hz)));
+}
+
 function add(left: ExactAttotime, right: ExactAttotime): ExactAttotime {
   if (left.secs >= MAX_SECONDS || right.secs >= MAX_SECONDS) return ExactAttotime.never;
   let attos = left.attos + right.attos;

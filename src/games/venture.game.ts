@@ -53,10 +53,10 @@ export const venture = sourceTarget({
     },
     audio: {
       writes: 9920526,
-      nonzeroWrites: 3025372,
-      writeHash: '07874ebd',
-      pcmHash: '2f03a4d4',
-      rms: 0.070901,
+      nonzeroWrites: 3018720,
+      writeHash: 'ba0b6311',
+      pcmHash: '54578463',
+      rms: 0.070922,
     },
   },
 });

@@ -49,10 +49,10 @@ export const qbert = sourceTarget({
     },
     audio: {
       writes: 937820,
-      nonzeroWrites: 937057,
-      writeHash: '8316f8f1',
-      pcmHash: '629b6199',
-      rms: 0.134136,
+      nonzeroWrites: 937061,
+      writeHash: '7d58fd63',
+      pcmHash: '4bfaf0a5',
+      rms: 0.134133,
     },
   },
 });

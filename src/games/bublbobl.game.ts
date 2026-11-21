@@ -41,10 +41,10 @@ export const bublbobl = sourceTarget({
     },
     audio: {
       writes: 1459814,
-      nonzeroWrites: 1436652,
-      writeHash: 'd9d04a9b',
-      pcmHash: '25707322',
-      rms: 0.037102,
+      nonzeroWrites: 1436650,
+      writeHash: '7fe9e246',
+      pcmHash: 'cf3f336e',
+      rms: 0.037098,
     },
   },
 });

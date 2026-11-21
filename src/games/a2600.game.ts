@@ -46,7 +46,7 @@ export const a2600 = {
       audio: {
         writes: 961229,
         nonzeroWrites: 630136,
-        writeHash: '194a6bb1',
+        writeHash: 'a8be1bc0',
         pcmHash: '3ebafc59',
         rms: 0.272059,
       },

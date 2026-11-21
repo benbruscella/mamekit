@@ -45,10 +45,10 @@ export const digdug = sourceTarget({
     },
     audio: {
       writes: 1900799,
-      nonzeroWrites: 342716,
-      writeHash: '342f61f0',
-      pcmHash: '4a130848',
-      rms: 0.043716,
+      nonzeroWrites: 342647,
+      writeHash: '088c9c11',
+      pcmHash: '7b5976bd',
+      rms: 0.043705,
     },
   },
 });

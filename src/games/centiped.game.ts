@@ -37,9 +37,9 @@ export const centiped = sourceTarget({
     audio: {
       writes: 959999,
       nonzeroWrites: 959997,
-      writeHash: '487dc7bf',
-      pcmHash: 'ea31f8a7',
-      rms: 0.0698,
+      writeHash: '62f02cd2',
+      pcmHash: 'af1e28c4',
+      rms: 0.069799,
     },
   },
 });

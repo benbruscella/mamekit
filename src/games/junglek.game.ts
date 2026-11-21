@@ -8,7 +8,9 @@ export const junglek = sourceTarget({
   soundKind: 'stream',
   shareRequirements: [{ share: 'collision_reg', minimumNonzeroBytes: 1 }],
   frames: 900,
-  minimumFps: 40,
+  // CI measured 39.4 fps once in #278 with its time unchanged from main's
+  // (35 s): it sat on its floor. The floor is about 90% of that (#247, 7.12).
+  minimumFps: 35,
   checkpoints: [1, 60, 180, 300, 480, 600, 900],
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 10, releasedFrames: 20 },
@@ -35,9 +37,9 @@ export const junglek = sourceTarget({
     audio: {
       writes: 729907,
       nonzeroWrites: 720933,
-      writeHash: '3f5bc8ce',
-      pcmHash: 'fea2e91a',
-      rms: 0.294312,
+      writeHash: 'aa22b546',
+      pcmHash: '74019645',
+      rms: 0.294311,
     },
   },
 });

@@ -44,10 +44,10 @@ export const bankp = sourceTarget({
     },
     audio: {
       writes: 1258313,
-      nonzeroWrites: 524910,
-      writeHash: 'cac5f8e8',
-      pcmHash: '5b8ecc93',
-      rms: 0.12399,
+      nonzeroWrites: 524952,
+      writeHash: '862a5f90',
+      pcmHash: 'ccd67265',
+      rms: 0.123998,
     },
   },
 });

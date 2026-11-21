@@ -26,10 +26,10 @@ export const mrdo = sourceTarget({
     },
     audio: {
       writes: 960909,
-      nonzeroWrites: 392244,
-      writeHash: '69f1d405',
-      pcmHash: '55c0a309',
-      rms: 0.095064,
+      nonzeroWrites: 393453,
+      writeHash: '5365f381',
+      pcmHash: '97b2f918',
+      rms: 0.095408,
     },
   },
 });

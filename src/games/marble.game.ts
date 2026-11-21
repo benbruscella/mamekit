@@ -73,10 +73,10 @@ export const marble = sourceTarget({
     },
     audio: {
       writes: 1922475,
-      nonzeroWrites: 950482,
-      writeHash: '2883db3b',
-      pcmHash: '7bf06292',
-      rms: 0.027147,
+      nonzeroWrites: 950480,
+      writeHash: 'cf7f115f',
+      pcmHash: 'b54f85e6',
+      rms: 0.027162,
     },
   },
 });

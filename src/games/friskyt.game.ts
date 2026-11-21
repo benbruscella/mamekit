@@ -35,9 +35,9 @@ export const friskyt = sourceTarget({
     audio: {
       writes: 1425600,
       nonzeroWrites: 1425598,
-      writeHash: '29d931c2',
-      pcmHash: '4be4f8c6',
-      rms: 0.147072,
+      writeHash: 'b5c6e2d3',
+      pcmHash: '7d3e3c48',
+      rms: 0.147015,
     },
   },
 });

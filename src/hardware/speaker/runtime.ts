@@ -243,6 +243,9 @@ export function createStreamMixer(
     // A chip rendering above the speaker's rate, kept at its own rate for
     // MAME's resampler (see render): its absolute index and recent samples.
     lofi: { base: 0, rate: 0, history: [] as number[], sides: apart ? [[], []] as number[][] : undefined },
+    // Native samples a write rendered past the last speaker sample (see
+    // renderAhead), mixed and by output, the next speaker samples' first.
+    lead: { mixed: [] as number[], lanes: [] as number[][] },
     // On a stereo board, what it gave the left and the right.
     sides: apart ? [[], []] as number[][] : undefined,
   };
@@ -456,6 +459,62 @@ export function createStreamMixer(
     for (const channel of channels) channel.pending.splice(0, target - stream.rendered);
     stream.rendered = Math.max(stream.rendered, target);
   };
+  /** Renders a native-rate chip on to native sample `end`, kept as lead. */
+  const renderNative = (stream: typeof streams[number], end: number, native: number) => {
+    if (end <= stream.native) return;
+    const { mixed, lanes } = update(stream.tag, end - stream.native, native, stream.outputGains, stream.inputs, stream.native);
+    const lead = stream.lead;
+    const behind = lead.mixed.length;
+    for (const sample of mixed) lead.mixed.push(sample);
+    lanes.forEach((values, output) => {
+      const kept = lead.lanes[output] ??= [];
+      while (kept.length < behind) kept.push(0);
+      for (const sample of values) kept.push(sample);
+    });
+    for (const kept of lead.lanes) while (kept && kept.length < lead.mixed.length) kept.push(0);
+    stream.native = end;
+  };
+  /**
+   * A native-rate chip's samples from where the speaker last took them up to
+   * `end`: those a write rendered ahead first (renderAhead), then new ones.
+   */
+  const takeNative = (stream: typeof streams[number], end: number, native: number): { mixed: Float64Array; lanes: Float64Array[] } => {
+    const lead = stream.lead;
+    if (!lead.mixed.length) {
+      const fresh = update(stream.tag, Math.max(0, end - stream.native), native, stream.outputGains, stream.inputs, stream.native);
+      stream.native = Math.max(stream.native, end);
+      return fresh;
+    }
+    renderNative(stream, end, native);
+    const count = Math.max(0, end - (stream.native - lead.mixed.length));
+    const mixed = Float64Array.from(lead.mixed.splice(0, count));
+    const lanes = lead.lanes.map(kept => Float64Array.from(kept ? kept.splice(0, count) : new Array<number>(count).fill(0)));
+    return { mixed, lanes };
+  };
+  /**
+   * `sound_stream::update()` before a register write: the chip renders
+   * through the write's own sample, `floor(now * rate)` inclusive, as MAME's
+   * does. The speaker-rate catch-up alone stopped at the last speaker sample,
+   * up to 1/48000 s short. ymfm reads how far its stream has rendered when a
+   * timer is loaded (timer B's `m_total_clocks & 15`), so one FM sample short
+   * Bubble Bobble's YM2203 armed its timer 72 clocks long and the sound CPU
+   * took its IRQ 24 us after MAME's (#278). A chip reading its feeders, which
+   * are kept at the speaker's rate, still stops at the speaker sample.
+   * At time zero MAME updates nothing (`machine().time().is_zero()`): a
+   * write during power-on would render a DISCRETE device before its tasks
+   * are set up, and Asteroids' never finished.
+   */
+  const renderAhead = (stream: typeof streams[number]) => {
+    if (!(time() > 0)) return;
+    const rate = context.deviceStreamRate?.(stream.tag) ?? 0;
+    if (rate <= STREAM_AUDIO_RATE) {
+      render(stream, now() + 1);
+      return;
+    }
+    render(stream, now());
+    if (stream.inputs?.length || stream.lofi.rate !== rate) return;
+    renderNative(stream, Math.floor(time() * rate) + 1, rate);
+  };
   const render = (stream: typeof streams[number], target: number) => {
     if (!Number.isFinite(target)) return;
     // What a device reads from its inputs must exist before it renders.
@@ -478,6 +537,8 @@ export function createStreamMixer(
     // chip that changed its own (set_sample_rate) starts its history again.
     if (native && stream.lofi.rate !== native) {
       if (stream.lofi.rate) stream.native = Math.floor(stream.rendered * native / STREAM_AUDIO_RATE);
+      stream.lead.mixed.length = 0;
+      stream.lead.lanes.length = 0;
       stream.lofi.rate = native;
       stream.lofi.history.length = 0;
       for (const side of stream.lofi.sides ?? []) side.length = 0;
@@ -496,11 +557,12 @@ export function createStreamMixer(
         continue;
       }
       const end = Math.floor((stream.rendered + due) * native / STREAM_AUDIO_RATE);
-      const { mixed, lanes } = update(stream.tag, Math.max(0, end - stream.native), native, stream.outputGains, stream.inputs, stream.native);
+      const start = stream.native - stream.lead.mixed.length;
+      const { mixed, lanes } = takeNative(stream, end, native);
       // Each output sample is the mean of the native ones it spans.
       const spans: [number, number][] = [];
       for (let index = stream.rendered, at = 0; index < stream.rendered + due; index++) {
-        const stop = Math.min(mixed.length, Math.floor((index + 1) * native / STREAM_AUDIO_RATE) - stream.native);
+        const stop = Math.min(mixed.length, Math.floor((index + 1) * native / STREAM_AUDIO_RATE) - start);
         spans.push([at, Math.max(at, stop)]);
         at = Math.max(at, stop);
       }
@@ -515,7 +577,7 @@ export function createStreamMixer(
       // output's span left an AY at 187.5 kHz up to 6.7 dB brighter than
       // MAME above 12 kHz (Mat Mania).
       const lofi = stream.lofi;
-      if (!lofi.history.length) lofi.base = stream.native;
+      if (!lofi.history.length) lofi.base = start;
       for (const sample of mixed) lofi.history.push(sample * stream.outputGain);
       const out: number[] = [];
       resampleChannel({ rate: native, outputGain: 1, written: end, base: lofi.base, history: lofi.history, rendered: stream.rendered, pending: out },
@@ -534,7 +596,6 @@ export function createStreamMixer(
         lofi.base += behind - RATE_CHANGE_HISTORY;
       }
       if (stream.feeds) keep(stream, lanes, due, mean);
-      stream.native = end;
       stream.rendered += due;
     }
   };
@@ -628,7 +689,7 @@ export function createStreamMixer(
       const channels = channelsOf(stream);
       const index = streamIndex(surface);
       if (!channels || index < 0) {
-        render(stream, now());
+        renderAhead(stream);
         return 0;
       }
       updateChannel(stream, index, Math.floor(time() * channels[index]!.rate));

@@ -3,10 +3,15 @@ import {
   attotimeBinary,
   attotimeField,
   attotimeFieldAssignment,
+  attotimeSecondsFromHz,
+  attotimeSecondsFromTicks,
   constructExactAttotime,
   ExactAttotime,
   exactAttotime,
   exactAttotimeFromHz,
+  exactDuration,
+  exactFromAttos,
+  exactToAttos,
   withAttotimeField,
 } from './exact-attotime.ts';
 
@@ -74,3 +79,15 @@ assert.equal(at(2, 250_000_000_000_000_000n).as_ticks(4), 9);
 assert.equal(at(0, 42n).as_attoseconds(), 42);
 assert.equal(at(3, 0n).seconds(), 3);
 assert.deepEqual(parts(constructExactAttotime(4, 9)), [4, 9n]);
+
+// #278: from_ticks and from_hz in seconds keep MAME's truncation, each tick at
+// HZ_TO_ATTOSECONDS(frequency), and remember the exact value behind the
+// seconds they hand out, so a timer armed with one keeps MAME's attosecond.
+assert.equal(attotimeSecondsFromHz(3_000_000), 333333333333 / 1e18);
+assert.equal(attotimeSecondsFromTicks(49_536, 3_000_000), 16511999999983488 / 1e18);
+assert.equal(exactToAttos(exactDuration(attotimeSecondsFromTicks(49_536, 3_000_000))), 16511999999983488n);
+assert.equal(attotimeSecondsFromTicks(6_000_001, 3_000_000), 2 + 333333333333 / 1e18);
+assert.equal(exactToAttos(exactDuration(attotimeSecondsFromTicks(6_000_001, 3_000_000))), 2_000_000_333_333_333_333n);
+// A value not made by them converts to the nearest attosecond.
+assert.equal(exactToAttos(exactDuration(0.5)), 500_000_000_000_000_000n);
+assert.deepEqual(parts(exactFromAttos(1_250_000_000_000_000_000n)), [1, 250_000_000_000_000_000n]);

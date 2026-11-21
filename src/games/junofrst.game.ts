@@ -42,9 +42,9 @@ export const junofrst = sourceTarget({
     audio: {
       writes: 1900798,
       nonzeroWrites: 1900796,
-      writeHash: 'e9adbb8c',
-      pcmHash: '2678e8fa',
-      rms: 0.324457,
+      writeHash: 'c52b8af8',
+      pcmHash: '705900c7',
+      rms: 0.324552,
     },
   },
 });

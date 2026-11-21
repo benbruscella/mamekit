@@ -882,6 +882,22 @@ export class GeneratedFrameRunner {
     return order;
   }
 
+  /** The scheduler's base, MAME's `m_basetime`, in total attoseconds. */
+  baseExact(): bigint {
+    return this.base.exact;
+  }
+
+  /**
+   * The running processor's local time `elapsedCycles` into its slice, in
+   * total attoseconds, as MAME's `local_time()` has it; undefined outside a
+   * slice.
+   */
+  runningLocalExact(elapsedCycles: number): bigint | undefined {
+    const running = this.running;
+    if (!running) return undefined;
+    return running.local.exact + BigInt(Math.max(0, Math.trunc(elapsedCycles))) * BigInt(running.cycle.total);
+  }
+
   /**
    * The beam as the running processor sees it, `elapsedCycles` into its
    * slice: MAME's screen_device::vpos() reads the executing CPU's own local

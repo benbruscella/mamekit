@@ -31,10 +31,10 @@ export const shinobi = sourceTarget({
     },
     audio: {
       writes: 959999,
-      nonzeroWrites: 637913,
-      writeHash: '476fa5f7',
-      pcmHash: 'f6bf7a7b',
-      rms: 0.320793,
+      nonzeroWrites: 637914,
+      writeHash: '5c4246eb',
+      pcmHash: '1208dec0',
+      rms: 0.320786,
     },
   },
 });

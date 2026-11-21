@@ -96,7 +96,9 @@ assert.equal(device.get('m_byte'), 7);
 assert.equal(device.cycleClock(), 500);
 assert.equal(device.dataAddressBits(), 8);
 assert.equal(device.call('seconds_from_hz', 2_000), 0.0005);
-assert.equal(device.call('seconds_from_ticks', 3, 12_000), 0.00025);
+// MAME's from_ticks takes each tick at HZ_TO_ATTOSECONDS(frequency), truncated:
+// 3 x 83333333333333 as, an attosecond short of 0.25 ms (#278).
+assert.equal(device.call('seconds_from_ticks', 3, 12_000), 249999999999999e-18);
 assert.equal(device.constant('fixture::MASK'), device.constant('MASK'));
 assert.equal(device.arity('write'), 1);
 assert.deepEqual(device.signalNames(), ['q_out_cb']);

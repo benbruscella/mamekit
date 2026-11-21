@@ -42,10 +42,10 @@ export const bombjack = sourceTarget({
     },
     audio: {
       writes: 1946419,
-      nonzeroWrites: 1946415,
-      writeHash: 'a8f8f52b',
-      pcmHash: '5e1a3f53',
-      rms: 0.115367,
+      nonzeroWrites: 1946414,
+      writeHash: '6c5e2e74',
+      pcmHash: '4326a84e',
+      rms: 0.115349,
     },
   },
 });

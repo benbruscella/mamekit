@@ -28,10 +28,10 @@ export const wboy = sourceTarget({
     },
     audio: {
       writes: 958464,
-      nonzeroWrites: 644330,
-      writeHash: 'db8f4730',
-      pcmHash: 'b4978c9f',
-      rms: 0.092643,
+      nonzeroWrites: 644140,
+      writeHash: 'e307c2a0',
+      pcmHash: 'ceb9be00',
+      rms: 0.092636,
     },
   },
 });
