@@ -472,7 +472,7 @@ export interface Device {
   /** Seconds until the soonest armed timer of this device or one inside it fires. */
   untilNextTimer?(): number;
   /** The armed timer due soonest (IrDevice.soonestTimer): its exact expiry, and re-anchoring its countdown to it. */
-  soonestTimer?(): { exactDue(): ExactAttotime | undefined; anchorTo(now: bigint): number } | undefined;
+  soonestTimer?(): { exactDueAttos(): bigint | undefined; anchorTo(now: bigint): number; anchorAt(seconds: number): number } | undefined;
   /** Host a device_execute_interface time slice in device cycles. */
   runCycles?(cycles: number): number;
   /** device_execute_interface::total_cycles(), mid-slice included. */
@@ -1187,14 +1187,40 @@ class IrTimer {
     return Number.isFinite(this.remainingSeconds) ? this.exactExpiry : undefined;
   }
 
+  /** exactExpiry in total attoseconds, converted once per expiry. */
+  private exactAttos: bigint | undefined;
+  /** The exactExpiry exactAttos was converted from. */
+  private exactAttosOf: ExactAttotime | undefined;
+
+  /**
+   * exactDue() in total attoseconds. The board asks for it every round, and on
+   * a board that rounds every cycle (the NES) converting each time cost
+   * Lagrange Point a third of its speed on CI (#278).
+   */
+  exactDueAttos(): bigint | undefined {
+    const due = this.exactDue();
+    if (!due) return undefined;
+    if (this.exactAttosOf !== due) {
+      this.exactAttos = exactToAttos(due);
+      this.exactAttosOf = due;
+    }
+    return this.exactAttos;
+  }
+
   /**
    * Puts the countdown back on the exact expiry, the devices standing at
    * `now` (total attoseconds). The board does so for the soonest timer at the
    * start of every round, so the seconds a delivery takes off it cannot drift.
    */
   anchorTo(now: bigint): number {
-    const due = this.exactDue();
-    if (due) this.remainingSeconds = Number(exactToAttos(due) - now) * 1e-18;
+    const due = this.exactDueAttos();
+    if (due !== undefined) this.remainingSeconds = Number(due - now) * 1e-18;
+    return this.remainingSeconds;
+  }
+
+  /** anchorTo with the seconds from the devices to the exact expiry already worked out. */
+  anchorAt(seconds: number): number {
+    if (this.exactDue()) this.remainingSeconds = seconds;
     return this.remainingSeconds;
   }
 
@@ -3018,8 +3044,18 @@ class IrDevice implements Device {
       Boolean(this.slotChild?.needsTick());
   }
 
-  /** The armed timer due soonest, this device's or a child's (see untilNextTimer). */
+  /** The timer untilNextTimer() last found soonest, this device's or a child's. */
+  private soonestFound: IrTimer | undefined;
+
+  /**
+   * The armed timer due soonest, as of the last untilNextTimer(): the board
+   * asks right after its own walk, so walking again would only repeat it.
+   */
   soonestTimer(): IrTimer | undefined {
+    return this.soonestFound;
+  }
+
+  untilNextTimer(): number {
     let soonest = Infinity;
     let found: IrTimer | undefined;
     const entries = this.timerEntries;
@@ -3028,30 +3064,17 @@ class IrDevice implements Device {
       const until = timer.untilExpiry();
       if (until < soonest) { soonest = until; found = timer; }
     }
-    for (const child of [...this.children, ...this.slotChild ? [this.slotChild] : []]) {
-      const timer = child.soonestTimer();
-      const until = timer?.untilExpiry() ?? Infinity;
-      if (until < soonest) { soonest = until; found = timer; }
-    }
-    return found;
-  }
-
-  untilNextTimer(): number {
-    let soonest = Infinity;
-    const entries = this.timerEntries;
-    for (let index = 0; index < entries.length; index++) {
-      const until = entries[index]!.timer.untilExpiry();
-      if (until < soonest) soonest = until;
-    }
     const children = this.children;
     for (let index = 0; index < children.length; index++) {
-      const until = children[index]!.untilNextTimer();
-      if (until < soonest) soonest = until;
+      const child = children[index]!;
+      const until = child.untilNextTimer();
+      if (until < soonest) { soonest = until; found = child.soonestFound; }
     }
     if (this.slotChild) {
       const until = this.slotChild.untilNextTimer();
-      if (until < soonest) soonest = until;
+      if (until < soonest) { soonest = until; found = this.slotChild.soonestFound; }
     }
+    this.soonestFound = found;
     return soonest;
   }
 

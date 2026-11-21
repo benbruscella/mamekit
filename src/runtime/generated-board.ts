@@ -35,7 +35,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { attotimeSecondsFromTicks, ExactAttotime, exactFromAttos, exactToAttos } from '../ir/exact-attotime.ts';
+import { attotimeSecondsFromTicks, ExactAttotime, exactFromAttos } from '../ir/exact-attotime.ts';
 import { callLinksGeneration, DEFAULT_CONSTANTS, GENERATED_STRUCT, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
@@ -3584,24 +3584,20 @@ class IrBoard implements Board {
       this.pendingTimers.set(member, { at: 1 / streamsUpdateHz, param: 1 });
     }
     this.perfectTimerRounds = perfectRounds && timerRounds;
+    // The device whose timer the last soonestTimer() found, for its exact expiry.
+    let soonestDevice: Device | undefined;
     const soonestTimer = (): number => {
       let soonest = Infinity;
+      soonestDevice = undefined;
       for (let index = 0; index < timerDevices.length; index++) {
-        const until = timerDevices[index]!.untilNextTimer?.() ?? Infinity;
-        if (until < soonest) soonest = until;
+        const device = timerDevices[index]!;
+        const until = device.untilNextTimer?.() ?? Infinity;
+        if (until < soonest) { soonest = until; soonestDevice = device; }
       }
       return soonest;
     };
-    // The timer behind soonestTimer(), for its exact expiry.
-    const soonestTimerHandle = () => {
-      let soonest = Infinity;
-      let device: Device | undefined;
-      for (let index = 0; index < timerDevices.length; index++) {
-        const until = timerDevices[index]!.untilNextTimer?.() ?? Infinity;
-        if (until < soonest) { soonest = until; device = timerDevices[index]; }
-      }
-      return device?.soonestTimer?.();
-    };
+    // The timer behind the last soonestTimer(), which it has just found.
+    const soonestTimerHandle = () => soonestDevice?.soonestTimer?.();
     // MAME's `machine().time()` exactly, for a device timer armed outside a
     // timer's callback (setGeneratedTimerArmExact): the running processor's
     // local time, in its slice, or the scheduler's base between timeslices.
@@ -3671,8 +3667,8 @@ class IrBoard implements Board {
             const standing = (this.beamPosition() - baseLine) * this.lineSeconds();
             if (Math.abs(standing) > 1e-12) return;
             const timer = soonestTimerHandle();
-            const due = timer?.exactDue();
-            if (!timer || !due) return;
+            const due = timer?.exactDueAttos();
+            if (!timer || due === undefined) return;
             const baseAttos = this.frameRunner.baseExact();
             // Only drift: the countdown carries what the exact expiry does not
             // (the arming processor's lead, the round's base), and where the
@@ -3680,9 +3676,14 @@ class IrBoard implements Board {
             // stays with MAME. Battlezone's vector generator, started a cycle
             // before its STA ended, kept MAME's POKEY reads to frame 209 on
             // the countdown and lost them at 44 on the exact expiry.
-            const exact = Number(exactToAttos(due) - baseAttos) * 1e-18;
+            const exact = Number(due - baseAttos) * 1e-18;
             if (Math.abs(exact - soonest) > EXACT_ANCHOR_LIMIT_SECONDS) return;
-            soonest = timer.anchorTo(baseAttos + BigInt(Math.round(standing * 1e18)));
+            // Standing on the base to the attosecond, as the devices almost
+            // always do, the countdown is the seconds just worked out.
+            const standingAttos = Math.round(standing * 1e18);
+            soonest = standingAttos === 0
+              ? timer.anchorAt(exact)
+              : timer.anchorTo(baseAttos + BigInt(standingAttos));
             exactUntil = exact;
           };
           boundExactly();

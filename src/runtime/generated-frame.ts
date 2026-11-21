@@ -882,13 +882,6 @@ export class GeneratedFrameRunner {
     return order;
   }
 
-  /**
-   * The beam as the running processor sees it, `elapsedCycles` into its
-   * slice: MAME's screen_device::vpos() reads the executing CPU's own local
-   * time. Undefined outside a slice. Without it a round of many lines showed
-   * every read the round's last line, and a game polling for VBLANK
-   * (Phoenix, Rampage) never saw the beam move.
-   */
   /** The scheduler's base, MAME's `m_basetime`, in total attoseconds. */
   baseExact(): bigint {
     return this.base.exact;
@@ -905,6 +898,13 @@ export class GeneratedFrameRunner {
     return running.local.exact + BigInt(Math.max(0, Math.trunc(elapsedCycles))) * BigInt(running.cycle.total);
   }
 
+  /**
+   * The beam as the running processor sees it, `elapsedCycles` into its
+   * slice: MAME's screen_device::vpos() reads the executing CPU's own local
+   * time. Undefined outside a slice. Without it a round of many lines showed
+   * every read the round's last line, and a game polling for VBLANK
+   * (Phoenix, Rampage) never saw the beam move.
+   */
   runningBeam(elapsedCycles: number): number | undefined {
     const running = this.running;
     // A one-line round is already resolved inside the line by the board's
