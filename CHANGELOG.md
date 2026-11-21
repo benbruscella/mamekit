@@ -30,6 +30,14 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### `read_safe` answers its fallback, and `diverge` taps ports after the I/O map's mask ([#247](https://github.com/benbruscella/mamekit/issues/247))
+
+**For players:** Nothing audible. Frisky Tom's sound chip now reads 0 from a debug port it doesn't have, as in MAME, where it read `0xf0`.
+
+**Under the hood:**
+- `optional_ioport::read_safe(defval)` returns `defval` for a port the machine doesn't declare. Ours ignored the fallback and returned the input layer's idle `0xff`. Frisky Tom's `portb_r` reads Seicross's DEBUG port as `read_safe(0)`. Of the contract machines, only Frisky Tom and Q*bert read a port they don't declare, and Q*bert's acceptance is unchanged.
+- `mamekit diverge`'s I/O tap logged a port access with its full 16-bit address. A Z80 puts a register on the high byte (A for `OUT (n),A`, B for `OUT (C),r`), so most of Frisky Tom's port accesses fell outside the tapped range. MAME's tap sees the address after the map's `global_mask`, and ours now masks it the same way. Frisky Tom's port traffic matches MAME's (1,152 accesses over frames 1–60).
+
 ### Frisky Tom matches MAME: synchronized reset pulses, lost wait states, and `space.unmap()` ([#284](https://github.com/benbruscella/mamekit/issues/284))
 
 **For players:** Frisky Tom plays exactly as MAME does, attract mode and a played game alike. Its RAM matches MAME's on all 1,800 compared frames and its picture on every compared frame. It used to leave MAME at frame 468.

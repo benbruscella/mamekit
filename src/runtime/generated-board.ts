@@ -7098,7 +7098,10 @@ export function bindGeneratedInputState(
   for (const input of members) {
     const ports = input.tags.map(tag => ({
       read: () => inputs.read(tag),
-      read_safe: (_fallback = 0xff) => inputs.read(tag),
+      // optional_ioport::read_safe(defval): a port the machine doesn't declare
+      // answers defval, not the input layer's idle 0xff (friskyt has no DEBUG
+      // port, and seicross's portb_r reads it as read_safe(0)).
+      read_safe: (fallback = 0) => inputs.has?.(tag) === false ? fallback : inputs.read(tag),
       write: (value: number, mask = 0xffffffff) => {
         for (const output of input.outputs ?? []) {
           if ((mask & output.mask) === 0) continue;
