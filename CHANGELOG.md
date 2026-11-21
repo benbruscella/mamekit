@@ -30,6 +30,15 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Frisky Tom matches MAME: synchronized reset pulses, lost wait states, and `space.unmap()` ([#284](https://github.com/benbruscella/mamekit/issues/284))
+
+**For players:** Frisky Tom plays exactly as MAME does, attract mode and a played game alike. Its RAM matches MAME's on all 1,800 compared frames and its picture on every compared frame. It used to leave MAME at frame 468.
+
+**Under the hood:** three generic runtime gaps, each found with `mamekit diverge` and an MCU access tap:
+- `pulse_input_line` is ASSERT then CLEAR through `set_state_synced`, so it lands where the round ends. Ours applied it at once, so Frisky Tom's MCU, reset from the Z80's slice, restarted 609 µs before MAME's.
+- `adjust_icount` on a processor that isn't executing is lost, because MAME's scheduler overwrites `*m_icountptr` when the next slice starts. Ours carried it into that slice: the MCU's wait-state taps on its reset-vector read put it 4 cycles behind. `spin_until_time` is still deferred.
+- `space.unmap()` answers 0 unless the map says `unmap_value_high()`. The watchdog's `reset_r` returned `0xff` where MAME returns `00`.
+
 ### C64 covers on the shelves, one inbox for `.data`, and a bucket that matches it ([#159](https://github.com/benbruscella/mamekit/issues/159))
 
 **For players:** 1,137 Commodore 64 titles show their real box art in the software room in place of the drawn tape, disk or cartridge: 853 tapes, 181–185 cartridges (PAL/NTSC), 25 VIC-10 cartridges and 23 disks. A cover is shown whole and at its own shape, so a square disk sleeve and a tall tape inlay both stand on the shelf uncropped.

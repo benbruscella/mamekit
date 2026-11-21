@@ -66,6 +66,7 @@ import {
   type GeneratedExecutionCpu,
   type GeneratedHandler,
   type GeneratedStateMember,
+  type RangeSpec,
 } from '../ir/board.ts';
 import {
   applyBoardTransforms,
@@ -1290,6 +1291,7 @@ class IrBoard implements Board {
               if (method === 'spin_until_time') {
                 return (seconds: number) => this.adjustGeneratedIcount(
                   cpuSpec.tag, -Math.ceil(Number(seconds) / this.secondsPerCycleOf(cpuSpec) - CYCLE_ROUNDING),
+                  true,
                 );
               }
               if (method === 'set_input_line') {
@@ -2839,16 +2841,28 @@ class IrBoard implements Board {
             vector & 0xff,
           );
         };
+      // pulse_input_line(line, attotime::zero) is set_input_line ASSERT then
+      // CLEAR, and each goes through set_state_synced: from inside a slice
+      // the pulse lands where the round ends, not at once. Applied in place,
+      // Frisky Tom's MCU reset (portb_w, from the Z80's slice) restarted the
+      // MCU at its own round start, 609 us before MAME's (#284).
       calls[`m_${specification.tag}.pulse_input_line`] = line => {
-        if (line === INPUT_LINE_NMI) cpu.nmi();
-        else if (line === INPUT_LINE_RESET) {
-          cpu.reset();
-          this.cpuHeld.set(specification.tag, false);
-        }
-        else {
-          cpu.setInputLine(line, 1);
-          cpu.setInputLine(line, 0);
-        }
+        const apply = () => {
+          const activity = this.cpuActivity(specification.tag);
+          activity.quietSlices = 0;
+          activity.quietPc = undefined;
+          if (line === INPUT_LINE_NMI) cpu.nmi();
+          else if (line === INPUT_LINE_RESET) {
+            cpu.reset();
+            this.cpuHeld.set(specification.tag, false);
+          }
+          else {
+            cpu.setInputLine(line, 1);
+            cpu.setInputLine(line, 0);
+          }
+        };
+        if (this.synchronizesLineFrom(specification.tag)) this.synchronize(apply);
+        else apply();
       };
       calls[`m_${specification.tag}.total_cycles`] = () =>
         this.totalCycles(specification.tag);
@@ -5224,18 +5238,25 @@ class IrBoard implements Board {
           // MAME's `address_space &space` first parameter: the accessing
           // processor's bus, built once for the handler.
           const spaced = Boolean(parameters[0]?.includes('address_space'));
-          const cpuTag = machine.execution.cpus.find(candidateCpu =>
-            [...(candidateCpu.ranges ?? []), ...(candidateCpu.io?.ranges ?? [])].some(candidate =>
-              candidate.start === range.start &&
-              candidate.end === range.end &&
-              candidate[kind] === key))?.tag ??
+          const sameRange = (candidate: RangeSpec) =>
+            candidate.start === range.start &&
+            candidate.end === range.end &&
+            candidate[kind] === key;
+          const programCpu = machine.execution.cpus.find(candidateCpu =>
+            (candidateCpu.ranges ?? []).some(sameRange));
+          const cpuTag = (programCpu ?? machine.execution.cpus.find(candidateCpu =>
+            (candidateCpu.io?.ranges ?? []).some(sameRange)))?.tag ??
             machine.execution.cpus[0]?.tag;
+          // `space.unmap()`: address_space::m_unmap, zero unless the map says
+          // `unmap_value_high()` (the program map's choice is in the IR; an
+          // I/O map keeps MAME's default). Seicross's watchdog reset_r
+          // answers it, and the game reads the zero.
+          const unmapValue = programCpu?.unmapHigh === true ? 0xff : 0;
           const space = spaced ? {
             read_byte: (address: number) => (cpuTag ? this.cpuBuses.get(cpuTag) : undefined)?.read(address) ?? 0xff,
             write_byte: (address: number, value: number) =>
               (cpuTag ? this.cpuBuses.get(cpuTag) : undefined)?.write(address, value),
-            // What an unmapped read answers: the open bus MAME's spaces default to.
-            unmap: () => 0xff,
+            unmap: () => unmapValue,
             device: () => ({
               execute: () => ({
                 adjust_icount: (delta: number) =>
@@ -5451,7 +5472,7 @@ class IrBoard implements Board {
    * picture flicker. The running core is told to end its slice; anything it
    * cannot absorb there carries to the next one.
    */
-  private adjustGeneratedIcount(cpuTag: string, delta: number): number {
+  private adjustGeneratedIcount(cpuTag: string, delta: number, spin = false): number {
     if (!cpuTag || !delta) return 0;
     const stall = Math.max(0, -delta);
     const cpu = this.cpus.get(cpuTag) as { stallCycles?: number } | undefined;
@@ -5462,6 +5483,13 @@ class IrBoard implements Board {
       cpu.stallCycles += stall;
       return 0;
     }
+    // adjust_icount on a processor that is not executing moves *m_icountptr,
+    // which the scheduler overwrites when the processor's next slice starts:
+    // MAME loses it. Seicross's MCU reads its reset vector through its
+    // wait-state taps when the Z80 resets it, between slices; carried into
+    // the next slice, those two-per-read cycles put it 4 cycles behind MAME
+    // (#284). spin_until_time is a real suspension and is kept.
+    if (!spin && this.runningCpu !== cpuTag) return 0;
     this.cpuStalls.set(cpuTag, Math.max(0, (this.cpuStalls.get(cpuTag) ?? 0) + stall));
     return 0;
   }
