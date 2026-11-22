@@ -2677,8 +2677,13 @@ function emitCall(
     }
     // std::vector::resize. A plain array (a vector of vectors or of structs)
     // grows in place by elements of its own kind; a typed array is replaced,
-    // so a member or local holding one takes the new array back.
-    if (expression.callee.property === 'resize' && (args.length === 1 || args.length === 2)) {
+    // so a member or local holding one takes the new array back. A class
+    // object answers its own `resize`, as the interpreter has it: lowered as
+    // a container, sprite_device's `m_dirty.resize(width, height)` left the
+    // sparse_dirty_bitmap 0x0, no motion object was ever dirty, and Marble
+    // Madness merged no sprite onto its playfield (#288).
+    if (expression.callee.property === 'resize' && (args.length === 1 || args.length === 2) &&
+      !isObjectReceiver(expression.callee.object, context)) {
       const holder = expression.callee.object;
       const resized = `runtime.resize(${object}, ${args.join(', ')})`;
       if (holder.kind === 'identifier' && context.locals.has(holder.name) && !context.wrappedReferences.has(holder.name)) {

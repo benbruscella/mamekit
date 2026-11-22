@@ -30,6 +30,12 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Marble Madness draws its marble: sprites merge through the dirty map again ([#288](https://github.com/benbruscella/mamekit/issues/288))
+
+**For players:** Marble Madness draws the marble in play. Gauntlet's and Shinobi's sprites come out exactly as MAME draws them. All three are pixel-exact against MAME on every compared frame: Marble Madness's frames 600–2300, and frames 600/1200/1800 for Gauntlet, 60–1200 for Shinobi. They were 161–164, 653–1,469 and 729–10,774 pixels off.
+
+**Under the hood:** `sprite_device` sizes its `sparse_dirty_bitmap` with `m_dirty.resize(w, h)`, which sizes its cells with `m_bitmap.resize(w, h)`. The device codegen lowered both as `std::vector::resize`, and the runtime's container resize hands a non-container back unchanged. So the dirty map stayed 0×0, `iterate_dirty_rects` returned nothing, and `screen_update` merged no motion object. The motion-object bitmap was also never cleared, because `clear()` walks the same rects. Codegen now calls a class object's own `resize` (`isObjectReceiver`). The emitted `runtime.resize`, like the interpreter, resizes only real containers and otherwise calls the receiver's own `resize`. Only `atari_motion_objects` and `sega_sys16a_sprites` emitted such a call.
+
 ### `read_safe` answers its fallback, and `diverge` taps ports after the I/O map's mask ([#247](https://github.com/benbruscella/mamekit/issues/247))
 
 **For players:** Nothing audible. Frisky Tom's sound chip now reads 0 from a debug port it doesn't have, as in MAME, where it read `0xf0`.
