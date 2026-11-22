@@ -170,6 +170,22 @@ export function driverAggregates(
         ? zero(type)
         : shaped(items[index]!, type, undefined, `${where}[${index}]`) ?? 0);
     }
+    // An rgb_t element is one packed word however it is spelled. A braced
+    // list names a constructor by its arity -- `{ 0x00, 0x00, 0xbf }` is
+    // rgb_t(r, g, b), four items rgb_t(a, r, g, b) -- and a single value is
+    // rgb_t(u32), MAME's 0xAARRGGBB. Left as rows, the Spectrum's
+    // `constexpr rgb_t spectrum_pens[16]` reached set_pen_colors as sixteen
+    // arrays and every pen became colour 0.
+    if (type?.replace(/\bconst\b/g, '').trim() === 'rgb_t') {
+      const items = text.startsWith('{') ? braceItems(text) : [text];
+      if (items.length === 3 || items.length === 4) return scalar(`rgb_t(${items.join(', ')})`, where);
+      if (items.length === 1 && !/\brgb_t\b/.test(items[0]!)) {
+        const word = scalar(items[0]!, where);
+        return typeof word === 'number'
+          ? (((word & 0xff00ff00) >>> 0) + ((word & 0xff) * 65536) + ((word >>> 16) & 0xff))
+          : word;
+      }
+    }
     const fields = type ? structs.get(type.replace(/\bconst\b|\*/g, '').trim()) : undefined;
     if (fields && text.startsWith('{')) return record(braceItems(text), fields, where);
     if (text.startsWith('{')) {

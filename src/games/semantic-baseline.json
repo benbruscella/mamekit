@@ -704,7 +704,7 @@
       "palette": "none"
     },
     "spec128": {
-      "sha256": "c8e46e3a62bd78dcdf5407d2a4bec921398bc6b76454b9f8f743c9cf44c3ea2c",
+      "sha256": "bdc23c661d4e3db0b81f103e53c12b31cf149350a63585af3623615821bc197e",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 17,
@@ -713,7 +713,7 @@
       "palette": "none"
     },
     "spectrum": {
-      "sha256": "91f14a4bb29c003207daddcd5bf635c4ad5ab42384f19acb571b0eec02fc19a3",
+      "sha256": "673bfccf6d3bd579d0cdc510c80d6a4b00ffd500d38459b0dde582b9e416b840",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 14,

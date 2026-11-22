@@ -25,3 +25,5 @@ change, because its key does not change with the compiler. A fresh worktree has
 no dist, so one bootstrap `gen:all` there is unavoidable.
 
 See [[dist-rebuild-pitfalls]], [[venture-scheduler-time-271]].
+
+**Correction (2026-11-22, #290):** `--build-runtime --targets spectrum,spec128` pruned every other machine's device module from `dist/runtime/generated/devices` (781 files down to 42), and `mamekit against` then failed on `dist/app/registry.js` importing a missing module. After a device-compiler change, go straight to `node bin/mamekit.js --build-runtime --build-app` (about a minute, all targets).

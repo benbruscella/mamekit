@@ -38,6 +38,14 @@ assert.ok(taps.find(tap => tap.lo === 0xf80001)!.why.includes('soundlatch (share
 assert.deepEqual(on('audiocpu'), [['1810', '3f9f']], 'a mirrored latch is tapped across its mirrors');
 assert.ok(!taps.some(tap => tap.why.some(why => why.startsWith('ymsnd'))), 'a chip one processor reaches is not shared');
 
+// The Spectrum's ULA: one port whose upper address lines are its offset
+// (`map(0x00, 0x00).select(0xfffe)`), so it is read at $FEFE, $7FFE, ...
+const spectrum = divergeRanges({ board: { cpus: [{ tag: 'maincpu', ranges: [], io: { ranges: [
+  { start: 0, end: 0, kind: 'handler', select: 0xfffe, read: 'spectrum_state.spectrum_ula_r', write: 'spectrum_state.spectrum_ula_w' },
+  { start: 1, end: 1, kind: 'handler', select: 0xfffe, read: 'spectrum_state.spectrum_port_r', write: 'spectrum_state.spectrum_port_w' },
+] } }] } } as unknown as ShellConfig);
+assert.deepEqual(spectrum.map(tap => [tap.space, tap.lo, tap.hi]), [['io', 0, 0xffff]], 'a selected port is tapped across its select bits');
+
 // Shared RAM, as Galaga's three Z80s map it.
 const galaga = divergeRanges(board(['maincpu', 'sub', 'sub2'].map(tag => ({
   tag, ranges: [{ start: 0x8000, end: 0x87ff, kind: 'ram', share: 'videoram' }, { start: 0x8800, end: 0x8bff, kind: 'ram', share: 'galaga_ram1' }],
