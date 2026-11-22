@@ -1040,3 +1040,37 @@ assert.ok(!branchEmitted.methods.includes('calls_reference_helper'), 'a callee w
     'a required_shared_ptr in arithmetic is a pointer, not a number',
   );
 }
+
+// A class object answers its own `resize`; only a container is resized by the
+// runtime. sprite_device::draw_async's `m_dirty.resize(new_width, new_height)`
+// on its sparse_dirty_bitmap was lowered as std::vector::resize, which handed
+// the object back unchanged: the dirty map stayed 0x0, iterate_dirty_rects
+// answered nothing, and Marble Madness's screen update merged no motion
+// object, so no marble was drawn (#288).
+{
+  const objectDefinition: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['grow'],
+    members: [
+      ...definition.members,
+      { name: 'm_dirty', valueType: 'sparse_dirty_bitmap', object: 'sparse_dirty_bitmap', objectType: 'sparse_dirty_bitmap' },
+      { name: 'm_lookup', valueType: 'std::vector<uint8_t>' },
+    ],
+    methods: [{
+      name: 'grow',
+      parameters: 'int width, int height',
+      source: { file: 'src/devices/video/sprite.h', line: 135 },
+      program: compileMameHandler('m_dirty.resize(width, height); m_lookup.resize(width);'),
+    }],
+  } as GeneratedDeviceDefinition;
+  const emitted = generatedDeviceMethodsSource(objectDefinition);
+  assert.ok(emitted.methods.includes('grow'), `grow is emitted: ${JSON.stringify((emitted as { diagnostics?: unknown }).diagnostics)}`);
+  const grow = (Function(`return ${emitted.source}`)() as Record<string, (runtime: unknown, ...args: number[]) => unknown>).grow!;
+  const resized: number[][] = [];
+  const dirty = { resize: (width: number, height: number) => { resized.push([width, height]); } };
+  const members: Record<string, unknown> = { m_dirty: dirty, m_lookup: new Uint8Array(2) };
+  grow({ members, resize: (container: Uint8Array, length: number) => new Uint8Array(length) }, 336, 240);
+  assert.deepEqual(resized, [[336, 240]], 'an object member answers its own resize');
+  assert.equal(members.m_dirty, dirty, 'the object member keeps its binding');
+  assert.equal((members.m_lookup as Uint8Array).length, 336, 'a vector member is still resized by the runtime');
+}

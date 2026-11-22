@@ -16,6 +16,7 @@ import {
   prepareGeneratedMachineRead,
   prepareGeneratedMachineWrite,
   REFERENCE_PARAMETERS,
+  resizeGeneratedContainer,
 } from './execute.ts';
 import type { BoardIr, GeneratedHandler, GeneratedHandlerProgram } from './board.ts';
 
@@ -882,6 +883,19 @@ check('a struct copies from a struct and rebinds to a pointer', () => {
   assert.notEqual(members.m_copy, table, 'and stays a struct of its own');
   assert.equal(executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(
     'return m_coeff->bits;')), { members } as never).value, 5, 'a pointer is rebound, and reads its target');
+});
+
+// An object with a resize of its own answers it, as the interpreter has it.
+// Emitted, sparse_dirty_bitmap::resize's `m_bitmap.resize(w, h)` on a
+// bitmap_ind8 went through the container path and left the bitmap 0x0, so
+// atarimo's dirty map had no cells and Marble Madness drew no marble (#288).
+check('resize on an object calls its own resize; a container is still resized', () => {
+  const calls: number[][] = [];
+  const bitmap = { resize: (width: number, height: number) => { calls.push([width, height]); } };
+  assert.equal(resizeGeneratedContainer(bitmap, 42, 30), bitmap, 'the object is its own result');
+  assert.deepEqual(calls, [[42, 30]], 'and its resize ran with both extents');
+  assert.equal((resizeGeneratedContainer(new Uint8Array(2), 5, 7) as Uint8Array).join(), '0,0,7,7,7', 'a typed array is resized and filled');
+  assert.equal((resizeGeneratedContainer([1], 3) as number[]).length, 3, 'a vector grows');
 });
 
 console.log(`execute.spec: ${passed} passed, 0 failed`);

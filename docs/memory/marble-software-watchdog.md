@@ -115,3 +115,8 @@ Frame 899 pixel-identical to MAME's cold frame 900. Video gaps fixed: runtime `m
 ## 2026-11-16 (#255): it tripped again, for a third reason
 
 On main at ec3a74f3 the watchdog tripped at frame 320 again. Not the handshake and not the slapstic: a `u32 &` accessor's setter stored a signed value (`DX() |= x`), so SWAP produced `ffff` and 51 playfield words were wrong. Fixed in `device-compiler.ts`. See [[scheduler-bound-255]].
+
+
+## 2026-11-22 (#288): no ball in play
+
+The "exact at frame 600" claim held only because frame 600 is attract with no motion objects. Every in-play frame was missing the marble. Cause: `runtime.resize(container, …)` (the emitted std::vector::resize) applied to class objects. `m_dirty.resize` and `sparse_dirty_bitmap`'s `m_bitmap.resize` were no-ops, so the dirty map was 0×0 and the MO merge never ran. Gauntlet and Shinobi (sega_sys16a_sprites) had the same fault. **Debug path that worked:** instrument dist's generated device `.js` (`process.getBuiltinModule('fs').appendFileSync`, since ESM has no require) and stage by stage: active list → render_object → transpen_raw pixels → board merge rects. Back up the file first. Compare frames must include gameplay, not just attract.

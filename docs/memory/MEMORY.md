@@ -6,7 +6,7 @@
 - [Ask before MAME sweeps](ask-before-mame-sweeps.md) · [Sweep watch command](sweep-watch-command.md) — multi-MAME runs need OK; hand over a progress command
 - [Use the user's tree](dont-wipe-served-dist.md) · [Run data commands yourself](run-data-commands-yourself.md) · [Serve from dist](serve-from-dist.md) — no side trees; dry-run .data tooling; `npm run serve`
 - [gen:all at the end](gen-all-at-end.md) · [CI local checks](ci-local-checks.md) · [Frugal blast radius](frugal-blast-radius.md) — single-target while iterating; `test:current`; derive impacted games
-- [Outstanding issue](outstanding-issue.md) — follow-ups go in GitHub #247
+- [Outstanding issue](outstanding-issue.md) · [Never reference the epic](no-closing-keywords-for-epics.md) — follow-ups go in GitHub #247; PRs and commits never name #247
 - [Attribution from release notes](attribution-from-release-notes.md) — MAMEDEV notes + copyright-holders, never git log
 - [Worktree PR hooks](worktree-pr-hooks.md) · [No stash in scripts](stash-in-scripts.md)
 

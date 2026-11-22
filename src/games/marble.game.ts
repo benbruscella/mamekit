@@ -18,6 +18,11 @@
 // 4. Dead controls: the video compiler took the driver file's first GAME
 //    (Peter Pack Rat, init_peterpak: a joystick) instead of init_marble.
 //
+// 5. No marble in play: sprite_device's dirty map was never sized (its
+//    `resize` calls lowered as std::vector::resize), so no motion object was
+//    merged onto the playfield. Checkpoints 1500-2400 hold the ball in play,
+//    so a missing ball fails acceptance.
+//
 // Attract mode is black until about frame 400 in MAME too.
 
 import { sourceTarget } from "./source-contract.ts";
@@ -64,12 +69,12 @@ export const marble = sourceTarget({
       60: { video: 'ca3d891c', state: 'fa68cff1' },
       300: { video: 'ca3d891c', state: '2863cb0d' },
       600: { video: 'acd57463', state: '2d714003' },
-      900: { video: '42e18f29', state: '2171a7b1' },
-      1200: { video: '250051f1', state: 'ef09c3ce' },
-      1500: { video: '34a71239', state: 'dccbbd1d' },
-      1800: { video: 'd9712659', state: '8855c6f3' },
-      2100: { video: 'b6690d80', state: 'ed549cb6' },
-      2400: { video: '837bc509', state: 'd5892b8a' },
+      900: { video: '49a76ea4', state: '2171a7b1' },
+      1200: { video: '8dc72644', state: 'ef09c3ce' },
+      1500: { video: '2e238bd0', state: 'dccbbd1d' },
+      1800: { video: 'c760bb5c', state: '8855c6f3' },
+      2100: { video: '7c47a20e', state: 'ed549cb6' },
+      2400: { video: '5f3929a6', state: 'd5892b8a' },
     },
     audio: {
       writes: 1922475,

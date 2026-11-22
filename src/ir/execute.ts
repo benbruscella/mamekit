@@ -93,6 +93,18 @@ export function resizableBuffer(maxByteLength: number): ArrayBuffer {
  */
 export function resizeGeneratedContainer(container: unknown, length: number, fill?: unknown): unknown {
   if (Array.isArray(container)) return resizeGeneratedVector(container, length, fill);
+  // Not a container but an object with a `resize` of its own, which answers
+  // it as the interpreter has it (only indexable memory is resized there):
+  // sparse_dirty_bitmap::resize's `m_bitmap.resize(w, h)` on its bitmap_ind8
+  // was a no-op, the dirty map had no cells, and atarimo merged no motion
+  // object onto Marble Madness's playfield (#288).
+  if (!ArrayBuffer.isView(container) && container !== null && typeof container === 'object' &&
+      typeof (container as { resize?: unknown }).resize === 'function') {
+    const resize = (container as { resize(...args: unknown[]): unknown }).resize;
+    if (fill === undefined) resize.call(container, length);
+    else resize.call(container, length, fill);
+    return container;
+  }
   const value = fill === undefined ? 0 : toNumber(fill);
   if (!ArrayBuffer.isView(container)) return container;
   const current = container as unknown as ArrayLike<number> & { constructor: new (size: number) => ArrayLike<number> & { set(values: ArrayLike<number>): void } };

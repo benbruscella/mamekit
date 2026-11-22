@@ -22,12 +22,12 @@ export const shinobi = sourceTarget({
     },
     checkpoints: {
       1: { video: '2aa9b3cc', state: '0a8d411c' },
-      60: { video: 'ef2d4e2d', state: '4d5d5e5b' },
-      180: { video: 'ef2d4e2d', state: 'b2f0c293' },
-      300: { video: 'ef2d4e2d', state: '18fc1f91' },
+      60: { video: 'b7f7a18a', state: '4d5d5e5b' },
+      180: { video: 'e1c0b9d7', state: 'b2f0c293' },
+      300: { video: 'b92420f3', state: '18fc1f91' },
       600: { video: '7bd0282c', state: 'c8ca395b' },
-      900: { video: 'a1c97233', state: '867e58a6' },
-      1200: { video: '5d22e379', state: '3c027e6c' },
+      900: { video: '0387a3e5', state: '867e58a6' },
+      1200: { video: 'ff6c32af', state: '3c027e6c' },
     },
     audio: {
       writes: 959999,
