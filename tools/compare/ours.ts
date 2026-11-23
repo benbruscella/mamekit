@@ -241,8 +241,12 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       // slots, the media slots left empty, the title and the input timeline.
       onBoard: ({ board, boardConfig, config, input }) => {
         liveBoard = board;
-        const shelf = title && 'software' in title
-          ? config.software?.shelves.find(candidate => candidate.list === title.software.list)
+        // The title's shelf, whether the title was named on the command line
+        // or is the scenario's own: left to a named title alone, a contract's
+        // tape was mounted in MAME and never typed or played.
+        const listed = contract.software;
+        const shelf = listed
+          ? config.software?.shelves.find(candidate => candidate.list === listed.list)
           : undefined;
         const boot: OursBoot = {
           width: board.fbWidth,

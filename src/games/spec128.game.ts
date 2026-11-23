@@ -1,4 +1,4 @@
-import type { MachineTargetContract } from '../types.ts';
+import type { MachineTargetContract } from "./types.ts";
 
 /**
  * The ZX Spectrum 128, through its menu's Tape Loader (the start presses
@@ -15,10 +15,10 @@ export const spec128 = {
     screen: { width: 352, height: 296 },
     soundKind: 'stream',
     media: [
-      { kind: 'bios', status: 'candidate' },
+      { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'candidate', softwareLists: ['spectrum_cart'] },
       { kind: 'quickload', status: 'planned' },
-      { kind: 'cassette', status: 'candidate', softwareLists: ['spectrum_cass'] },
+      { kind: 'cassette', status: 'accepted', softwareLists: ['spectrum_cass'] },
     ],
   },
   scenarios: [{
@@ -36,49 +36,52 @@ export const spec128 = {
         maincpu: 'b6939fc8',
       },
       checkpoints: {
-        1: { video: 'bbcdf0e0', state: '1f52250f' },
-        60: { video: 'a17676b9', state: 'f66eaa7f' },
-        150: { video: '087fceb1', state: '531dae8b' },
-        300: { video: '087fceb1', state: '11fb9075' },
-        400: { video: '087fceb1', state: '688adafd' },
+        1: { video: 'bbcdf0e0', state: 'a3526d96' },
+        60: { video: '654b2a59', state: '48e06e4a' },
+        150: { video: '087fceb1', state: '3c0b42da' },
+        300: { video: '087fceb1', state: 'a4d203f8' },
+        400: { video: '087fceb1', state: 'f2aaa5fa' },
       },
       audio: {
         writes: 383837,
-        nonzeroWrites: 90161,
-        writeHash: 'c4acf043',
-        pcmHash: '80f9c3f5',
-        rms: 0.002782,
+        nonzeroWrites: 383835,
+        writeHash: 'fc62c534',
+        pcmHash: 'd5eb51e3',
+        rms: 0.187693,
       },
     },
   }, {
-    // ENTER on the Tape Loader, PLAY, the loading screen (by frame 3000), the
-    // main block (the tape stops at 298.6 s, as MAME stops it), the title.
+    // ENTER on the Tape Loader, PLAY, the loading screen (by frame 3000), and
+    // the main block still loading at 9000. The load ends at the title near
+    // frame 15500 (the tape stops at 298.6 s, as MAME stops it), but a run that
+    // long passes the acceptance matrix's eight minutes on a CI runner, which
+    // runs this board at half a development machine's speed. The 48K's tape
+    // scenario carries a whole load through the same cassette.
     id: 'tape',
     kind: 'media',
     software: { list: 'spectrum_cass', name: 'elite' },
     romEnvironment: 'MAMEKIT_SPECTRUM_ROM',
-    frames: 16500,
+    frames: 9000,
     minimumFps: 10,
-    checkpoints: [1, 300, 3000, 9000, 15500, 16500],
+    checkpoints: [1, 300, 3000, 8500, 9000],
     actions: [],
     golden: {
       regions: {
         maincpu: 'b6939fc8',
       },
       checkpoints: {
-        1: { video: 'bbcdf0e0', state: '1f52250f' },
-        300: { video: '1dc2b829', state: '529f5699' },
-        3000: { video: '2f9d30b2', state: 'c63f39bd' },
-        9000: { video: '1ca27679', state: '930da948' },
-        15500: { video: 'e1d4b236', state: '9a5938b3' },
-        16500: { video: 'd22d0728', state: 'cbdf41c3' },
+        1: { video: 'bbcdf0e0', state: 'a3526d96' },
+        300: { video: 'd9ebcf40', state: 'a64998f9' },
+        3000: { video: '8438bfb5', state: '18bc5121' },
+        8500: { video: '63dd3d82', state: '546812f1' },
+        9000: { video: '7e352ec3', state: '58acb418' },
       },
       audio: {
-        writes: 15833301,
-        nonzeroWrites: 15833301,
-        writeHash: 'a0b4b3e6',
-        pcmHash: '810ff2ed',
-        rms: 0.014083,
+        writes: 8636346,
+        nonzeroWrites: 8636344,
+        writeHash: '941d1d56',
+        pcmHash: 'b040c999',
+        rms: 0.137817,
       },
     },
   }],

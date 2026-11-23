@@ -98,7 +98,11 @@ export function divergeRanges(config: ShellConfig): DivergeTap[] {
     const ports: DivergeTap[] = [];
     for (const range of cpu.io) {
       const why = [range.read, range.write].filter((name): name is string => !!name && !/^port\./.test(name));
-      if (why.length) ports.push({ tag: cpu.tag, space: 'io', lo: range.start, hi: range.end | (range.mirror ?? 0), why: [...new Set(why)] });
+      // A handler's `select` bits reach it like a mirror's, as its offset:
+      // the Spectrum's ULA is `map(0x00, 0x00).select(0xfffe)`, read at
+      // $FEFE, and tapped as 0-1 it showed no access on either side.
+      const select = (range as { select?: number }).select ?? 0;
+      if (why.length) ports.push({ tag: cpu.tag, space: 'io', lo: range.start, hi: range.end | (range.mirror ?? 0) | select, why: [...new Set(why)] });
     }
     picked.sort((left, right) => left.lo - right.lo);
     ports.sort((left, right) => left.lo - right.lo);

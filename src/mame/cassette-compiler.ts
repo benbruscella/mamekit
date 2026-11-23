@@ -109,7 +109,12 @@ export function compileCassetteDevice(mameSource: string): GeneratedDeviceDefini
   const cassette = compileMameDevice(mameSource, hardware.get('CASSETTE')!, 'CASSETTE');
   const live = new Set(['device_start', 'update', 'change_state', 'get_state', 'input', 'output',
     'get_length', 'get_position', 'is_stopped', 'is_playing', 'is_recording', 'motor_on',
-    'set_motor', 'set_speaker', 'speaker_on', 'set_channel', 'set_speed', 'go_forward', 'go_reverse', 'seek']);
+    'set_motor', 'set_speaker', 'speaker_on', 'set_channel', 'set_speed', 'go_forward', 'go_reverse', 'seek',
+    // The machine configuration's own call on a board's cassette: the
+    // Spectrum's `set_default_state(CASSETTE_STOPPED | ...)`. Left out, the
+    // constructor's CASSETTE_PLAY stood, the tape ran from the mount and not
+    // from PLAY, and the 48K's LOAD "" joined its first header part-way.
+    'set_default_state']);
   cassette.methods = cassette.methods.filter(method => live.has(method.name));
   const file = 'src/devices/imagedev/cassette.cpp';
   const load = parseMameSource(file, readFileSync(join(mameSource, file), 'utf8')).functions

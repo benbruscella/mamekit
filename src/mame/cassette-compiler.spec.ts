@@ -115,3 +115,16 @@ console.log('cassette-compiler.spec: Datassette Play, sense, sample reads and mo
   }
   console.log('cassette-compiler.spec: MAME WAV tapes passed in IR and generated code');
 }
+
+// A board's own cassette takes its default state from the machine
+// configuration: the Spectrum's `set_default_state(CASSETTE_STOPPED | ...)`.
+// The setter is one of the transport's methods, or the constructor's
+// CASSETTE_PLAY stands and a mounted tape runs before PLAY is pressed.
+{
+  const { compileCassetteDevice } = await import('./cassette-compiler.ts');
+  const transport = compileCassetteDevice(source);
+  assert.ok(transport.methods.some(method => method.name === 'set_default_state' && !method.program.diagnostics.length),
+    'set_default_state is compiled');
+  assert.equal(transport.members.find(member => member.name === 'm_default_state')?.initial, transport.constants.CASSETTE_PLAY);
+}
+console.log('cassette-compiler.spec: the configured default state reaches the transport');
