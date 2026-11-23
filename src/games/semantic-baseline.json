@@ -29,9 +29,9 @@
       "palette": "prom:proms"
     },
     "asteroid": {
-      "sha256": "ae35de23f10a46a081df21b56f355e3033eddc0fbf46135b25ebd940236bc971",
+      "sha256": "b90577d0431607653a702a5bcbdf7b3445fb54acbacc68af36bc8cd7cd73d8c8",
       "callbacks": 12,
-      "frameEvents": 4,
+      "frameEvents": 1,
       "devices": 10,
       "handlers": 26,
       "maps": 1,
@@ -92,9 +92,9 @@
       "palette": "ram:palette:-:big:256:2"
     },
     "bzone": {
-      "sha256": "8c9be42466ba8d7cc20bf5abacd680c57a23e8255a39e595eb0f8dcbed101e26",
+      "sha256": "5335aab80bf66076f0a286793d72ef2a4b2c04c0c0f77e933555f21d082e7367",
       "callbacks": 3,
-      "frameEvents": 6,
+      "frameEvents": 1,
       "devices": 9,
       "handlers": 16,
       "maps": 1,
@@ -164,9 +164,9 @@
       "palette": "prom:proms"
     },
     "congo": {
-      "sha256": "dbae540398f9e547e784d8eaca2fcab251d8a9df735e26937afea2dfa0eb9cee",
+      "sha256": "a5f764dd7b87c42cd8a4f93f0b63d461c5934d89d7b5fcfb655e1e85e5248152",
       "callbacks": 24,
-      "frameEvents": 6,
+      "frameEvents": 3,
       "devices": 13,
       "handlers": 50,
       "maps": 3,
@@ -227,7 +227,7 @@
       "palette": "none"
     },
     "elevator": {
-      "sha256": "5680b0209e8f6a14b36f9f17161e904bf7789cd29c41e90fd115582c641c969b",
+      "sha256": "dfc18e8499e997b5474a15397cb6fa49ee044d27ea81cbfd1e56c0196ad58430",
       "callbacks": 20,
       "frameEvents": 2,
       "devices": 17,
@@ -317,18 +317,18 @@
       "palette": "ram:palette:-:native:3072:2"
     },
     "gng": {
-      "sha256": "fe2ef0523398fccf5a8bfc233526e805ea417eaf2d2a1305e4e74e849089ae57",
+      "sha256": "7f15a95e2c3697b2300ca77f341a6e6176b51842ba860e77259f0892e35845cb",
       "callbacks": 6,
-      "frameEvents": 5,
+      "frameEvents": 2,
       "devices": 11,
       "handlers": 22,
       "maps": 2,
       "palette": "ram:palette:palette_ext:native:256:2"
     },
     "gunsmoke": {
-      "sha256": "4b39fd85be1b7d8249848da7323bb1323248fb4fe4027a5b7a88276f735c4bda",
+      "sha256": "a845424a3bc3aea9a39da48995a38ea8763f8d0505effffaa540bdc22d75ee1b",
       "callbacks": 4,
-      "frameEvents": 5,
+      "frameEvents": 2,
       "devices": 10,
       "handlers": 18,
       "maps": 2,
@@ -380,7 +380,7 @@
       "palette": "none"
     },
     "junglek": {
-      "sha256": "932191699fb7f01a53424de3fdeefdebc34e39ae9cd3a6d7bb28aa7e514efa1a",
+      "sha256": "704f86ace81a6c90ebe05a54d0bcc4a2ec73324e6b4e217a020819564aab80ee",
       "callbacks": 11,
       "frameEvents": 2,
       "devices": 15,
@@ -722,7 +722,7 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "a04387b7c89e5f5bc9bd18b207e5ee06fb3d6a0396dd463f12984769a42d48ff",
+      "sha256": "f30e089d0ef14a732c70c3d890a0d237301de932000a7f660c959209f3f1dd7d",
       "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,
