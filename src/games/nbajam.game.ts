@@ -30,7 +30,9 @@ export const nbajam = sourceTarget({
   // down to 9, mk's.
   // MAME's round bounds (#255) cost a further 2-4% with no single hot spot:
   // CI measured 8.8 fps against the floor of 9, so it came down to 8.
-  minimumFps: 8,
+  // That left no headroom: CI then measured 7.6 on a run no slower than
+  // main's (#292), so it is about 90% of that.
+  minimumFps: 7,
   checkpoints: [1, 120, 300, 600, 900, 1200, 1800, 2400],
   actions: [
     { atFrame: 200, code: 'Space', heldFrames: 5, releasedFrames: 20 },

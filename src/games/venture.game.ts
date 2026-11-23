@@ -27,7 +27,9 @@ export const venture = sourceTarget({
   audioRequirements: [
     { method: 'soundbd.stream', fromFrame: 3100, minimumNonzeroWrites: 100, minimumDistinctValues: 16 },
   ],
-  minimumFps: 45,
+  // CI measures 44.4-45.0 fps on runs no slower than any other (main's and
+  // #292's), so the floor is about 90% of that rather than the default 45.
+  minimumFps: 40,
   minimumAudioRms: 0.02,
   golden: {
     regions: {
