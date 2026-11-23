@@ -1,4 +1,4 @@
-import type { MachineTargetContract } from '../types.ts';
+import type { MachineTargetContract } from "./types.ts";
 
 /**
  * The ZX Spectrum 128, through its menu's Tape Loader (the start presses
@@ -15,10 +15,10 @@ export const spec128 = {
     screen: { width: 352, height: 296 },
     soundKind: 'stream',
     media: [
-      { kind: 'bios', status: 'candidate' },
+      { kind: 'bios', status: 'accepted' },
       { kind: 'cartridge', status: 'candidate', softwareLists: ['spectrum_cart'] },
       { kind: 'quickload', status: 'planned' },
-      { kind: 'cassette', status: 'candidate', softwareLists: ['spectrum_cass'] },
+      { kind: 'cassette', status: 'accepted', softwareLists: ['spectrum_cass'] },
     ],
   },
   scenarios: [{

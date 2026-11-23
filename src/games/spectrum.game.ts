@@ -1,4 +1,4 @@
-import type { MachineTargetContract } from '../types.ts';
+import type { MachineTargetContract } from "./types.ts";
 
 /**
  * The 48K ZX Spectrum, at BASIC and against a tape and a cartridge started
@@ -21,10 +21,10 @@ export const spectrum = {
     screen: { width: 352, height: 296 },
     soundKind: 'stream',
     media: [
-      { kind: 'bios', status: 'candidate' },
-      { kind: 'cartridge', status: 'candidate', softwareLists: ['spectrum_cart'] },
+      { kind: 'bios', status: 'accepted' },
+      { kind: 'cartridge', status: 'accepted', softwareLists: ['spectrum_cart'] },
       { kind: 'quickload', status: 'planned' },
-      { kind: 'cassette', status: 'candidate', softwareLists: ['spectrum_cass'] },
+      { kind: 'cassette', status: 'accepted', softwareLists: ['spectrum_cass'] },
     ],
   },
   scenarios: [{

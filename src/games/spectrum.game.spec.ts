@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { spectrum } from './spectrum.game.ts';
-import { gameSourceGraph, mameSourceRoot } from '../test-support.ts';
-import { sourceFileAggregates } from '../../mame/static-aggregate.ts';
+import { spectrum } from "./spectrum.game.ts";
+import { gameSourceGraph, mameSourceRoot } from "./test-support.ts";
+import { sourceFileAggregates } from "../mame/static-aggregate.ts";
 
 gameSourceGraph(spectrum.target);
 

@@ -32,12 +32,13 @@ MAMEDEV's release notes (see the README).
 
 ### The ZX Spectrum draws its picture, and its tapes wait for PLAY ([#290](https://github.com/benbruscella/mamekit/issues/290))
 
-**For players:** The ZX Spectrum and Spectrum 128 show a picture again, where the screen stayed black. A tape now loads: Manic Miner reaches its title screen on the 48K, where it stopped at "Bytes: MM2". The BASIC prompt, the 128's menu and both loaded titles are pixel-exact against MAME on the frames compared. During a load, the border stripes sit up to a line from MAME's.
+**For players:** The ZX Spectrum and Spectrum 128 show a picture again, where the screen stayed black. A tape now loads: Manic Miner reaches its title screen on the 48K, where it stopped at "Bytes: MM2". The BASIC prompt, the 128's menu and both loaded titles are pixel-exact against MAME on the frames compared. During a load, the border stripes sit up to a line from MAME's. Both machines lose their EXPERIMENTAL label.
 
 **Under the hood:**
 - `constexpr rgb_t spectrum_pens[16]` is written as braced `{ r, g, b }` rows. Static aggregate lowering emitted them as untyped rows, so `set_pen_colors` received sixteen arrays and every pen became colour 0. An `rgb_t` element now lowers to one packed word from its declared type: three items are `rgb_t(r, g, b)`, four are `rgb_t(a, r, g, b)`, one value is `rgb_t(u32)`. No other generated board had such a table.
 - The Spectrum's machine configuration calls `set_default_state(CASSETTE_STOPPED | ...)` on its cassette. The generated cassette device didn't carry that method and the board's configuration dropped the call, so the constructor's `CASSETTE_PLAY` stood and a mounted tape ran from the mount. The 48K's `LOAD ""` joined the first header part-way and never found it. The tape goldens had recorded that failed load.
 - `mamekit against --scenario` now types the start command and presses PLAY on MAME's side for a scenario's own tape, not only for a title given on the command line. `mamekit diverge` taps an I/O range with its map's `select` bits; the Spectrum's ULA at `map(0x00, 0x00).select(0xfffe)` had tapped no access.
+- Both machines are promoted from candidates: their five scenarios now run in the real-ROM acceptance sweep.
 
 ### Marble Madness draws its marble: sprites merge through the dirty map again ([#288](https://github.com/benbruscella/mamekit/issues/288))
 
