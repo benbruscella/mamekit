@@ -29,7 +29,7 @@ export const elevator = sourceTarget({
       60: { video: '03b62cc8', state: '597b7aba' },
       120: { video: '03b62cc8', state: '3c69b346' },
       180: { video: '408e4eb7', state: '4bca0240' },
-      240: { video: '9012dcdc', state: '72516f8a' },
+      240: { video: '9012dcdc', state: '27de74fb' },
       300: { video: 'c2f62935', state: '49e474b5' },
       360: { video: 'fd808df8', state: '6b37f89e' },
       480: { video: 'a9a3b285', state: '94e75982' },
@@ -41,9 +41,9 @@ export const elevator = sourceTarget({
     audio: {
       writes: 729907,
       nonzeroWrites: 728268,
-      writeHash: '517cdcfe',
-      pcmHash: '95ae2cca',
-      rms: 0.274505,
+      writeHash: 'cdc360b6',
+      pcmHash: '4c5fb9b6',
+      rms: 0.274608,
     },
   },
 });

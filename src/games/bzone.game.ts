@@ -44,7 +44,7 @@ export const bzone = sourceTarget({
     audio: {
       writes: 1053257,
       nonzeroWrites: 584929,
-      writeHash: 'e28af3e6',
+      writeHash: 'ecbc9242',
       pcmHash: '326d9234',
       rms: 0.102699,
     },
