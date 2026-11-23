@@ -26,8 +26,10 @@ export const spyhunt = sourceTarget({
   soundKind: 'stream',
   // #278's exact timers cost it about 11% on CI (main's run 142 s, #278's
   // 158-162 s, 9.9 fps once against the default 10), so the floor is about
-  // 90% of that (#247, 7.12).
-  minimumFps: 9,
+  // 90% of that (#247, 7.12). #292 ends a round at each expiry of the SSIO's
+  // 50 kHz set_periodic_int, as MAME does: 833 more rounds a frame, and the
+  // run 188-192 s (8.4-8.5 fps), so again about 90% of that.
+  minimumFps: 7.5,
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },
     { atFrame: 340, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },
