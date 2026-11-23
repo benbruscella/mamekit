@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   attotimeFrequency,
+  attotimePeriodAttoseconds,
   derivedDeviceClock,
   evaluateTimerSchedule,
   evaluateTimerScanlines,
@@ -110,6 +111,34 @@ assert.equal(
   6_000_000 / 25_152,
   'from_ticks periodic interrupts must lower to their source frequency',
 );
+// A periodic timer's period is the attoseconds attotime.h makes of it, since
+// every expiry adds it again: integral rates divide in integers, a rate that
+// came out of an XTAL in doubles, and from_ticks is whole ticks of the clock's
+// truncated period (Gun.Smoke's is exactly a quarter of its frame).
+assert.equal(
+  attotimePeriodAttoseconds('attotime::from_hz(4 * 60)'),
+  4_166_666_666_666_666n,
+  'from_hz of an integral rate truncates 1e18 / hz',
+);
+assert.equal(
+  attotimePeriodAttoseconds('attotime::from_hz(CLOCK_3KHZ / 12)', { CLOCK_3KHZ: 12_096_000 / 4096 }),
+  BigInt(Math.trunc(1e18 / (12_096_000 / 4096 / 12))),
+  'from_hz of a fractional rate divides in doubles, as HZ_TO_ATTOSECONDS(XTAL) does',
+);
+assert.equal(
+  attotimePeriodAttoseconds(
+    'attotime::from_ticks(384 * 262 / 4, 12_MHz_XTAL / 2)',
+    { '12_MHz_XTAL': 12_000_000 },
+  ),
+  25_152n * 166_666_666_666n,
+  'from_ticks is its ticks at the truncated period of one',
+);
+assert.equal(
+  attotimePeriodAttoseconds('attotime::from_hz(clock() / (2*16*10))', {}, 16_000_000),
+  20_000_000_000_000n,
+  'and the configured device clock stands in for clock()',
+);
+assert.equal(attotimePeriodAttoseconds('m_period'), undefined, 'a period that is no constructor has no attoseconds');
 assert.deepEqual(
   parseIoportMembers(`
     required_ioport_array<4> m_io_in;

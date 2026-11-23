@@ -35,7 +35,7 @@ import {
   type GeneratedMemoryBank,
 } from './generated-device.ts';
 import type { GeneratedCallArgument } from '../ir/execute.ts';
-import { attotimeSecondsFromTicks, ExactAttotime, exactFromAttos } from '../ir/exact-attotime.ts';
+import { attotimeSecondsFromTicks, ExactAttotime, exactFromAttos, exactToAttos } from '../ir/exact-attotime.ts';
 import { callLinksGeneration, DEFAULT_CONSTANTS, GENERATED_STRUCT, generatedVector, noteCallLinksChanged, noteUnresolvedCall, resizableBuffer, prepareGeneratedMachinePositional, resizeGeneratedContainer } from '../ir/execute.ts';
 import { walkOperations, walkExpressions } from '../ir/walk.ts';
 import { GeneratedFrameRunner, screenPeriods } from './generated-frame.ts';
@@ -63,6 +63,8 @@ import {
   HOST_SERVICE_CALLS,
   type BoardEffect,
   type BoardIr,
+  type CpuLine,
+  type CpuLineDelivery,
   type GeneratedExecutionCpu,
   type GeneratedHandler,
   type GeneratedStateMember,
@@ -2855,6 +2857,7 @@ class IrBoard implements Board {
           else if (line === INPUT_LINE_RESET) {
             cpu.reset();
             this.cpuHeld.set(specification.tag, false);
+            this.cpuResetReleased(specification.tag);
           }
           else {
             cpu.setInputLine(line, 1);
@@ -3908,6 +3911,11 @@ class IrBoard implements Board {
         advanceTimedHardware(held);
       },
       onEvent: event => {
+        // device_execute_interface::on_vblank and trigger_periodic_interrupt:
+        // a processor suspended by RESET or HALT is not interrupted, so none
+        // is left pending for the moment it is let go.
+        if ((event.signal === 'set_periodic_int' || event.signal === 'set_vblank_int') &&
+          this.cpuHeld.get(event.ownerTag)) return;
         const callback = machine.callbacks.find(candidate => candidate.id === event.callbackId);
         if (callback?.promGate && !generatedPromGateOpen(
           callback.promGate,
@@ -4203,7 +4211,9 @@ class IrBoard implements Board {
       const activity = this.cpuActivity(tag);
       activity.quietSlices = 0;
       activity.quietPc = undefined;
+      const released = line === INPUT_LINE_RESET && state === 0 && this.cpuHeld.get(tag) === true;
       applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+      if (released) this.cpuResetReleased(tag);
     };
     if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
     else apply();
@@ -4253,8 +4263,10 @@ class IrBoard implements Board {
     if (line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) {
       const apply = () => {
         const held = state !== 0;
-        if (!held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag)) device.reset();
+        const released = !held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag) === true;
+        if (released) device.reset();
         this.cpuHeld.set(tag, held);
+        if (released) this.cpuResetReleased(tag);
       };
       // device_input::set_state_synced: the line changes through
       // scheduler().synchronize(), so a processor another one holds or
@@ -4504,6 +4516,17 @@ class IrBoard implements Board {
     // run there and then, Neo Geo's NMI merger started after it and set every
     // input high again, so the sound CPU took one NMI and never another.
     if (!this.drainingScheduledWork && this.schedulerRunning) this.drainScheduledWork();
+  }
+
+  /**
+   * A processor's RESET line has let it go: device_input resets the device,
+   * and its interface_post_reset arms the periodic interrupt again, a period
+   * from now. Ghosts'n Goblins' sound Z80 is released 5.2 s in, and its
+   * 240 Hz interrupt counts from there, not from power-on.
+   */
+  private cpuResetReleased(tag: string): void {
+    const now = this.exactMachineTime();
+    this.frameRunner?.rearmPeriodic(tag, now ? exactToAttos(now) : undefined);
   }
 
   /** The board's rounds end at timers, so machine time is known exactly (exactMachineTime). */
@@ -6544,6 +6567,83 @@ class IrBoard implements Board {
   }
 
   private effectBindings(sinks: BoardSinks, registry: HandlerRegistry): EffectBindings {
+    const cpuLineEffect = (tag: string, line: CpuLine, delivery: CpuLineDelivery, input?: string): EffectExecutor | undefined => {
+      // Validated against the IR, not the live map: a generated CPU can fire
+      // a signal from inside its own constructor (the I8039 resets on
+      // create), so the target may not be instantiated yet at bind time.
+      if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
+      if (line === 'busreq' || line === 'core') {
+        // The core's own pin: its execute_set_input takes the request and
+        // its next instruction boundary grants it through busack_cb, which
+        // the machine wired to the bus master (z80dma bai_w, i8257
+        // hlda_w). Held, the core parks (see the cores' run()).
+        return state => {
+          const cpu = this.cpus.get(tag);
+          const inputnum = cpu?.inputLine?.(input!);
+          if (inputnum === undefined) {
+            throw new Error(`${this.machine.game}: CPU "${tag}" has no input line ${input}`);
+          }
+          cpu!.setInputLine(inputnum, state ? 1 : 0);
+        };
+      }
+      if (line === 'nmi') {
+        // A driver nmi_line_pulse callback is already an edge. A devcb
+        // set_inputline connection is a held pin and must reach the CPU as
+        // both assert and clear; the generated core then detects only the
+        // low-to-high transition. Treating every asserted callback as a
+        // pulse retriggered chained input mergers while their output had
+        // never gone low (notably Taito SJ's sound NMI circuit).
+        return delivery === 'pulse'
+          ? state => {
+            if (state && !this.cpuHeld.get(tag)) this.cpus.get(tag)?.nmi();
+          }
+          : state => {
+            // Edges that occur while RESET is asserted are not latched by
+            // the physical CPU.  Retaining one in the generated core made
+            // Gauntlet's sound-latch NMI pre-empt its reset handshake.
+            if (!this.cpuHeld.get(tag)) {
+              this.cpus.get(tag)?.setInputLine(INPUT_LINE_NMI, state ? 1 : 0);
+            }
+          };
+      }
+      if (line === 'reset') {
+        return state => {
+          const released = !state && this.cpuHeld.get(tag) === true;
+          this.cpuHeld.set(tag, Boolean(state));
+          if (state) this.cpus.get(tag)?.reset();
+          else if (released) this.cpuResetReleased(tag);
+        };
+      }
+      if (line === 'halt') {
+        // MAME's INPUT_LINE_HALT suspends the processor in the scheduler.
+        // It acknowledges nothing: a bus request is `busreq`, which the
+        // core grants itself.
+        return state => { this.cpuHeld.set(tag, Boolean(state)); };
+      }
+      const numberedIrq = /^irq([1-7])$/.exec(line);
+      if (numberedIrq) {
+        const inputLine = Number(numberedIrq[1]);
+        return state => this.cpus.get(tag)?.setInputLine(
+          inputLine,
+          state ? (delivery === 'hold' ? 2 : 1) : 0,
+        );
+      }
+      if (line === 'firq') {
+        return state => this.cpus.get(tag)?.setInputLine(1, state ? 1 : 0);
+      }
+      // IRQ0. MAME's *_line_hold keeps the line asserted until the CPU
+      // acknowledges it; assert and level leave it to the source to clear.
+      return state => {
+        const acknowledge = this.machine.callbacks.some(callback =>
+          callback.ownerTag === tag &&
+          callback.signal === 'set_irq_acknowledge_callback');
+        this.cpus.get(tag)?.setIrqLine(
+          state !== 0,
+          acknowledge ? this.irqVectorSource(tag) : 0xff,
+          delivery === 'hold' && state !== 0,
+        );
+      };
+    };
     return {
       // MAME scheduler::perfect_quantum, asked for by a devcb rather than by a
       // handler. It shortens the quantum for the requested window; it does not
@@ -6554,78 +6654,18 @@ class IrBoard implements Board {
         if (state) this.frameRunner?.quantumWindow(seconds);
       },
       cpuLine: (tag, line, delivery, input) => {
-        // Validated against the IR, not the live map: a generated CPU can fire
-        // a signal from inside its own constructor (the I8039 resets on
-        // create), so the target may not be instantiated yet at bind time.
-        if (!this.machine.execution.cpus.some(cpu => cpu.tag === tag)) return undefined;
-        if (line === 'busreq' || line === 'core') {
-          // The core's own pin: its execute_set_input takes the request and
-          // its next instruction boundary grants it through busack_cb, which
-          // the machine wired to the bus master (z80dma bai_w, i8257
-          // hlda_w). Held, the core parks (see the cores' run()).
-          return state => {
-            const cpu = this.cpus.get(tag);
-            const inputnum = cpu?.inputLine?.(input!);
-            if (inputnum === undefined) {
-              throw new Error(`${this.machine.game}: CPU "${tag}" has no input line ${input}`);
-            }
-            cpu!.setInputLine(inputnum, state ? 1 : 0);
-          };
-        }
-        if (line === 'nmi') {
-          // A driver nmi_line_pulse callback is already an edge. A devcb
-          // set_inputline connection is a held pin and must reach the CPU as
-          // both assert and clear; the generated core then detects only the
-          // low-to-high transition. Treating every asserted callback as a
-          // pulse retriggered chained input mergers while their output had
-          // never gone low (notably Taito SJ's sound NMI circuit).
-          return delivery === 'pulse'
-            ? state => {
-              if (state && !this.cpuHeld.get(tag)) this.cpus.get(tag)?.nmi();
-            }
-            : state => {
-              // Edges that occur while RESET is asserted are not latched by
-              // the physical CPU.  Retaining one in the generated core made
-              // Gauntlet's sound-latch NMI pre-empt its reset handshake.
-              if (!this.cpuHeld.get(tag)) {
-                this.cpus.get(tag)?.setInputLine(INPUT_LINE_NMI, state ? 1 : 0);
-              }
-            };
-        }
-        if (line === 'reset') {
-          return state => {
-            this.cpuHeld.set(tag, Boolean(state));
-            if (state) this.cpus.get(tag)?.reset();
-          };
-        }
-        if (line === 'halt') {
-          // MAME's INPUT_LINE_HALT suspends the processor in the scheduler.
-          // It acknowledges nothing: a bus request is `busreq`, which the
-          // core grants itself.
-          return state => { this.cpuHeld.set(tag, Boolean(state)); };
-        }
-        const numberedIrq = /^irq([1-7])$/.exec(line);
-        if (numberedIrq) {
-          const inputLine = Number(numberedIrq[1]);
-          return state => this.cpus.get(tag)?.setInputLine(
-            inputLine,
-            state ? (delivery === 'hold' ? 2 : 1) : 0,
-          );
-        }
-        if (line === 'firq') {
-          return state => this.cpus.get(tag)?.setInputLine(1, state ? 1 : 0);
-        }
-        // IRQ0. MAME's *_line_hold keeps the line asserted until the CPU
-        // acknowledges it; assert and level leave it to the source to clear.
+        const apply = cpuLineEffect(tag, line, delivery, input);
+        if (!apply || line === 'busreq' || line === 'core') return apply;
+        // devcb's set_inputline is set_input_line, and that goes through
+        // device_input::set_state_synced like any other (cpuInputLine): from
+        // inside a processor's slice the line changes once the round has
+        // run up to the write. Ghosts'n Goblins' 6809 releases its sound
+        // Z80's RESET through an LS259 output; applied in place, the Z80,
+        // run after it in the round, started from the round's base, 18 us
+        // before the write that released it.
         return state => {
-          const acknowledge = this.machine.callbacks.some(callback =>
-            callback.ownerTag === tag &&
-            callback.signal === 'set_irq_acknowledge_callback');
-          this.cpus.get(tag)?.setIrqLine(
-            state !== 0,
-            acknowledge ? this.irqVectorSource(tag) : 0xff,
-            delivery === 'hold' && state !== 0,
-          );
+          if (this.synchronizesLineFrom(tag)) this.synchronize(() => { apply(state); });
+          else apply(state);
         };
       },
       deviceMethod: (tag, method, ownerClass) => {

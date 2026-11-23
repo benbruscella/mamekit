@@ -105,6 +105,8 @@ export interface GeneratedCallback {
   /** Constant line state supplied by MAME's set_inputline helper. */
   delivery?: CpuLineDelivery;
   periodHz?: number;
+  /** The period in attoseconds, as attotime.h truncates it (attotimePeriodAttoseconds). */
+  periodAttoseconds?: string;
   periodExpr?: string;
   scanlines?: number[];
   /** TIMER.configure_scanline start and cadence, expanded against screen vtotal. */
@@ -684,8 +686,13 @@ export interface GeneratedFrameEvent {
   signal: string;
   line: number;
   state: number;
-  /** Periodic callbacks accumulate at this exact rate across scanlines. */
+  /**
+   * A periodic timer's rate (`set_periodic_int`): it fires every period from
+   * power-on, on no line of its own, and `line` says nothing.
+   */
   frequency?: number;
+  /** Its period in attoseconds, as MAME's attotime holds it; 1 / frequency without. */
+  periodAttoseconds?: string;
   source?: BoardSourceRef;
 }
 

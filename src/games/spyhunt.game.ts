@@ -26,8 +26,10 @@ export const spyhunt = sourceTarget({
   soundKind: 'stream',
   // #278's exact timers cost it about 11% on CI (main's run 142 s, #278's
   // 158-162 s, 9.9 fps once against the default 10), so the floor is about
-  // 90% of that (#247, 7.12).
-  minimumFps: 9,
+  // 90% of that (#247, 7.12). #292 ends a round at each expiry of the SSIO's
+  // 50 kHz set_periodic_int, as MAME does: 833 more rounds a frame, and the
+  // run 188-192 s (8.4-8.5 fps), so again about 90% of that.
+  minimumFps: 7.5,
   actions: [
     { atFrame: 300, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },
     { atFrame: 340, code: 'Digit5', heldFrames: 20, releasedFrames: 20 },
@@ -52,19 +54,19 @@ export const spyhunt = sourceTarget({
     },
     checkpoints: {
       1: { video: '230fe52e', state: 'ac280811' },
-      60: { video: '46862ad0', state: '0feda6d3' },
+      60: { video: '46862ad0', state: 'f9a67de8' },
       180: { video: '38d64b38', state: '22799059' },
       300: { video: '11bb1ad5', state: '65d4c2ee' },
-      600: { video: 'c6a10170', state: '7f836639' },
+      600: { video: 'c6a10170', state: 'f43c2633' },
       900: { video: 'a5083c70', state: '09e10060' },
-      1200: { video: 'a2703ac0', state: '8c7757ea' },
+      1200: { video: 'a2703ac0', state: '42ff5319' },
     },
     audio: {
       writes: 1919999,
       nonzeroWrites: 1919997,
-      writeHash: '6953a6b5',
-      pcmHash: 'e1ff1197',
-      rms: 0.740769,
+      writeHash: '291f8ab3',
+      pcmHash: '0884f19b',
+      rms: 0.740918,
     },
   },
 });
