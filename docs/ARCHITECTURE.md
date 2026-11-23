@@ -233,9 +233,8 @@ are those timers, so the generated frame schedule hands over at their lines
 rather than at every scanline.
 
 The lines handed to the processors at once run to the next line one of MAME's
-timers falls on. A board that schedules per-line work — a periodic event, a
-scanline-updated screen, a driver's own `emu_timer` (below) — keeps the
-per-line cadence. So does a board whose machine configuration calls
+timers falls on. A board that schedules per-line work — a scanline-updated
+screen, a driver's own `emu_timer` (below) — keeps the per-line cadence. So does a board whose machine configuration calls
 `set_perfect_quantum`, which is MAME's way of saying its processors share state
 through a handshake nothing coarser survives. A board that declares a scanline
 `TIMER` (`configure_scanline`) hands over on every line the timer fires on,
@@ -285,6 +284,31 @@ runtime did not do, each of which is now done as MAME does it:
   slice of the round before the next starts, so a sound CPU's writes for
   that stretch landed on streams already rendered past them: Juno First's
   i8039 DAC came out 20 dB off MAME's spectrum in rounds of 240 lines.
+
+A periodic interrupt (`set_periodic_int`, the execute interface's
+`m_timedint_timer`) is one of those timers (#292). It lowers to one frame
+event carrying its rate and its period in attoseconds as `attotime.h`
+truncates it (`periodAttoseconds`: `from_hz` of an integral rate or of an
+XTAL, `from_ticks`), never to lines of the raster. The frame runner keeps each
+one's expiry exactly, a whole number of periods from reset; the expiry ends
+the round, and the callback runs at the head of the next, once every
+processor stands there. A processor let out of RESET arms it again a period
+from the release (`interface_post_reset`).
+
+Round length is not only a matter of who sees what. MAME's count of the cycles
+in a round is a shifted 32-bit divide, which runs a little over as rounds
+lengthen. Ghosts'n Goblins' 240 Hz interrupt used to be four fixed lines of
+its 59.637 Hz frame, and its rounds ran from one frame event to the next. Over
+the frame's last 4,224 cycles the divide gave the 6809, waiting in `SYNC`, the
+cycle that straddles VBLANK; MAME's last round is the 151 cycles after the
+fourth expiry, and it does not. The 6809 woke a cycle late and its RAM left
+MAME's at frame 89.
+
+A devcb `set_inputline` changes its line through `set_state_synced`, as
+`set_input_line` from driver code does: from inside a processor's slice the
+change lands once the round has run up to it. Ghosts'n Goblins' 6809 releases
+its sound Z80's RESET through an LS259 output, and applied in place the Z80
+started from the round's base, 18 µs before the write that released it.
 
 Work a processor posts from the instruction that carried it past the end of
 the lines being paid runs there, with every processor standing at that end,

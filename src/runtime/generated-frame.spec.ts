@@ -101,33 +101,57 @@ runner.reset();
 assert.equal(runner.frameCount, 0);
 assert.deepEqual(runner.cyclesAhead, [0]);
 
+// A periodic timer (`set_periodic_int`) fires every period from reset, on no
+// line of its own, and ends the round it expires in: every processor has run
+// the whole cycles that fit before the expiry, and none past it. At 150 Hz
+// against a 60 Hz screen that is 2.5 a frame, at 24, 48, ... cycles of a
+// 3,600 Hz processor.
 const periodicMachine: BoardIr = {
   ...machine,
   execution: {
     ...machine.execution,
     frameEvents: [{
       callbackId: 'callback:periodic',
-      ownerTag: 'sound',
-      signal: 'vck_callback',
+      ownerTag: 'maincpu',
+      signal: 'set_periodic_int',
       line: 0,
       state: 1,
       frequency: 150,
+      periodAttoseconds: String(10n ** 18n / 150n),
     }],
   },
 };
 let periodicCallbacks = 0;
+let periodicCycles = 0;
+const periodicAt: number[] = [];
 const periodicRunner = new GeneratedFrameRunner({
   machine: periodicMachine,
-  processors: [{ tag: 'maincpu', run: budget => budget }],
-  onEvent: () => { periodicCallbacks++; },
+  processors: [{ tag: 'maincpu', run: budget => { periodicCycles += budget; return budget; } }],
+  onEvent: () => { periodicCallbacks++; periodicAt.push(periodicCycles); },
 });
 periodicRunner.frame(new Uint32Array(1));
 assert.equal(periodicCallbacks, 2);
 periodicRunner.frame(new Uint32Array(1));
 assert.equal(periodicCallbacks, 5);
+// A period is 24 cycles and 18 as (a cycle is truncated to 277,777,777,777,777
+// as), so the processor has run 24 whole cycles by each expiry and no more.
+assert.deepEqual(periodicAt, [24, 48, 72, 96, 120], 'each expiry ends a round, with the processor stood at it');
 periodicRunner.reset();
+periodicCycles = 0;
+periodicAt.length = 0;
 periodicRunner.frame(new Uint32Array(1));
 assert.equal(periodicCallbacks, 7);
+assert.deepEqual(periodicAt, [24, 48], 'a reset counts the periods again from zero');
+// A processor let out of RESET arms its timer again a period from then
+// (interface_post_reset), here from the end of the frame at 60 cycles.
+periodicRunner.rearmPeriodic('maincpu');
+periodicAt.length = 0;
+periodicRunner.frame(new Uint32Array(1));
+assert.deepEqual(periodicAt, [84, 108], 'a re-armed timer counts from where it was re-armed');
+periodicRunner.rearmPeriodic('othercpu');
+periodicAt.length = 0;
+periodicRunner.frame(new Uint32Array(1));
+assert.deepEqual(periodicAt, [132, 156, 180], 'and only its own processor\'s reset re-arms it');
 
 // A board whose vbstart lies outside the emulated line range (asteroid ships
 // vbstart 1183 with vtotal 300) never reaches the in-loop VBLANK presentation,

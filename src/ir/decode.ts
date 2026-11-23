@@ -197,7 +197,7 @@ function decodeCallbacks(reader: Reader, value: unknown): void {
     for (const field of ['periodHz', 'scanlineStart', 'scanlineIncrement', 'quantumSeconds', 'slots']) {
       reader.optionalNumber(callback[field], `${path}.${field}`, source);
     }
-    for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'targetSpace', 'inputLine']) {
+    for (const field of ['targetTag', 'targetClass', 'targetMethod', 'targetPort', 'targetSpace', 'inputLine', 'periodAttoseconds']) {
       reader.optionalString(callback[field], `${path}.${field}`, source);
     }
     if (callback.delivery !== undefined && !DELIVERIES.has(callback.delivery as string)) {
@@ -512,6 +512,7 @@ function decodeExecution(reader: Reader, value: unknown): void {
     reader.number(event.line, `${path}.line`, source);
     reader.number(event.state, `${path}.state`, source);
     reader.optionalNumber(event.frequency, `${path}.frequency`, source);
+    reader.optionalString(event.periodAttoseconds, `${path}.periodAttoseconds`, source);
   }
 
   if (execution.spaceAccessors !== undefined) {

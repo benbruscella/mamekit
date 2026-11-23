@@ -43,7 +43,6 @@ export {
   generatedByteView,
   generatedPackedView,
   isBigEndianWords,
-  generatedPeriodicLines,
   generatedAdd,
   generatedPointerStore,
   generatedWideBinary,

@@ -697,26 +697,6 @@ export function executeGeneratedCallbackHandler(
     : undefined;
 }
 
-export function generatedPeriodicLines(
-  machine: BoardIr,
-  ownerTag: string,
-  refreshHz: number,
-  vtotal: number,
-): number[] {
-  const callback = machine.callbacks.find(candidate =>
-    candidate.ownerTag === ownerTag &&
-    candidate.signal === 'set_periodic_int' &&
-    candidate.periodHz !== undefined,
-  );
-  if (!callback?.periodHz || refreshHz <= 0 || vtotal <= 0) return [];
-  const eventsPerFrame = callback.periodHz / refreshHz;
-  const rounded = Math.round(eventsPerFrame);
-  if (rounded <= 0 || Math.abs(eventsPerFrame - rounded) > 0.1) return [];
-  return Array.from({ length: rounded }, (_, index) =>
-    Math.floor(index * vtotal / rounded));
-}
-
-
 /**
  * Report a call that resolved to nothing to whoever is listening: a census
  * (tools/unresolved-calls.ts) records it, the acceptance harness fails on one

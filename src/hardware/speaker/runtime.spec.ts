@@ -98,6 +98,27 @@ const mixer = (
   assert.deepEqual(pokey.emitted, [0.5, 0.5, 0.25, 0.25]);
 }
 
+// sound_stream::set_output_gain updates the stream only when the gain
+// changes. A board that sets every chip's gain on each bank switch (Taito SJ)
+// does it from the processor that runs first in the round: rendered up to its
+// time each call, a chip the sound CPU has yet to write for that stretch was
+// already past its writes.
+{
+  const rendered: number[] = [];
+  const chip = mixer({ chip: STREAM_AUDIO_RATE }, (_tag, surface) => {
+    rendered.push(surface.samples());
+    surface.fill(0, 1);
+  });
+  chip.slice(10 / STREAM_AUDIO_RATE);
+  chip.calls['m_chip.set_output_gain']!(0, 1);
+  assert.deepEqual(rendered, [], 'the gain it already has renders nothing');
+  chip.calls['m_chip.set_output_gain']!(0, 0.5);
+  assert.deepEqual(rendered, [10], 'a new gain renders what the old one covered');
+  chip.slice(10 / STREAM_AUDIO_RATE);
+  chip.calls['m_chip.set_output_gain']!(0, 0.5);
+  assert.deepEqual(rendered, [10], 'and set again, nothing more');
+}
+
 // A device the round runs after the CPUs is mixed only as far as it has run:
 // what it has not reached yet may still change.
 {

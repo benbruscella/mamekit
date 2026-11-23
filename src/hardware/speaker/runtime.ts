@@ -727,15 +727,23 @@ export function createStreamMixer(
     });
     // device_sound_interface::set_output_gain, which samples_device's own
     // set_volume calls with its channel number.
+    // sound_stream::set_output_gain: a gain that does not change updates
+    // nothing. Taito SJ's bankswitch_w sets every chip's gain on each bank
+    // switch, from the main CPU, which runs its slice of the round first:
+    // rendered up to its time each call, Jungle King's DAC stream stood up
+    // to 7.7 ms past the sound CPU, whose samples for that stretch then all
+    // landed where the stream ended (#292).
     const setOutputGain = (output: unknown = 0, gain: unknown = 1): number => {
       const channels = channelsOf(stream);
       if (!channels) {
+        if (Number(gain) === stream.outputGain) return 0;
         render(stream, now());
         stream.outputGain = Number(gain);
         return 0;
       }
       channels.forEach((channel, index) => {
         if (Number(output) !== ALL_OUTPUTS && Number(output) !== index) return;
+        if (Number(gain) === channel.outputGain) return;
         updateChannel(stream, index, Math.floor(time() * channel.rate));
         channel.outputGain = Number(gain);
       });

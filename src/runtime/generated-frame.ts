@@ -187,10 +187,24 @@ export class GeneratedFrameRunner {
   /** Where in the lines being paid the running processor's slice began. */
   private runStartLines = 0;
   private readonly eventsByLine = new Map<number, GeneratedFrameEvent[]>();
+  /**
+   * MAME's periodic timers (`set_periodic_int`, the execute interface's
+   * m_timedint_timer): armed at reset with `adjust(period, 0, period)`, so
+   * each fires at a whole number of its periods from there, wherever the
+   * beam is, and its expiry ends the round like any timer's. `next` is the
+   * expiry it waits for.
+   *
+   * Fired at the start of the line after instead, Ghosts'n Goblins' rounds
+   * ran from one frame event to the next where MAME's stop at each 240 Hz
+   * expiry, and MAME's count of the cycles in a round (`timeslice`, a
+   * shifted 32-bit divide) depends on the round's length: over 4,224 cycles
+   * it gave the 6809 one more before the first VBLANK than MAME's four
+   * shorter rounds do, and its RAM left MAME's by that cycle at frame 89.
+   */
   private readonly periodicEvents: {
     event: GeneratedFrameEvent;
-    eventsPerLine: number;
-    carry: number;
+    period: Attotime;
+    next: Attotime;
   }[] = [];
   /**
    * Lines at which the schedule must hand over to the next processor.
@@ -278,8 +292,6 @@ export class GeneratedFrameRunner {
       ...(options.machine.execution.participants ?? []).map(participant =>
         [participant.tag, participant.cycleClock ?? participant.clock] as const),
     ]);
-    const denominator =
-      options.machine.execution.screen.refresh * options.machine.execution.screen.vtotal;
     const periods = screenPeriods(options.machine.execution.screen);
     this.framePeriod = periods.frame;
     this.linePeriod = periods.line;
@@ -311,22 +323,20 @@ export class GeneratedFrameRunner {
     this.suspendable = this.processors.some(entry => entry.processor.suspended);
     for (const event of options.machine.execution.frameEvents) {
       if (event.frequency) {
-        this.periodicEvents.push({
-          event,
-          eventsPerLine: event.frequency / denominator,
-          carry: 0,
-        });
+        const period = new Attotime().setExact(event.periodAttoseconds !== undefined
+          ? BigInt(event.periodAttoseconds)
+          : BigInt(hzToAttoseconds(event.frequency)));
+        this.periodicEvents.push({ event, period, next: new Attotime().set(period) });
         continue;
       }
       const lineEvents = this.eventsByLine.get(event.line) ?? [];
       lineEvents.push(event);
       this.eventsByLine.set(event.line, lineEvents);
     }
-    // A periodic event has no fixed line and may fire several times within
-    // one, and a scanline-updated screen renders on every line, so both keep
-    // the per-line schedule MAME's own timers would force anyway.
-    this.perLineSchedule = this.periodicEvents.length > 0 ||
-      options.machine.execution.perfectQuantum === true ||
+    // A scanline-updated screen renders on every line, so it keeps the
+    // per-line schedule MAME's own timers would force anyway. A periodic
+    // timer does not: it ends the rounds it expires in, and no others.
+    this.perLineSchedule = options.machine.execution.perfectQuantum === true ||
       options.machine.execution.screen.updateMode === 'scanline' ||
       // A driver's own emu_timers end MAME timeslices wherever they expire,
       // and they are armed against raster positions; a round spanning lines
@@ -494,7 +504,7 @@ export class GeneratedFrameRunner {
     for (const processor of this.processors) processor.local.clear();
     this.frameBase.clear();
     this.base.clear();
-    for (const event of this.periodicEvents) event.carry = 0;
+    for (const event of this.periodicEvents) event.next.set(event.period);
     this.fineLines = 0;
     this.frames = 0;
     this.fromOrigin = true;
@@ -657,21 +667,29 @@ export class GeneratedFrameRunner {
     this.roundLines = lines;
     // Work posted outside any slice (a line callback, an event) is due now.
     this.onSynchronize?.('base');
+    const periodic = this.periodicEvents.length > 0;
     while (base.before(end)) {
+      // MAME's execute_timers at the head of a timeslice: a periodic timer
+      // the base has reached fires before any processor runs.
+      const untilPeriodic = periodic ? this.firePeriodic() : Infinity;
       this.onRound?.();
       if (this.permanentLockstep) {
-        this.lockstep(end);
+        this.lockstep(periodic ? this.periodicEnd(end, untilPeriodic) : end);
         continue;
       }
       // A perfect_quantum window is rounds of the perfect interleave, run by
       // the same rules as any other round.
       const windowed = this.fineLines > 0;
       if (windowed && this.windowQuantum === undefined) {
-        this.lockstep(this.windowEnd(end));
+        const windowEnd = this.windowEnd(end);
+        this.lockstep(periodic ? this.periodicEnd(windowEnd, untilPeriodic) : windowEnd);
         continue;
       }
       target.set(end);
       this.lowerTarget(windowed ? this.windowQuantum! : this.machineQuantum);
+      // The soonest periodic timer ends the round, to the attosecond: the
+      // processors run the whole cycles that fit before it and no more.
+      if (periodic) this.lowerTarget(untilPeriodic);
       // MAME's round ends at the soonest timer, so every processor stands
       // at its expiry when it fires.
       let slop = 0;
@@ -705,6 +723,7 @@ export class GeneratedFrameRunner {
       if (lead > 0) {
         target.set(end);
         slop = timerAttos !== undefined && this.lowerTarget(timerAttos) ? TIMER_SLOP : 0;
+        if (periodic && this.lowerTarget(untilPeriodic)) slop = 0;
         this.extendedFrom.set(base);
         this.extendedTo.set(target);
         const stopped = [...order].filter(index => index < lead);
@@ -713,11 +732,12 @@ export class GeneratedFrameRunner {
       } else if (this.perfectRounds && !windowed) {
         // Rounds nobody runs in pass at once, short of the timer and the end;
         // the round's target is then taken again from where the base stands.
-        const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity));
+        const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity, untilPeriodic));
         if (skipped > 0) {
           target.set(end);
           this.lowerTarget(this.machineQuantum);
           if (timerAttos !== undefined) this.lowerTarget(timerAttos - skipped);
+          if (periodic) this.lowerTarget(untilPeriodic - skipped);
         }
       }
       for (let position = 0; position < order.length; position++) {
@@ -776,6 +796,52 @@ export class GeneratedFrameRunner {
     // line event, or a save state taken between frames, finds none.
     this.onSynchronize?.();
   }
+
+  /**
+   * Fire every periodic timer the base has reached, the earliest first, and
+   * answer the attoseconds from the base to the soonest still to come. MAME
+   * moves a periodic timer on by its period as it fires (`schedule_next_period`),
+   * so its expiries stay whole periods from reset.
+   */
+  private firePeriodic(): number {
+    const base = this.base;
+    const events = this.periodicEvents;
+    for (;;) {
+      let due: GeneratedFrameRunner['periodicEvents'][number] | undefined;
+      let soonest: Attotime | undefined;
+      for (let index = 0; index < events.length; index++) {
+        const scheduled = events[index]!;
+        if (!soonest || scheduled.next.before(soonest)) soonest = scheduled.next;
+        if (!base.before(scheduled.next) && (!due || scheduled.next.before(due.next))) due = scheduled;
+      }
+      if (!due) return soonest ? soonest.since(base) : Infinity;
+      due.next.addTime(due.period);
+      this.onEvent?.(due.event);
+    }
+  }
+
+  /**
+   * device_execute_interface::interface_post_reset for a processor's periodic
+   * timers: `adjust(period, 0, period)`, so the next expiry is a period from
+   * `now` (the scheduler's base when the board cannot say) and the rest
+   * follow from it.
+   */
+  rearmPeriodic(ownerTag: string, now?: bigint): void {
+    for (const scheduled of this.periodicEvents) {
+      if (scheduled.event.ownerTag !== ownerTag) continue;
+      if (now === undefined) scheduled.next.set(this.base);
+      else scheduled.next.setExact(now);
+      scheduled.next.addTime(scheduled.period);
+    }
+  }
+
+  /** `end`, or the soonest periodic timer `attos` past the base if that comes first. */
+  private periodicEnd(end: Attotime, attos: number): Attotime {
+    if (!(attos < end.since(this.base))) return end;
+    return this.periodicScratch.set(this.base).add(attos);
+  }
+
+  private readonly periodicScratch = new Attotime();
 
   /** Where a stopped round (runProcessors) began and the end it was given. */
   private readonly extendedFrom = new Attotime();
@@ -993,13 +1059,6 @@ export class GeneratedFrameRunner {
 
   private dispatchLine(line: number, framebuffer: Uint32Array): void {
     for (const event of this.eventsByLine.get(line) ?? []) this.onEvent?.(event);
-    for (const scheduled of this.periodicEvents) {
-      scheduled.carry += scheduled.eventsPerLine;
-      while (scheduled.carry >= 1) {
-        scheduled.carry -= 1;
-        this.onEvent?.(scheduled.event);
-      }
-    }
     // A screen whose vblank starts at its last line + 1 (the Spectrum's 311 of
     // 0-310) starts it on line 0 of the next frame, as MAME's raster wraps.
     const screen = this.machine.execution.screen;

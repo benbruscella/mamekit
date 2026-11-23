@@ -11,6 +11,7 @@ import { compileMameHandler } from '../mame/handler-ir.ts';
 import { lowerDriverMemberPointers } from '../mame/member-pointers.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
+import { attotimeSecondsFromTicks, exactAttotimeFromHz, exactDuration, exactToAttos } from '../ir/exact-attotime.ts';
 import { coreLineStates } from '../mame/device-compiler.ts';
 import { collectBitAliasMacros, collectMemberAliasFunctionMacros, collectMemberAliasMacros, collectMemberExpressionMacros, collectParameterCallMacros, expandFunctionMacros, expandMemberAliasMacros, expandStatementMacros } from '../mame/preprocessor.ts';
 import {
@@ -2369,6 +2370,39 @@ export function attotimeFrequency(
 }
 
 /**
+ * The attoseconds of a period MAME builds with `attotime::from_hz` or
+ * `attotime::from_ticks`, truncated where attotime.h truncates: an integral
+ * rate divides in integers, an XTAL's in doubles, and a span of ticks is
+ * whole seconds plus the remaining ticks at `HZ_TO_ATTOSECONDS(frequency)`.
+ * A periodic timer adds this to its expiry every period, so anything else
+ * walks off MAME's expiries: Gun.Smoke's `from_ticks(384 * 262 / 4, 6 MHz)`
+ * is exactly a quarter of its frame, 16768 as short of 1 / 238.55 Hz.
+ */
+export function attotimePeriodAttoseconds(
+  value: string,
+  constants: Record<string, number> = {},
+  deviceClock?: number,
+): bigint | undefined {
+  if (deviceClock !== undefined && Number.isFinite(deviceClock)) {
+    value = value.replace(/\bclock\s*\(\s*\)/g, String(deviceClock));
+  }
+  const hzExpression = fromHzExpression(value);
+  if (hzExpression) {
+    const hz = evalExpr(hzExpression, constants);
+    if (hz === null || !(hz > 0)) return undefined;
+    const period = exactAttotimeFromHz(hz);
+    return period.is_never() ? undefined : exactToAttos(period);
+  }
+  const ticks = /\bfrom_ticks\s*\(\s*([^,]+)\s*,\s*([^)]+)\)/.exec(value);
+  if (!ticks) return undefined;
+  const count = evalExpr(ticks[1]!, constants);
+  const clock = evalExpr(ticks[2]!, constants);
+  if (count === null || clock === null || !(count > 0) || !(clock > 0)) return undefined;
+  if (!Number.isSafeInteger(count) || !Number.isInteger(clock) || clock > 0xffffffff) return undefined;
+  return exactToAttos(exactDuration(attotimeSecondsFromTicks(count, clock)));
+}
+
+/**
  * Seconds from a MAME `attotime::from_*` expression.
  *
  * A devcb may append a scheduler request rather than an output: Gauntlet's
@@ -2782,6 +2816,8 @@ function emitCallbacks(
       const period = localPeriod ?? periodArg;
       const hz = period ? attotimeFrequency(period, constants, configClock) : undefined;
       if (hz !== undefined) props.periodHz = hz;
+      const attos = period ? attotimePeriodAttoseconds(period, constants, configClock) : undefined;
+      if (attos !== undefined) props.periodAttoseconds = attos.toString();
       if (period) props.periodExpr = period;
     }
     if (operation.name === 'configure_scanline') {

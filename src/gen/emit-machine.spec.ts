@@ -163,6 +163,7 @@ const graph: KnowledgeGraph = {
       operation: 'set_periodic_int',
       targetMethod: 'irq0_line_hold',
       periodHz: 36.62109375,
+      periodAttoseconds: '27306666666666666',
     },
   }, {
     id: 'callback:vblank-hold',
@@ -291,11 +292,15 @@ if (reset.callbackId !== testCallback.id) {
   throw new Error('connection lost its callback provenance');
 }
 if (machine.execution.cpus[0]?.clock !== 1_000_000) throw new Error('execution plan missing CPU clock');
+// A periodic interrupt is one event carrying its rate and its period, never a
+// list of lines: MAME's timer counts periods from reset wherever the beam is.
+const periodicEvents = machine.execution.frameEvents.filter(event => event.callbackId === 'callback:periodic');
 if (
-  machine.execution.frameEvents.find(event => event.callbackId === 'callback:periodic')
-    ?.frequency !== 36.62109375
+  periodicEvents.length !== 1 ||
+  periodicEvents[0]?.frequency !== 36.62109375 ||
+  periodicEvents[0]?.periodAttoseconds !== '27306666666666666'
 ) {
-  throw new Error('non-video-locked periodic interrupts must retain fractional frequency');
+  throw new Error('a periodic interrupt must lower to one event with its frequency and exact period');
 }
 const heldVblankEvents = machine.execution.frameEvents.filter(
   event => event.callbackId === 'callback:vblank-hold',

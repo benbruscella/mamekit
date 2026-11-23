@@ -215,6 +215,7 @@ export function lowerGeneratedMachine(
       if (props.indexed !== undefined) callback.indexed = Boolean(props.indexed);
       if (props.periodHz !== undefined) callback.periodHz = Number(props.periodHz);
       if (props.periodExpr) callback.periodExpr = String(props.periodExpr);
+      if (props.periodAttoseconds) callback.periodAttoseconds = String(props.periodAttoseconds);
       if (Array.isArray(props.scanlines)) callback.scanlines = props.scanlines.map(Number);
       if (props.scanlineStart !== undefined) callback.scanlineStart = Number(props.scanlineStart);
       if (props.scanlineIncrement !== undefined) {
@@ -940,7 +941,6 @@ export function lowerGeneratedMachine(
       callbacks,
       devices,
       handlers,
-      board.screen.refresh,
       board.screen.vtotal,
       board.screen.vbstart,
       board.screen.vbend ?? 0,
@@ -1901,7 +1901,6 @@ function lowerFrameEvents(
   callbacks: GeneratedCallback[],
   devices: GeneratedDevice[],
   handlers: GeneratedHandler[],
-  refreshHz: number,
   vtotal: number,
   vbstart: number,
   vbend: number,
@@ -1970,34 +1969,21 @@ function lowerFrameEvents(
       continue;
     }
     if (callback.signal !== 'set_periodic_int' || !callback.periodHz) continue;
-    const eventsPerFrame = callback.periodHz / refreshHz;
-    const count = Math.round(eventsPerFrame);
-    if (count <= 0 || Math.abs(eventsPerFrame - count) > 0.1) {
-      // Free-running oscillators are not generally integer multiples of the
-      // video refresh. Preserve their frequency and let the frame runner's
-      // fractional carry place each edge on the correct scanline instead of
-      // silently dropping the interrupt (Taito SJ: 36.621 Hz vs 59.186 Hz).
-      events.push({
-        callbackId: callback.id,
-        ownerTag: callback.ownerTag,
-        signal: callback.signal,
-        line: 0,
-        state: 1,
-        frequency: callback.periodHz,
-        ...(callback.source ? { source: callback.source } : {}),
-      });
-      continue;
-    }
-    for (let index = 0; index < count; index++) {
-      events.push({
-        callbackId: callback.id,
-        ownerTag: callback.ownerTag,
-        signal: callback.signal,
-        line: Math.floor(index * vtotal / count),
-        state: 1,
-        ...(callback.source ? { source: callback.source } : {}),
-      });
-    }
+    // device_execute_interface's m_timedint_timer: armed at reset for one
+    // period and every period after, from the machine's own time. It keeps no
+    // line of the raster, whatever its rate: Ghosts'n Goblins' 240 Hz against
+    // a 59.637 Hz screen slips 0.6% of a frame every frame, and each expiry
+    // ends MAME's round (the frame runner's periodic timers).
+    events.push({
+      callbackId: callback.id,
+      ownerTag: callback.ownerTag,
+      signal: callback.signal,
+      line: 0,
+      state: 1,
+      frequency: callback.periodHz,
+      ...(callback.periodAttoseconds ? { periodAttoseconds: callback.periodAttoseconds } : {}),
+      ...(callback.source ? { source: callback.source } : {}),
+    });
   }
   for (const callback of callbacks.filter(candidate =>
     candidate.signal === 'timer' && (
