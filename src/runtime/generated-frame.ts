@@ -238,11 +238,15 @@ export class GeneratedFrameRunner {
   /** The processors in the order a round runs them (see roundOrder). */
   private readonly order: Int32Array;
   private readonly suspendable: boolean;
+  /** A `perfect_quantum` window is open: rounds are the perfect interleave. */
+  private windowOpen = false;
+  /** When the open window's quantum expires (add_quantum's `m_expire`). */
+  private readonly windowExpire = new Attotime();
   /**
-   * Scanlines (fractional) left in a `perfect_quantum` window, during which
-   * the processors run in lockstep.
+   * Whether a timer fired where the base stands: MAME is between two
+   * `timeslice()` calls there, which is where an expired quantum is dropped.
    */
-  private fineLines = 0;
+  private timerFired = true;
   /**
    * MAME `set_perfect_quantum`: the scheduler's quantum is the named
    * processor's minimum, so every processor interleaves instruction by
@@ -413,16 +417,35 @@ export class GeneratedFrameRunner {
    * after the command write are the ones that arm the buffer the answer
    * belongs in. In the window every processor executes one instruction at a
    * time in emulated-time order, which is what MAME's minimum quantum does.
+   *
+   * `now` is MAME's `time()` where the request was made, in total
+   * attoseconds: the window expires `seconds` after it. And it outlasts its
+   * expiry: `timeslice()` drops an expired quantum only on entry, which is
+   * after a timer has fired, so the rounds stay short until the first timer
+   * at or past the expiry (closeExpiredWindow). Gauntlet's main CPU reads the
+   * sound CPU's reply 119 us after its command opened a 100 us window; no
+   * timer fires in those 19 us, so MAME's sound CPU still polls the latch in
+   * step with the read. Closed on time, the main CPU ran ahead in one long
+   * round and the sound CPU saw its reply taken 16 us early (#296).
    */
-  quantumWindow(seconds: number): void {
-    const denominator =
-      this.machine.execution.screen.refresh * this.machine.execution.screen.vtotal;
-    if (!(this.fineLines > 0)) {
+  quantumWindow(seconds: number, now?: bigint): void {
+    // add_quantum: `expire = time() + duration`. An open window of the same
+    // quantum keeps the later of the two expiries.
+    const expire = this.expireScratch;
+    if (now === undefined) expire.set(this.running ? this.running.local : this.base);
+    else expire.setExact(now);
+    expire.add(secondsToAttoseconds(Math.max(seconds, 0)));
+    if (!this.windowOpen) {
       const interleave = this.perfectInterleave?.();
       this.windowQuantum = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : undefined;
+      this.windowOpen = true;
+      this.windowExpire.set(expire);
+    } else if (this.windowExpire.before(expire)) {
+      this.windowExpire.set(expire);
     }
-    this.fineLines = Math.max(this.fineLines, Math.max(seconds, 0) * denominator);
   }
+
+  private readonly expireScratch = new Attotime();
 
   /**
    * MAME `scheduler().synchronize()` from inside a processor's slice: end the
@@ -505,7 +528,9 @@ export class GeneratedFrameRunner {
     this.frameBase.clear();
     this.base.clear();
     for (const event of this.periodicEvents) event.next.set(event.period);
-    this.fineLines = 0;
+    this.windowOpen = false;
+    this.windowExpire.clear();
+    this.timerFired = true;
     this.frames = 0;
     this.fromOrigin = true;
     this.awaitingPresent = false;
@@ -523,7 +548,7 @@ export class GeneratedFrameRunner {
 
   /** Save-state roots (machine-state.ts): the times and counters, never the schedule. */
   stateKeys(): readonly string[] {
-    return ['processors', 'frameBase', 'base', 'periodicEvents', 'fineLines', 'frames', 'fromOrigin', 'screenRaster'];
+    return ['processors', 'frameBase', 'base', 'periodicEvents', 'windowOpen', 'windowExpire', 'frames', 'fromOrigin', 'screenRaster'];
   }
 
   /**
@@ -618,9 +643,14 @@ export class GeneratedFrameRunner {
     // of MAME's, so the round runs on through it. Ending one there as well
     // split Venture's round at line 279, and its main CPU saw a PIA edge the
     // sound CPU raised earlier in that round, which MAME's had run past (#275).
-    const inQuantumWindow = this.fineLines > 0;
+    const inQuantumWindow = this.windowOpen;
     if (this.perLineSchedule || inQuantumWindow) {
-      this.runProcessors(this.pendingLines, line);
+      // The next line's start is a timer where MAME has one there: a boundary
+      // line, or any line of a scanline-updated screen (screen_device's
+      // m_scanline_timer fires on every one).
+      const timerNext = screen.updateMode === 'scanline' ||
+        this.boundaryLines.has((line + 1) % Math.max(1, screen.vtotal));
+      this.runProcessors(this.pendingLines, line, timerNext);
       this.pendingLines = 0;
     }
 
@@ -653,7 +683,7 @@ export class GeneratedFrameRunner {
    * max(m_localtime, m_basetime)`). Donkey Kong's 400 kHz sound CPU decides
    * this way where each of its 3 MHz Z80's rounds starts.
    */
-  private runProcessors(lines: number, lastLine: number): void {
+  private runProcessors(lines: number, lastLine: number, endsAtTimer = true): void {
     const processors = this.processors;
     const base = this.base;
     const end = this.roundEnd;
@@ -679,7 +709,8 @@ export class GeneratedFrameRunner {
       }
       // A perfect_quantum window is rounds of the perfect interleave, run by
       // the same rules as any other round.
-      const windowed = this.fineLines > 0;
+      this.closeExpiredWindow();
+      const windowed = this.windowOpen;
       if (windowed && this.windowQuantum === undefined) {
         const windowEnd = this.windowEnd(end);
         this.lockstep(periodic ? this.periodicEnd(windowEnd, untilPeriodic) : windowEnd);
@@ -740,6 +771,7 @@ export class GeneratedFrameRunner {
           if (periodic) this.lowerTarget(untilPeriodic - skipped);
         }
       }
+      let synchronized = false;
       for (let position = 0; position < order.length; position++) {
         const scheduled = processors[order[position]!]!;
         const local = scheduled.local;
@@ -775,6 +807,7 @@ export class GeneratedFrameRunner {
         // stops two cycles past its 6532 read; from the read, every round
         // after was 1.1 us short and its main CPU's PIA poll fell into the
         // next one (#275).
+        if (this.synchronizeRequested) synchronized = true;
         if (this.synchronizeRequested && executed < cycles) this.pullTarget(local, slop);
         // Whole cycles left it short of the target (MAME skips a waiting
         // device, which then stands wherever it stopped).
@@ -783,10 +816,13 @@ export class GeneratedFrameRunner {
       }
       this.onSynchronize?.('target');
       this.onRoundEnd?.(this.linesAt(target));
-      if (windowed) {
-        this.fineLines -= target.since(base) / this.linePeriod.total;
-        if (!(this.fineLines > 1e-9)) this.fineLines = 0;
-      }
+      // Whether MAME's timeslice() returns here to run timers: a synchronize
+      // is a timer due at once, and otherwise the round reached one.
+      const ran = target.since(base);
+      this.timerFired = synchronized ||
+        (timerAttos !== undefined && ran >= timerAttos - TIMER_SLOP) ||
+        (periodic && ran >= untilPeriodic) ||
+        (endsAtTimer && !target.before(end));
       base.set(target);
     }
     // Every processor stands at the end of the lines being paid, give or take
@@ -924,8 +960,16 @@ export class GeneratedFrameRunner {
 
   /** The end of the open perfect_quantum window, or `end` if that comes first. */
   private windowEnd(end: Attotime): Attotime {
-    const window = this.scratch.set(this.base).add(Math.floor(this.fineLines * this.linePeriod.total));
-    return window.before(end) ? window : end;
+    return this.windowExpire.before(end) ? this.windowExpire : end;
+  }
+
+  /**
+   * MAME's `while (m_basetime >= m_quantum_list.first()->m_expire)` at the
+   * head of timeslice(): an expired window closes once a timer has fired,
+   * and not at a round that merely ran out its quantum.
+   */
+  private closeExpiredWindow(): void {
+    if (this.windowOpen && this.timerFired && !this.base.before(this.windowExpire)) this.windowOpen = false;
   }
 
   /**
@@ -1012,7 +1056,7 @@ export class GeneratedFrameRunner {
     // Subtracting spent lines leaves floating-point residue: a window of 4e-16
     // lines advanced the round by nothing, forever. Under an attosecond it is over.
     if (!base.before(end)) {
-      this.fineLines = 0;
+      this.windowOpen = false;
       return;
     }
     for (;;) {
@@ -1050,11 +1094,9 @@ export class GeneratedFrameRunner {
       this.synchronizeRequested = false;
       this.onSynchronize?.();
     }
-    if (this.fineLines > 0 && !this.permanentLockstep) {
-      this.fineLines -= end.since(base) / this.linePeriod.total;
-      if (!(this.fineLines > 1e-9)) this.fineLines = 0;
-    }
     base.set(end);
+    this.timerFired = true;
+    if (this.windowOpen && !base.before(this.windowExpire)) this.windowOpen = false;
   }
 
   private dispatchLine(line: number, framebuffer: Uint32Array): void {

@@ -425,6 +425,23 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'render']);
   assert.deepEqual(slices.slice(0, 3), ['fast 1', 'fast 1', 'fast 1'],
     'inside the window a round is the perfect interleave: one fast cycle');
 
+  // The window outlasts its expiry: MAME's timeslice() drops an expired
+  // quantum only on entry, after a timer has fired. A quarter of a line is 25
+  // fast cycles, and the next timer is the screen's VBLANK, at line 99.
+  slices.length = 0;
+  const windowRunner = new GeneratedFrameRunner({
+    machine: quantumMachine,
+    processors: [processor('fast'), processor('slow')],
+    maximumQuantum: 1 / 24_000,
+    perfectInterleave: () => 1 / 600_000,
+  });
+  windowRunner.quantumWindow(1 / 24_000);
+  windowRunner.frame(new Uint32Array(1));
+  const fastSlices = slices.filter(slice => slice.startsWith('fast'));
+  assert.ok(fastSlices.slice(0, 9900).every(slice => slice === 'fast 1'),
+    'an expired window stays open until a timer fires, here the start of line 99');
+  assert.equal(fastSlices[9900], 'fast 25', 'and the machine\'s quantum returns after it');
+
   // A round also ends at the soonest device timer, and the board hears where
   // every processor stands once the round is run.
   slices.length = 0;
