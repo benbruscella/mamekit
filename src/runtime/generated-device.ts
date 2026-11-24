@@ -1552,6 +1552,8 @@ class IrDevice implements Device {
   slotOption?: string;
   /** Set for the duration of a mounted card's installer; see installSlotCard. */
   private installSpace?: unknown;
+  /** The space the card was last installed into, which its handlers keep. */
+  private installedSpace?: unknown;
   /** Devices instantiated from this one's device_add_mconfig. */
   private readonly children: IrDevice[] = [];
   /** The device_add_mconfig entry each of `children` was built from (an array entry builds several). */
@@ -2423,6 +2425,13 @@ class IrDevice implements Device {
           }),
         ),
         ...options.calls,
+        // And each under `this->`, which names the same call: a cartridge
+        // board's own lambda installs its RAM through `this->cart_space()`
+        // (the Game Boy's Rockman 8 and La Sa Ma boards), the space its slot
+        // hands it for the length of a load.
+        ...Object.fromEntries(Object.entries(options.calls ?? {})
+          .filter(([name]) => /^\w+$/.test(name))
+          .map(([name, call]) => [`this.${name}`, call])),
       },
       referenceCalls,
       callParameters,
@@ -4107,6 +4116,11 @@ class IrDevice implements Device {
       return true;
     }
     card.installSpace = space;
+    // A handler the card installs that takes its space first (`u8
+    // ram_mbc_read(address_space &space, offs_t offset)`) is handed the space
+    // it was installed into whenever it runs, not only during the load.
+    card.installedSpace = space;
+    card.bindings.addressSpace ??= () => card.installedSpace ?? 0;
     try {
       // The slot's own call_load, where it has one and an image is in: MAME's
       // reads a file into the regions the card asks for, then runs the

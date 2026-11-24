@@ -498,3 +498,25 @@ console.log('device-compiler.spec: source-derived latch, ER2055, MB8844, TMS9928
   assert.match(methods[1]!.program.diagnostics[0] ?? '', /"cartheader::OFFSET_NOWHERE" names nothing/);
   assert.deepEqual(methods[2]!.program.diagnostics, [], 'a qualifier no included header declares is not this check\'s');
 }
+
+// A constructor chain through class template bases (#294): a board derives
+// `flat_ram_device_base<mbc_dual_device_base>`, which inherits its base's
+// constructors with `using Base::Base;`, and mbc_dual_device_base starts its
+// coarse masks with a braced initializer. Lost on the way, the masks were 0
+// and the boards' low ROM window never left bank 0.
+{
+  const source = `
+    class dual_base { public: dual_base(int clock); u16 m_mask[2]; u16 m_sel[2]; };
+    dual_base::dual_base(int clock) : m_mask{ 0xffffU, 0xffffU }, m_sel{ 0U, 0U } { }
+    template <typename Base> class ram_base : public Base { protected: using Base::Base; };
+    template <typename Base> class rom_base : public Base { public: rom_base(int clock); };
+    template <typename Base> rom_base<Base>::rom_base(int clock) : Base(clock) { }
+    class flat_board : public ram_base<dual_base> { public: flat_board(int clock) : ram_base<dual_base>(clock) { } };
+    class rom_board : public rom_base<dual_base> { public: rom_board(int clock) : rom_base<dual_base>(clock) { } };`;
+  for (const board of ['flat_board', 'rom_board']) {
+    const chain = { structs: {}, spaceConfigs: {} } as Parameters<typeof constructorInitialValues>[7] & object;
+    constructorInitialValues(board, source, {}, {}, {}, [], undefined, chain);
+    assert.deepEqual(chain.tables?.m_mask, [0xffff, 0xffff], `${board} reaches its template base's braced initializer`);
+    assert.deepEqual(chain.tables?.m_sel, [0, 0]);
+  }
+}

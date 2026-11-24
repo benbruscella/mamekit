@@ -6093,8 +6093,17 @@ interface Constructor {
   parameters: string[];
   /** The parameters as declared, types included. */
   declared: string[];
-  initializers: { name: string; args: string[] }[];
+  initializers: {
+    name: string;
+    args: string[];
+    /** Written `m_x{ ... }`. */
+    braced?: boolean;
+    /** A template base's arguments, `flat_ram_device_base<mbc_dual_device_base>(...)`. */
+    templateArgs?: string[];
+  }[];
   body: string;
+  /** The class template's type parameters, for a template's constructor (`template <typename Base>`). */
+  templateParameters?: string[];
 }
 
 /**
@@ -6164,6 +6173,15 @@ export function constructorInitialValues(
   // own body: DAC_GENERATOR's `dac_8bit_r2r_device(...) : dac_byte_device_base(...) {}`.
   const heads: { index: number; className: string }[] = [...source.matchAll(/\b(\w+)::\1\s*\(/g)]
     .map(found => ({ index: found.index!, className: found[1]! }));
+  // A class template's, out of line: cartbase.ipp's
+  // `template <typename Base> flat_ram_device_base<Base>::flat_ram_device_base(...) : Base(...)`.
+  const templateParametersAt = new Map<number, string[]>();
+  for (const found of source.matchAll(/\btemplate\s*<([^<>]*)>\s*(\w+)\s*<[^<>;{}()]*>::\2\s*\(/g)) {
+    // The class name after `template <...>`, where the head begins.
+    const index = found.index! + found[0].indexOf(found[2]!, found[0].indexOf('>') + 1);
+    heads.push({ index, className: found[2]! });
+    templateParametersAt.set(index, splitMameArgs(found[1]!).map(parameter => parameter.trim().split(/\s+/).at(-1)!));
+  }
   for (const declaration of source.matchAll(/\b(?:class|struct)\s+(\w+)\b[^;{()]*\{/g)) {
     const className = declaration[1]!;
     const open = declaration.index! + declaration[0].length - 1;
@@ -6198,10 +6216,21 @@ export function constructorInitialValues(
       className: match[1]!,
       parameters: declared.map(parameterName),
       declared,
+      // `m_x(a)`, or braced, `m_x{ a, b }`: mbc_dual_device_base starts its
+      // coarse masks as `m_bank_rom_coarse_mask{ 0xffffU, 0xffffU }`, and read
+      // as zero, a Game Boy board's low ROM window never left bank 0.
       initializers: splitMameArgs(initializerSource).flatMap(initializer => {
-        const parsed = /^(\w+)\s*\(([\s\S]*)\)$/.exec(initializer.trim());
-        return parsed ? [{ name: parsed[1]!, args: splitMameArgs(parsed[2]!) }] : [];
+        const parsed = /^(\w+)\s*(?:<([^()]*)>)?\s*(?:\(([\s\S]*)\)|\{([\s\S]*)\})$/.exec(initializer.trim());
+        if (!parsed) return [];
+        const braced = parsed[4] !== undefined;
+        return [{
+          name: parsed[1]!,
+          args: splitMameArgs(parsed[3] ?? parsed[4]!).filter(arg => arg.trim()),
+          ...(braced ? { braced } : {}),
+          ...(parsed[2] !== undefined ? { templateArgs: splitMameArgs(parsed[2]).map(arg => arg.trim()) } : {}),
+        }];
       }),
+      ...(templateParametersAt.has(head.index) ? { templateParameters: templateParametersAt.get(head.index)! } : {}),
       body: source.slice(brace + 1, braceEnd),
     };
     const overloads = constructors.get(match[1]!) ?? [];
@@ -6260,7 +6289,26 @@ export function constructorInitialValues(
     }
     return undefined;
   };
-  const visit = (className: string, values: number[] = [], texts: (string | undefined)[] = []): void => {
+  // Classes that inherit their base's constructors, `using Base::Base;`, with
+  // their template parameters and the base named there.
+  const inheritingConstructors = new Map<string, { parameters: string[]; target: string }>();
+  for (const declaration of source.matchAll(/(?:\btemplate\s*<([^<>]*)>\s*)?\bclass\s+(\w+)\b[^;{()]*\{/g)) {
+    const open = declaration.index! + declaration[0].length - 1;
+    const close = matchingBrace(source, open);
+    const using = close > open ? /\busing\s+(\w+)::\1\s*;/.exec(source.slice(open, close)) : null;
+    if (!using) continue;
+    inheritingConstructors.set(declaration[2]!, {
+      parameters: declaration[1] ? splitMameArgs(declaration[1]).map(parameter => parameter.trim().split(/\s+/).at(-1)!) : [],
+      target: using[1]!,
+    });
+  }
+  const visit = (
+    className: string,
+    values: number[] = [],
+    texts: (string | undefined)[] = [],
+    /** A class template's type arguments, by parameter: `Base` is `mbc_dual_device_base`. */
+    types: Record<string, string> = {},
+  ): void => {
     // A constructor delegating to another of its class's (a template overload
     // handing on `(mconfig, tag, owner, 0)`) never reaches itself again.
     const overloads = (constructors.get(className) ?? []).filter(candidate => !activeConstructors.has(candidate));
@@ -6316,8 +6364,34 @@ export function constructorInitialValues(
         const text = substitute(arg.trim());
         return constantValue(fieldsOf(arg), { ...constants, ...env }) === undefined ? text : undefined;
       });
-      if (constructors.has(initializer.name)) visit(initializer.name, args, argTexts);
-      else if (initializer.name.startsWith('m_') && args.length === 1) {
+      // A base named through the template's own parameter (`Base(...)`) is
+      // the argument it was instantiated with; a template base hands its
+      // arguments on to its parameters.
+      let base = types[initializer.name] ?? initializer.name;
+      let baseArgs = initializer.templateArgs;
+      // A class that inherits its base's constructors (`using Base::Base;`,
+      // as cartbase.h's flat_ram_device_base does) is constructed by that
+      // base: a template one by the argument it was given.
+      const inherited = inheritingConstructors.get(base);
+      if (!constructors.has(base) && inherited) {
+        const at = inherited.parameters.indexOf(inherited.target);
+        const argument = at >= 0 ? baseArgs?.[at] : inherited.target;
+        if (argument !== undefined) {
+          base = types[argument] ?? argument.replace(/\s*<[\s\S]*>$/, '');
+          baseArgs = /<([\s\S]*)>$/.exec(argument)?.[1]?.split(',').map(arg => arg.trim());
+        }
+      }
+      if (constructors.has(base)) {
+        const parameters = constructors.get(base)!.find(candidate => candidate.templateParameters)?.templateParameters ?? [];
+        const handed = Object.fromEntries(parameters.flatMap((parameter, index) => {
+          const argument = baseArgs?.[index];
+          return argument === undefined ? [] : [[parameter, types[argument] ?? argument]];
+        }));
+        visit(base, args, argTexts, handed);
+      } else if (initializer.braced && initializer.name.startsWith('m_') && args.length > 1) {
+        // An array member's braced contents, element by element.
+        if (chain && argTexts.every(text => text === undefined)) (chain.tables ??= {})[memberName(className, initializer.name)] = args;
+      } else if (initializer.name.startsWith('m_') && args.length === 1) {
         const member = memberName(className, initializer.name);
         // A function handed down the constructors as a value is its name, as
         // CALL_METHOD dispatches by: dac_device_base's `m_mapper(mapper)`,

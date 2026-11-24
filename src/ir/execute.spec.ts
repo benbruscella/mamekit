@@ -758,6 +758,15 @@ check('std::accumulate sums a pointer range from its initial value', () => {
   assert.equal(members.m_sum, 266);
 });
 
+// The MBC3 latches its real-time clock by copying one register row over
+// another with std::copy; unresolved, the call stopped the cartridge's load.
+check('std::copy copies one array row into another', () => {
+  const members = { m_rtc_regs: [[1, 2, 3], [0, 0, 0]] };
+  executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(`
+    std::copy(std::begin(m_rtc_regs[0]), std::end(m_rtc_regs[0]), std::begin(m_rtc_regs[1]));`)), { members } as never);
+  assert.deepEqual(members.m_rtc_regs[1], [1, 2, 3]);
+});
+
 // An MBC1 looks a cartridge's title up in its table of known multi-game
 // collections with std::find_if over the rows and std::equal against the
 // header (mbc.cpp's is_collection). Unresolved, the search answered nothing,

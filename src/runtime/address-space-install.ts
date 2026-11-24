@@ -84,6 +84,16 @@ function handlerMirror(rest: readonly unknown[]): number {
 export class RecordingAddressSpace {
   readonly entries: InstalledEntry[] = [];
   readonly views: InstalledView[] = [];
+  /**
+   * What the space reads where nothing answers, as the map it stands for set
+   * it (`unmap_value_high()`): the board fills it in. An MBC2's RAM read
+   * answers `(m_ram_mbc[offset] & 0x0f) | (space.unmap() & 0xf0)`.
+   */
+  unmapValue = 0;
+
+  unmap(): number {
+    return this.unmapValue;
+  }
 
   install_rom(start: number, end: number, mirrorOrBytes: unknown, maybeBytes?: unknown): void {
     const withMirror = maybeBytes !== undefined;

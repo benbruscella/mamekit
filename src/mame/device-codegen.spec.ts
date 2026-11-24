@@ -1074,3 +1074,31 @@ assert.ok(!branchEmitted.methods.includes('calls_reference_helper'), 'a callee w
   assert.equal(members.m_dirty, dirty, 'the object member keeps its binding');
   assert.equal((members.m_lookup as Uint8Array).length, 336, 'a vector member is still resized by the runtime');
 }
+
+// A lambda's init-capture is evaluated where the lambda is written and is a
+// local of its body (#294). Dropped, `base` read as a member nobody had: an
+// MBC2 configured every ROM bank entry from nothing.
+{
+  const captures: GeneratedDeviceDefinition = {
+    ...definition,
+    hotMethods: ['sum'],
+    methods: [{
+      name: 'sum',
+      parameters: '',
+      source: { file: 'src/devices/test.cpp', line: 1 },
+      program: compileMameHandler(normalizeMameExecutionSource(`
+        int total = 0;
+        int seed = 5;
+        auto add = [this, &total, base = seed * 2] (int value) { total += base + value; };
+        add(1);
+        add(2);
+        return total;`)),
+    }],
+  };
+  assert.deepEqual(captures.methods[0]!.program.diagnostics, []);
+  const emitted = generatedDeviceMethodsSource(captures);
+  assert.ok(emitted.methods.includes('sum'), 'the method must be emitted');
+  assert.doesNotMatch(emitted.source, /members\.base/, 'the capture is no member');
+  const built = new Function(`return ${emitted.source}`)() as Record<string, (runtime: unknown) => unknown>;
+  assert.equal(built.sum!({ members: {} }), 23, 'base is seed * 2, taken once');
+}

@@ -1839,7 +1839,10 @@ class IrBoard implements Board {
           const tag = String(generatedCallValue(args[0]) ?? '');
           const bytes = regions[tag];
           if (!bytes) throw new Error(`${machine.game}: no ROM region "${tag}"`);
-          return { base: () => bytes, bytes: () => bytes.length };
+          // The whole memory_region, as a device's own finder answers it: an
+          // MBC2 pages its ROM from `&romregion->as_u8()`, and with no as_u8
+          // its bank entries pointed into this object instead of the bytes.
+          return memoryRegionObject(bytes);
         },
         // MAME's share finder by tag. System 16's paletteram_w sizes its
         // shadow half as `memshare("paletteram")->bytes() / 2`; unbound that
@@ -5579,6 +5582,9 @@ class IrBoard implements Board {
     for (const [tag, device] of this.devices) {
       if (device.role() !== 'cartridge') continue;
       const space = new RecordingAddressSpace();
+      // The program map's unmap value, which a card's handler reads back
+      // through `space.unmap()`: the Game Boy's map is unmap_value_high.
+      space.unmapValue = machine.execution.cpus[0]?.unmapHigh === true ? 0xff : 0;
       // Which method mounts a card, and whether it is handed the space or
       // reaches for it, is the bus's own fact and travels in the slot IR. A
       // PCB with no installer of its own decodes nothing extra, as an empty
@@ -6362,7 +6368,7 @@ class IrBoard implements Board {
             const tag = String(generatedCallValue(args[0]) ?? '');
             const bytes = this.regions[`${deviceTag}:${tag}`] ?? this.regions[tag];
             if (!bytes) throw new Error(`${this.machine.game}: no ROM region "${tag}"`);
-            return { base: () => bytes, bytes: () => bytes.length };
+            return memoryRegionObject(bytes);
           },
         },
       };

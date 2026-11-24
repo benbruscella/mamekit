@@ -2928,6 +2928,17 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     }
     return 0;
   }
+  // std::copy(first, last, dest): the range, element by element, from dest
+  // on; the answer is the end of what was written. The MBC3 latches its
+  // real-time clock this way (`std::copy(std::begin(m_rtc_regs[0]),
+  // std::end(m_rtc_regs[0]), std::begin(m_rtc_regs[1]))`).
+  if (name === 'std::copy' && isGeneratedPointer(args[0]) && isGeneratedPointer(args[1]) &&
+      args[0].source === args[1].source && isGeneratedPointer(args[2])) {
+    const count = Math.max(0, args[1].offset - args[0].offset);
+    const values = Array.from({ length: count }, (_unused, index) => pointerValue(args[0] as GeneratedPointer, index));
+    values.forEach((value, index) => setPointerValue(args[2] as GeneratedPointer, index, value));
+    return { generatedPointer: true, source: args[2].source, offset: args[2].offset + count } satisfies GeneratedPointer;
+  }
   if ((name === 'std::min_element' || name === 'std::max_element') &&
       isGeneratedPointer(args[0]) && isGeneratedPointer(args[1]) && args[0].source === args[1].source) {
     // The first of equal elements, as the standard specifies; an empty range
