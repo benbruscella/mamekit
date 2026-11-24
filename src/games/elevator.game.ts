@@ -8,7 +8,10 @@ export const elevator = sourceTarget({
   soundKind: 'stream',
   frames: 900,
   checkpoints: [1, 60, 120, 180, 240, 300, 360, 480, 600, 720, 830, 900],
-  minimumFps: 30,
+  // The 68705's status read asks for perfect_quantum(10 us) on every poll,
+  // and the window lasts until a timer fires, as MAME's does (#296): the
+  // main CPU interleaves finely for most of each frame. 28.5 fps on CI.
+  minimumFps: 25,
   minimumAudioRms: 0.1,
   shareRequirements: [
     { share: 'videoram[0]', minimumNonzeroBytes: 1 },
