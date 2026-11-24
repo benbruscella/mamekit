@@ -1,7 +1,7 @@
 import { boardConfigFromIr } from '../ir/host-config.ts';
 import { generatedMachine } from './generated-machine.ts';
 import { Bus, byteAddress, type HandlerRegistry, type InstalledRange, type ReadHandler, type WriteHandler } from './bus.ts';
-import { installedOffset, RecordingAddressSpace, type InstalledDelegate } from './address-space-install.ts';
+import { installedOffset, RecordingAddressSpace, type InstalledDelegate, type InstalledEntry, type InstalledView } from './address-space-install.ts';
 import type { Cpu, CpuBus } from './generated-cpu.ts';
 import { DeviceCpu } from './device-cpu.ts';
 import { captureState, namedStateFunction, restoreState, stateValue, type WalkOptions } from './machine-state.ts';
@@ -521,6 +521,8 @@ class IrBoard implements Board {
   private readonly generatedBanks: Record<string, GeneratedMemoryBank> = {};
   /** MAME address-space taps a mounted cartridge installed over the CPU space. */
   private cartridgeTaps: ((address: number) => void)[] = [];
+  /** Views cartridges installed into a CPU's space, for the bus that decodes them. */
+  private cartridgeViews: { cpu: string; viewTag: string; view: InstalledView }[] = [];
   /** Keys for delegates driver code installs at run time that name no board handler. */
   private installedHandlerCount = 0;
   /** Device taps on a space whose bus was not built yet (install_readwrite_tap). */
@@ -2348,8 +2350,14 @@ class IrBoard implements Board {
       for (const pending of this.pendingSpaceTaps.filter(candidate => candidate.cpu === specification.tag)) {
         bus.installAccessTap(pending.tap);
       }
+      // A card's own view: its `select()` and `disable()` reach this bus, which
+      // starts where the card left the view when it was installed and reset.
+      for (const { viewTag, view } of this.cartridgeViews.filter(candidate => candidate.cpu === specification.tag)) {
+        view.select = entry => void bus.selectView(viewTag, entry);
+        bus.selectView(viewTag, view.selected ?? -1);
+      }
       for (const viewTag of new Set(
-        (specification.ranges ?? []).flatMap(range => range.viewTag ? [range.viewTag] : []),
+        (specification.ranges ?? []).flatMap(range => range.viewTag && !range.viewTag.startsWith('cartridge:') ? [range.viewTag] : []),
       )) {
         const select = (entry: number) => bus.selectView(viewTag, entry);
         // MAME's `memory_view::disable()` selects no entry at all, which leaves
@@ -5579,23 +5587,31 @@ class IrBoard implements Board {
       const cpu = machine.execution.cpus[0];
       if (!cpu) continue;
       const ranges = cpu.ranges ??= [];
-      for (const [index, entry] of space.entries.entries()) {
+      // One installed window as a bus range: under the driver's map, or as an
+      // entry of a view the card installed.
+      const install = (entry: InstalledEntry, key: string, view?: { viewTag: string; viewEntry: number }): void => {
         if (entry.kind === 'tap') {
           const { start, end, read, write } = entry;
           const observe = read ?? write;
-          if (!observe) continue;
+          if (!observe) return;
           taps.push(address => {
             if (address >= start && address <= end) observe(address, 0, 0xff);
           });
-          continue;
+          return;
         }
-        const key = `cartridge:${tag}:${index}`;
         const { start, end, mirror } = entry;
         let read: ReadHandler | undefined;
         let write: WriteHandler | undefined;
         if (entry.kind === 'rom') {
           const { bytes } = entry;
           read = address => Number(bytes[installedOffset(address, start, mirror) % bytes.length] ?? 0xff) & 0xff;
+          // `install_ram`: the same bytes, written too. A window recorded
+          // through install_rom never is: the bus has no write there.
+          if (entry.writable) {
+            write = (address, _offset, data) => {
+              (bytes as { [index: number]: number })[installedOffset(address, start, mirror) % bytes.length] = data & 0xff;
+            };
+          }
         } else if (entry.kind === 'bank') {
           const { bank } = entry;
           if (entry.read) read = address => bank.read(installedOffset(address, start, mirror)) & 0xff;
@@ -5622,7 +5638,23 @@ class IrBoard implements Board {
           ...(mirror ? { mirror } : {}),
           ...(read ? { read: key } : {}),
           ...(write ? { write: key } : {}),
+          ...view,
         });
+      };
+      for (const [index, entry] of space.entries.entries()) install(entry, `cartridge:${tag}:${index}`);
+      // A view the card installed into the space (`cart_space()->install_view(
+      // 0xa000, 0xbfff, m_view_ram)`), each entry's windows under the view's
+      // own tag: the bus decodes the selected entry over the map beneath, and
+      // none while the card has the view disabled. A Game Boy MBC's cartridge
+      // RAM is one, opened and closed by its RAM-enable register.
+      for (const [number, view] of space.views.entries()) {
+        const viewTag = `cartridge:${tag}:view${number}`;
+        for (const [viewEntry, entries] of view.entries) {
+          for (const [index, entry] of entries.entries()) {
+            install(entry, `${viewTag}:${viewEntry}:${index}`, { viewTag, viewEntry });
+          }
+        }
+        this.cartridgeViews.push({ cpu: cpu.tag, viewTag, view });
       }
     }
     return taps;

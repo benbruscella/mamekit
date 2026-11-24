@@ -51,6 +51,8 @@ interface DeviceMember {
   signed?: boolean;
   initial?: number;
   initialText?: string;
+  /** A pointer its constructor aims at the device's owner. */
+  owner?: boolean;
   values?: unknown[];
   memory?: {
     kind: 'shared' | 'owned' | 'growable';
@@ -1527,6 +1529,8 @@ class IrDevice implements Device {
   /** Backing store for each address space the device declares, by MAME index. */
   private readonly spaces = new Map<number, GeneratedDeviceSpace>();
   private regionLookup: (tag: string) => Uint8Array | undefined = () => undefined;
+  /** The machine's regions by tag, which a mounted software part's areas join. */
+  private machineRegions?: Record<string, Uint8Array>;
   /** The image/floppy/cassette surface the host answers (see hostedCalls). */
   private readonly hostedSurface: Record<string, (...args: never[]) => unknown> = {};
   private clock: number;
@@ -1562,6 +1566,7 @@ class IrDevice implements Device {
   ) {
     this.definition = definition;
     this.ownTag = options.deviceTag ?? options.tag ?? '';
+    this.machineRegions = options.regions as Record<string, Uint8Array> | undefined;
     if (definition.floppyImage) {
       HELD_INSTANCE_DEFINITIONS.set(heldInstanceName(definition.floppyImage), definition.floppyImage);
     }
@@ -1775,6 +1780,9 @@ class IrDevice implements Device {
         // out of range for every projected object.
         : member.arrayLength ? integerArray(member.arrayLength, member.bits, member.signed)
         : member.initialText !== undefined ? member.initialText
+        // `m_slot(dynamic_cast<T *>(device.owner()))`: the device that holds
+        // this one, null when nothing does.
+        : member.owner ? (options.owner ?? 0) as never
         : isIndexableMemberType(member.valueType) ? []
         : member.initial ?? 0));
       if (member.bits) this.memberBits.set(member.name, member.bits);
@@ -1881,6 +1889,9 @@ class IrDevice implements Device {
     // device_t::interface<T>, never in place of a class's own method of that
     // name: discrete_base_node declares three.
     self.interface ??= (type: string) => definition.hierarchy?.includes(type) ? self : 0;
+    // device_t::memregion, asked of this device by one it holds: a Game Boy
+    // cartridge board finds the mounted image as `m_slot->memregion("rom")`.
+    self.memregion ??= (tag: unknown) => this.bindings.calls?.memregion?.(tag as never) ?? 0;
     // device_execute_interface::set_input_line, for a device that is a CPU: the
     // line reaches its own execute_set_input. An object the CPU holds raises
     // its interrupts this way -- the 6805's timer calls
@@ -2202,7 +2213,9 @@ class IrDevice implements Device {
           .map(name => [name, (tag: unknown, size: unknown) => {
             const bytes = new Uint8Array(Math.max(0, Number(size) >>> 0));
             if (options.regions) options.regions[String(tag)] = bytes;
-            return { base: () => bytes, bytes: () => bytes.length };
+            // The memory_region itself, as memregion(tag) hands it back: the
+            // Game Boy slot reads the ROM it just loaded as `&romregion->as_u8()`.
+            return memoryRegionObject(bytes);
           }])),
         // MAME `running_machine::rand`, from its fixed power-on seed. The seed
         // is device state so a save state carries it (VLM5030 draws its
@@ -2710,6 +2723,14 @@ class IrDevice implements Device {
             set: value => { card[member.name] = value; },
           });
         }
+        // device_interface::device(), asked of the card: the Game Boy slot
+        // tells an MMM01 from the rest by `get_card_device()->device().type()`.
+        if (!Object.hasOwn(proxy, 'device')) {
+          Object.defineProperty(proxy, 'device', {
+            enumerable: false,
+            value: () => ({ type: () => childDefinition.constants?.[childDefinition.type] ?? 0 }),
+          });
+        }
         this.members[definition.slot.member] = proxy;
         this.bindings.calls!.get_card_device = () => proxy;
       } else {
@@ -2888,7 +2909,10 @@ class IrDevice implements Device {
       // MAME mounts the images it was started with once every device has
       // started, and resets after: the cartridge is in the card before the
       // C64's KERNAL looks for one.
-      if (options.image) this.loadOpenImage();
+      // A card that installs itself into the CPU's space from its slot's
+      // call_load (slot.install.space) is loaded when the board hands the
+      // slot that space: installSlotCard.
+      if (options.image && !definition.slot?.install?.space) this.loadOpenImage();
       // device_t::start() ends with notify_clock_changed(): a device derives
       // its clock-scaled constants there, not in device_start. The 64H156
       // sets its bit-cell period that way, and without it the period stayed
@@ -3719,6 +3743,15 @@ class IrDevice implements Device {
     this.imageFile = file;
     this.softwarePart = image.software;
     this.lastImageError = undefined;
+    // MAME's software-list loader makes each dataarea of the part a memory
+    // region below the image device, before call_load: a Game Boy cartridge's
+    // board reads `m_slot->memregion("rom")`, and finds its save RAM as
+    // `memregion("nvram")` only when the list declares one.
+    if (image.software && this.machineRegions && this.definition.imageInterface) {
+      for (const [area, bytes] of Object.entries(image.software.areas)) {
+        this.machineRegions[mameSubtag(this.ownTag, area)] = bytes;
+      }
+    }
   }
 
   /**
@@ -4075,7 +4108,12 @@ class IrDevice implements Device {
     }
     card.installSpace = space;
     try {
-      card.invoke(install.method, 0);
+      // The slot's own call_load, where it has one and an image is in: MAME's
+      // reads a file into the regions the card asks for, then runs the
+      // card's installer itself (gb_cart_slot_device_base::call_load ends
+      // with `m_cart->load(message)`).
+      if (this.imageFile && this.methods.has('call_load')) this.loadOpenImage();
+      else card.invoke(install.method, 0);
     } finally {
       card.installSpace = undefined;
     }
@@ -4991,14 +5029,27 @@ class DeviceMemoryView {
   }
   select(entry: unknown): number {
     this.selected = Number(entry);
+    this.apply();
     return 0;
   }
   disable(): number {
     this.selected = -1;
+    this.apply();
     return 0;
   }
   entry(): number {
     return this.selected;
+  }
+  /**
+   * The view as another space decodes it (`cart_space()->install_view(0xa000,
+   * 0xbfff, m_view_ram)`): a selection reaches that space, so a Game Boy
+   * cartridge's RAM-enable register opens and closes its RAM window.
+   */
+  private apply(): void {
+    const installed = (this as { __installedView?: InstalledView }).__installedView;
+    if (!installed) return;
+    installed.selected = this.selected;
+    installed.select?.(this.selected);
   }
 }
 

@@ -660,7 +660,10 @@ registerGeneratedDevice({
   // slot's subdevice `<slot>:<option>`, and `^` climbs back to the slot.
   const regions: Record<string, Uint8Array> = {};
   createDevice('CART_PORT_FIXTURE', { ...software({ slot: 'other' }), tag: 'port', regions }).call('alloc');
-  assert.deepEqual(Object.keys(regions), ['port:cart:prg_rom']);
+  // Beside the part's own dataarea, which MAME's software-list loader makes
+  // a region below the image device (`<slot>:<area>`) before call_load.
+  assert.deepEqual(Object.keys(regions), ['port:roml', 'port:cart:prg_rom']);
+  assert.deepEqual([...regions['port:roml']!], [5, 6, 7]);
   // A bare file picks its card from what it is, through the same chooser.
   const file = createDevice('CART_PORT_FIXTURE', { image: { name: 'game.CRT', bytes: Uint8Array.from([1, 2]) } });
   assert.equal(((file.instance!() as Record<string, unknown>).m_card as { m_roml_size: number }).m_roml_size, 0,

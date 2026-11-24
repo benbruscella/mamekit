@@ -30,14 +30,6 @@ export const CART_SLOT_SUPPORT: Record<string, string[]> = {
     // pixel-exact against MAME across its attract.
     // a26_dc is still a black screen and stays out until it is not.
     'a26_3f', 'a26_ua', 'a26_fv', 'a26_8in1', 'a26_dpc'],
-  // Game Boy cartridge boards whose installer the host address space can
-  // replay. All 17 the console's own software list names lower; these are the
-  // memory controllers that list actually leans on, and between them they
-  // cover 1,594 of its 1,743 entries -- MBC1 alone is 1,469 of them.
-  // src/hardware/gameboy/gameboy.spec.ts asserts this set against MAME's own
-  // option list, so the two cannot drift apart silently.
-  gameboy: ['rom', 'rom_mbc1', 'rom_mbc2', 'rom_mbc3', 'rom_mbc5',
-    'rom_huc1', 'rom_mmm01'],
 };
 
 // Explicitly supported cartridge titles (softlist parent short-names; clones

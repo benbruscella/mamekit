@@ -2940,6 +2940,34 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
     }
     return { generatedPointer: true, source: args[0].source, offset: best } satisfies GeneratedPointer;
   }
+  // std::find_if(first, last, predicate): the first element the predicate
+  // accepts, else `last`. An MBC1 looks its cartridge's title up in a table
+  // of known multi-game collections this way (mbc.cpp's is_collection), and
+  // an answer of nothing would read as "found": the wrong bank wiring for
+  // every large cartridge the software list does not name (#294).
+  if (name === 'std::find_if' && isGeneratedPointer(args[0]) && isGeneratedPointer(args[1]) &&
+      args[0].source === args[1].source && typeof args[2] === 'function') {
+    const accepts = args[2] as (element: unknown) => unknown;
+    for (let offset = args[0].offset; offset < args[1].offset; offset++) {
+      if (truthy(accepts(pointerValue(args[0], offset - args[0].offset)))) {
+        return { generatedPointer: true, source: args[0].source, offset } satisfies GeneratedPointer;
+      }
+    }
+    return args[1];
+  }
+  // std::equal(first1, last1, first2): the range equals the one starting at
+  // first2, element for element.
+  if (name === 'std::equal' && isGeneratedPointer(args[0]) && isGeneratedPointer(args[1]) &&
+      args[0].source === args[1].source) {
+    const other = isGeneratedPointer(args[2]) ? args[2]
+      : isIndexableMemory(args[2]) ? { generatedPointer: true, source: args[2], offset: 0 } satisfies GeneratedPointer : undefined;
+    if (other) {
+      for (let index = 0; index < args[1].offset - args[0].offset; index++) {
+        if (toNumber(pointerValue(args[0], index)) !== toNumber(pointerValue(other, index))) return 0;
+      }
+      return 1;
+    }
+  }
   // std::accumulate(first, last, init): the sum over the range from init. The
   // Game Boy cartridge slot checksums its whole ROM so at reset. A sum taken
   // in the accumulator's own type wraps to the same value its assignment

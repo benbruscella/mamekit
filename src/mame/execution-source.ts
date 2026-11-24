@@ -84,9 +84,28 @@ export function normalizeMameExecutionSource(source: string): string {
     // type: dropping it made the Neo Geo's `m_bg_pen = pen_base + 0xfff` a
     // numeric add on a pointer object instead of pointer arithmetic, and the
     // whole fixed layer drew from the wrong pens.
+    // C++14 digit separators are spelling only: gbslot.cpp sizes a ROM as
+    // `u32(0x10'0000) | (u32(0x2'0000) << n)`. A number that has begun, a
+    // quote, and more of its digits; a character literal never follows a
+    // digit of a number.
+    .replace(/\b(?:0[xX][0-9a-fA-F]+(?:'[0-9a-fA-F]+)+|\d+(?:'\d+)+)/g, number => number.replaceAll("'", ''))
+    // `std::advance(it, n)` moves the iterator it is handed, and an iterator
+    // here is a pointer: cartheader.h's `std::advance(begin, OFFSET_TITLE - 0x100)`.
+    .replace(/\bstd::advance\s*\(\s*(\w+)\s*,\s*([^;]+)\)\s*;/g, '$1 += ($2);')
+    // An initializer's `=`, never a comparison's: cartheader.h's
+    // `return *begin == checksum;` is no declaration of `begin`, and read as
+    // one the Game Boy's header check was lost to a diagnostic.
     .replace(
-      /\b(?:[\w:<>]+[ \t]+)+\*[ \t]*(?:const[ \t]+)?(\w+)[ \t]*=/g,
+      /\b(?!return[ \t])(?:[\w:<>]+[ \t]+)+\*[ \t]*(?:const[ \t]+)?(\w+)[ \t]*=(?!=)/g,
       'auto *$1 =',
+    )
+    // A buffer made with the nothrow array `new` a unique_ptr then owns is the
+    // same array `std::make_unique<T[]>(n)` makes, which never fails here:
+    // the Game Boy slot reads a GBX footer into
+    // `std::unique_ptr<u8 []> const footer(new (std::nothrow) u8 [size]);`.
+    .replace(
+      /\bstd::unique_ptr\s*<\s*([\w:]+)\s*\[\s*\]\s*>\s*(?:const\s+)?(\w+)\s*\(\s*new\s*(?:\(\s*std::nothrow\s*\)\s*)?\1\s*\[([^\];]+)\]\s*\)\s*;/g,
+      'auto $2 = std::make_unique<$1[]>($3);',
     )
     // Driver lifecycle handlers use the standard spelling when ownership is
     // retained by a unique_ptr (Phoenix's two banked video pages are the

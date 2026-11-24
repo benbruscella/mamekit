@@ -65,6 +65,8 @@ export interface GeneratedDeviceMember {
   initial?: number;
   /** A `const char *` member's string literal initializer. */
   initialText?: string;
+  /** A pointer its constructor aims at the device's owner (`m_slot(dynamic_cast<T *>(device.owner()))`). */
+  owner?: boolean;
   values?: unknown[];
   /**
    * MAME memory containers rather than scalar state. A `shared` member is a
@@ -1537,6 +1539,39 @@ function compileMameDeviceSource(
     ...((helpers, lines) => sources.map(({ source }) => numericConstants(stripCppComments(source), lines, helpers)))(constexprHelpers(mameSrc, sources), coreLineStates(mameSrc)),
     deviceTypeTokens(sources),
   );
+  // A constant of a nested namespace, by the qualified name its users write:
+  // `namespace bus::gameboy::cartheader { enum { OFFSET_TYPE = 0x0147, ... } }`
+  // is read as `cartheader::OFFSET_TYPE`, and gbxfile.h's `TYPE_MBC1` (a
+  // FourCC) is not cartheader.h's `TYPE_MBC1` (the header byte 0x01). Kept
+  // under every qualified spelling, innermost segment outward; the functions
+  // of the namespace read their own bare names through `namespaceConstants`.
+  const namespaceConstants = new Map<string, Set<string>>();
+  const namespaceText = sources.map(({ source }) => source).join('\n');
+  for (const { source } of sources) {
+    const text = stripCppComments(source);
+    for (const block of text.matchAll(/\bnamespace\s+(\w+(?:::\w+)+)\s*\{/g)) {
+      const open = block.index + block[0].length - 1;
+      const close = matchingBrace(text, open);
+      if (close < 0) continue;
+      const body = text.slice(open + 1, close);
+      const seeded = numericConstants(body, constants);
+      const declared = numericConstants(body);
+      const segments = block[1]!.split('::');
+      const names = namespaceConstants.get(block[1]!) ?? new Set<string>();
+      namespaceConstants.set(block[1]!, names);
+      for (const name of Object.keys(declared)) {
+        if (name.includes('::') || seeded[name] === undefined) continue;
+        names.add(name);
+        for (let from = segments.length - 1; from >= 0; from--) {
+          const spelling = `${segments.slice(from).join('::')}::`;
+          // The innermost always (the namespace's own functions are read
+          // through it); a longer one where the sources write it.
+          if (from < segments.length - 1 && !new RegExp(`(?<![\\w:])${spelling}\\w`).test(namespaceText)) continue;
+          constants[spelling + name] = seeded[name]!;
+        }
+      }
+    }
+  }
   // A class template's members name their argument's constants
   // (`RegisterType::OUTPUTS`), which are read as the instance spells them.
   const specializedSources = hierarchy.filter(className => templateArguments.has(className))
@@ -1807,7 +1842,8 @@ function compileMameDeviceSource(
     ...coreFunctionMacros(mameSrc),
   ];
   const stringMacros: Record<string, string> = Object.assign({},
-    ...sources.map(({ source }) => parseTextMacros(stripCppComments(source)).strings));
+    ...sources.map(({ source }) => parseTextMacros(stripCppComments(source)).strings),
+    namespaceStringConstants(mameSrc, sources));
   const hierarchyFunctions = ast.units.flatMap(unit => unit.functions)
     .filter(method => method.className && hierarchy.includes(method.className));
   const liveParameters = new Set(hierarchyFunctions
@@ -2187,6 +2223,14 @@ function compileMameDeviceSource(
     const helper = sourceMethods.find(method => method.className === '' && method.name === name);
     if (helper && !methods.some(candidate => candidate.name === name)) replaceOrAppend(helper);
   }
+  // A namespace function's own bare names, read as the namespace's:
+  // `OFFSET_TITLE` inside cartheader.h is `cartheader::OFFSET_TITLE`.
+  const namespaceNames = (helper: MameFunction, innermost: string) => (text: string): string => {
+    const own = [...(namespaceConstants.get(helper.namespace!) ?? [])];
+    return own.length
+      ? text.replace(new RegExp(`(?<![\\w:.>])(?:${own.join('|')})\\b(?!\\s*::)`, 'g'), name => `${innermost}::${name}`)
+      : text;
+  };
   const heldAliases = namespaceAliasMap(sources);
   const staticCalls = new Set<string>();
   for (let added = true; added;) {
@@ -2194,9 +2238,28 @@ function compileMameDeviceSource(
     const called = [...methodBodies.values(), constructorText].join('\n');
     for (const helper of sourceMethods) {
       if (helper.className !== '') continue;
+      // A function of a nested namespace, by the qualified name its caller
+      // writes: `cartheader::verify_header_checksum(rombase + 0x100)` is
+      // `bus::gameboy::cartheader`'s. Its own bare names are the namespace's
+      // first (`OFFSET_TITLE` there is `cartheader::OFFSET_TITLE`).
+      const segments = helper.namespace?.includes('::') ? helper.namespace.split('::') : [];
+      for (let from = segments.length - 1; from >= 0; from--) {
+        const call = `${segments.slice(from).join('::')}::${helper.name}`;
+        if (methods.some(candidate => candidate.name === call)) continue;
+        if (!new RegExp(`(?<![\\w:])${call}\\s*\\(`).test(called)) continue;
+        replaceOrAppend(iteratorParameters({ ...helper, name: call, body: namespaceNames(helper, segments.at(-1)!)(helper.body) }));
+        added = true;
+      }
       if (methods.some(candidate => candidate.name === helper.name)) continue;
-      if (!new RegExp(`\\b${helper.name}\\s*\\(`).test(called) && !handedOn.has(helper.name)) continue;
-      replaceOrAppend(helper);
+      // By its bare name too, from inside the namespace or under a `using
+      // namespace`: gbslot.cpp's own helpers sit in `namespace bus::gameboy
+      // { namespace { ... } }` and are called plainly. A qualified call
+      // (`cartheader::checksum(`) is not a call of the bare name.
+      const plain = segments.length ? `(?<![\\w:.>])${helper.name}\\s*\\(` : `\\b${helper.name}\\s*\\(`;
+      if (!new RegExp(plain).test(called) && !handedOn.has(helper.name)) continue;
+      replaceOrAppend(iteratorParameters(segments.length
+        ? { ...helper, body: namespaceNames(helper, segments.at(-1)!)(helper.body) }
+        : helper));
       added = true;
     }
     // Called, or handed on as a function: discrete.cpp queues its tasks with
@@ -2507,6 +2570,17 @@ function compileMameDeviceSource(
     }
     if (constructorStrings[member.name] !== undefined) member.initialText = constructorStrings[member.name];
   }
+  // A pointer a constructor aims at the device's owner: every Game Boy
+  // cartridge board keeps its slot as `m_slot(dynamic_cast<
+  // gb_cart_slot_device_base *>(device.owner()))` and reaches the mounted
+  // image's regions, features and battery through it. Left null, each of
+  // those accessors answered what MAME answers a board in no slot: nothing.
+  const ownerInitializers = new Set([...stripCppComments(sources.map(source => source.source).join('\n')).matchAll(
+    /\b(m_\w+)\s*\(\s*(?:dynamic_cast|downcast|static_cast)\s*<[^<>()]*\*\s*>\s*\(\s*(?:\w+\s*\.\s*)?owner\s*\(\s*\)\s*\)\s*\)/g,
+  )].map(match => match[1]!));
+  for (const member of members) {
+    if (ownerInitializers.has(member.name) && /\*\s*(?:const\s*)?$/.test(member.valueType)) member.owner = true;
+  }
   // A `const` pointer the constructor aims at a file-scope struct reads that
   // struct and nothing else, so it holds a copy of it: the AY-3-8910's mixer
   // tables are built from `m_par->res[...]`, and with the pointer left at 0
@@ -2568,6 +2642,11 @@ function compileMameDeviceSource(
       ...(count ? { count } : {}),
     }] as const;
   }))).values()];
+  unresolvedNamespaceNames(mameSrc, sources, methods, name =>
+    constants[name] !== undefined || sourceTables[name] !== undefined ||
+    methods.some(method => method.name === name) || members.some(member => member.name === name) ||
+    // A type of the namespace, as `sizeof(gbxfile::leader_1_0)` names one.
+    [name, name.slice(name.lastIndexOf('::') + 2)].some(type => classes.has(type) || structFields.has(type)));
   const diagnostics = methods.reduce(
     (count, method) => count + method.program.diagnostics.length,
     0,
@@ -4437,6 +4516,105 @@ export function headerFunctionNames(header: string): string[] {
 }
 
 /**
+ * String constants of a nested namespace, by the qualified name their users
+ * write: carts.h declares `namespace bus::gameboy::slotoptions { extern char
+ * const *const GB_MBC1; ... }` and carts.cpp gives each its text. The Game
+ * Boy slot answers get_default_card_software with them (`return
+ * slotoptions::GB_MBC1;`), and unread, the board it guessed from a
+ * cartridge's header was no name at all. Read from a header the sources
+ * include and the .cpp beside it.
+ */
+function namespaceStringConstants(
+  mameSrc: string,
+  sources: readonly { file: string; source: string }[],
+): Record<string, string> {
+  const strings: Record<string, string> = {};
+  const read = new Set<string>();
+  const collect = (text: string): void => {
+    const stripped = stripCppComments(text);
+    for (const block of stripped.matchAll(/\bnamespace\s+\w+(?:::\w+)*::(\w+)\s*\{/g)) {
+      const open = block.index + block[0].length - 1;
+      const close = matchingBrace(stripped, open);
+      if (close < 0) continue;
+      for (const constant of stripped.slice(open + 1, close).matchAll(
+        /^\s*(?:static\s+)?(?:constexpr\s+)?(?:const\s+char|char\s+const)\s*\*\s*(?:const\s+)?(\w+)\s*=\s*"((?:[^"\\]|\\.)*)"\s*;/gm,
+      )) strings[`${block[1]}::${constant[1]}`] = constant[2]!;
+    }
+  };
+  for (const { file, source } of sources) {
+    collect(source);
+    for (const include of source.matchAll(/^\s*#include\s+"([^"/]+)\.h"/gm)) {
+      const header = join(mameSrc, dirname(file), `${include[1]}.h`);
+      if (read.has(header) || !existsSync(header)) continue;
+      read.add(header);
+      const declared = readFileSync(header, 'utf8');
+      if (!/\bextern\s+(?:const\s+char|char\s+const)\s*\*/.test(declared)) continue;
+      collect(declared);
+      const implementation = join(mameSrc, dirname(file), `${include[1]}.cpp`);
+      if (existsSync(implementation)) collect(readFileSync(implementation, 'utf8'));
+    }
+  }
+  return strings;
+}
+
+/** The innermost names of the nested namespaces a source opens (`namespace bus::gameboy::cartheader {`). */
+function unitNamespaces(source: string): string[] {
+  return [...new Set([...stripCppComments(source).matchAll(/\bnamespace\s+\w+(?:::\w+)*::(\w+)\s*\{/g)].map(match => match[1]!))];
+}
+
+/**
+ * A name qualified by a namespace one of the device's own headers declares,
+ * which nothing the compiler collected answers: no constant, no function, no
+ * table, no member. C++ would not have compiled it, so the compiler has lost
+ * a declaration, and the method says so instead of reading the name as
+ * nothing. Every `cartheader::OFFSET_*` of the Game Boy cartridge boards read
+ * that way for as long as cartheader.h stayed out of their sources: the
+ * namespaces are read from the headers the sources include, joined or not.
+ */
+export function unresolvedNamespaceNames(
+  mameSrc: string,
+  sources: readonly { file: string; source: string }[],
+  methods: readonly GeneratedDeviceMethod[],
+  known: (name: string) => boolean,
+): void {
+  const declared = new Set<string>();
+  const read = new Set<string>();
+  for (const { file, source } of sources) {
+    for (const name of unitNamespaces(source)) declared.add(name);
+    for (const include of source.matchAll(/^\s*#include\s+"([^"]+\.h)"/gm)) {
+      const header = resolveMameInclude(mameSrc, join(mameSrc, file), include[1]!);
+      if (!header || read.has(header)) continue;
+      read.add(header);
+      for (const name of unitNamespaces(readFileSync(header, 'utf8'))) declared.add(name);
+    }
+  }
+  if (!declared.size) return;
+  for (const method of methods) {
+    const missing = new Set<string>();
+    walkExpressions(method.program.operations, expression => {
+      const name = expression.kind === 'identifier' ? expression.name : undefined;
+      const at = name?.indexOf('::') ?? -1;
+      if (name === undefined || at <= 0 || !declared.has(name.slice(0, at)) || known(name)) return;
+      missing.add(name);
+    });
+    for (const name of missing) {
+      method.program.diagnostics.push(`"${name}" names nothing: the namespace is declared, but no constant, function or table of that name was collected`);
+    }
+  }
+}
+
+/**
+ * The functions a header defines at namespace scope, bodies and all, when it
+ * declares no class: a header of helpers, not a device's declarations (whose
+ * inline accessors belong to the device that owns the class).
+ */
+function headerInlineFunctionNames(file: string, header: string): string[] {
+  const unit = parseMameAst([{ file, source: header }]).units[0];
+  if (!unit || unit.classes.some(declaration => /_device(?:_base)?$|_interface$/.test(declaration.name))) return [];
+  return unit.functions.filter(method => method.className === '' && method.namespace).map(method => method.name);
+}
+
+/**
  * src/emu interfaces that are logic of their own rather than a service the
  * host answers, compiled with any device that derives one. MAME's
  * device_rtc_interface keeps the calendar a clock chip counts in
@@ -4476,11 +4654,25 @@ function helperLibrarySources(
     for (const match of source.matchAll(/^\s*#include\s+"(\w+)\.h"/gm)) {
       const header = join(dirname(file), `${match[1]}.h`);
       const implementation = join(dirname(file), `${match[1]}.cpp`);
-      if (seen.has(implementation) || !existsSync(join(mameSrc, header)) || !existsSync(join(mameSrc, implementation))) continue;
-      const names = headerFunctionNames(readFileSync(join(mameSrc, header), 'utf8'));
-      if (!names.some(name => new RegExp(`\\b${name}\\s*\\(`).test(own))) continue;
+      if (seen.has(implementation) || seen.has(header) || !existsSync(join(mameSrc, header))) continue;
+      // Or the header is the whole library: cartheader.h, which every Game
+      // Boy cartridge board includes, defines `cartheader::checksum` and
+      // `cartheader::verify_header_checksum` inline in a namespace and has no
+      // .cpp. Unjoined, an MBC1 could not tell a multi-game collection from a
+      // single game, and every `cartheader::` constant beside them read as
+      // nothing.
+      const whole = !existsSync(join(mameSrc, implementation));
+      const text = readFileSync(join(mameSrc, header), 'utf8');
+      const names = whole ? headerInlineFunctionNames(header, text) : headerFunctionNames(text);
+      // Or one whose constants are read: an MBC3 calls neither function and
+      // still switches on `cartheader::TYPE_MBC3_RTC_BATT`.
+      // With a .cpp or without: the slot reads a GBX footer into gbxfile.h's
+      // `gbxfile::trailer` and calls none of its functions.
+      const named = unitNamespaces(text).some(name => new RegExp(`(?<![\\w:])${name}::\\w`).test(own));
+      if (!named && !names.some(name => new RegExp(`\\b${name}\\s*\\(`).test(own))) continue;
       seen.add(implementation);
-      for (const library of [header, implementation]) {
+      seen.add(header);
+      for (const library of whole ? [header] : [header, implementation]) {
         if (sources.some(entry => entry.file === library) || libraries.some(entry => entry.file === library)) continue;
         libraries.push({ file: library, source: readFileSync(join(mameSrc, library), 'utf8') });
       }
@@ -4711,6 +4903,22 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
     // way, and without it an MBC compiled with none of the bank-switching it
     // inherits: a PCB that registers and does nothing.
     const family = ['.h', '.ipp'].includes(extname(absolute));
+    // The bases of the classes this .cpp declares itself: a device defined
+    // wholly in its .cpp reaches its base through one of that file's own
+    // includes. mbc2.cpp's `class mbc2_device : public mbc_device_base` is
+    // cartbase.h's, and without it an MBC2 had its four handlers and none of
+    // the ROM banking or slot access it inherits.
+    const declaredBases = family ? new Set<string>() : new Set(
+      [...stripCppComments(source).matchAll(/\b(?:class|struct)\s+\w+\s*(?:final\s*)?:\s*([^{;]+)\{/g)]
+        .flatMap(match => [...match[1]!.matchAll(/(?:public|protected|private)\s+(?:virtual\s+)?([\w:]+)/g)])
+        .map(match => match[1]!.split('::').at(-1)!));
+    const declaresBase = (include: string): boolean => {
+      if (!declaredBases.size || extname(include) !== '.h' || include.includes('/')) return false;
+      const path = join(dirname(absolute), include);
+      if (!existsSync(path)) return false;
+      const header = stripCppComments(readFileSync(path, 'utf8'));
+      return [...declaredBases].some(base => new RegExp(`\\b(?:class|struct)\\s+${base}\\b[^;{]*\\{`).test(header));
+    };
     for (const match of source.matchAll(/^\s*#include\s+"([^"]+)"/gm)) {
       // `.hxx` is the same convention for data: the coefficient tables one
       // source includes into itself (vlm5030.cpp reads its LPC ladders from
@@ -4720,7 +4928,8 @@ function localSourceFiles(mameSrc: string, sourceFile: string): string[] {
       // `i8086_common_cpu_device::` bodies (CLK, PUSH, fetch_word, the flag
       // ops) every instruction calls. A sibling that only declares a class
       // is not followed.
-      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!)) && !inlineBodiesHeader(absolute, match[1]!)) continue;
+      if (!family && !['.ipp', '.hxx'].includes(extname(match[1]!)) && !inlineBodiesHeader(absolute, match[1]!) &&
+        !declaresBase(match[1]!)) continue;
       // Follow headers that are part of the same device family. Includes
       // resolved through MAME's global include paths (screen.h, emu.h, etc.)
       // describe host services, not another source-defined base class.
@@ -4862,6 +5071,26 @@ function resolveTemplateArguments(
   };
   visit(className);
   return resolved;
+}
+
+/**
+ * A function template over an iterator, with the iterator read as what every
+ * caller here hands it: a pointer. cartheader.h's `template <typename It> u8
+ * checksum(It begin, It end)` walks `*begin++` until `begin != end`, and is
+ * called with `&header[a], &header[b]`. Left as a type the IR does not know,
+ * emitted code compared the two as numbers and added one to an object: the
+ * loop never ended. Only a parameter the body dereferences is taken so.
+ */
+function iteratorParameters(method: MameFunction): MameFunction {
+  const names = (method.template ?? '').split(',')
+    .map(parameter => /^\s*(?:typename|class)\s+(\w+)\s*$/.exec(parameter)?.[1]).filter((name): name is string => Boolean(name));
+  if (!names.length) return method;
+  const parameters = splitMameArgs(method.parameters).map(parameter => {
+    const declared = new RegExp(`^\\s*(?:${names.join('|')})\\s+(\\w+)\\s*$`).exec(parameter);
+    return declared && new RegExp(`(?<![\\w)\\]])\\*\\s*${declared[1]}\\b`).test(method.body)
+      ? `auto *${declared[1]}` : parameter;
+  }).join(', ');
+  return parameters === method.parameters ? method : { ...method, parameters };
 }
 
 function specializeMethod(
@@ -5220,9 +5449,10 @@ function classHierarchy(
  * literals in the body are skipped.
  */
 function expandStringMacros(body: string, macros: Readonly<Record<string, string>>): string {
-  const names = Object.keys(macros).filter(name => /^\w+$/.test(name));
+  // A plain name, or one qualified by its namespace (`slotoptions::GB_STD`).
+  const names = Object.keys(macros).filter(name => /^\w+(?:::\w+)*$/.test(name));
   if (!names.length) return body;
-  const pattern = new RegExp(`"(?:[^"\\\\]|\\\\.)*"|\\b(${names.join('|')})\\b`, 'g');
+  const pattern = new RegExp(`"(?:[^"\\\\]|\\\\.)*"|(?<![\\w:])(${names.join('|')})\\b`, 'g');
   return body.replace(pattern, (match, name: string | undefined) =>
     name ? `"${macros[name]}"` : match);
 }

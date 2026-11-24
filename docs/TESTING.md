@@ -342,9 +342,10 @@ public mirror to hand back a bootable set.
 
 A console has no romset of its own, so its Node contracts are accepted against
 a cartridge: `node src/games/acceptance.ts --list` names `nes:smb3u`,
-`nes:smb1`, `nes:duckhunt`, `nes:arkanoid`, `coleco:dkong`, `a2600:combat` and
-`gameboy:tetris`. The console room is app path those contracts never touch,
-and `e2e/specs/console.spec.ts` covers it for the NES shelf. It asserts what
+`nes:smb1`, `nes:duckhunt`, `nes:arkanoid`, `coleco:dkong`, `a2600:combat`,
+`gameboy:tetris` (a plain ROM board) and `gameboy:sml2` (an MBC1 with
+battery-backed RAM, which the title checks before its first screen). The
+console room is app path those contracts never touch, and `e2e/specs/console.spec.ts` covers it for the NES shelf. It asserts what
 issue #85 asked for:
 
 - the boot menu offers a CONSOLES tab and the machine is on that shelf. The tab
