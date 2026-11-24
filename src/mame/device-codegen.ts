@@ -2156,23 +2156,31 @@ function emitExpression(expression: GeneratedExpression, context: EmitContext): 
     const annotation = context.typescript ? ': any' : '';
     const names = expression.parameters
       .map((name, index) => `${name || `unused${index}`}${annotation}`);
+    // An init-capture (`[base = &romregion->as_u8()]`) is evaluated once,
+    // where the lambda is written, and is a local of its body. Emitted as the
+    // parameter of an outer arrow applied on the spot; dropped, its name read
+    // as a member nobody had -- an MBC2 configured every ROM bank entry from
+    // `members.base ?? 0` and every banked read answered 0xff.
+    const captures = expression.captures ?? [];
+    const scoped = [...expression.parameters.filter(Boolean), ...captures.map(capture => capture.name)];
     const inner: EmitContext = {
       ...context,
       linkLocals: undefined,
-      arrayLocals: new Set([...context.arrayLocals ?? []].filter(name => !expression.parameters.includes(name))),
-      plainArrayLocals: new Map([...context.plainArrayLocals ?? []].filter(([name]) => !expression.parameters.includes(name))),
+      arrayLocals: new Set([...context.arrayLocals ?? []].filter(name => !scoped.includes(name))),
+      plainArrayLocals: new Map([...context.plainArrayLocals ?? []].filter(([name]) => !scoped.includes(name))),
       locals: new Map([
         ...context.locals,
-        ...expression.parameters
-          .filter(Boolean)
-          .map(name => [name, undefined] as [string, string | undefined]),
+        ...scoped.map(name => [name, undefined] as [string, string | undefined]),
       ]),
     };
     // The method's locals were collected before emitting, and that walk visits
     // operations, not the expressions inside them -- so nothing the lambda body
     // declares is known yet. Collect them here, over the body's own scope.
     collectLocals(expression.body, inner);
-    return `((${names.join(', ')}) => {\n${emitOperations(expression.body, inner, 6)}\n    })`;
+    const lambda = `((${names.join(', ')}) => {\n${emitOperations(expression.body, inner, 6)}\n    })`;
+    if (!captures.length) return lambda;
+    return `((${captures.map(capture => `${capture.name}${annotation}`).join(', ')}) => ${lambda})(` +
+      `${captures.map(capture => emitExpression(capture.value, context)).join(', ')})`;
   }
   return emitCall(expression, context);
 }

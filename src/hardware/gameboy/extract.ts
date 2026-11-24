@@ -39,27 +39,6 @@ const CARTRIDGE_OPTIONS_FUNCTION = 'gameboy_cartridges';
 const SOFTWARE_LIST_FILE = 'hash/gameboy.xml';
 
 /**
- * Slot methods that identify an image rather than run the bus.
- *
- * The console room has already produced the cartridge bytes and resolved which
- * PCB the dump is, from MAME's own software list by chip CRC, so MAME's file
- * plumbing and its header sniffing are host concerns -- the same boundary the
- * NES, ColecoVision and Atari 2600 packages draw. Dropping them keeps the live
- * read/write path source-derived without dragging image_file, GBX footers and
- * error strings into the browser.
- */
-const IMAGE_HOST_METHODS = new Set([
-  'call_load',
-  'call_unload',
-  'load_image_file',
-  'get_default_card_software',
-  'is_reset_on_load',
-  'image_interface',
-  'file_extensions',
-  'allocate_cart_ram',
-]);
-
-/**
  * Compile the Game Boy's PPU, its sound chip, its cartridge slot and the PCBs
  * the slot declares.
  *
@@ -79,18 +58,22 @@ export function extractGameboy(input: CapabilityInput): CapabilityExtraction | u
     if (!definition) continue;
     const device = compileMameDevice(input.mameSource, definition, entry.type);
     if (entry.type === 'GB_CART_SLOT') {
-      dropUncompiledMethods(device, IMAGE_HOST_METHODS);
+      // The slot is an image device and mounts its own cartridges, as the
+      // NES's and the SNES's do: get_default_card_software picks the board
+      // from the software part's `slot` feature or from the file's header,
+      // and call_load reads a file into the regions the board asks for
+      // (load_image_file, allocate_cart_ram) before it runs the board's own
+      // `load`. A software part's areas are those regions already.
+      dropUncompiledMethods(device, 'GB_CART_SLOT');
+      const cards = cartridgeOptions(input.mameSource, definitions);
       device.slot = {
         member: slotCardMember(input.mameSource, definition, 'm_cart'),
-        // MAME leaves the slot's default null and derives the PCB from the
-        // cartridge header. The console room resolves it from the software
-        // list's own `slot` feature instead, and a dump the list does not know
-        // falls back to the plain ROM board MAME names for a header that
-        // declares no controller.
+        // What get_default_card_software falls through to for a part naming
+        // no board; the fitted default when no cartridge is in the slot.
         default: plainCartridgeOption(input.mameSource),
-        selector: 'cart.slot',
         install: cartridgeInstaller(input.mameSource),
-        options: cartridgeOptions(input.mameSource, definitions),
+        options: cards.options,
+        ...(Object.keys(cards.unsupported).length ? { unsupported: cards.unsupported } : {}),
       };
       device.role = 'cartridge';
     }
@@ -135,21 +118,19 @@ export function extractGameboy(input: CapabilityInput): CapabilityExtraction | u
 }
 
 /**
- * Drop the methods a device cannot lower, and the host methods it should not.
- *
- * A cartridge PCB is registered only if the bus it runs is whole, so a method
- * left with diagnostics has to be accounted for rather than tolerated. What is
- * dropped here is image identification: `is_collection` matches a cartridge
- * title against a table of seven known multi-game collections to choose four
- * fine bank bits instead of five, and `load_image_file` reads GBX footers.
- * Both answer questions the console room has already answered.
+ * Leave out the methods that do not lower, and say which: an image device's
+ * host plumbing can fail without the bus it serves failing with it, but a
+ * dropped method is never silent.
  */
 function dropUncompiledMethods(
   device: GeneratedDeviceDefinition,
-  hostMethods: ReadonlySet<string>,
+  label: string,
+  hosted: ReadonlySet<string> = new Set(),
 ): void {
+  const dropped = device.methods.filter(method => method.program.diagnostics.length);
+  if (dropped.length) console.warn(`  ! ${label}: ${dropped.map(method => method.name).join(', ')} did not lower`);
   device.methods = device.methods.filter(method =>
-    !method.program.diagnostics.length && !hostMethods.has(method.name));
+    !method.program.diagnostics.length && !hosted.has(method.name.split('::').at(-1)!));
   device.summary.methods = device.methods.length;
   device.summary.compiledMethods = device.methods.length;
   device.summary.diagnostics = 0;
@@ -214,6 +195,22 @@ function interfaceBody(source: string, className: string): string {
 }
 
 /**
+ * The boards `gameboy_cartridges` declares that the software list uses, as
+ * (option, device type) pairs: what the slot can be handed.
+ */
+export function gameboyCartOptions(mameSource: string): [string, string][] {
+  const source = readFileSync(join(mameSource, CARTRIDGE_OPTIONS_FILE), 'utf8');
+  const names = slotOptionNames(source);
+  const used = softwareListBoards(mameSource, plainCartridgeOption(mameSource));
+  const body = new RegExp(
+    `void\\s+${CARTRIDGE_OPTIONS_FUNCTION}\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`,
+  ).exec(source)?.[1] ?? '';
+  return [...body.matchAll(/option_add(?:_internal)?\s*\(\s*(?:\w+::)*(\w+)\s*,\s*(\w+)\s*\)/g)]
+    .map(match => [names[match[1]!], match[2]!] as [string | undefined, string])
+    .filter((pair): pair is [string, string] => pair[0] !== undefined && used.has(pair[0]));
+}
+
+/**
  * The cartridge PCBs MAME declares for this slot, keyed by the option name the
  * software list uses.
  *
@@ -226,7 +223,7 @@ function interfaceBody(source: string, className: string): string {
 function cartridgeOptions(
   mameSource: string,
   definitions: Map<string, MameHardwareDefinition>,
-): Record<string, GeneratedDeviceDefinition> {
+): { options: Record<string, GeneratedDeviceDefinition>; unsupported: Record<string, string> } {
   const source = readFileSync(join(mameSource, CARTRIDGE_OPTIONS_FILE), 'utf8');
   const names = slotOptionNames(source);
   const helpers = genericCartHelpers(mameSource);
@@ -236,6 +233,7 @@ function cartridgeOptions(
   ).exec(source)?.[1];
   if (!body) throw new Error(`MAME no longer declares ${CARTRIDGE_OPTIONS_FUNCTION}`);
   const options: Record<string, GeneratedDeviceDefinition> = {};
+  const unsupported: Record<string, string> = {};
   for (const match of body.matchAll(
     /option_add(?:_internal)?\s*\(\s*(?:\w+::)*(\w+)\s*,\s*(\w+)\s*\)/g,
   )) {
@@ -243,46 +241,33 @@ function cartridgeOptions(
     const definition = definitions.get(match[2]!);
     if (!option || !definition || !used.has(option)) continue;
     const card = compileMameDevice(mameSource, definition, match[2]!);
-    // A card asks its slot for everything outside its own silicon. Those
-    // accessors are the host's to answer -- the console room owns the image --
-    // so they are dropped here and bound below; left in place, the card's own
-    // `cart_space()` would answer the null pointer MAME returns when a PCB is
-    // not mounted, and the cartridge would install nothing at all.
-    dropUncompiledMethods(card, new Set([
-      ...IMAGE_HOST_METHODS,
-      ...slotPlumbing(mameSource),
-    ]));
+    // A board is registered only if the bus it runs is whole: one with a
+    // method that did not lower is named as unsupported, with the methods,
+    // and the room says so (the Pocket Camera's sensor, for now).
+    if (card.summary.diagnostics) {
+      const failing = [...new Set(card.methods.filter(method => method.program.diagnostics.length)
+        .map(method => method.name.split('::').at(-1)!))];
+      unsupported[option] = `${match[2]!}: ${failing.slice(0, 6).join(', ')}${failing.length > 6 ? ', ...' : ''} did not lower`;
+      continue;
+    }
+    // A card asks its slot for everything outside its own silicon, through
+    // the inline accessors of device_gb_cart_interface: the mounted image's
+    // regions, its software-list features, its battery. Those run as MAME
+    // wrote them, against the slot the card is in. The one the slot answers
+    // for the card is the CPU's space, which it hands out for the length of
+    // a load (slot.install).
+    dropUncompiledMethods(card, match[2]!, new Set([cartridgeInstaller(mameSource).space]));
     if (!card.methods.some(method => method.name === 'load')) continue;
     card.methods.push(...helpers);
-    // A Game Boy PCB reaches the mounted cartridge through the slot's own
-    // accessors rather than through members MAME hands it: `cart_rom_region()`
-    // and its siblings return a memory_region the PCB then asks for a size and
-    // a base. Binding the accessors keeps every board's ROM, RAM and NVRAM
-    // wiring exactly where MAME puts it.
-    card.resources = {
-      ...card.resources,
-      calls: {
-        ...card.resources?.calls,
-        ...Object.fromEntries(cartRegionLookups(mameSource).map(([call, name]) =>
-          [call, { kind: 'region-object' as const, name: `${GAMEBOY_CART_SLOT_TAG}:${name}` }])),
-        // `has_slot()` asks whether this PCB is mounted; a generated card only
-        // ever exists because one is.
-        has_slot: { kind: 'number', value: 1 },
-        // MAME reads per-cartridge tags -- `banklowbits`, `rtc`, `battery` --
-        // out of the software list entry it loaded from. The room supplies the
-        // bytes and the board, not those tags, so every card takes MAME's own
-        // no-feature path: the same one a cartridge dumped outside a software
-        // list takes there.
-        loaded_through_softlist: { kind: 'number', value: 0 },
-        get_feature: { kind: 'number', value: 0 },
-      },
-    };
     options[option] = card;
   }
-  if (!Object.keys(options).length) {
-    throw new Error(`no cartridge PCB lowered for ${CARTRIDGE_OPTIONS_FUNCTION}`);
+  // The plain board and the one most of the list uses must be there.
+  for (const required of [plainCartridgeOption(mameSource), 'rom_mbc1']) {
+    if (!options[required]) {
+      throw new Error(`the Game Boy's ${required} board must lower (${JSON.stringify(unsupported)})`);
+    }
   }
-  return options;
+  return { options, unsupported };
 }
 
 /**
@@ -325,33 +310,6 @@ function genericCartHelpers(mameSource: string): GeneratedDeviceMethod[] {
   // an 8-bit cartridge bus, which is what MAME's Game Boy boards instantiate.
   return helpers.flatMap(method => [method, { ...method, name: `${className}::${method.name}` }]
     .map(named => ({ ...named, constants: { ...named.constants, Shift: 0 } })));
-}
-
-/**
- * The cartridge interface's own slot-plumbing accessors.
- *
- * Every one of them is an inline method of `device_gb_cart_interface` that
- * forwards to `m_slot`: the CPU space, the mounted image's sub-regions,
- * whether a slot is even there, battery-backed save data. The host answers
- * these, so they are read from MAME rather than listed -- a method added
- * upstream arrives with the checkout instead of being silently compiled into a
- * card as a call that returns nothing.
- */
-function slotPlumbing(mameSource: string): Set<string> {
-  const body = interfaceBody(
-    readFileSync(join(mameSource, SLOT_INTERFACE_FILE), 'utf8'),
-    'device_gb_cart_interface',
-  );
-  const names = new Set<string>();
-  for (const match of body.matchAll(
-    /\b(\w+)\s*\(([^;{}]*)\)\s*(?:const\s*)?(?:noexcept\s*)?\{([^{}]*)\}/g,
-  )) {
-    if (/\bm_slot\b/.test(match[3]!)) names.add(match[1]!);
-  }
-  if (!names.size) {
-    throw new Error('MAME no longer routes Game Boy cartridge services through the slot');
-  }
-  return names;
 }
 
 /**
@@ -400,29 +358,6 @@ function slotOptionNames(source: string): Record<string, string> {
     throw new Error('MAME no longer names the Game Boy cartridge slot options');
   }
   return names;
-}
-
-/**
- * The sub-regions of the slot a mounted cartridge reads, named by MAME's own
- * accessors: `memregion("rom")`, `memregion("ram")`, `memregion("nvram")`.
- */
-function cartRegionLookups(mameSource: string): [string, string][] {
-  const source = readFileSync(join(mameSource, SLOT_INTERFACE_FILE), 'utf8');
-  const lookups = [...source.matchAll(
-    /\b(\w+)\s*\(\s*\)\s*\{[^}]*m_slot->memregion\s*\(\s*"([^"]+)"\s*\)/g,
-  )].map(match => [match[1]!, match[2]!] as [string, string]);
-  if (!lookups.length) {
-    throw new Error('MAME no longer names the Game Boy cartridge sub-regions');
-  }
-  return lookups;
-}
-
-/** The slot's own ROM sub-region, as the mounted cartridge reads it. */
-export function cartRomRegion(mameSource: string): string {
-  const rom = cartRegionLookups(mameSource)
-    .find(([call]) => call.includes('rom') && !call.includes('nvram'));
-  if (!rom) throw new Error('MAME no longer names a Game Boy cartridge ROM region');
-  return `${GAMEBOY_CART_SLOT_TAG}:${rom[1]}`;
 }
 
 /**

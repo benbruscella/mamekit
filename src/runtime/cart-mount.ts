@@ -70,7 +70,9 @@ export function cartSupport(
     slots: cfg.cart?.slots ?? Object.keys(slot?.cards ?? slot?.options ?? {}),
     games: cfg.cart?.games ?? [],
     ines: (cfg.cart?.interface ?? 'nes_cart') === 'nes_cart',
-    ...(cfg.cart?.defaultSlot ? { defaultSlot: cfg.cart.defaultSlot } : {}),
+    // A list entry naming no board takes the slot's own fallback, as
+    // software_get_default_slot answers it: the Game Boy's plain ROM board.
+    ...(cfg.cart?.defaultSlot ?? slot?.default ? { defaultSlot: (cfg.cart?.defaultSlot ?? slot?.default)! } : {}),
     ...(slot?.unsupported ? { unsupported: slot.unsupported } : {}),
     ...(device && slot
       ? { slotForImage: (name: string, bytes: Uint8Array) => devices.slotCardForImage(device.type, { name, bytes }) }

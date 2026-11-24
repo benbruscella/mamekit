@@ -245,8 +245,10 @@ silent.
 A console's own cartridge bus is covered by a colocated spec under
 `src/hardware/<console>/`, which is where a bus that installs itself has to be
 tested: a Game Boy PCB is not describable by an address map, so
-`gameboy.spec.ts` mounts a synthetic cartridge, runs the board's own installer
-against a recording address space, and reads back the windows it decoded.
+`gameboy.spec.ts` mounts a synthetic cartridge -- as a software-list part and
+as a file -- runs the slot's own `call_load` against a recording address
+space, and reads back the windows and the RAM view the board decoded, its
+RAM-enable register's selections and a battery save's round trip.
 
 ### C64 development
 

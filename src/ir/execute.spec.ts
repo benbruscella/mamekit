@@ -758,6 +758,34 @@ check('std::accumulate sums a pointer range from its initial value', () => {
   assert.equal(members.m_sum, 266);
 });
 
+// The MBC3 latches its real-time clock by copying one register row over
+// another with std::copy; unresolved, the call stopped the cartridge's load.
+check('std::copy copies one array row into another', () => {
+  const members = { m_rtc_regs: [[1, 2, 3], [0, 0, 0]] };
+  executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(`
+    std::copy(std::begin(m_rtc_regs[0]), std::end(m_rtc_regs[0]), std::begin(m_rtc_regs[1]));`)), { members } as never);
+  assert.deepEqual(members.m_rtc_regs[1], [1, 2, 3]);
+});
+
+// An MBC1 looks a cartridge's title up in its table of known multi-game
+// collections with std::find_if over the rows and std::equal against the
+// header (mbc.cpp's is_collection). Unresolved, the search answered nothing,
+// which is not the table's end: every title read as found (#294).
+check('std::find_if with a lambda and std::equal over rows', () => {
+  const run = (title: number[]) => {
+    const members = { m_rom: title, m_found: -1 };
+    executeGeneratedProgram(compileMameHandler(normalizeMameExecutionSource(`
+      static constexpr u8 KNOWN[][3] = { { 1, 2, 3 }, { 4, 5, 6 } };
+      u8 const *const rombase = &m_rom[0];
+      auto const known(std::find_if(std::begin(KNOWN), std::end(KNOWN),
+        [rombase] (auto const &name) { return std::equal(std::begin(name), std::end(name), &rombase[1]); }));
+      m_found = (std::end(KNOWN) != known) ? 1 : 0;`)), { members } as never);
+    return members.m_found;
+  };
+  assert.equal(run([9, 4, 5, 6]), 1, 'the second row matches the title');
+  assert.equal(run([9, 4, 5, 7]), 0, 'no row matches: the search answers its end');
+});
+
 // The floppy drive's call_load spells it `std::strcmp`, and an unknown macro
 // answered 0: equal, so a list's write_protected "false" protected the disk.
 check('std::strcmp compares like strcmp', () => {

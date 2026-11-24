@@ -41,6 +41,9 @@ export const nes = {
         maincpu: 'd7978eeb',
         'nes_slot:cart:chr_rom': 'c2928c49',
         'nes_slot:cart:prg_rom': 'a0ed7d20',
+        'nes_slot:chr': 'c2928c49',
+        'nes_slot:prg': 'a0ed7d20',
+        'nes_slot:wram': 'd8f49994',
       },
       checkpoints: {
         1: { video: 'c76eba57', state: 'b8a7bf09' },
@@ -77,6 +80,8 @@ export const nes = {
         maincpu: 'd7978eeb',
         'nes_slot:cart:chr_rom': '867b51ad',
         'nes_slot:cart:prg_rom': '5cf548d3',
+        'nes_slot:chr': '867b51ad',
+        'nes_slot:prg': '5cf548d3',
       },
       checkpoints: {
         1: { video: 'c76eba57', state: '88f85f8a' },
@@ -119,6 +124,8 @@ export const nes = {
         maincpu: 'd7978eeb',
         'nes_slot:cart:chr_rom': '4e049e03',
         'nes_slot:cart:prg_rom': 'f4286d0f',
+        'nes_slot:chr': '4e049e03',
+        'nes_slot:prg': 'f4286d0f',
       },
       checkpoints: {
         1: { video: 'c76eba57', state: 'c6e7dc95' },
@@ -161,6 +168,8 @@ export const nes = {
         maincpu: 'd7978eeb',
         'nes_slot:cart:chr_rom': 'c5789b20',
         'nes_slot:cart:prg_rom': 'b8bb48d3',
+        'nes_slot:chr': 'c5789b20',
+        'nes_slot:prg': 'b8bb48d3',
       },
       checkpoints: {
         1: { video: 'c76eba57', state: '0c3a0fd4' },
@@ -220,7 +229,10 @@ export const nes = {
     golden: {
       regions: {
         maincpu: 'd7978eeb',
+        'nes_slot:bwram': 'd8f49994',
         'nes_slot:cart:prg_rom': '743387ff',
+        'nes_slot:prg': '743387ff',
+        'nes_slot:vram': 'd8f49994',
         'nes_slot:vrc7:vrc7snd:internal': '9d699efc',
       },
       checkpoints: {

@@ -109,6 +109,7 @@ export const spectrum = {
     golden: {
       regions: {
         'exp:intf2:cartslot:cart:rom': '1d194e5b',
+        'exp:intf2:cartslot:rom': '1d194e5b',
         maincpu: '2e48b587',
       },
       checkpoints: {

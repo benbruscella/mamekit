@@ -18,7 +18,6 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["Q_TO_DAMP", "polepos"],
   ["SH6840_CLOCK.dvalue", "venture"],
   ["SH8253_CLOCK.value", "venture"],
-  ["cartheader::checksum", "gameboy"],
   ["configured", "spyhunt"],
   ["decode_gfx", "simpsons tmnt wardner"],
   ["get_card_device", "c64 c64p coleco"],
@@ -101,7 +100,6 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["m_voice[3].voice_start", "simpsons"],
   ["machine().disable_side_effects", "gameboy"],
   ["machine().scheduler().add_quantum", "rtype"],
-  ["memregion", "gameboy"],
   ["memshare", "shinobi"],
   ["memshare().bytes", "shinobi"],
   ["owner().basetag", "c64 c64p"],
@@ -113,7 +111,5 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["std::less", "simpsons"],
   ["stream_alloc", "polepos venture"],
   ["swap", "bzone"],
-  ["this.cart_nvram_region", "gameboy"],
-  ["this.cart_ram_region", "gameboy"],
   ["this.machine().sample_rate", "polepos"],
 ]);

@@ -40,7 +40,7 @@ export type InstalledDelegate = (offset: number, ...rest: number[]) => unknown;
  * layered over whatever does.
  */
 export type InstalledEntry =
-  | { kind: 'rom'; start: number; end: number; mirror: number; bytes: InstalledBytes }
+  | { kind: 'rom'; start: number; end: number; mirror: number; bytes: InstalledBytes; /** `install_ram`: written as well as read. */ writable?: boolean }
   | { kind: 'bank'; start: number; end: number; mirror: number; bank: InstalledBank; read: boolean; write: boolean }
   | { kind: 'handler'; start: number; end: number; mirror: number; read?: InstalledDelegate; write?: InstalledDelegate }
   | { kind: 'tap'; start: number; end: number; name: string; read?: InstalledDelegate; write?: InstalledDelegate };
@@ -53,6 +53,12 @@ export interface InstalledView {
   entries: Map<number, InstalledEntry[]>;
   /** The entry the device selected, if it selected one. */
   selected?: number;
+  /**
+   * The space the view was installed into taking a selection (-1: disabled),
+   * once it decodes the view: the board sets it, the device's `select()` and
+   * `disable()` call it.
+   */
+  select?: (entry: number) => void;
 }
 
 /**
@@ -78,6 +84,16 @@ function handlerMirror(rest: readonly unknown[]): number {
 export class RecordingAddressSpace {
   readonly entries: InstalledEntry[] = [];
   readonly views: InstalledView[] = [];
+  /**
+   * What the space reads where nothing answers, as the map it stands for set
+   * it (`unmap_value_high()`): the board fills it in. An MBC2's RAM read
+   * answers `(m_ram_mbc[offset] & 0x0f) | (space.unmap() & 0xf0)`.
+   */
+  unmapValue = 0;
+
+  unmap(): number {
+    return this.unmapValue;
+  }
 
   install_rom(start: number, end: number, mirrorOrBytes: unknown, maybeBytes?: unknown): void {
     const withMirror = maybeBytes !== undefined;
@@ -94,7 +110,10 @@ export class RecordingAddressSpace {
 
   /** `install_ram` differs from ROM only in being writable, which the bytes are. */
   install_ram(start: number, end: number, mirrorOrBytes: unknown, maybeBytes?: unknown): void {
+    const before = this.entries.length;
     this.install_rom(start, end, mirrorOrBytes, maybeBytes);
+    const entry = this.entries[before];
+    if (entry?.kind === 'rom') entry.writable = true;
   }
 
   install_read_bank(start: number, end: number, ...rest: unknown[]): void {

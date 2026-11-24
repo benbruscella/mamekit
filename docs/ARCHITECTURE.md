@@ -1666,12 +1666,18 @@ executors.
 6. Console targets open their cartridge room instead: the generated softlist
    catalog identifies a dropped or fetched dump by chip CRC, and `mountCart`
    (`src/runtime/cart-mount.ts`) mounts it. A console whose config names a
-   `cart.slotDevice` -- the NES, `{tag: "nes_slot", type: "NES_CART_SLOT"}` --
+   `cart.slotDevice` -- the NES, `{tag: "nes_slot", type: "NES_CART_SLOT"}`,
+   the SNES and the Game Boy (`src/gen/self-mounting-slots.ts`) --
    hands that slot device the image: a catalogued cart as its software-list
    part, which MAME's `call_load_pcb` reads its board features from, anything
    else as the raw file for `call_load_ines`; a Zapper or Vaus is fitted
    through `slotCards` from the list entry's `peripheral` feature, as
-   `-ctrl2 zapper` would. The Atari 2600, ColecoVision and Game Boy load the
+   `-ctrl2 zapper` would. A part's dataareas are memory regions below the
+   slot, as MAME's software-list loader makes them: a Game Boy board reads
+   `m_slot->memregion("rom")` and finds its save RAM as `memregion("nvram")`
+   only when the list declares one, and a file the list does not know goes
+   through the slot's own `load_image_file`, which sizes that RAM from the
+   cartridge header. The Atari 2600 and ColecoVision load the
    image into their `cart.romRegion` and select the cartridge board through
    `slot`. (Injecting PRG/CHR regions with the mapper, mirroring and battery
    remains only for an iNES console without a slot device; none uses it now.)
@@ -1686,7 +1692,13 @@ executors.
    recording address space and keeps the windows MAME's own installer asks for.
    Which method mounts a board, and whether it is handed that space or reaches
    for it, is read from the bus's own interface -- the Atari 2600 takes the
-   space as an argument, the Game Boy's `load()` calls `cart_space()`.
+   space as an argument, the Game Boy's `load()` calls `cart_space()`, and is
+   run by its slot's own `call_load` once the board hands the slot that space.
+   A `memory_view` a board installs into the space
+   (`cart_space()->install_view(0xa000, 0xbfff, m_view_ram)`) is decoded by
+   the bus under a tag of its own, each entry's windows as view ranges, and
+   the device view's `select()` and `disable()` reach `bus.selectView`: an
+   MBC's cartridge RAM is there only while its RAM-enable register says so.
    Computer targets open their software room instead. A machine's regional
    versions -- MAME's clones of one parent (`meta.json`'s `cloneof`), the PAL
    C64 of the NTSC one -- are one box on the menu and one room

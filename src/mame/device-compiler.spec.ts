@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { indexMameHardware } from './hardware.ts';
-import { compileMameDevice, constructorInitialValues, memberDeclarations, structDeclarations } from './device-compiler.ts';
+import { compileMameDevice, constructorInitialValues, memberDeclarations, structDeclarations, unresolvedNamespaceNames } from './device-compiler.ts';
 import { generatedDeviceMethodsSource } from './device-codegen.ts';
 import {
   clearGeneratedDevices,
@@ -455,4 +455,68 @@ console.log('device-compiler.spec: source-derived latch, ER2055, MB8844, TMS9928
   const stored = JSON.stringify(setter.program.operations);
   assert.match(stored, /"kind":"cast","valueType":"uint8_t","operand":\{"kind":"identifier","name":"__assigned"\}/,
     'the stored value is cast to the reference\'s type');
+}
+
+// A header of namespace-scope inline functions and constants, with no .cpp
+// (#294): cartheader.h joins a Game Boy cartridge board's sources because the
+// board calls into it or reads its constants, each function is bound under
+// the qualified name its caller writes, and each constant under its
+// namespace -- gbxfile.h's `TYPE_MBC1` is a FourCC, cartheader.h's is 0x01.
+{
+  const mbc1 = compileMameDevice(mameSrc, hardware.get('GB_ROM_MBC1')!, 'GB_ROM_MBC1');
+  assert.equal(mbc1.summary.diagnostics, 0);
+  assert.ok(mbc1.sourceFiles.includes('src/devices/bus/gameboy/cartheader.h'), 'the header joins the board');
+  const verify = mbc1.methods.find(method => method.name === 'cartheader::verify_header_checksum');
+  assert.ok(verify, 'the header check is bound under its qualified name');
+  assert.match(verify.parameters, /auto \*begin/, 'its iterator is the pointer every caller hands it');
+  assert.doesNotMatch(JSON.stringify(verify.program), /std::advance/, 'std::advance moves the pointer');
+  assert.match(JSON.stringify(verify.program), /"name":"cartheader::OFFSET_TITLE"/, 'its own names are its namespace\'s');
+  assert.equal(mbc1.constants['cartheader::OFFSET_TYPE'], 0x0147);
+  assert.equal(mbc1.constants['cartheader::TYPE_MBC1'], 0x01);
+  assert.equal(mbc1.constants['gbxfile::TYPE_MBC1'], 0x4d424331, 'gbxfile.h\'s is the FourCC "MBC1"');
+  // The board's slot, aimed at the owner by the interface's constructor.
+  assert.equal(mbc1.members.find(member => member.name === 'm_slot')?.owner, true);
+
+  // An MBC3 calls neither function and still reads the header's constants.
+  const mbc3 = compileMameDevice(mameSrc, hardware.get('GB_ROM_MBC3')!, 'GB_ROM_MBC3');
+  assert.equal(mbc3.summary.diagnostics, 0);
+  assert.equal(mbc3.constants['cartheader::TYPE_MBC3_RTC_BATT'], 0x0f);
+  assert.ok(mbc3.methods.some(method => method.name === 'gbxfile::get_data'), 'gbxfile.cpp\'s reader is bound as it is called');
+}
+
+// A name in a namespace the device's headers declare, which nothing
+// collected answers, is a diagnostic on the method that reads it: never a
+// silent nothing.
+{
+  const program = (name: string) => ({ operations: [{ op: 'return' as const, value: { kind: 'identifier' as const, name } }], diagnostics: [] as string[] });
+  const methods = ['cartheader::OFFSET_TYPE', 'cartheader::OFFSET_NOWHERE', 'elsewhere::NAME'].map((name, index) => ({
+    name: `reads_${index}`, parameters: '', source: { file: 'x.cpp', line: 1 }, program: program(name),
+  }));
+  const sources = [{ file: 'src/devices/bus/gameboy/mbc.cpp', source: '#include "cartheader.h"\n' }];
+  unresolvedNamespaceNames(mameSrc, sources, methods as never, name => name === 'cartheader::OFFSET_TYPE');
+  assert.deepEqual(methods[0]!.program.diagnostics, []);
+  assert.match(methods[1]!.program.diagnostics[0] ?? '', /"cartheader::OFFSET_NOWHERE" names nothing/);
+  assert.deepEqual(methods[2]!.program.diagnostics, [], 'a qualifier no included header declares is not this check\'s');
+}
+
+// A constructor chain through class template bases (#294): a board derives
+// `flat_ram_device_base<mbc_dual_device_base>`, which inherits its base's
+// constructors with `using Base::Base;`, and mbc_dual_device_base starts its
+// coarse masks with a braced initializer. Lost on the way, the masks were 0
+// and the boards' low ROM window never left bank 0.
+{
+  const source = `
+    class dual_base { public: dual_base(int clock); u16 m_mask[2]; u16 m_sel[2]; };
+    dual_base::dual_base(int clock) : m_mask{ 0xffffU, 0xffffU }, m_sel{ 0U, 0U } { }
+    template <typename Base> class ram_base : public Base { protected: using Base::Base; };
+    template <typename Base> class rom_base : public Base { public: rom_base(int clock); };
+    template <typename Base> rom_base<Base>::rom_base(int clock) : Base(clock) { }
+    class flat_board : public ram_base<dual_base> { public: flat_board(int clock) : ram_base<dual_base>(clock) { } };
+    class rom_board : public rom_base<dual_base> { public: rom_board(int clock) : rom_base<dual_base>(clock) { } };`;
+  for (const board of ['flat_board', 'rom_board']) {
+    const chain = { structs: {}, spaceConfigs: {} } as Parameters<typeof constructorInitialValues>[7] & object;
+    constructorInitialValues(board, source, {}, {}, {}, [], undefined, chain);
+    assert.deepEqual(chain.tables?.m_mask, [0xffff, 0xffff], `${board} reaches its template base's braced initializer`);
+    assert.deepEqual(chain.tables?.m_sel, [0, 0]);
+  }
 }

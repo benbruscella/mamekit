@@ -110,7 +110,9 @@ const VIDEO_PLAN_CALLS = new Set(['machine().tilemap().create']);
 
 /** The root call of a generated call name: `state_add().mask` -> `state_add`. */
 function callRoot(name: string): string {
-  return /^[\w:]+/.exec(name)?.[0] ?? name;
+  // `this->save_pointer(...)`, as a class template's member has to spell a
+  // call into its dependent base (cartbase.ipp), is `save_pointer(...)`.
+  return /^[\w:]+/.exec(name.replace(/^this\./, ''))?.[0] ?? name;
 }
 
 /** The method a call chain ends with: `m_fg_tilemap.set_transparent_pen` -> `set_transparent_pen`. */
