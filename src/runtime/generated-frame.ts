@@ -645,7 +645,12 @@ export class GeneratedFrameRunner {
     // sound CPU raised earlier in that round, which MAME's had run past (#275).
     const inQuantumWindow = this.windowOpen;
     if (this.perLineSchedule || inQuantumWindow) {
-      this.runProcessors(this.pendingLines, line, this.boundaryLines.has((line + 1) % Math.max(1, screen.vtotal)));
+      // The next line's start is a timer where MAME has one there: a boundary
+      // line, or any line of a scanline-updated screen (screen_device's
+      // m_scanline_timer fires on every one).
+      const timerNext = screen.updateMode === 'scanline' ||
+        this.boundaryLines.has((line + 1) % Math.max(1, screen.vtotal));
+      this.runProcessors(this.pendingLines, line, timerNext);
       this.pendingLines = 0;
     }
 

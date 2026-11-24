@@ -57,10 +57,10 @@ export const sf2ce = sourceTarget({
     },
     audio: {
       writes: 2897510,
-      nonzeroWrites: 2178234,
-      writeHash: '7aab2e50',
-      pcmHash: 'c5552006',
-      rms: 0.079931,
+      nonzeroWrites: 2178013,
+      writeHash: '7f8ab799',
+      pcmHash: '24fea573',
+      rms: 0.079896,
     },
   },
 });

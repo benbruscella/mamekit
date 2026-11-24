@@ -11,6 +11,10 @@ metadata:
 2. **Timers due at the round's base fire through the presentation hold** (`firingTimersDueAtBase` in generated-board.ts). cpus[0] carries device time to the frame's end, where `advanceTimedHardware` holds it (`awaitingPresent`); a timer the sound CPU armed 25 µs ahead then fired 0.9 ms late (TMS5220 READY). This was the epic's old "TMS5220C busy where MAME's is ready".
 3. **`armedTimer` aborts the slice only for a new head of the timer list.** Pending `scheduledWork` (a synchronize posted by an earlier processor in the round) at or before the new timer means no abort; the budget is still lowered.
 
+**The regression the full compare caught:** dkong and dkongjr went from RAM-exact to differing at frame 6. A scanline-updated screen fires `m_scanline_timer` on every line, so every line start closes an expired window there; counting only `boundaryLines` kept dkong's window open too long (`timerNext` in runLine). A board with a timer the runner doesn't see as a round end would linger the same way: check `timerFired` first.
+
+**Final `compare --against main` (110 scenarios):** RAM identical at every frame for gauntlet, marble, sf2ce (was frame 2), tmnt (was 332); upndown 22 -> 26; nothing worse. Goldens re-recorded (state/audio only): gauntlet, marble, sf2ce, tmnt, upndown.
+
 **How it was found:** narrow `against --io` taps on both CPUs with `--keep`, then dist-only `console.error` in generated-frame.js / generated-board.js / the device's .js (back the files up; `mamekit build` restores core files, the device .js needs the backup), run with `node tools/compare/against.ts --child <work>/plan.json`. A `ROUND base -> target, locals` log per round in a time window showed each cause directly.
 
 **Tooling gap (epic 8.4):** our side does not tap maincpu writes to `803170` or word reads of `80300e` (mirrored handlers); MAME's side does.
