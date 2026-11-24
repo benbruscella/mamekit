@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 3481c670-8f20-4782-a2d0-6bacf7fe2635
-  modified: 2026-11-24T00:09:19.291Z
+  modified: 2026-11-24T04:33:17.265Z
 ---
 
 Issue #294, branch `294-most-game-boy-cartridges`, 2026-11-24. `sml2` (MBC1 +
@@ -48,8 +48,15 @@ with a method that does not lower is `slot.unsupported` (only `rom_camera`).
 `InstalledView.select` -> `bus.selectView`. `install_ram` windows are
 writable (`entry.writable`); they were recorded read-only.
 
-**Still open:** `machine().disable_side_effects` (known gap); `--survey` of
-the other boards was not run (needs the user's OK, [[ask-before-mame-sweeps]]).
+**Merged** as `306764a3` (PR #295). Survey: 16/17 boards pixel-exact at frame
+1500. The survey's own finds: emitter dropped lambda init-captures (MBC2);
+constructor chains stopped at template bases / `using Base::Base;` and braced
+initializers were unread (coarse masks 0: La Sa Ma, MBC1/MBC5 > 512 KiB).
+
+**Still open, in #247:** 11.2 Pocket Camera doesn't lower; 11.3
+`machine().disable_side_effects`; 11.4 sweep crashes / smb3u audio hash varying
+run to run. A sweep chained after `gen:all` must stop if `gen:all` fails (one
+SIGILL voided a whole sweep).
 
 Related: [[gameboy-milestone]], [[cart-battery-saves]], [[codegen-silent-zero]],
 [[hung-run-js-stack]].
