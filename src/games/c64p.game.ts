@@ -193,6 +193,7 @@ export const c64p = {
       regions: {
         basic: 'f833d117',
         charom: 'ec4272ee',
+        'exp:roml': '49244d56',
         kernal: 'dbe3e7c7',
         u17: '54c89351',
       },
@@ -226,6 +227,7 @@ export const c64p = {
       regions: {
         basic: 'f833d117',
         charom: 'ec4272ee',
+        'exp:uprom': 'a5af43e5',
         kernal: 'dbe3e7c7',
         u17: '54c89351',
       },

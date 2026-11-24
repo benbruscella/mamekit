@@ -149,6 +149,7 @@ export const c64 = {
       regions: {
         basic: 'f833d117',
         charom: 'ec4272ee',
+        'exp:roml': 'f665ecc0',
         kernal: 'dbe3e7c7',
         u17: '54c89351',
       },

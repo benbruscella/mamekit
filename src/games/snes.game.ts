@@ -46,6 +46,8 @@ export const snes = {
         regions: {
           maincpu: 'a47ca14a',
           'snsslot:cart:rom': 'b47f5f20',
+          'snsslot:nvram': 'f1e8ba9e',
+          'snsslot:rom': 'b47f5f20',
           'soundcpu:sound_ipl': '44bb3a40',
         },
         checkpoints: {
@@ -91,7 +93,10 @@ export const snes = {
       golden: {
         regions: {
           maincpu: 'a47ca14a',
+          'snsslot:addon': '453557e0',
           'snsslot:cart:rom': '56410e5e',
+          'snsslot:nvram': 'f1e8ba9e',
+          'snsslot:rom': '56410e5e',
           'soundcpu:sound_ipl': '44bb3a40',
         },
         checkpoints: {

@@ -344,7 +344,7 @@
       "palette": "none"
     },
     "hyperspt": {
-      "sha256": "2a5b3097a91b40a85e119034e4eb7b8dfafa68ea734de9df78154c478e09f120",
+      "sha256": "a81991d6645da3065f85a16578e027e328cc61791ee9a8a9eb6b0b3ac58b35b9",
       "callbacks": 10,
       "frameEvents": 2,
       "devices": 14,
