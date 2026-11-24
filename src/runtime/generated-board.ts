@@ -1560,7 +1560,7 @@ class IrBoard implements Board {
         // device must stand there too, held time first.
         seconds += this.heldDeviceSeconds;
         this.heldDeviceSeconds = 0;
-      } else if (this.frameRunner?.awaitingPresent) {
+      } else if (this.frameRunner?.awaitingPresent && !this.firingTimersDueAtBase) {
         const allowed = this.secondsToPresent() - PRESENT_MARGIN_SECONDS;
         if (seconds > allowed) {
           const delivered = Math.max(0, allowed);
@@ -3514,16 +3514,30 @@ class IrBoard implements Board {
     // them. Under a perfect quantum every round is already a cycle.
     // A watchdog kick arms three seconds off; with no other device timer
     // pending, that aborted Rygar's sound CPU at every kick.
-    const armedTimer = (seconds: number): void => {
+    //
+    // Only a timer that becomes the soonest ends the slice (emu_timer::adjust:
+    // `if (this == m_scheduler.first_timer()) abort_timeslice()`), and work a
+    // processor earlier in the round synchronized is a timer too, waiting at
+    // the time it was posted. Gauntlet's 68010 writes its sound latch, which
+    // synchronizes; its 6502, running up to where the 68010 stopped, then
+    // strobes a byte into the TMS5220, whose READY timer is armed 25 us on.
+    // That is behind the latch's, so MAME's 6502 runs on and reads the latch
+    // flag clear once more. Ended there, ours next ran only to the latch
+    // write, and read the flag set (#296).
+    const armedTimer = (seconds: number, fromBase = seconds + this.roundDeviceOffset + this.roundDelivered): void => {
       if (!(seconds + 1e-9 < this.roundTimerBudget)) return;
       if (!(seconds < (this.frameRunner?.frameSeconds ?? Infinity))) return;
       this.roundTimerBudget = Math.max(0, seconds - 1e-9);
+      const work = this.scheduledWork;
+      for (let index = 0; index < work.length; index++) {
+        if (work[index]!.at - this.roundBaseSeconds <= fromBase) return;
+      }
       this.frameRunner?.requestSynchronize();
     };
     // The same for a timer the driver arms (roundTimerMembers), which is
     // measured from the round's base: the devices have been given
     // `roundDelivered` of the round already.
-    const armedRoundTimer = (seconds: number): void => armedTimer(seconds - this.roundDelivered);
+    const armedRoundTimer = (seconds: number): void => armedTimer(seconds - this.roundDelivered, seconds);
     // Where the round stands on the processors' own clock, the one a driver
     // timer's expiry is kept on: its base, or its end once every processor
     // has run to it.
@@ -3722,8 +3736,24 @@ class IrBoard implements Board {
             : soonest + headroom <= 1e-10;
           for (let fired = 0; dueAtBase() && fired < 64; fired++) {
             this.roundTimerBudget = Infinity;
-            if (headroom > 0) withGeneratedTimerHeadroom(headroom, () => advanceTimedHardware(1e-12));
-            else advanceTimedHardware(1e-12);
+            if (headroom > 0) {
+              // The devices stand ahead of the base, so the timer is due at a
+              // time they have passed: firing it is not device time moving on,
+              // and the hold before a presentation does not apply to it. The
+              // first processor had carried the devices to the end of the
+              // frame, where they are held, when Gauntlet's sound 6502 wrote
+              // its TMS5220 a byte; the chip's READY timer, due 25 us on, did
+              // not fire until the frame was presented 0.9 ms later, and the
+              // 6502 saw the chip busy where MAME's is ready (#296).
+              this.firingTimersDueAtBase = true;
+              try {
+                withGeneratedTimerHeadroom(headroom, () => advanceTimedHardware(1e-12));
+              } finally {
+                this.firingTimersDueAtBase = false;
+              }
+            } else {
+              advanceTimedHardware(1e-12);
+            }
             soonest = soonestTimer();
             boundExactly();
           }
@@ -4540,6 +4570,9 @@ class IrBoard implements Board {
     this.frameRunner?.rearmPeriodic(tag, now ? exactToAttos(now) : undefined);
   }
 
+  /** A round's start is firing timers due at its base, behind where the devices stand (nextTimerSeconds). */
+  private firingTimersDueAtBase = false;
+
   /** The board's rounds end at timers, so machine time is known exactly (exactMachineTime). */
   private exactTimeKnown = false;
 
@@ -5119,6 +5152,12 @@ class IrBoard implements Board {
     return problems;
   }
 
+  /** MAME's `time()` as add_quantum reads it, in total attoseconds, where the board knows it exactly. */
+  private quantumWindowStart(): bigint | undefined {
+    const now = this.exactMachineTime();
+    return now ? exactToAttos(now) : undefined;
+  }
+
   /**
    * MAME `scheduler::perfect_quantum(duration)`, asked for by a handler.
    *
@@ -5128,7 +5167,7 @@ class IrBoard implements Board {
    * a latch write, or from the device that stands in for one.
    */
   perfectQuantum(seconds: number): void {
-    this.frameRunner?.quantumWindow(seconds);
+    this.frameRunner?.quantumWindow(seconds, this.quantumWindowStart());
     this.frameRunner?.requestSynchronize();
   }
 
@@ -6689,7 +6728,7 @@ class IrBoard implements Board {
       // stream, which would let it answer before the writer has finished
       // setting up for the answer.
       perfectQuantum: (seconds: number) => state => {
-        if (state) this.frameRunner?.quantumWindow(seconds);
+        if (state) this.frameRunner?.quantumWindow(seconds, this.quantumWindowStart());
       },
       cpuLine: (tag, line, delivery, input) => {
         const apply = cpuLineEffect(tag, line, delivery, input);

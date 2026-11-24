@@ -411,6 +411,21 @@ does not run another processor from inside the caller's instruction stream,
 which would let the far side answer before the caller has finished setting up
 for the answer.
 
+The window expires the source's duration after `time()` at the request, and it
+outlasts that expiry (#296). `timeslice()` drops an expired quantum only on
+entry, which is after a timer has fired, so the rounds stay the perfect
+interleave long until the first timer at or after the expiry. Gauntlet's main
+CPU reads its sound CPU's reply 119 µs after the command that opened a 100 µs
+window. No timer fires in those 19 µs, so MAME's sound CPU is still polling
+the latch in step with the read.
+
+A timer armed inside a slice ends the slice only when it becomes the soonest
+(`emu_timer::adjust`), and work another processor synchronized earlier in the
+round is a timer too, waiting at the time it was posted. And a timer that is
+due at a round's base fires there even while device time is held for the
+frame's presentation: the first processor may have carried the devices to the
+end of the frame while a later one arms a timer well short of it.
+
 A bus master takes the bus from a processor through the processor's own pin.
 `Z80_INPUT_LINE_BUSREQ` lowers to a `busreq` line naming that constant, and
 the core's own `execute_set_input` takes it. The Z80's service block grants
