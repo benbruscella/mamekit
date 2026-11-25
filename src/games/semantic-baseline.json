@@ -551,7 +551,7 @@
       "palette": "none"
     },
     "polepos": {
-      "sha256": "3f2f49a53eba81113e691342b0a492655302225c67a6c24e8603f3d6b12d3bf7",
+      "sha256": "acc1a72e8a826d72c0786652e8c7dd4727625abf808f2756af08b85747f524ef",
       "callbacks": 67,
       "frameEvents": 5,
       "devices": 25,
@@ -578,7 +578,7 @@
       "palette": "none"
     },
     "qbert": {
-      "sha256": "c82dcd71c2e93d2e22d6e6dd4983a6761d50cdab5458995b76bb55fc2890d317",
+      "sha256": "6bca6aba7514fdae9aa6ee0bb85364eae43accb51e0775d72bad9b65691d59aa",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 15,
@@ -704,7 +704,7 @@
       "palette": "none"
     },
     "spec128": {
-      "sha256": "bdc23c661d4e3db0b81f103e53c12b31cf149350a63585af3623615821bc197e",
+      "sha256": "dd59fee08fcfe5d0b1c784c4065703f05b9e1acf0ff0ce467b24963a57ed55eb",
       "callbacks": 13,
       "frameEvents": 1,
       "devices": 17,
@@ -722,7 +722,7 @@
       "palette": "none"
     },
     "spyhunt": {
-      "sha256": "f30e089d0ef14a732c70c3d890a0d237301de932000a7f660c959209f3f1dd7d",
+      "sha256": "224c65f7d00ca5840438f7130bf6448f4f403a0f65c8f2da2f79f17e07918a09",
       "callbacks": 17,
       "frameEvents": 3,
       "devices": 19,
