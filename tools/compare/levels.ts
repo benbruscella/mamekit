@@ -27,6 +27,7 @@ import { join, relative } from 'node:path';
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { levelsTable, readPcm16Wav, windowRms, type LevelSeries } from './levels-plan.ts';
+import { readMameWavForListener } from './mame-wav.ts';
 import { projectRoot } from './mame-side.ts';
 import { baselineRoot, cliEntry, reportRoot } from './paths.ts';
 import type { RunReport } from './report.ts';
@@ -116,7 +117,13 @@ function readSide(run: RunReport): Side {
     return windowRms(samples, rate, seconds).slice(0, windows);
   };
   const mix = wav('ours.pcm');
-  const mame = wav('mame.wav');
+  // MAME's as a listener hears it: by speaker position, the speaker effect applied.
+  const mame = existsSync(join(dir, 'mame.wav'))
+    ? (() => {
+        const heard = readMameWavForListener(join(dir, 'mame.wav'), loadConfig().sound);
+        return windowRms(heard.mono, heard.rate, seconds).slice(0, windows);
+      })()
+    : undefined;
   const side: Side = { chips: levels.chips, ...(mix ? { mix } : {}), ...(mame ? { mame } : {}) };
   rmSync(dir, { recursive: true, force: true });
   return side;

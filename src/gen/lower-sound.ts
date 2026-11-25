@@ -2,7 +2,7 @@
 
 import type { KnowledgeGraph, KGNode } from '../kg/types.ts';
 
-import { lowerAudioRoutes, monoRoutes } from './emit-machine.ts';
+import { lowerAudioRoutes, monoRoutes, speakerChannelSides } from './emit-machine.ts';
 import type { GeneratedAudioRoute } from '../ir/board.ts';
 
 import { compileMameSpeakerFilter } from '../mame/audio-compiler.ts';
@@ -47,6 +47,9 @@ export function lowerSound(byTag: Map<string, KGNode>, devices: KGNode[], graph:
   if (sound.kind !== 'none') {
     Object.assign(sound, {
       speakerFilter: compileMameSpeakerFilter(opts.mameSrc),
+      // Where each speaker channel sits, for a tool that folds MAME's
+      // -wavwrite (a channel per speaker input) the way a listener hears it.
+      speakers: [...speakerChannelSides(graph)].map(([tag, sides]) => ({ tag, sides })),
     });
   }
   return { clocks, sound };

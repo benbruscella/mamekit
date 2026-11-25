@@ -213,6 +213,7 @@ const compare = spawnSync(process.execPath, [
   mamekitWav,
   mameWav,
   outDir,
+  '--layout', join(gameOutputDir(join(projectRoot, 'dist'), machineContract.category, game), 'config.json'),
 ], {
   cwd: projectRoot,
   encoding: 'utf8',

@@ -45,6 +45,7 @@ import { hostedDeviceTag } from './lower-topology.ts';
 import { lowerConnections } from '../ir/lower-connections.ts';
 import { validateBoardIr } from '../ir/validate.ts';
 import { BOARD_IR_SCHEMA_VERSION } from '../ir/version.ts';
+import { speakerChannelWeight } from '../ir/audio-protocol.ts';
 import type { BoardConfig } from '../ir/host-config.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
 import { normalizeMameExecutionSource } from '../mame/execution-source.ts';
@@ -155,6 +156,34 @@ export function lowerGeneratedMachine(
     if (!edge.props?.deviceTag || !handler) return key;
     return `${resolveReachableTag(String(edge.props.deviceTag))}.${String(handler.props.method)}`;
   };
+  // The ports a device declares itself (`device_input_ports()`), by their
+  // full tag: a callback configured inside that device names them by its own
+  // tag (Gottlieb's RIOT reads `set_ioport("SB1")`, the board's r1sound:SB1).
+  const devicePorts = new Set<string>();
+  for (const edge of graph.edges.filter(candidate => candidate.rel === 'USES_INPUTS' && candidate.props?.device)) {
+    const owner = graph.nodes.find(node => node.id === edge.from)?.props.tag;
+    if (owner === undefined) continue;
+    const seen = new Set<string>();
+    const collect = (id: string): void => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      for (const out of graph.edges.filter(candidate => candidate.from === id)) {
+        if (out.rel === 'INCLUDES_PORTS') collect(out.to);
+        if (out.rel === 'HAS_PORT') {
+          const port = graph.nodes.find(node => node.id === out.to)?.props.tag;
+          if (port !== undefined) devicePorts.add(`${String(owner)}:${String(port)}`);
+        }
+      }
+    };
+    collect(edge.to);
+  }
+  const scopedPort = (ownerTag: string, port: string): string => {
+    for (let parts = ownerTag.split(':').slice(0, -1); parts.length; parts = parts.slice(0, -1)) {
+      const scoped = `${parts.join(':')}:${port}`;
+      if (devicePorts.has(scoped)) return scoped;
+    }
+    return port;
+  };
   const callbacks: GeneratedCallback[] = graph.nodes
     .filter(node => node.label === 'Callback')
     .filter(node => graph.edges.some(edge =>
@@ -201,7 +230,7 @@ export function lowerGeneratedMachine(
       }
       if (props.targetClass) callback.targetClass = String(props.targetClass);
       if (props.targetMethod) callback.targetMethod = String(props.targetMethod);
-      if (props.targetPort) callback.targetPort = String(props.targetPort);
+      if (props.targetPort) callback.targetPort = scopedPort(callback.ownerTag, String(props.targetPort));
       if (props.constant !== undefined) callback.constant = Number(props.constant);
       if (props.deviceTag) callback.deviceTag = String(props.deviceTag);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
@@ -977,9 +1006,14 @@ export function lowerGeneratedMachine(
   // `maincpu.add_route(ALL_OUTPUTS, "mono", 0.90)`), at its gain into the
   // device. The device builds it below its own tag (`maincpu:nesapu`), so it
   // is a sound source and never a device of the board's.
+  // A child the graph already holds as a device of the board (the SSIO's two
+  // AYs) has its own route into the owner, which lowerAudioRoutes follows on
+  // through the owner's input N to its output N: taking it again here played
+  // each AY twice, once at its gain squared and once on every SSIO output.
   const mixerSources = devices.flatMap(device => graph.meta.mameSrc
     ? mixerChildren(String(graph.meta.mameSrc), device.type)
       .filter(child => STREAM_SOUND_TYPES.includes(child.type))
+      .filter(child => !devices.some(other => other.tag === `${device.tag}:${child.tag}`))
       .map(child => ({ device: { id: device.id, tag: `${device.tag}:${child.tag}`, type: child.type, stream: true as const }, gain: child.gain }))
     : []);
   const mixerGain = new Map(mixerSources.map(source => [source.device.tag, source.gain]));
@@ -1452,32 +1486,30 @@ export function speakerChannelSides(graph: KnowledgeGraph): Map<string, number[]
 }
 
 /**
- * Routes as the browser hears them: one channel, the average of a stereo
- * target's. A route into one input of a two-channel speaker counts half --
- * Qix's DISCRETE puts its left and right volumes on the speaker's two
- * inputs, and MAME's mono mix is their mean.
+ * Routes as the browser hears them: one channel, what a listener hears of
+ * MAME's host mapping (sound.cpp `find_channel_mapping`). A centred speaker
+ * channel plays on both host channels at full volume, a channel off centre on
+ * its own side, and the host sums every speaker, so a route counts whole into
+ * a centred channel and half into a side one. Qix's DISCRETE puts its left and
+ * right volumes on a front pair's two inputs: MAME's mono is their mean.
  *
  * On a board with a speaker channel off centre each route into a speaker
  * also carries its left and right gains (`stereo`), for a host that plays
- * two channels.
+ * two channels; their mean is the mono `gain`.
  */
 export function monoRoutes(graph: KnowledgeGraph, routes: GeneratedAudioRoute[]): GeneratedAudioRoute[] {
-  // The mono mix is the mean of every speaker channel the machine has (front
-  // and rear pairs count four), so a route to one channel is that share of it.
   const sides = speakerChannelSides(graph);
-  const channels = [...sides.values()].reduce((sum, channel) => sum + channel.length, 0);
   const stereo = [...sides.values()].some(channel => channel.some(side => side !== 0));
   return routes.map(route => {
     const speaker = sides.get(route.target);
     if (!speaker) return route;
-    const mono = channels > 1 && route.targetInput !== undefined ? { ...route, gain: route.gain / channels } : route;
-    if (!stereo) return mono;
     // add_route's channel defaults to 0 (disound.h): MAME puts a route that
     // names none on the speaker's first channel.
     const side = speaker[route.targetInput ?? 0] ?? 0;
-    const share = (own: number) => (side === 0 ? 0.5 : side === own ? 1 : 0);
-    const scale = 2 / channels;
-    return { ...mono, stereo: [route.gain * scale * share(-1), route.gain * scale * share(1)] };
+    const mono = { ...route, gain: route.gain * speakerChannelWeight(side) };
+    if (!stereo) return mono;
+    const heard = (own: number) => (side === 0 || side === own ? route.gain : 0);
+    return { ...mono, stereo: [heard(-1), heard(1)] };
   });
 }
 

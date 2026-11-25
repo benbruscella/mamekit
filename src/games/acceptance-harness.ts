@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { CONTRACT_BASE_TIME } from '../ir/host-config.ts';
+import { applySpeakerFilter } from './speaker-filter.ts';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -1255,41 +1256,14 @@ async function createAudioProbe(
 
 /**
  * Diagnostic WAVs represent what reaches the browser destination, including
- * the output gain/filter that lives after the AudioWorklet.
+ * the output filter that lives after the AudioWorklet.
  */
 function applyBrowserOutputStage(
   input: Float32Array,
   sound: ShellConfig['sound'],
   sampleRate: number,
 ): Float32Array {
-  const output = Float32Array.from(input);
-  const filter = sound.speakerFilter;
-  if (filter?.type === 'highpass') {
-    // RBJ high-pass coefficients, matching the Web Audio biquad topology.
-    const omega = 2 * Math.PI * filter.frequency / sampleRate;
-    const cosine = Math.cos(omega);
-    const alpha = Math.sin(omega) / (2 * filter.q);
-    const a0 = 1 + alpha;
-    const b0 = (1 + cosine) / 2 / a0;
-    const b1 = -(1 + cosine) / a0;
-    const b2 = b0;
-    const a1 = -2 * cosine / a0;
-    const a2 = (1 - alpha) / a0;
-    let x1 = 0;
-    let x2 = 0;
-    let y1 = 0;
-    let y2 = 0;
-    for (let index = 0; index < output.length; index++) {
-      const x0 = output[index]!;
-      const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
-      output[index] = y0;
-      x2 = x1;
-      x1 = x0;
-      y2 = y1;
-      y1 = y0;
-    }
-  }
-  return output;
+  return applySpeakerFilter(input, sound.speakerFilter, sampleRate);
 }
 
 function audioResult(

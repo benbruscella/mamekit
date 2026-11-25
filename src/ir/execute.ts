@@ -2707,13 +2707,7 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   // code reaches this macro surface (rather than the interpreter's broader
   // call dispatcher), so keep its signed 16-bit coordinate semantics here.
   if (name === 'short') return (toNumber(args[0]) << 16) >> 16;
-  if (name === 'BITSWAP') {
-    const source = toNumber(args[0]);
-    return args.slice(1).reduce<number>(
-      (result, bit) => (result << 1) | ((source >> toNumber(bit)) & 1),
-      0,
-    );
-  }
+  if (name === 'BITSWAP') return generatedBitswap(args[0], ...args.slice(1));
   // C and C++ standard-library primitives MAME device sources rely on.
   // As <algorithm> defines them: the first unless the second compares less
   // (greater), so a NaN argument is not the answer the way Math.min makes it.
@@ -3843,16 +3837,18 @@ function isBytePointerType(valueType: string | undefined): boolean {
   return /^(?:u8|uint8_t)$/.test((valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, ''));
 }
 
-function packedCastView(valueType: string | undefined): boolean | 'u32' | 's32' | undefined {
+function packedCastView(valueType: string | undefined): boolean | 'u32' | 's32' | 'u64' | 's64' | undefined {
   const pointee = (valueType ?? '').replace(/\bconst\b/g, '').replace(/[\s*]/g, '');
   if (/^(?:u16|uint16_t)$/.test(pointee)) return false;
   if (/^(?:s16|int16_t)$/.test(pointee)) return true;
   if (/^(?:u32|uint32_t)$/.test(pointee)) return 'u32';
   if (/^(?:s32|int32_t)$/.test(pointee)) return 's32';
+  if (/^(?:u64|uint64_t)$/.test(pointee)) return 'u64';
+  if (/^(?:s64|int64_t)$/.test(pointee)) return 's64';
   return undefined;
 }
 
-function packedByteView(value: unknown, signed: boolean | 'u32' | 's32'): unknown {
+function packedByteView(value: unknown, signed: boolean | 'u32' | 's32' | 'u64' | 's64'): unknown {
   // A pointer into bytes, `(uint32_t *)(&m_objectram[offs])`: the view starts
   // at its element. Bubble Bobble skips an empty object by reading its four
   // bytes as one word; read as one byte, every backdrop column at y = 0 was
@@ -3864,7 +3860,24 @@ function packedByteView(value: unknown, signed: boolean | 'u32' | 's32'): unknow
     : value;
   if (!(bytes instanceof Uint8Array) && !(bytes instanceof Int8Array)) return value;
   if (signed === 'u32' || signed === 's32') return dwordView(bytes, signed === 's32');
+  if (signed === 'u64' || signed === 's64') return qwordView(bytes, signed === 's64');
   return wordView(bytes, signed);
+}
+
+/**
+ * Bytes read eight at a time in the host's order, exactly, as BigInts: the
+ * Votrax's phoneme ROM is a `ROM_REGION64_LE` read as `const u64 *`.
+ */
+function qwordView(bytes: Uint8Array | Int8Array, signed: boolean): unknown {
+  const count = bytes.byteLength >>> 3;
+  if ((bytes.byteOffset & 7) === 0) {
+    return signed
+      ? new BigInt64Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, count)
+      : new BigUint64Array(bytes.buffer as ArrayBuffer, bytes.byteOffset, count);
+  }
+  const copy = new Uint8Array(count * 8);
+  copy.set(bytes.subarray(0, count * 8));
+  return signed ? new BigInt64Array(copy.buffer) : new BigUint64Array(copy.buffer);
 }
 
 /** Bytes read four at a time in the host's order, as MAME's little-endian host reads them. */
@@ -4091,6 +4104,29 @@ export function generatedTry<R>(
   } finally {
     cleanup?.();
   }
+}
+
+/**
+ * MAME's bitswap: the first listed source bit becomes the most significant
+ * bit of the result. The source may be a 64-bit word -- the Votrax reads its
+ * phoneme ROM as `u64` and takes fields from bits 28 to 43 and the phone
+ * number from bit 56 -- so a bit past 31 is read from the whole value, and a
+ * BigInt stays exact.
+ */
+export function generatedBitswap(value: unknown, ...bits: unknown[]): number {
+  if (typeof value === 'bigint') {
+    let swapped = 0;
+    for (const bit of bits) swapped = swapped * 2 + Number((value >> BigInt(toNumber(bit))) & 1n);
+    return swapped;
+  }
+  const source = toNumber(value);
+  let swapped = 0;
+  for (const bit of bits) {
+    const at = toNumber(bit);
+    const set = at < 32 ? (source >>> at) & 1 : Math.floor(source / 2 ** at) & 1;
+    swapped = swapped * 2 + set;
+  }
+  return swapped;
 }
 
 export function generatedWideBinary(

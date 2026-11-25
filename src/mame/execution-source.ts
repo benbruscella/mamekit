@@ -69,6 +69,10 @@ export function normalizeMameExecutionSource(source: string): string {
     .replaceAll('[[fallthrough]];', '')
     .replace(/\bstatic_assert\s*\([^;]*\)\s*;/g, '')
     .replace(/\bbitswap\s*<\s*\d+\s*>\s*\(/g, 'BITSWAP(')
+    // The variadic form deduces its width from its bits, the same function:
+    // the Votrax decodes every phoneme with `bitswap(val, 0, 7, 14, 21)`,
+    // which answered nothing and left each phoneme silent.
+    .replace(/(?<![\w.>:])bitswap\s*\(/g, 'BITSWAP(')
     .replace(/\bDEGREE_TO_RADIAN\s*<[^>]+>\s*\(/g, 'DEGREE_TO_RADIAN(')
     .replace(
       /\bdo\s*\{([^{}]*)\}\s*while\s*\(\s*--(\w+)\s*\)\s*;/g,

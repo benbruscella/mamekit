@@ -73,6 +73,7 @@ import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeComman
 import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
 import { boardRam, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
 import { compareStereo, readPcm16WavChannels, type StereoComparison } from './stereo-plan.ts';
+import { readMameWavForListener } from './mame-wav.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
 
 const thisFile = fileURLToPath(import.meta.url);
@@ -384,7 +385,8 @@ function compareAudio(dir: string, outDir: string): AudioComparison | { error: s
   if (!existsSync(ours) || !existsSync(mameWav)) return { error: `no ${existsSync(ours) ? 'MAME' : 'our'} recording` };
   mkdirSync(outDir, { recursive: true });
   rmSync(join(outDir, 'compare.json'), { force: true });
-  const compared = spawnSync(process.execPath, [join(projectRoot, 'tools/compare-audio.mjs'), ours, mameWav, outDir],
+  const compared = spawnSync(process.execPath, [join(projectRoot, 'tools/compare-audio.mjs'), ours, mameWav, outDir,
+    '--layout', join(outputDir.dir, 'config.json')],
     { cwd: projectRoot, encoding: 'utf8' });
   const result = join(outDir, 'compare.json');
   if (compared.status !== 0 || !existsSync(result)) {
@@ -395,15 +397,16 @@ function compareAudio(dir: string, outDir: string): AudioComparison | { error: s
 
 /**
  * A stereo board's two channels against MAME's, when ours played two
- * (`ours.pcm.stereo.wav`) and MAME's -wavwrite kept two.
+ * (`ours.pcm.stereo.wav`): MAME's -wavwrite heard by the board's speaker
+ * positions, its channels per speaker input folded to a left and a right.
  */
 function compareStereoCapture(dir: string): StereoComparison | undefined {
   // The harness's stereoCapturePath of `ours.pcm`.
   const ours = join(dir, 'ours.pcm.stereo.wav');
   const mameWav = join(dir, 'mame.wav');
   if (!existsSync(ours) || !existsSync(mameWav)) return undefined;
-  const mame = readPcm16WavChannels(mameWav);
-  return mame.channels.length === 2 ? compareStereo(readPcm16WavChannels(ours), mame) : undefined;
+  const heard = readMameWavForListener(mameWav, config.sound);
+  return compareStereo(readPcm16WavChannels(ours), { rate: heard.rate, channels: [heard.left, heard.right] });
 }
 
 function printRun(key: string, report: RunReport): void {

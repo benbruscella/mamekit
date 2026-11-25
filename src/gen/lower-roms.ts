@@ -176,10 +176,26 @@ export function lowerRoms(opts: GenerateOptions, g: Graph, romset: KGNode, devic
       const ownerConfigEdge = graph.edges.find(edge =>
         edge.rel === 'HAS_DEVICE' && edge.to === nested.id);
       const ownerConfig = ownerConfigEdge && g.node(ownerConfigEdge.from);
-      const hostEdge = ownerConfigEdge && graph.edges.find(edge =>
-        edge.rel === 'CALLS' && edge.to === ownerConfigEdge.from &&
-        g.node(edge.from)?.label === 'Device');
-      const host = hostEdge && g.node(hostEdge.from);
+      // The device whose machine config this is, through any base-class
+      // configs it calls: Q*bert's speech board (r1sound) runs the REV1A
+      // config, which calls the REV1's, which adds the Votrax.
+      const hostOf = (configId: string): ReturnType<typeof g.node> => {
+        const seen = new Set<string>();
+        const queue = [configId];
+        while (queue.length) {
+          const id = queue.shift()!;
+          if (seen.has(id)) continue;
+          seen.add(id);
+          for (const edge of graph.edges) {
+            if (edge.rel !== 'CALLS' || edge.to !== id) continue;
+            const caller = g.node(edge.from);
+            if (caller?.label === 'Device') return caller;
+            queue.push(edge.from);
+          }
+        }
+        return undefined;
+      };
+      const host = ownerConfigEdge ? hostOf(ownerConfigEdge.from) : undefined;
       // A host device (a Namco 51xx around its MCU) is covered below, through
       // the devices its own machine config adds.
       const hostsConfig = graph.edges.some(edge => edge.rel === 'CALLS' && edge.from === nested.id);

@@ -1253,7 +1253,32 @@ class IrBoard implements Board {
                 return (cycles: number) => cycles * this.secondsPerCycleOf(cpuSpec);
               }
               if (method === 'total_cycles') {
-                return () => this.totalCycles(cpuSpec.tag);
+                // A device measuring its processor is never ahead of it in
+                // MAME: the scheduler runs the processor first in every
+                // timeslice. Ours delivers device time ahead of the processor
+                // at a line settle and before a timer fires, and there the
+                // C64's VIC-II read the 6510 level with itself -- the
+                // `cpu_cycles == vic_cycles` MAME never reaches -- and took
+                // every BA cycle it had banked at once
+                // (`spin_until_time(m_rdy_cycles)`, about 1,500 cycles a
+                // frame), which swallowed the datassette's FLAG pulses and
+                // failed every PAL tape load. Run ahead, the device reads the
+                // processor where MAME's order would have it: one cycle on.
+                // Under a perfect quantum MAME's slices are one processor
+                // cycle, so that is all the device ever sees, behind as well:
+                // held for the presentation, the VIC fell 256 cycles behind,
+                // its 8-bit comparison matched again and it spun 25 ms.
+                const asker = specification.tag;
+                const ratio = Number(cpuSpec.clock) > 0 && Number(specification.clock) > 0
+                  ? Number(cpuSpec.clock) / Number(specification.clock) : 1;
+                const perfect = machine.execution.perfectQuantum === true;
+                return () => {
+                  const cycles = this.totalCycles(cpuSpec.tag);
+                  const own = (this.devices.get(asker) as { totalCyclesNow?(): number } | undefined)?.totalCyclesNow?.();
+                  if (!(Number(own) > 0)) return cycles;
+                  const ahead = Math.floor(Number(own) * ratio);
+                  return perfect || ahead >= cycles ? ahead + 1 : cycles;
+                };
               }
               // The inverse of cycles_to_attotime. Hardware that measures a
               // span of machine time in its own processor's cycles needs it:
@@ -4378,6 +4403,7 @@ class IrBoard implements Board {
             ...generatedDeviceCallbackArguments(
               host.parameters(callback.targetMethod!),
               value,
+              args,
             ),
           );
         },
@@ -6761,7 +6787,7 @@ class IrBoard implements Board {
           // on FLG forever.
           const readsOffset = parameters.length === 1 && /\boffs_t\b/.test(parameters[0] ?? '');
           return (state, ...sourceArgs) => {
-            const args = generatedDeviceCallbackArguments(parameters, state);
+            const args = generatedDeviceCallbackArguments(parameters, state, sourceArgs);
             if (takesOffset && sourceArgs.length >= 2) args[0] = Number(sourceArgs[0]) || 0;
             if (readsOffset && sourceArgs.length >= 1) args[0] = Number(sourceArgs[0]) || 0;
             return device.call(method, ...args);
@@ -6804,7 +6830,9 @@ class IrBoard implements Board {
             if (/\boffs_t\b/.test(parameters[0] ?? '')) {
               return parent.call(
                 method,
-                ...generatedDeviceCallbackArguments(parameters, sourceArgs[0] ?? state),
+                ...(sourceArgs.length >= 3
+                  ? generatedDeviceCallbackArguments(parameters, state, sourceArgs)
+                  : generatedDeviceCallbackArguments(parameters, sourceArgs[0] ?? state)),
               );
             }
             return parent.call(
@@ -6981,22 +7009,32 @@ function generatedAttotime(seconds: number): {
  * offset zero when a one-value callback is bound to a conventional
  * read/write(offs_t, data) handler; passing the value as the first argument
  * silently turns it into the offset and drops the data.
+ *
+ * `source` is what the devcb itself was called with. devcb_write{8,16,32}'s
+ * operator()(offset, data, mem_mask) hands the offset and the mask on to a
+ * target that declares them: the MB88's port O writes one nibble with mask
+ * 0x0f or 0xf0, and the Namco 54xx's O_w picks its discrete channel by that
+ * mask. Left at its default 0xff, every nibble reached channel 1, and
+ * Galaga's lowest explosion channel never sounded.
  */
 export function generatedDeviceCallbackArguments(
   parameters: readonly string[],
   state: number,
+  source?: readonly unknown[],
 ): number[] {
   if (!parameters.length) return [];
   if (/\boffs_t\b/.test(parameters[0]!)) {
     if (parameters.length === 1) return [0];
+    const written = source && source.length >= 3 ? source : undefined;
     return parameters.map((parameter, index) => {
-      if (index === 0) return 0;
+      if (index === 0) return written ? Number(written[0]) || 0 : 0;
       if (/\bmem_mask\b/.test(parameter)) {
-        return /\b(?:u?int)?32_t\b|\bu32\b/.test(parameter)
+        const width = /\b(?:u?int)?32_t\b|\bu32\b/.test(parameter)
           ? 0xffffffff
           : /\b(?:u?int)?16_t\b|\bu16\b/.test(parameter)
             ? 0xffff
             : 0xff;
+        return written ? (Number(written[2]) & width) >>> 0 : width;
       }
       return state;
     });

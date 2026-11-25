@@ -807,8 +807,13 @@ export function createStreamMixer(
           right += stream.pending[index] ?? 0;
         }
       }
+      // Each side clips on its own, as MAME's host mix adds every speaker
+      // channel into its host channel with a clamp (sound.cpp); the mono is
+      // what those two sides play, not a third mix clipped where neither is.
+      const playedLeft = Math.max(-1, Math.min(1, left));
+      const playedRight = Math.max(-1, Math.min(1, right));
       if (muted) emit(0, frac, 0, 0);
-      else emit(Math.max(-1, Math.min(1, sum)), frac, Math.max(-1, Math.min(1, left)), Math.max(-1, Math.min(1, right)));
+      else emit((playedLeft + playedRight) / 2, frac, playedLeft, playedRight);
     }
     for (const stream of streams) {
       stream.pending.splice(0, target - state.emitted);

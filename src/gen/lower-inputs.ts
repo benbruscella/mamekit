@@ -55,20 +55,45 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
   };
   appendInputSet(inputs);
   const effPorts = new Map<string, EffPort>();
-  for (const setNode of inputsChain) {
-    for (const { node: port } of g.out(setNode.id, 'HAS_PORT')) {
-      const tag = String(port.props.tag);
-      const fields = g.out(port.id, 'HAS_FIELD').map(f => f.node);
-      if (port.props.modify && effPorts.has(tag)) {
-        const eff = effPorts.get(tag)!;
-        for (const f of fields) {
-          const mask = Number(f.props.mask);
-          eff.fields = eff.fields.filter(b => (Number(b.props.mask) & mask) === 0);
-          eff.fields.push(f);
+  const mergeInputSets = (chain: readonly KGNode[], prefix: string): void => {
+    for (const setNode of chain) {
+      for (const { node: port } of g.out(setNode.id, 'HAS_PORT')) {
+        const tag = prefix + String(port.props.tag);
+        const fields = g.out(port.id, 'HAS_FIELD').map(f => f.node);
+        if (port.props.modify && effPorts.has(tag)) {
+          const eff = effPorts.get(tag)!;
+          for (const f of fields) {
+            const mask = Number(f.props.mask);
+            eff.fields = eff.fields.filter(b => (Number(b.props.mask) & mask) === 0);
+            eff.fields.push(f);
+          }
+        } else {
+          effPorts.set(tag, { tag, fields });
         }
-      } else {
-        effPorts.set(tag, { tag, fields });
       }
+    }
+  };
+  mergeInputSets(inputsChain, '');
+  // A device's own ports (`device_input_ports()`: Gottlieb's sound board's
+  // SB1), resolved through their includes and modifiers as the driver's are,
+  // under the device's tag. A device line one of them reads is named from
+  // that device too (`PORT_READ_LINE_DEVICE_MEMBER("votrax", ...)`).
+  const portScopes = new Map<string, string>();
+  for (const dev of devices) {
+    for (const { node: deviceInputs, edge } of g.out(dev.id, 'USES_INPUTS')) {
+      if (!edge.props?.device) continue;
+      const chain: KGNode[] = [];
+      const seen = new Set<string>();
+      const append = (node: KGNode | undefined): void => {
+        if (!node || seen.has(node.id)) return;
+        seen.add(node.id);
+        for (const include of g.out(node.id, 'INCLUDES_PORTS')) append(include.node);
+        chain.push(node);
+      };
+      append(deviceInputs);
+      const prefix = `${String(dev.props.tag)}:`;
+      mergeInputSets(chain, prefix);
+      for (const tag of effPorts.keys()) if (tag.startsWith(prefix)) portScopes.set(tag, String(dev.props.tag));
     }
   }
   // A controller a title asks for (the slot's `peripheral` cards, nes.xml's
@@ -309,12 +334,13 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
             /PORT_READ_LINE_DEVICE_MEMBER\s*\(\s*"([^"]+)"\s*,\s*FUNC\s*\(\s*\w+::(\w+)\s*\)/.exec(modifier))
           .find((match): match is RegExpExecArray => Boolean(match));
         if (type === 'IPT_CUSTOM' && anyDeviceLine) {
+          const scope = portScopes.get(tag);
           customs.push({
             port: tag,
             mask,
             member: anyDeviceLine[2]!,
             source: 'device-line',
-            deviceTag: anyDeviceLine[1]!,
+            deviceTag: scope ? `${scope}:${anyDeviceLine[1]!}` : anyDeviceLine[1]!,
             activeLow,
           });
           continue;
@@ -532,7 +558,7 @@ export function lowerInputs(g: Graph, inputs: KGNode, graph: KnowledgeGraph, opt
     for (const dev of devices) {
       // The slot's default card, and any card a title's medium puts there
       // instead: one slot, one controller, whichever card holds it.
-      const cards = g.out(dev.id, 'USES_INPUTS').filter(out => !out.edge.props?.peripheral).map(out => out.node);
+      const cards = g.out(dev.id, 'USES_INPUTS').filter(out => !out.edge.props?.peripheral && !out.edge.props?.device).map(out => out.node);
       if (!cards.length) continue;
       for (const { node: port } of cards.flatMap(slotInputs => g.out(slotInputs.id, 'HAS_PORT'))) {
         const tag = `${dev.props.tag}:${port.props.tag}`;
