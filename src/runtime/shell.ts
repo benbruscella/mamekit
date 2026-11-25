@@ -17,7 +17,7 @@ import { missingMedia, putMedia, recordMedia, transportImage, type TransportImag
 import type { Regions, BoardConfig, BoardSnapshot, CassetteMedia, DiskMedia, HiscoreTable, MachineState, QuickloadMedia } from './types.ts';
 import type { GeneratedAudioRoute, GeneratedHandlerProgram } from '../ir/board.ts';
 import { executeGeneratedHandler, markBigEndianWords } from '../ir/execute.ts';
-import type { GeneratedSpeakerFilterPlan } from '../ir/audio-protocol.ts';
+import type { GeneratedSpeakerFilterPlan, GeneratedSpeakerLayout } from '../ir/audio-protocol.ts';
 import { fetchRomBytes, fetchSampleSetBytes, machineSetKeys } from './rom-source.ts';
 import { machineIdentity, openSaveStore, saveId, type SaveRecord } from './savestore.ts';
 import { createNetplay, type Netplay } from './netplay.ts';
@@ -158,6 +158,8 @@ export interface SoundSpec {
   clock?: number;
   /** MAME's source-derived post-mix speaker effect. */
   speakerFilter?: GeneratedSpeakerFilterPlan;
+  /** The board's speakers in MAME's device order, each channel's side. */
+  speakers?: GeneratedSpeakerLayout[];
 }
 
 /** the ROM drop target's visual states (built by buildDom().dropZone) */

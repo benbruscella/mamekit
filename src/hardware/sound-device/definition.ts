@@ -40,6 +40,9 @@ export const SOUND_DEVICE_MAME_TYPES: readonly string[] = [
   // Berzerk's S14001A speech, whose BSY its CPU polls, and the volume stage
   // after it.
   'EXIDY', 'EXIDY_VENTURE', 'S14001A', 'FILTER_VOLUME',
+  // votrax.cpp's SC-01 and SC-01A: Gottlieb's speech board writes phonemes
+  // and inflection to it, and its A/R line raises the sound CPU's NMI.
+  'VOTRAX_SC01', 'VOTRAX_SC01A',
 ];
 export const SOUND_DEVICE_PORTS: readonly PortDeclaration[] = [
   { name: 'registers', kind: 'registers', note: "the chip's own handlers, through the bus or a device finder" },

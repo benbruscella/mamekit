@@ -16,9 +16,10 @@ export const qbert = sourceTarget({
   game: 'qbert',
   // Bounded closure gaps covered by this target's real-ROM acceptance.
   runtimeCoverage: {
+    // The speech board's class is a composite its handlers stand for; its
+    // SC-01-A is compiled whole and speaks (#298).
     generationGaps: [
       'r1sound:GOTTLIEB_SOUND_SPEECH_REV1A',
-      'votrax:VOTRAX_SC01',
     ],
     handlerGaps: [],
   },
@@ -36,22 +37,23 @@ export const qbert = sourceTarget({
       bgtiles: '365a875e',
       maincpu: 'be0a0530',
       'r1sound:audiocpu': 'a20d1420',
+      'r1sound:votrax:internal': 'fc416227',
       sprites: 'd8a2b040',
     },
     checkpoints: {
-      1: { video: '07673647', state: '501b0e0e' },
-      60: { video: 'ddedbe80', state: 'b539792d' },
-      180: { video: '7e8de1b3', state: 'd6b69b50' },
-      300: { video: '82e9e3bc', state: '1a908f20' },
-      600: { video: 'c2eb9b01', state: 'b92542b3' },
-      900: { video: '9a5e79f5', state: '807ec109' },
-      1200: { video: '7837d08c', state: '7f55ea84' },
+      1: { video: '07673647', state: '33b71bfa' },
+      60: { video: 'ddedbe80', state: '91ca014f' },
+      180: { video: '7e8de1b3', state: '43539e7f' },
+      300: { video: '82e9e3bc', state: 'de3b4006' },
+      600: { video: 'c2eb9b01', state: '0a3714f0' },
+      900: { video: '9a5e79f5', state: '88ff3c2a' },
+      1200: { video: '7837d08c', state: '130ca02c' },
     },
     audio: {
-      writes: 937820,
-      nonzeroWrites: 937061,
-      writeHash: '7d58fd63',
-      pcmHash: '4bfaf0a5',
+      writes: 937821,
+      nonzeroWrites: 937066,
+      writeHash: '2118a66a',
+      pcmHash: '6bd82efb',
       rms: 0.134133,
     },
   },

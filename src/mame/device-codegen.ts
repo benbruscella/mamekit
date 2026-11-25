@@ -2427,6 +2427,15 @@ function emitCall(
       const held = plain ? undefined : methodTemp(context);
       const source = held ?? args[0] ?? '0';
       const bits = args.slice(1);
+      // A bit past 31, one not known until run time, or a source declared 64
+      // bits wide (a BigInt the shift operators refuse), reads the source
+      // whole (the Votrax's u64 phoneme ROM): the shared helper.
+      const sourceExpression = expression.args[0];
+      const wideSource = sourceExpression?.kind === 'identifier' &&
+        /\b(?:u64|s64|u?int64_t|unsigned long long|long long)\b/.test(context.locals.get(sourceExpression.name) ?? '');
+      if (wideSource || bits.some(bit => !/^\d+$/.test(bit.trim()) || Number(bit) > 31)) {
+        return `runtime.bitswap(${args.join(', ')})`;
+      }
       const swapped = bits.map((bit, index) =>
         `(((${source}) >>> (${bit})) & 1) << ${bits.length - index - 1}`).join(' | ') || '0';
       return held ? `(${held} = ${args[0]}, ${swapped})` : `(${swapped})`;
@@ -4073,6 +4082,8 @@ function packedPointerView(valueType: string | undefined): string | undefined {
   if (/^(?:s16|int16_t)$/.test(pointee)) return 'true';
   if (/^(?:u32|uint32_t)$/.test(pointee)) return "'u32'";
   if (/^(?:s32|int32_t)$/.test(pointee)) return "'s32'";
+  if (/^(?:u64|uint64_t)$/.test(pointee)) return "'u64'";
+  if (/^(?:s64|int64_t)$/.test(pointee)) return "'s64'";
   return undefined;
 }
 

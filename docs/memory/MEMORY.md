@@ -45,6 +45,7 @@
 - [Interpreter share is the budget](interpreter-share-is-the-budget.md) · [Emulation hot paths](emulation-hot-paths.md) · [Runtime cost of declared types](runtime-cost-of-declared-types.md) · [Dictionary-mode call tables](dictionary-mode-call-tables.md) · [SNES speed #174](snes-speed-174.md)
 
 ## Sound
+- [Sound #298](sound-298.md) — -wavwrite is pre-effect, one channel per speaker input; fold tools; inliner value-param width (68000 set_8xh)
 - [Sound #242](sound-242.md) · [Sound mix #234](sound-mix-234.md) · [Sound fidelity #194](sound-fidelity-194.md) · [Board sound vs app sound](board-sound-vs-app-sound.md) · [Audio engine placement](audio-engine-placement.md) · [Worklet backlog latency](worklet-backlog-latency.md)
 - [DAC width from MAME](dac-width-from-mame.md) · [Discrete graph lowering](discrete-graph-lowering.md) · [DISCRETE compile #236](discrete-compile-236.md) · [Netlist native-rate inputs](netlist-native-rate-inputs.md) · [Samples #228](samples-228.md) · [Sample sets #206](sample-sets-206.md)
 - [POKEY #200](pokey-200.md) · [VRC7/ymfm #188](vrc7-ymfm-188.md) · [TIA audio](tia-audio.md) · [Z80 CTC + daisy chain #181](z80ctc-daisy-181.md) · [Digdug 2/3 logic rate](digdug-music-overrun.md) · [Spy Hunter SSIO sound](spyhunt-ssio-sound.md)

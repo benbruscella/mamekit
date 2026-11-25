@@ -124,15 +124,19 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
           hostTag: tag,
         })));
       }
+      // A patch a hosted board's own config makes names its device by the
+      // board's tag: Gottlieb's speech board points its 6502 at its virtual
+      // r1_map override (the Votrax's two ports), which is `r1sound:audiocpu`.
       for (const p of g.out(id, 'PATCHES_MAP')) {
+        const tag = hostedDeviceTag(hostTag, String(p.edge.props?.deviceTag));
         mapPatches.push({
           space: String(p.edge.props?.space),
-          tag: String(p.edge.props?.deviceTag),
+          tag,
           mapId: p.node.id,
         });
         mapOperations.push(Object.assign({ kind: 'set' as const, mapId: p.node.id }, {
           space: String(p.edge.props?.space),
-          tag: String(p.edge.props?.deviceTag),
+          tag,
         }));
       }
       const removedAddrMaps = g.node(id)?.props.removedAddrMaps;
@@ -141,7 +145,7 @@ export function lowerTopology(game: KGNode, g: Graph, machine: KGNode, opts: Gen
         : []) {
         const separator = encoded.indexOf('=');
         if (separator > 0) {
-          const removal = { tag: encoded.slice(0, separator), space: encoded.slice(separator + 1) };
+          const removal = { tag: hostedDeviceTag(hostTag, encoded.slice(0, separator)), space: encoded.slice(separator + 1) };
           mapRemovals.push(removal);
           mapOperations.push(Object.assign({ kind: 'remove' as const }, removal));
         }

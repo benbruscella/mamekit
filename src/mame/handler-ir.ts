@@ -303,7 +303,11 @@ function lowerNamedCasts(source: string): string {
     const classPointer = /[<:]/.test(type) && /[*&]\s*$/.test(type);
     const replacement = found[1] === 'dynamic' && pointee
       ? `DYNAMIC_CAST(${operand}, ${JSON.stringify(pointee[1]!.split('::').at(-1))})`
-      : classPointer ? `(${operand})` : `(${type})(${operand})`;
+      // Wrapped whole: a named cast is a postfix expression, so
+      // `reinterpret_cast<const u64 *>(m_rom->base())[i]` indexes the cast
+      // pointer. As the C cast `(T)(x)[i]` the index went first, and the
+      // Votrax read byte i of its ROM where MAME reads 64-bit word i.
+      : classPointer ? `(${operand})` : `((${type})(${operand}))`;
     out = `${out.slice(0, found.index)}${replacement}${out.slice(end + 1)}`;
     cast.lastIndex = found.index;
   }
@@ -2178,7 +2182,11 @@ class HandlerParser {
     const args: GeneratedExpression[] = [];
     if (this.consume(')')) return args;
     while (!this.at('eof')) {
-      const arg = this.parseExpression();
+      // A braced list passed where the callee takes a `std::initializer_list`
+      // (the Votrax's `bits_to_caps(m_filt_f1, { 2546, 4973, 9861, 19724 })`)
+      // is the list itself: an array the callee's range-for walks.
+      const braced = this.consume('{') ? this.parseDelimitedExpressions('}') : undefined;
+      const arg = braced ? { kind: 'call' as const, callee: { kind: 'identifier' as const, name: 'ARRAY' }, args: braced } : this.parseExpression();
       if (!arg) return undefined;
       args.push(arg);
       if (this.consume(')')) return args;

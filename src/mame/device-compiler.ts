@@ -78,6 +78,8 @@ export interface GeneratedDeviceMember {
     /** A growable vector's element type, when it is not an integer. */
     element?: string;
     elementBytes: number;
+    /** The element is a signed integer (`std::vector<s16>`): read back with its sign. */
+    signed?: boolean;
     /** Share tag; DEVICE_SELF resolves to the device's own tag at runtime. */
     share?: 'self' | string;
   };
@@ -173,6 +175,8 @@ export interface GeneratedDeviceCallback {
   member: string;
   slots: number;
   initial?: number;
+  /** A devcb_read*: the device takes back what its target answers. */
+  reads?: boolean;
   /** Accessors bound to one element of the array: `porta_r` is slot 0. */
   aliases?: { signal: string; slot: number }[];
 }
@@ -2384,6 +2388,7 @@ function compileMameDeviceSource(
           member: member.name,
           slots: callbackSlots(member.valueType, constants),
           initial: member.valueType.startsWith('devcb_read8') ? 0xff : 0,
+          ...(member.valueType.startsWith('devcb_read') ? { reads: true } : {}),
         });
         return [];
       }
@@ -5093,6 +5098,30 @@ function iteratorParameters(method: MameFunction): MameFunction {
   return parameters === method.parameters ? method : { ...method, parameters };
 }
 
+/**
+ * A value template whose parameter is the bound of a reference to an array,
+ * `template<u32 N> void shift_hist(double val, double (&hist)[N])`: C++
+ * deduces N from the array a call passes, so N is that array's extent. Left
+ * as a template nothing instantiates, N read as 0, `for(u32 i=N-1; i>0; i--)`
+ * started at 4294967295 and the Votrax's filters never returned.
+ */
+export function deduceArrayBound(method: MameFunction): MameFunction {
+  // Every template parameter must be some reference-to-array parameter's
+  // bound: the Votrax's apply_filter deduces four, `(const double (&x)[Nx],
+  // ..., const double (&b)[Nb])`.
+  const templates = method.templateParameters ?? [];
+  if (!templates.length) return method;
+  let parameters = method.parameters;
+  let body = method.body;
+  for (const parameter of templates) {
+    const bound = new RegExp(String.raw`\(\s*&\s*(\w+)\s*\)\s*\[\s*${parameter}\s*\]`).exec(parameters);
+    if (!bound) return method;
+    parameters = parameters.replace(bound[0], `*${bound[1]}`);
+    body = body.replace(new RegExp(String.raw`\b${parameter}\b`, 'g'), `std::size(${bound[1]})`);
+  }
+  return { ...method, templateParameters: undefined, parameters, body };
+}
+
 function specializeMethod(
   method: MameFunction,
   specialize: (className: string, text: string) => string,
@@ -5169,6 +5198,8 @@ function specializeFunctionTemplate(
   functionMacros: readonly FunctionMacro[],
   constants: Record<string, number>,
 ): MameFunction[] {
+  const deduced = deduceArrayBound(template);
+  if (deduced !== template) return [deduced];
   const parameters = template.templateParameters ?? [];
   if (!parameters.length) return [template];
   const method = bindDependentPixelSize(template, parameters);
@@ -6030,10 +6061,15 @@ function memoryContainer(
     /^std::vector<([\w:]+)>$/.exec(valueType);
   if (!container) return undefined;
   const elementBytes = (integerBits(container[1]!) ?? 8) / 8;
+  // The cassette's `std::vector<s16> m_samples` holds a tape's negative
+  // half-waves: kept unsigned, -0x5a9e read back as 42338, and every tape
+  // played between 0.71 and 1.29 instead of either side of zero (7.7 dB
+  // quiet on the Spectrum 128's load).
+  const sign = integerSigned(container[1]!) ? { signed: true } : {};
   // A drive lists its media variants with `m_variants.push_back(...)`: a
   // typed array cannot grow, so a vector the source appends to is a plain
   // array; one it only sizes and indexes keeps its element width.
-  if (valueType.startsWith('std::vector')) return pushed ? { kind: 'growable', elementBytes } : { kind: 'owned', elementBytes };
+  if (valueType.startsWith('std::vector')) return pushed ? { kind: 'growable', elementBytes } : { kind: 'owned', elementBytes, ...sign };
   // required_shared_ptr(*this, DEVICE_SELF) binds the device's own tag.
   const args = constructorBindings[name] ?? [];
   const target = args.at(-1) ?? '';
@@ -6043,6 +6079,7 @@ function memoryContainer(
   return {
     kind: 'shared',
     elementBytes,
+    ...sign,
     share: target === 'DEVICE_SELF' ? 'self'
       : /\bDUMMY_TAG\b/.test(target) ? 'unset'
         : unquoteToken(target) ?? 'self',
@@ -8067,7 +8104,8 @@ function inlineReferenceCallees(methods: GeneratedDeviceMethod[]): void {
     .map(parameter => parameter.trim()).filter(parameter => parameter && parameter !== 'void')
     .map(parameter => {
       const name = /([A-Za-z_]\w*)\s*(?:=[^=].*)?$/.exec(parameter)?.[1] ?? '';
-      return { name, reference: /&/.test(parameter.slice(0, parameter.lastIndexOf(name))) && !/\bconst\b/.test(parameter) };
+      const type = parameter.slice(0, parameter.lastIndexOf(name)).trim();
+      return { name, type, reference: /&/.test(type) && !/\bconst\b/.test(parameter) };
     });
   const json = (value: unknown) => JSON.stringify(value);
   const inlinable = (callee: GeneratedDeviceMethod): boolean => {
@@ -8108,7 +8146,13 @@ function inlineReferenceCallees(methods: GeneratedDeviceMethod[]): void {
         if (parameter.reference) renames.set(parameter.name, (argument as { name: string }).name);
         else {
           renames.set(parameter.name, tag + parameter.name);
-          prologue.push({ op: 'declare', name: tag + parameter.name, valueType: 'auto', value: argument });
+          // A value parameter is the argument converted to its declared type,
+          // as the call converts it: m68000's set_8xh(u16 &r, u16 v) takes
+          // the low word of a 32-bit register. Bound as `auto` it kept the
+          // whole register, and a data register whose upper word was 0xffff
+          // put 0xff on movep.w's high byte (the Cheap Squeak Deluxe's DAC).
+          const valueType = parameter.type.replace(/\bconst\b/g, '').replace(/&/g, '').trim() || 'auto';
+          prologue.push({ op: 'declare', name: tag + parameter.name, valueType, value: argument });
         }
       });
       const body = JSON.parse(json(target.program.operations), (key, value) => {

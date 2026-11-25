@@ -249,10 +249,13 @@ function parseMameSourceOnce(file: string, source: string): MameTranslationUnit 
       name: fm[2],
       ...(templateParameters.length ? { templateParameters } : {}),
       ...(returnType && returnType !== 'void' ? { returnType } : {}),
+      // A comment beside a parameter is not one: the Votrax's filter builders
+      // note each capacitor (`double c1t, // Unswitched cap, input, top`), and
+      // split on its commas the comment became three more parameters.
       parameters: source.slice(
         masked.indexOf('(', fm.index),
         matchPair(masked, masked.indexOf('(', fm.index), '(', ')') + 1,
-      ).slice(1, -1),
+      ).slice(1, -1).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\n]*/g, ' '),
       body,
       statements: parseStatements(file, source, masked, bodyStart, braceEnd, lineStarts),
       span: span(start, braceEnd + 1),

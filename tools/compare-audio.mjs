@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 // A/B audio comparison: our render vs a reference recording (real MAME).
 //
-//   node tools/compare-audio.mjs <ours.wav> <reference.wav> [outdir=.]
+//   node tools/compare-audio.mjs <ours.wav> <reference.wav> [outdir=.] [--layout <config.json>]
+//
+// With --layout (a generated config.json), the reference is MAME's -wavwrite
+// and is heard as a listener hears it: its channels folded by the board's
+// speaker positions and the speaker effect applied (tools/compare/mame-wav.ts).
+// Without it the reference's channels are averaged.
 //
 // Emits stacked spectrograms (ours-vs-ref.png) and prints a numeric diff:
 // per-octave-band energy, RMS, and a coarse onset-rate (tempo proxy), so an
@@ -12,8 +17,13 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
+import { readMameWavForListener } from './compare/mame-wav.ts';
 
-const [oursPath, refPath, outArg] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const layoutAt = argv.indexOf('--layout');
+const layoutPath = layoutAt >= 0 ? argv[layoutAt + 1] : undefined;
+if (layoutAt >= 0) argv.splice(layoutAt, 2);
+const [oursPath, refPath, outArg] = argv;
 if (!oursPath || !refPath) {
   console.error('usage: node tools/compare-audio.mjs <ours.wav> <reference.wav> [outdir]');
   process.exit(1);
@@ -41,9 +51,16 @@ function readWav(path) {
     for (let c = 0; c < fmt.ch; c++) s += data.readInt16LE((i * fmt.ch + c) * 2);
     out[i] = s / fmt.ch / 32768;
   }
-  // MAME's wavwrite preserves the emulated board's positive DC bias while the
+  return dcBlocked({ rate: fmt.rate, samples: out });
+}
+
+function dcBlocked({ rate, samples: out }) {
+  const fmt = { rate };
+  // MAME's raw wavwrite preserves the emulated board's DC bias while the
   // browser output is AC-coupled. Remove that inaudible mismatch before FFT,
   // band-energy and onset comparisons or DC leakage dominates every metric.
+  // With --layout both sides already carry the speaker's highpass, and this
+  // one, run over both, changes neither against the other.
   const cutoff = 20;
   const rc = 1 / (2 * Math.PI * cutoff);
   const alpha = rc / (rc + 1 / fmt.rate);
@@ -98,7 +115,13 @@ function spectroRows(sig, rate, seconds) {
 }
 
 const ours = readWav(oursPath);
-const ref = readWav(refPath);
+const ref = layoutPath
+  ? (() => {
+      const { sound } = JSON.parse(readFileSync(resolve(layoutPath), 'utf8'));
+      const heard = readMameWavForListener(resolve(refPath), sound ?? {});
+      return dcBlocked({ rate: heard.rate, samples: heard.mono });
+    })()
+  : readWav(refPath);
 const seconds = Math.min(ours.samples.length / ours.rate, ref.samples.length / ref.rate);
 console.log(`ours: ${ours.rate} Hz ${(ours.samples.length / ours.rate).toFixed(1)} s | ref: ${ref.rate} Hz ${(ref.samples.length / ref.rate).toFixed(1)} s | comparing ${seconds.toFixed(1)} s`);
 

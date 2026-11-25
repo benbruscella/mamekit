@@ -62,8 +62,8 @@ export const mslug = sourceTarget({
     audio: {
       writes: 2433023,
       nonzeroWrites: 1921231,
-      writeHash: '4deb4f41',
-      pcmHash: 'eaf0ac30',
+      writeHash: 'b39c14d8',
+      pcmHash: '3de89f1c',
       rms: 0.071861,
     },
   },

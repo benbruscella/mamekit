@@ -79,8 +79,8 @@ export const marble = sourceTarget({
     audio: {
       writes: 1922475,
       nonzeroWrites: 950480,
-      writeHash: '19a14473',
-      pcmHash: '0569d5ba',
+      writeHash: '83bfd523',
+      pcmHash: '2f33d68f',
       rms: 0.027162,
     },
   },

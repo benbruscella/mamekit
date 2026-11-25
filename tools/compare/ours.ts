@@ -162,6 +162,66 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           return value;
         };
       }
+      // A core compiled whole makes its wide accesses through its own space's
+      // read_word / write_word with a mem_mask (the 68000 reads and writes
+      // every byte as a masked word), which the byte wrappers never saw: the
+      // Cheap Squeak Deluxe's 68000 tapped as making no access at all. One
+      // lane is logged as that byte at its own address, as oracle.lua turns
+      // MAME's lanes back into bytes; a whole word stays one word.
+      // Only on a space wider than a byte: on an 8-bit one (the 6502's) the
+      // interruptible accessors are the byte access itself, already logged.
+      const program = (core as { definition?: { spaces?: { index: number; endianness?: string; dataBits?: number }[] } } | undefined)
+        ?.definition?.spaces?.find(space => space.index === 0);
+      if (coreSpace && (program?.dataBits ?? 8) > 8) {
+        const target = coreSpace.target;
+        const little = program?.endianness === 'little';
+        const lanes = (address: number, value: number, mask: unknown) => {
+          const selected = Number(mask ?? 0xffff) & 0xffff || 0xffff;
+          const even = address & ~1;
+          if (selected === 0xff00) return { address: even + (little ? 1 : 0), data: (value >>> 8) & 0xff, bytes: 1 };
+          if (selected === 0x00ff) return { address: even + (little ? 0 : 1), data: value & 0xff, bytes: 1 };
+          return { address: even, data: value & 0xffff, bytes: 2 };
+        };
+        // The 68000's bus cycles go through read_interruptible /
+        // write_interruptible, bound to the word accessors when the space was
+        // built, so each is wrapped on its own.
+        for (const name of ['read_word', 'read_interruptible']) {
+          const readWord = target[name] as ((address: number, mask?: number) => number) | undefined;
+          if (typeof readWord !== 'function') continue;
+          const original = readWord.bind(target);
+          target[name] = (address: number, mask?: number) => {
+            inWord++;
+            let value: number;
+            try {
+              value = original(address, mask);
+            } finally {
+              inWord--;
+            }
+            if (inWord === 0) {
+              const access = lanes(address, Number(value), mask);
+              log('R', access.address, access.data, access.bytes);
+            }
+            return value;
+          };
+        }
+        for (const name of ['write_word', 'write_interruptible']) {
+          const writeWord = target[name] as ((address: number, data: number, mask?: number) => unknown) | undefined;
+          if (typeof writeWord !== 'function') continue;
+          const original = writeWord.bind(target);
+          target[name] = (address: number, data: number, mask?: number) => {
+            if (inWord === 0) {
+              const access = lanes(address, Number(data), mask);
+              log('W', access.address, access.data, access.bytes);
+            }
+            inWord++;
+            try {
+              return original(address, data, mask);
+            } finally {
+              inWord--;
+            }
+          };
+        }
+      }
       for (const name of ports ? ['out', 'out16be', 'out16le'] : ['write', 'write16be', 'write16le']) {
         const method = bus[name] as ((address: number, data: number, ...rest: unknown[]) => void) | undefined;
         if (typeof method !== 'function') continue;

@@ -85,9 +85,9 @@ export const spectrum = {
       audio: {
         writes: 11501568,
         nonzeroWrites: 11354680,
-        writeHash: 'bd2cf6f7',
-        pcmHash: '9ec63b98',
-        rms: 0.054878,
+        writeHash: '7797cb96',
+        pcmHash: '208ac071',
+        rms: 0.041641,
       },
     },
   }, {

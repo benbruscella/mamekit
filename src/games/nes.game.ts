@@ -56,10 +56,10 @@ export const nes = {
       },
       audio: {
         writes: 1198027,
-        nonzeroWrites: 833099,
-        writeHash: 'f808f61b',
-        pcmHash: '5014d8a4',
-        rms: 0.491489,
+        nonzeroWrites: 833050,
+        writeHash: 'f01ec8c7',
+        pcmHash: 'b037a78f',
+        rms: 0.294211,
       },
     },
   }, {
@@ -139,9 +139,9 @@ export const nes = {
       audio: {
         writes: 607799,
         nonzeroWrites: 578460,
-        writeHash: '096c01ba',
-        pcmHash: '32dcf9f5',
-        rms: 0.36663,
+        writeHash: '094e1637',
+        pcmHash: 'cd2d43e5',
+        rms: 0.203517,
       },
     },
   }, {

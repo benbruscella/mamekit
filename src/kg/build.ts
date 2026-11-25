@@ -38,7 +38,7 @@ import {
   parseStateClassConstants,
   parseGfxDecodes, parseIncludes, parseDeviceTypeDecls, parseDeviceDefaultClocks,
   parseInitPatches, parseInitRomTransforms, parseInstalledHandlers, parseTextMacros, parseMemoryBanks, evalExpr,
-  parseEnumConstants, normalizeTemplatedMethod, matchParen,
+  parseEnumConstants, normalizeTemplatedMethod, matchParen, splitArgs,
   parseConstexprFunctions, expandConstexprCalls,
   type InputPortsDef,
   type AddressMapDef,
@@ -1327,6 +1327,26 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
         const clock = evalExpr(dev.clockExpr.replace(/\bclock\s*\(\s*\)/g, String(configClock)), consts);
         if (clock !== null) { dev.clock = clock; delete dev.clockExpr; }
       }
+      // A clock the configuring class computes, `VOTRAX_SC01(config,
+      // m_votrax, convert_speech_clock(0))`: the class's own function, run
+      // on its constant arguments as MAME runs it while configuring. Left
+      // unevaluated the Votrax had no clock, its filters divided by zero,
+      // and every sample was NaN.
+      if (dev.clock === null && dev.clockExpr) {
+        const call = /^(\w+)\s*\(([^()]*)\)$/.exec(dev.clockExpr.trim());
+        const fn = call ? ast.findFunctionInHierarchy(cfg.cls, call[1]!) : undefined;
+        const args = call ? splitArgs(call[2]!).map(arg => evalExpr(arg, consts)) : [];
+        if (fn && args.every(arg => arg !== null)) {
+          const program = compileMameHandler(fn.body);
+          const names = fn.parameters.split(',').map(parameter => /(\w+)\s*$/.exec(parameter.trim())?.[1])
+            .filter((name): name is string => Boolean(name));
+          if (!program.diagnostics.length && names.length === args.length) {
+            const clock = Number(executeGeneratedHandler(program, { constants: consts, calls: {} },
+              Object.fromEntries(names.map((name, index) => [name, args[index]!]))));
+            if (Number.isFinite(clock) && clock > 0) { dev.clock = clock; delete dev.clockExpr; }
+          }
+        }
+      }
       const props: Record<string, PropValue> = {
         type: dev.type, tag: dev.tag, clock: dev.clock, config: dev.config,
         ...(finders.length === 1 ? { member: finders[0]! } : {}),
@@ -1671,6 +1691,20 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
   // driver: nes.cpp's INPUT_PORTS_START(nes) is empty; the joypad fields are
   // in bus/nes_ctrl/joypad.cpp) ---
   resolveSlotInputs(g, mameSrc, slashIncludes, machineConfigs);
+
+  // --- a device's own input ports (`device_input_ports()`): Gottlieb's sound
+  // board declares SB1, its test switches and the bit that reads the Votrax's
+  // request line, which its 6502 polls before every phoneme. Its tags are the
+  // device's own, as MAME's ioport list names them under the device. ---
+  for (const cfg of machineConfigs) {
+    for (const dev of cfg.devices) {
+      const cls = deviceTypes[dev.type];
+      const ports = cls ? ast.findFunctionInHierarchy(cls, 'device_input_ports') : undefined;
+      const name = ports ? /INPUT_PORTS_NAME\(\s*(\w+)\s*\)/.exec(ports.body)?.[1] : undefined;
+      if (!name || !g.nodes.has(`inputs:${name}`)) continue;
+      g.edge(`device:${cfg.cls}.${cfg.name}/${dev.tag}`, `inputs:${name}`, 'USES_INPUTS', { device: true });
+    }
+  }
 
   // --- gfx ---
   // MAME exposes standard layouts from emu/video/generic.cpp via extern
@@ -4017,19 +4051,37 @@ export function gameSubgraph(graph: KnowledgeGraph, game: string): KnowledgeGrap
       const config = nodes.find(node => node.id === id);
       const encoded = Array.isArray(config?.props.devicePatches) ? config.props.devicePatches.map(String) : [];
       for (const value of encoded) {
-        const patch = JSON.parse(value) as { tag: string; routeEdits?: ('reset' | { output: string; target: string; gain: number; input?: number; raw: string })[] };
-        if (!patch.routeEdits?.length) continue;
+        const patch = JSON.parse(value) as { tag: string; replacementType?: string; clock?: number; routeEdits?: ('reset' | { output: string; target: string; gain: number; input?: number; raw: string })[] };
+        if (!patch.routeEdits?.length && !patch.replacementType) continue;
         const device = closure.flatMap(owner => edges
           .filter(edge => edge.from === owner && edge.rel === 'HAS_DEVICE')
           .map(edge => nodes.find(node => node.id === edge.to)))
           .find(node => node?.label === 'Device' && node.props.tag === patch.tag);
         if (!device) continue;
+        // `VOTRAX_SC01A(config.replace(), m_votrax, ...)` in a derived sound
+        // board's own config: the device its base built is now that type
+        // (Gottlieb's REV1A speech board, an SC-01A where the REV1 has an
+        // SC-01), at that clock when one is given.
+        if (patch.replacementType) {
+          device.props.type = patch.replacementType;
+          if (patch.clock !== undefined) device.props.clock = patch.clock;
+        }
+        if (!patch.routeEdits?.length) continue;
         for (const edit of patch.routeEdits) {
           if (edit === 'reset') {
             edges = edges.filter(edge => !(edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE'));
             continue;
           }
-          const count = edges.filter(edge => edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE').length;
+          const held = edges.filter(edge => edge.from === device.id && edge.rel === 'HAS_AUDIO_ROUTE');
+          // A statement the device's own parse already took (a card's
+          // device_add_mconfig builds its AY and calls the base's, whose
+          // `m_ay0->add_route(...)` lines the parse read with it) runs once in
+          // MAME: applied again it played the Spectrum 128's AY twice.
+          if (held.some(edge => {
+            const route = nodes.find(node => node.id === edge.to)?.props;
+            return route?.raw === edit.raw && String(route?.output) === String(edit.output);
+          })) continue;
+          const count = held.length;
           const routeId = `audioroute:${device.id}/${id}/${count}`;
           nodes.push({ id: routeId, label: 'AudioRoute', props: { ...edit } });
           edges.push({ from: device.id, to: routeId, rel: 'HAS_AUDIO_ROUTE' });

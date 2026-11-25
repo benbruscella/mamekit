@@ -235,6 +235,28 @@ assert.deepEqual(
   [0, 0x7f, 0xff],
   'parallel callback adapters must retain an all-bits mask for AOT device methods',
 );
+// devcb_write8::operator()(offset, data, mem_mask) hands its offset and mask
+// on: the MB88's port O writes a nibble with mask 0x0f or 0xf0, and the Namco
+// 54xx's O_w chooses its discrete channel by it.
+assert.deepEqual(
+  generatedDeviceCallbackArguments(
+    ['offs_t offset', 'uint8_t data', 'uint8_t mem_mask'],
+    0x0d,
+    [0, 0x0d, 0x0f],
+  ),
+  [0, 0x0d, 0x0f],
+  'a devcb write passes its own mem_mask to a target that declares one',
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['offs_t offset', 'uint8_t data'], 0x12, [3, 0x12, 0xff]),
+  [3, 0x12],
+  'and its offset',
+);
+assert.deepEqual(
+  generatedDeviceCallbackArguments(['offs_t offset', 'uint8_t data', 'uint8_t mem_mask'], 0x0d, [0x0d]),
+  [0, 0x0d, 0xff],
+  'a one-value emission still gets an all-bits mask',
+);
 
 const driverState: Record<string, unknown> = {};
 const driverCalls: Record<string, (...args: number[]) => number | void> = {};

@@ -34,7 +34,7 @@ import {
   resizeGeneratedVector,
 } from './generated-handler.ts';
 import { installedViewEntry, type InstalledView } from './address-space-install.ts';
-import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, programLambdas, deviceLambdaName, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
+import { GENERATED_CPP_EXCEPTIONS, UNION_VIEW, UNION_ELEMENTS, buildCallLinks, generatedPointerElement, setGeneratedPointerElement, generatedMemberAddress, generatedObjectAddress, generatedPackedWord, generatedSwapObjects, copyGeneratedBytes, DEFAULT_CONSTANTS, generatedBoundSearch, generatedBitswap, generatedPointerOffset, generatedSynchronize, noteCallLinksChanged, REFERENCE_PARAMETERS, programLambdas, deviceLambdaName, resizableBuffer, type GeneratedLValue } from '../ir/execute.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
 import { attotimeBinary, attotimeField, attotimeFieldAssignment, attotimeSecondsFromHz, attotimeSecondsFromTicks, ExactAttotime, exactAttotime, exactAttotimeFromHz, exactDuration, exactToAttos, withAttotimeField } from '../ir/exact-attotime.ts';
 import { markResizable, stateValue } from './machine-state.ts';
@@ -58,6 +58,7 @@ interface DeviceMember {
     kind: 'shared' | 'owned' | 'growable';
     element?: string;
     elementBytes: number;
+    signed?: boolean;
     share?: 'self' | string;
   };
   finder?: {
@@ -108,6 +109,8 @@ interface DeviceCallback {
   member: string;
   slots: number;
   initial?: number;
+  /** A devcb_read*: the device takes back what its target answers. */
+  reads?: boolean;
   /** Accessors bound to one element of a devcb array: `porta_r` is slot 0. */
   aliases?: { signal: string; slot: number }[];
 }
@@ -222,6 +225,8 @@ export interface GeneratedDeviceExecutionContext {
   synchronize(callback: string, parameter: unknown): number;
   /** C arithmetic promoted to 64 bits by a literal too wide for a double. */
   wide(operator: string, left: unknown, right: unknown): unknown;
+  /** MAME's bitswap over a value that may be 64 bits wide (execute.ts generatedBitswap). */
+  bitswap(value: unknown, ...bits: unknown[]): number;
   /** The low 32 bits of a `wide` answer, before a 32-bit-or-narrower store (execute.ts generatedLow32). */
   low32(value: unknown): unknown;
   /** C++ `*pointer = value`, over a generated pointer or plain memory. */
@@ -1136,7 +1141,8 @@ export class IrSoundStream {
   // then halves it for a chip with an internal divider (the Sunsoft 5B).
   // Ignored, the 5B played an octave high.
   set_sample_rate(next: unknown): number {
-    const rate = Number(next);
+    // `set_sample_rate(u32)`, as stream_alloc's rate.
+    const rate = Math.trunc(Number(next)) >>> 0;
     if (rate > 0 && rate !== this.rate) {
       this.bindings.calls?.['stream.rate_changing']?.(this, rate);
       this.rate = rate;
@@ -1224,6 +1230,25 @@ class IrTimer {
   anchorAt(seconds: number): number {
     if (this.exactDue()) this.remainingSeconds = seconds;
     return this.remainingSeconds;
+  }
+
+  /**
+   * emu_timer::expire(): when it fires, as an absolute time, or never. The
+   * Votrax arms its phone commit only while nothing else is due
+   * (`m_timer->expire().is_infinity() || m_timer->param() != T_COMMIT_PHONE`);
+   * unanswered, neither held and no phoneme was ever committed.
+   */
+  expire(): number {
+    if (!Number.isFinite(this.remainingSeconds)) return Infinity;
+    if (this.exactExpiry) return Number(this.exactExpiry);
+    if (Number.isFinite(this.expiry)) return this.expiry;
+    const now = Number(this.now?.() ?? NaN);
+    return Number.isFinite(now) ? now + this.remainingSeconds : this.remainingSeconds;
+  }
+
+  /** emu_timer::param(): the parameter it was last armed with. */
+  param(): number {
+    return this.parameter;
   }
 
   adjust(duration: unknown, parameter = 0, repeat: unknown = Infinity): void {
@@ -2275,7 +2300,12 @@ class IrDevice implements Device {
           // connects to, which in this mix is the speaker's: the Game Boy
           // APU's and every FILTER_RC's. Read as a rate, they asked for four
           // billion samples a second.
-          const rate = Number(requested) >= 0xfffffffd ? 48000 : Number(requested);
+          // The rate is a u32 (`stream_alloc(int, int, u32)`): the Votrax asks
+          // for its clock / 18.0 and MAME's stream runs at the whole part.
+          // Kept fractional, the resampler's source position was fractional
+          // too, its phase ran past the interpolation table and every sample
+          // was NaN.
+          const rate = Number(requested) >= 0xfffffffd ? 48000 : Math.trunc(Number(requested)) >>> 0;
           if (rate > 0) this.members.__stream_rate = rate;
           const stream = new IrSoundStream(rate, this.bindings, Number(outputs), Number(inputs));
           stream.onRate = next => { this.members.__stream_rate = next; };
@@ -2526,6 +2556,7 @@ class IrDevice implements Device {
       writableMember: name => this.members[name] ?? 0,
       synchronize: (callback, parameter) => generatedSynchronize(this.bindings, callback, parameter),
       wide: generatedWideBinary,
+      bitswap: generatedBitswap,
       low32: generatedLow32,
       invoke: (name, ...args) => {
         if (name.startsWith('new::') && referenceCalls[name]) return referenceCalls[name]!(...args);
@@ -2860,7 +2891,7 @@ class IrDevice implements Device {
         const named = String(tag ?? '').replace(/^\^+/, '').replace(/^:/, '');
         const bytes = options.shares?.[`${options.tag}:${named}`] ?? options.shares?.[named];
         if (!bytes) throw new Error(`${this.definition.type}: ${member.name}.set_tag names no share "${named}"`);
-        this.members[member.name] = generatedMemoryArray(member.memory!.elementBytes, bytes);
+        this.members[member.name] = generatedMemoryArray(member.memory!.elementBytes, bytes, member.memory!.signed);
         return 0;
       };
     }
@@ -3357,8 +3388,14 @@ class IrDevice implements Device {
    */
   private bindChildCallbacks(child: Device, spec: NonNullable<GeneratedDeviceDefinition['children']>[number]): void {
     for (const [signal, method] of Object.entries(spec.callbackTargets ?? {})) {
-      const member = spec.definition.callbacks.find(callback => callback.signal === signal)?.member;
-      const reading = /\bdevcb_read/.test(spec.definition.members.find(candidate => candidate.name === member)?.valueType ?? '');
+      // A devcb_read's target answers the child: the 2A03's APU fetches its
+      // DMC samples as `m_mem_read_cb(address)`. The child's definition
+      // carries no member list, so its type was never found there, the fetch
+      // was taken for a write, and every DMC byte read back as the devcb's
+      // initial 0xff: SMB3's drums held one level.
+      const callback = spec.definition.callbacks.find(candidate => candidate.signal === signal);
+      const reading = callback?.reads === true ||
+        /\bdevcb_read/.test(spec.definition.members?.find(candidate => candidate.name === callback?.member)?.valueType ?? '');
       const declared = this.parameters(method).filter(parameter => parameter && parameter !== 'void').length;
       child.on(signal, (...args: number[]) => {
         if (reading) return Number(this.invoke(method, ...args.slice(0, declared))) || 0;
@@ -4718,7 +4755,7 @@ function memoryMember(
   const memory = member.memory!;
   // A vector its constructor sizes (`m_value_map(1 << bits)`) starts that long.
   const length = typeof member.initial === 'number' && member.initial > 0 ? member.initial : 0;
-  if (memory.kind === 'owned') return length ? resizeGeneratedContainer(generatedMemoryArray(memory.elementBytes), length) as ArrayLike<unknown> : generatedMemoryArray(memory.elementBytes);
+  if (memory.kind === 'owned') return length ? resizeGeneratedContainer(generatedMemoryArray(memory.elementBytes, undefined, memory.signed), length) as ArrayLike<unknown> : generatedMemoryArray(memory.elementBytes, undefined, memory.signed);
   if (memory.kind === 'growable') return resizeGeneratedVector(generatedVector(vectorElement(memory.element, structs)), length);
   // A finder on DUMMY_TAG holds nothing until the configuration re-tags it
   // (sharedMemberRetag below).
@@ -4738,13 +4775,13 @@ function memoryMember(
   // A share the device's own address map creates: a 6801's
   // `map(0x0080, 0x00ff).ram().share(m_internal_ram)`. The map sizes it when
   // it is built (mappedDeviceSpace), and this member is that memory.
-  if (!bytes && ownMap) return generatedMemoryArray(memory.elementBytes);
+  if (!bytes && ownMap) return generatedMemoryArray(memory.elementBytes, undefined, memory.signed);
   if (!bytes) {
     throw new Error(
       `generated device memory share "${tag ?? memory.share}" is not available for ${member.name}`,
     );
   }
-  return generatedMemoryArray(memory.elementBytes, bytes);
+  return generatedMemoryArray(memory.elementBytes, bytes, memory.signed);
 }
 
 /** A memory container indexed in the element width declared by its C++ type. */
@@ -4754,24 +4791,28 @@ const GROWABLE_VECTOR_BYTES = 256 * 1024 * 1024;
 function generatedMemoryArray(
   elementBytes: number,
   bytes?: Uint8Array,
-): Uint8Array | Uint16Array | Uint32Array {
+  /** The C++ element is signed (`std::vector<s16>`): a read keeps its sign. */
+  signed = false,
+): Uint8Array | Uint16Array | Uint32Array | Int8Array | Int16Array | Int32Array {
   if (!bytes) {
     // An owned std::vector starts empty and is sized later, often through a
     // reference (`optimize_helper(m_sprite_gfx, ...)` resizes Neo Geo's
     // decoded sprites through `std::vector<u8> &`): over a resizable buffer
     // the resize happens in place, so every holder sees it.
     const buffer = resizableBuffer(GROWABLE_VECTOR_BYTES);
-    if (elementBytes === 2) return new Uint16Array(buffer);
-    if (elementBytes === 4) return new Uint32Array(buffer);
-    return new Uint8Array(buffer);
+    if (elementBytes === 2) return signed ? new Int16Array(buffer) : new Uint16Array(buffer);
+    if (elementBytes === 4) return signed ? new Int32Array(buffer) : new Uint32Array(buffer);
+    return signed ? new Int8Array(buffer) : new Uint8Array(buffer);
   }
   if (elementBytes === 2) {
-    return new Uint16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
+    const length = Math.floor(bytes.byteLength / 2);
+    return signed ? new Int16Array(bytes.buffer, bytes.byteOffset, length) : new Uint16Array(bytes.buffer, bytes.byteOffset, length);
   }
   if (elementBytes === 4) {
-    return new Uint32Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 4));
+    const length = Math.floor(bytes.byteLength / 4);
+    return signed ? new Int32Array(bytes.buffer, bytes.byteOffset, length) : new Uint32Array(bytes.buffer, bytes.byteOffset, length);
   }
-  return bytes;
+  return signed ? new Int8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength) : bytes;
 }
 
 function splitParameters(parameters: string): string[] {

@@ -45,9 +45,9 @@ export const spec128 = {
       audio: {
         writes: 383837,
         nonzeroWrites: 383835,
-        writeHash: 'fc62c534',
-        pcmHash: 'd5eb51e3',
-        rms: 0.187693,
+        writeHash: 'aaa2aba9',
+        pcmHash: 'cb1c1a84',
+        rms: 0.094202,
       },
     },
   }, {
@@ -79,9 +79,9 @@ export const spec128 = {
       audio: {
         writes: 8636346,
         nonzeroWrites: 8636344,
-        writeHash: '941d1d56',
-        pcmHash: 'b040c999',
-        rms: 0.137817,
+        writeHash: 'd9bbf14b',
+        pcmHash: 'd71264d4',
+        rms: 0.101998,
       },
     },
   }],

@@ -1275,8 +1275,8 @@ export interface GeneratedAudioRoute {
    * placed off centre, `SPEAKER(config, "speaker", 2).front()`): this route's
    * gain into the host's left and right outputs, apart from the mono `gain`.
    * A channel left of centre is left, right of it right, a centred one both
-   * at half; the pair is scaled so their mean is MAME's mean of every speaker
-   * channel, which is what `gain` already is.
+   * at full volume (sound.cpp `find_channel_mapping`); the pair's mean is
+   * `gain`.
    */
   stereo?: [number, number];
 }
