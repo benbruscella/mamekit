@@ -30,7 +30,7 @@ export const ddragon = sourceTarget({
     audio: {
       writes: 1002700,
       nonzeroWrites: 711852,
-      writeHash: 'b997b85e',
+      writeHash: 'b41de382',
       pcmHash: '526aa1a6',
       rms: 0.045881,
     },

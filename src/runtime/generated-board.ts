@@ -3629,8 +3629,14 @@ class IrBoard implements Board {
       // lead like any other processor's. Counted from the devices, Mario's
       // Z80 DMA fired 66 us early, before the processor that enabled it had
       // got there, and Rampage's sound CTC 18 us early (#278).
-      if (tag === timerClockCpu?.tag) {
-        if (this.runningCpu !== tag) return 0;
+      //
+      // Its posted work is not in its slice: it runs when the round drains,
+      // with the devices at the round's end, which the processor's last
+      // instruction carried past the time it posted at. That is a lead like
+      // another processor's, below. Counted from the round's end, the 06xx's
+      // NMI timer, re-armed by Dig Dug's control write, ran two Z80 cycles
+      // behind its clock edge for good, and the NMI came an instruction late.
+      if (tag === timerClockCpu?.tag && this.runningCpu === tag) {
         const lead = this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - this.machineSeconds();
         return lead < 0 ? lead : 0;
       }
