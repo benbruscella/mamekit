@@ -249,6 +249,10 @@ export class GeneratedFrameRunner {
   /** The processors in the order a round runs them (see roundOrder). */
   private readonly order: Int32Array;
   private readonly suspendable: boolean;
+  /** Each processor's suspension this round (roundOrder). */
+  private readonly held: Uint8Array;
+  /** Whether roundOrder last left `order` out of its configured order. */
+  private reordered = false;
   /** A `perfect_quantum` window is open: rounds are the perfect interleave. */
   private windowOpen = false;
   /** When the open window's quantum expires (add_quantum's `m_expire`). */
@@ -336,6 +340,7 @@ export class GeneratedFrameRunner {
       this.processors.length > 1 && !this.perfectRounds;
     this.order = Int32Array.from(this.processors, (_, index) => index);
     this.suspendable = this.processors.some(entry => entry.processor.suspended);
+    this.held = new Uint8Array(this.processors.length);
     for (const event of options.machine.execution.frameEvents) {
       if (event.frequency) {
         const period = new Attotime().setExact(event.periodAttoseconds !== undefined
@@ -1118,14 +1123,22 @@ export class GeneratedFrameRunner {
   private roundOrder(): Int32Array {
     const order = this.order;
     if (!this.suspendable) return order;
+    // Asked once per processor a round, and the configured order kept while
+    // none is suspended: Qix runs thousands of rounds a frame, its CPUs
+    // almost never held, and asking twice each round cost it CI's floor.
     const processors = this.processors;
+    const held = this.held;
+    let any = false;
+    for (let index = 0; index < processors.length; index++) {
+      const suspended = processors[index]!.processor.suspended?.() !== undefined;
+      held[index] = suspended ? 1 : 0;
+      any ||= suspended;
+    }
+    if (!any && !this.reordered) return order;
     let next = 0;
-    for (let index = 0; index < processors.length; index++) {
-      if (!processors[index]!.processor.suspended?.()) order[next++] = index;
-    }
-    for (let index = 0; index < processors.length; index++) {
-      if (processors[index]!.processor.suspended?.()) order[next++] = index;
-    }
+    for (let index = 0; index < processors.length; index++) if (!held[index]) order[next++] = index;
+    for (let index = 0; index < processors.length; index++) if (held[index]) order[next++] = index;
+    this.reordered = any;
     return order;
   }
 

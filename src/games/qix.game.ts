@@ -11,7 +11,9 @@ export const qix = sourceTarget({
   // CI measured 22.5 fps against the floor of 40, so the floor is about 90% of that.
   // #278's exact timers and stream updates through the current sample cost
   // it 10% on CI (18.0 and 18.2 fps); the floor is again about 90% (#247, 7.12).
-  minimumFps: 16,
+  // With has_screen() resolved, the MC6845 runs MAME's line, HSYNC and DE
+  // timers every scanline (#300): 15.6 fps on CI, so the floor is 90% again.
+  minimumFps: 14,
   checkpoints: [1, 10, 30, 60, 180, 300, 480, 600, 900],
   actions: [
     // Blank NVRAM asks for a language. Accept the highlighted default, then
