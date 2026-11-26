@@ -942,10 +942,13 @@ export class GeneratedFrameRunner {
         // after was 1.1 us short and its main CPU's PIA poll fell into the
         // next one (#275).
         if (this.synchronizeRequested) synchronized = true;
-        if (this.synchronizeRequested && executed < cycles) this.pullTarget(local, slop);
-        // Whole cycles left it short of the target (MAME skips a waiting
-        // device, which then stands wherever it stopped).
-        if (!this.synchronizeRequested && scheduled.processor.suspended?.() !== 'waiting') this.pullTarget(local, slop);
+        // Whole cycles left it short of the target, whether or not it
+        // synchronized (MAME skips a waiting device, which then stands
+        // wherever it stopped). Wardner's TMS32010 released the main Z80 on
+        // the last instruction its slice had room for, 0.12 us short of the
+        // target; the round went on to the target, and the Z80, run after it,
+        // ate a cycle MAME's never did.
+        if (this.synchronizeRequested || scheduled.processor.suspended?.() !== 'waiting') this.pullTarget(local, slop);
         this.synchronizeRequested = false;
       }
       this.onSynchronize?.('target');

@@ -926,11 +926,7 @@ class IrBoard implements Board {
           vpos: () => this.deviceBeamLine(),
           hpos: () => this.beamHpos(),
           // screen_device::vblank(): the beam is outside the visible lines.
-          vblank: () => {
-            const line = this.beamLine();
-            const screen = machine.execution.screen;
-            return line >= (this.configuredRaster()?.vbstart ?? screen.vbstart) || line < (screen.vbend ?? 0) ? 1 : 0;
-          },
+          vblank: () => this.inVblank() ? 1 : 0,
           // update_now() and pixel(x, y): the picture composed up to the
           // beam and read back as an rgb_t, which is how the NES Zapper's
           // sensor sees the light it is pointed at -- this frame above the
@@ -1755,12 +1751,7 @@ class IrBoard implements Board {
           entry.port === port) ?? []) {
           let line = 0;
           if (custom.source === 'screen-vblank') {
-            const { vbend = 0 } = machine.execution.screen;
-            const vbstart = this.configuredRaster()?.vbstart ?? machine.execution.screen.vbstart;
-            const beam = this.beamLine();
-            const inVblank = vbstart > vbend
-              ? beam >= vbstart || beam < vbend
-              : beam >= vbstart && beam < vbend;
+            const inVblank = this.inVblank();
             line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
           } else if (custom.source === 'device-line') {
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
@@ -4882,6 +4873,24 @@ class IrBoard implements Board {
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
   }
 
+  /**
+   * MAME's `screen_device::vblank()`: `machine().time() < m_vblank_end_time`,
+   * or past the next VBLANK start. It compares times, unrounded, where
+   * vpos() rounds half a pixel on: read through vpos, Wardner's VBLANK bit
+   * (port $58) dropped one poll before MAME's at the line it ends on.
+   */
+  private inVblank(): boolean {
+    const running = this.runningCpu
+      ? this.frameRunner?.runningBeam(this.runningCycles())
+      : undefined;
+    const position = this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction;
+    const height = this.rasterHeight();
+    const line = ((Math.floor(this.rasterLabel(position)) % height) + height) % height;
+    const { vbend = 0 } = this.machine.execution.screen;
+    const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
+    return vbstart > vbend ? line >= vbstart || line < vbend : line >= vbstart && line < vbend;
+  }
+
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
   private beamLine(): number {
     const vtotal = this.rasterHeight();
@@ -5866,12 +5875,7 @@ class IrBoard implements Board {
         let value = base(address, offset);
         for (const custom of customs) {
           if (custom.source === 'screen-vblank') {
-            const { vbend = 0 } = this.machine.execution.screen;
-            const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
-            const beam = this.beamLine();
-            const inVblank = vbstart > vbend
-              ? beam >= vbstart || beam < vbend
-              : beam >= vbstart && beam < vbend;
+            const inVblank = this.inVblank();
             const line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
             const shift = trailingZeroBits(custom.mask);
             value = (value & ~custom.mask) | ((line << shift) & custom.mask);

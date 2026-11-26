@@ -17,6 +17,11 @@ Findings, each generic:
 3. **Soft reset keeps time.** `board.reset()` = MAME soft_reset: devices/CPUs reset, runner `softReset()` keeps clock and beam, re-arms periodic events a period from now, frame count restarts (the harness counts frames from it). Restarting the clock had the CRTC's self-re-arming timer on the old epoch. Qix contract: RAM-identical on 900 frames (reset at 150).
 4. **Held CPUs run last.** CPU processors report `suspended: 'eating'` when held (RESET/HALT); `roundOrder` puts them after active ones, as `rebuild_execute_list`. Wardner's halted Z80 had eaten to the round's end before its DSP's synchronized release; first diff 114 → 410.
 
+5. **Whole-cycle pull for a synchronizing processor.** MAME's `if (m_localtime < target) target = max(m_localtime, m_basetime)` applies to every device run, synchronized or not; ours skipped it for a synchronizing one that ran out its slice. Wardner 410 → 1930.
+6. **vblank() is unrounded time.** `inVblank()` (screen host, custom PORT_READ_LINE vblank bits) reads the beam unrounded; vpos's half-pixel rounding dropped Wardner's VBLANK bit one poll early. Wardner RAM-identical over 3,600 frames.
+
+F2 (digdug, open): the 06XX's NMI timer ends no round at its expiry when the device clock stands ahead of the base (up to 3.6 µs) and has already passed it; the round runs ~2 main cycles past, and the NMI is taken an instruction late (frame 325, push at `99ff`). Look at nextTimerSeconds' headroom/soonest arithmetic for an overdue timer while devices lead.
+
 Tooling notes: `against --runtime <commit>` overlays use the current tree's `unresolved-calls.ts`, so removing an entry breaks main's runtime there (temporarily restore it). `diverge` can't time-compare across a reset when our clock restarted (fixed by 3).
 
 Related: [[mame-scheduler-synchronize]], [[held-cpu-eats-cycles]], [[gauntlet-296]], [[mamekit-compare-commands]].
