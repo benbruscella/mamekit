@@ -234,8 +234,8 @@ export function lowerGeneratedMachine(
       if (props.constant !== undefined) callback.constant = Number(props.constant);
       if (props.deviceTag) callback.deviceTag = String(props.deviceTag);
       if (props.inputLine) callback.inputLine = String(props.inputLine);
-      const lineDelivery = /\b(HOLD|ASSERT|PULSE)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
-      if (lineDelivery) callback.delivery = lineDelivery.toLowerCase() as 'hold' | 'assert' | 'pulse';
+      const lineDelivery = /\b(HOLD|ASSERT|PULSE|CLEAR)_LINE\b/.exec(String(props.raw ?? ''))?.[1];
+      if (lineDelivery) callback.delivery = lineDelivery.toLowerCase() as 'hold' | 'assert' | 'pulse' | 'clear';
       if (props.quantumSeconds !== undefined) {
         callback.quantumSeconds = Number(props.quantumSeconds);
       }

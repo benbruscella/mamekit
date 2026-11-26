@@ -926,11 +926,7 @@ class IrBoard implements Board {
           vpos: () => this.deviceBeamLine(),
           hpos: () => this.beamHpos(),
           // screen_device::vblank(): the beam is outside the visible lines.
-          vblank: () => {
-            const line = this.beamLine();
-            const screen = machine.execution.screen;
-            return line >= (this.configuredRaster()?.vbstart ?? screen.vbstart) || line < (screen.vbend ?? 0) ? 1 : 0;
-          },
+          vblank: () => this.inVblank() ? 1 : 0,
           // update_now() and pixel(x, y): the picture composed up to the
           // beam and read back as an rgb_t, which is how the NES Zapper's
           // sensor sees the light it is pointed at -- this frame above the
@@ -963,19 +959,45 @@ class IrBoard implements Board {
               this.pendingScreenArea = { x: area.min_x, y: area.min_y, width: area.max_x - area.min_x + 1, height: area.max_y - area.min_y + 1 };
               return 0;
             }
+            // Back to the picture's own shape before the frame ended: a CRTC
+            // being programmed register by register passes through others
+            // (Wardner's HD6845S configures 960 visible lines, then 240).
+            this.pendingScreenArea = undefined;
             screen.xOffset = area.min_x;
             screen.yOffset = area.min_y;
             return 0;
           },
           pixel: (x: number, y: number) => this.screenPixel?.(Number(x), Number(y)) ?? 0,
+          // screen_device::has_screen_update() / refresh_attoseconds(): asked
+          // by a video device's device_config_complete before it supplies its
+          // own (the TMS9928A's, once has_screen() is true). The board's
+          // screen is already composed from the configuration they complete:
+          // its update and its frame period are set.
+          has_screen_update: () => 1,
+          refresh_attoseconds: () => Number(screenPeriods(machine.execution.screen).frame.exact),
           // screen_device::reset_origin(beamy, beamx): MAME re-bases its VBLANK
           // timing so the beam stands at (beamy, beamx) now. The MC6845 calls it
-          // at the top of every frame it counts out; the frame runner owns the
-          // beam and starts each frame at line 0 already, so on a CRTC programmed
-          // to the screen's own frame (Qix's) there is nothing to move. A CRTC
-          // counting a different frame length would drift against this screen,
-          // which the frame runner does not model yet.
-          reset_origin: () => 0,
+          // at the top of every frame it counts out, which puts the screen on
+          // the CRTC's phase: Wardner's second VBLANK comes 2.85 ms early, and
+          // every one after keeps the new phase (GeneratedFrameRunner.resetOrigin).
+          // The device clock counts from the start of the line the board
+          // stands on (currentLine), so it moves with that line; after a jump
+          // the board stands on the line before the beam's, whose end is the
+          // frame runner's next boundary.
+          reset_origin: (beamy: unknown = 0, beamx: unknown = 0) => {
+            const runner = this.frameRunner;
+            if (!runner) return 0;
+            const exact = this.exactMachineTime();
+            const now = exact ? exactToAttos(exact) : BigInt(Math.round(this.machineSeconds() * 1e18));
+            const moved = runner.resetOrigin(now, Number(beamy) || 0, Number(beamx) || 0);
+            if (!moved) return 0;
+            this.timedHardwareDelivered -= moved.lineStartShift;
+            if (moved.jumped) {
+              this.currentLine = moved.previousLine;
+              this.currentLineFraction = 0;
+            }
+            return 0;
+          },
           // screen_device::clock(): the pixel clock set_raw gave it.
           clock: () => machine.execution.screen.pixelClock ??
             machine.execution.screen.refresh * (machine.execution.screen.htotal ?? machine.execution.screen.width) *
@@ -1383,6 +1405,10 @@ class IrBoard implements Board {
           },
           calls: {
             screen: () => screenHost,
+            // device_video_interface::has_screen(): a device left unconfigured
+            // binds the machine's first screen (divideo.cpp), which every board
+            // here has. The MC6845 reprograms and re-bases it only when it has one.
+            has_screen: () => 1,
             ...screenServiceCalls,
             'machine().sound().system_mute': systemMute,
             // The interleave a device asks for itself: the Taito SJ security
@@ -1725,12 +1751,7 @@ class IrBoard implements Board {
           entry.port === port) ?? []) {
           let line = 0;
           if (custom.source === 'screen-vblank') {
-            const { vbend = 0 } = machine.execution.screen;
-            const vbstart = this.configuredRaster()?.vbstart ?? machine.execution.screen.vbstart;
-            const beam = this.beamLine();
-            const inVblank = vbstart > vbend
-              ? beam >= vbstart || beam < vbend
-              : beam >= vbstart && beam < vbend;
+            const inVblank = this.inVblank();
             line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
           } else if (custom.source === 'device-line') {
             const device = custom.deviceTag ? this.devices.get(custom.deviceTag) : undefined;
@@ -3608,8 +3629,14 @@ class IrBoard implements Board {
       // lead like any other processor's. Counted from the devices, Mario's
       // Z80 DMA fired 66 us early, before the processor that enabled it had
       // got there, and Rampage's sound CTC 18 us early (#278).
-      if (tag === timerClockCpu?.tag) {
-        if (this.runningCpu !== tag) return 0;
+      //
+      // Its posted work is not in its slice: it runs when the round drains,
+      // with the devices at the round's end, which the processor's last
+      // instruction carried past the time it posted at. That is a lead like
+      // another processor's, below. Counted from the round's end, the 06xx's
+      // NMI timer, re-armed by Dig Dug's control write, ran two Z80 cycles
+      // behind its clock edge for good, and the NMI came an instruction late.
+      if (tag === timerClockCpu?.tag && this.runningCpu === tag) {
         const lead = this.roundBaseSeconds + this.roundDeviceOffset + this.roundDelivered - this.machineSeconds();
         return lead < 0 ? lead : 0;
       }
@@ -3847,6 +3874,12 @@ class IrBoard implements Board {
         return {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
+        // Held in RESET or HALT it is suspended, and MAME's
+        // rebuild_execute_list runs it after every active device. Wardner's
+        // main Z80, halted while its TMS32010 works, kept its first place:
+        // it ate to the round's end before the DSP let it go, and resumed
+        // 19 cycles after MAME's, which the DSP's synchronize had stopped short.
+        suspended: () => this.cpuHeld.get(specification.tag) ? 'eating' as const : undefined,
         // Held in RESET or HALT, MAME's timeslice still books the slice to
         // the processor (eatcycles): its machine time while it runs again is
         // the machine's, not short by every cycle it sat out. Rampage's sound
@@ -4433,8 +4466,19 @@ class IrBoard implements Board {
     });
     if (host.signalNames().includes('reset')) {
       host.on('reset', state => {
-        model.resetHeld = state !== 0;
-        if (model.resetHeld) device.reset();
+        const apply = () => {
+          model.resetHeld = state !== 0;
+          if (model.resetHeld) device.reset();
+        };
+        // The host drives its processor's RESET through set_input_line
+        // (namco_54xx_device::reset), which is set_state_synced like every
+        // line (deviceInputLine): the processor runs up to the time it was
+        // driven before the line changes. Applied in place, Galaga's 51xx
+        // and 54xx, released by the main Z80's LS259 write and run after it
+        // in the round, started from the round's base, 37 MCU cycles before
+        // the write; MAME's start 5 cycles after it.
+        if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
+        else apply();
       });
     }
     return () => !model.resetHeld && !this.cpuHeld.get(tag);
@@ -4516,10 +4560,14 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * MAME's soft reset (running_machine::soft_reset), the reset a player or a
+   * contract asks for: every device and processor resets, and emulated time,
+   * the beam and the device clock carry on (GeneratedFrameRunner.softReset).
+   */
   reset(): void {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.observedTransportSeconds.clear();
-    for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -4528,15 +4576,11 @@ class IrBoard implements Board {
     }
     this.videoPrimitives?.reset?.();
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
-    this.frameRunner.reset();
+    this.frameRunner.softReset();
     this.soundRuntime?.reset?.();
     for (const reset of this.peripheralResets) reset();
     this.inputLatchPrevious.clear();
-    this.currentLine = this.frameRunner.originLine;
     this.scheduledWork.length = 0;
-    this.timedHardwareDelivered = this.lineSeconds();
-    this.heldDeviceSeconds = 0;
-    this.powerOnCreditLines = 1;
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
@@ -4844,6 +4888,24 @@ class IrBoard implements Board {
       : undefined;
     const beam = this.rasterLabel(this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
+  }
+
+  /**
+   * MAME's `screen_device::vblank()`: `machine().time() < m_vblank_end_time`,
+   * or past the next VBLANK start. It compares times, unrounded, where
+   * vpos() rounds half a pixel on: read through vpos, Wardner's VBLANK bit
+   * (port $58) dropped one poll before MAME's at the line it ends on.
+   */
+  private inVblank(): boolean {
+    const running = this.runningCpu
+      ? this.frameRunner?.runningBeam(this.runningCycles())
+      : undefined;
+    const position = this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction;
+    const height = this.rasterHeight();
+    const line = ((Math.floor(this.rasterLabel(position)) % height) + height) % height;
+    const { vbend = 0 } = this.machine.execution.screen;
+    const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
+    return vbstart > vbend ? line >= vbstart || line < vbend : line >= vbstart && line < vbend;
   }
 
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
@@ -5830,12 +5892,7 @@ class IrBoard implements Board {
         let value = base(address, offset);
         for (const custom of customs) {
           if (custom.source === 'screen-vblank') {
-            const { vbend = 0 } = this.machine.execution.screen;
-            const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
-            const beam = this.beamLine();
-            const inVblank = vbstart > vbend
-              ? beam >= vbstart || beam < vbend
-              : beam >= vbstart && beam < vbend;
+            const inVblank = this.inVblank();
             const line = custom.activeLow ? Number(!inVblank) : Number(inVblank);
             const shift = trailingZeroBits(custom.mask);
             value = (value & ~custom.mask) | ((line << shift) & custom.mask);
@@ -6757,7 +6814,24 @@ class IrBoard implements Board {
         if (state) this.frameRunner?.quantumWindow(seconds, this.quantumWindowStart());
       },
       cpuLine: (tag, line, delivery, input) => {
-        const apply = cpuLineEffect(tag, line, delivery, input);
+        const level = cpuLineEffect(tag, line, delivery, input);
+        // devcb's valued `set_inputline(tag, line, value)`:
+        // `if ((data ^ exor) & mask) exec.set_input_line(linenum, value)`.
+        // Data that comes to nothing leaves the line alone, and synchronizes
+        // nothing. Pole Position's LS259 Q0 is `set_inputline(maincpu, 0,
+        // CLEAR_LINE).invert()`: setting the bit (enabling the IRQ) does
+        // nothing, and clearing it clears the line. Followed as a level, the
+        // enable cleared the line, synchronized, and cut the Z80's slice; its
+        // Z8002s then ran up to the write and cleared the sprite words it was
+        // about to read, which MAME's Z80, running on, read before them.
+        // Only hold, assert and clear are written values. A pulse is the
+        // lowering's own name for the non-valued `set_inputline(cpu, NMI)`
+        // of an MSM5205 VCK: MAME sets the line with each edge's data, so the
+        // falling edge synchronizes too (Kung-Fu Master's sound 6803).
+        const value = delivery === 'clear' ? 0 : delivery === 'hold' || delivery === 'assert' ? 1 : undefined;
+        const apply: EffectExecutor | undefined = level && value !== undefined
+          ? state => { if (state) level(value); }
+          : level;
         if (!apply || line === 'busreq' || line === 'core') return apply;
         // devcb's set_inputline is set_input_line, and that goes through
         // device_input::set_state_synced like any other (cpuInputLine): from
@@ -6767,6 +6841,7 @@ class IrBoard implements Board {
         // run after it in the round, started from the round's base, 18 us
         // before the write that released it.
         return state => {
+          if (value !== undefined && !state) return;
           if (this.synchronizesLineFrom(tag)) this.synchronize(() => { apply(state); });
           else apply(state);
         };

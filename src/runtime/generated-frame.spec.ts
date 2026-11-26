@@ -671,3 +671,45 @@ console.log('generated-frame.spec: 21 passed');
   runner.frame(new Uint32Array(1));
   assert.equal(total, 26_400, 'the frame runs whole past a timer the devices cannot fire yet');
 }
+
+// MAME's screen_device::reset_origin re-bases the screen: the MC6845 calls it
+// each time its own frame counter wraps, and VBLANK moves onto the CRTC's
+// phase. Here line 0 is declared to start where line 2 (VBLANK) does, at the
+// head of the second frame: that frame runs on from line 0 and ends a line
+// early, and every frame after keeps the new phase. A soft reset keeps the
+// clock and the phase, and counts frames again.
+{
+  let cycles = 0;
+  const lines: number[] = [];
+  let frame = 0;
+  const runner = new GeneratedFrameRunner({
+    machine,
+    origin: 'vbstart',
+    processors: [{ tag: 'maincpu', run: budget => { cycles += budget; return budget; } }],
+    video: { width: 1, height: 1, render: () => {}, vblank: () => {} },
+    onLine: (line, phase) => {
+      if (phase !== 'before-processors') return;
+      lines.push(line);
+      if (frame === 1 && line === 2) {
+        const moved = runner.resetOrigin(runner.baseExact(), 0, 0);
+        assert.equal(moved?.jumped, true, 'the beam stands past the line the loop is on');
+      }
+    },
+  });
+  runner.frame(new Uint32Array(1));
+  frame = 1;
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(lines, [2, 0, 1, 2, 0, 1]);
+  assert.equal(cycles, 100, 'the re-based frame ends a line early');
+  frame = 2;
+  runner.frame(new Uint32Array(1));
+  assert.equal(cycles, 160, 'the next keeps the new phase, a whole frame long');
+  assert.equal(runner.resetOrigin(runner.baseExact() + 5_555_555_555_555_555n, 0, 0), undefined,
+    'a wrap on the new grid moves nothing');
+  const base = runner.baseExact();
+  runner.softReset();
+  assert.equal(runner.frameCount, 0);
+  assert.equal(runner.baseExact(), base, 'a soft reset keeps the clock');
+  runner.frame(new Uint32Array(1));
+  assert.equal(cycles, 220);
+}

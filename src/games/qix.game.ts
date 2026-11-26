@@ -11,7 +11,9 @@ export const qix = sourceTarget({
   // CI measured 22.5 fps against the floor of 40, so the floor is about 90% of that.
   // #278's exact timers and stream updates through the current sample cost
   // it 10% on CI (18.0 and 18.2 fps); the floor is again about 90% (#247, 7.12).
-  minimumFps: 16,
+  // With has_screen() resolved, the MC6845 runs MAME's line, HSYNC and DE
+  // timers every scanline (#300): 15.6 fps on CI, so the floor is 90% again.
+  minimumFps: 14,
   checkpoints: [1, 10, 30, 60, 180, 300, 480, 600, 900],
   actions: [
     // Blank NVRAM asks for a language. Accept the highlighted default, then
@@ -31,21 +33,21 @@ export const qix = sourceTarget({
     },
     checkpoints: {
       1: { video: '21f25028', state: '7c1f5e0e' },
-      10: { video: '21f25028', state: '44c24136' },
-      30: { video: '21f25028', state: 'a739c7e7' },
-      60: { video: '52eb2598', state: 'f68ea5c1' },
-      180: { video: 'ce536518', state: '886ebc18' },
-      300: { video: '7b0b7216', state: 'f82e911e' },
-      480: { video: '8dbed344', state: '7556166d' },
-      600: { video: '6c5538e9', state: 'c9236f92' },
-      900: { video: 'bb94aeeb', state: 'fcc245ba' },
+      10: { video: '21f25028', state: '22cab558' },
+      30: { video: '21f25028', state: '9b86f9cb' },
+      60: { video: '52eb2598', state: '11678ac2' },
+      180: { video: 'ce536518', state: '1edc3eec' },
+      300: { video: '7b0b7216', state: '78fb0def' },
+      480: { video: '8dbed344', state: '1383d626' },
+      600: { video: '6c5538e9', state: 'cf69b79e' },
+      900: { video: 'bb94aeeb', state: '7d3e176b' },
     },
     audio: {
-      writes: 902603,
-      nonzeroWrites: 902357,
-      writeHash: '2364defe',
-      pcmHash: '7053cc8a',
-      rms: 0.091859,
+      writes: 1031494,
+      nonzeroWrites: 902330,
+      writeHash: 'a4c3e4a8',
+      pcmHash: 'f8ba3fa1',
+      rms: 0.090981,
     },
   },
 });

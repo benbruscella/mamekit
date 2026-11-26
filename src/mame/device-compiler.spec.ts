@@ -224,6 +224,15 @@ assert.equal(adc0804.get('m_result'), 0);
 adc0804.tick(2 / 192_000);
 assert.equal(adc0804.get('m_result'), 0x90);
 
+// An unbound devcb read returns the default its constructor gives it
+// (`m_vin_callback(*this, 0)`), not a guess from its width.
+assert.equal(generatedAdc0804.callbacks.find(callback => callback.member === 'm_vin_callback')?.initial, 0);
+const pia6821Definition = hardware.get('PIA6821');
+assert.ok(pia6821Definition, 'MAME hardware index should resolve PIA6821');
+const pia6821Callbacks = compileMameDevice(mameSrc, pia6821Definition).callbacks;
+assert.equal(pia6821Callbacks.find(callback => callback.member === 'm_in_a_handler')?.initial, 0);
+assert.equal(pia6821Callbacks.find(callback => callback.member === 'm_in_ca1_handler')?.initial, 1);
+
 const namco54Definition = hardware.get('NAMCO_54XX');
 assert.ok(namco54Definition, 'MAME hardware index should resolve NAMCO_54XX');
 const generatedNamco54 = compileMameDevice(mameSrc, namco54Definition);

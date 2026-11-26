@@ -163,8 +163,19 @@ export class GeneratedFrameRunner {
    */
   readonly screenRaster = { height: 0, width: 0, vbstart: 0 };
   private readonly linePeriod: AttoPeriod;
-  /** When the frame in progress began: a whole number of frame periods. */
+  /**
+   * When the frame in progress began: a whole number of frame periods from
+   * time zero, until a device re-bases the screen (resetOrigin).
+   */
   private readonly frameBase = new Attotime();
+  /** The index, from the frame's origin line, of the line frame() is running. */
+  private lineIndex = 0;
+  /** resetOrigin moved the beam to this line index: frame() continues there. */
+  private rebasedIndex: number | undefined;
+  /** resetOrigin moved the line in progress: the round's end is taken again. */
+  private rebasedLine = false;
+  /** resetOrigin ended the frame past its last line: the next starts at this index. */
+  private nextFrameStart = 0;
   /** MAME `m_basetime`: where the last round ended. */
   private readonly base = new Attotime();
   /** Where the lines being paid began, and where they end. */
@@ -238,6 +249,10 @@ export class GeneratedFrameRunner {
   /** The processors in the order a round runs them (see roundOrder). */
   private readonly order: Int32Array;
   private readonly suspendable: boolean;
+  /** Each processor's suspension this round (roundOrder). */
+  private readonly held: Uint8Array;
+  /** Whether roundOrder last left `order` out of its configured order. */
+  private reordered = false;
   /** A `perfect_quantum` window is open: rounds are the perfect interleave. */
   private windowOpen = false;
   /** When the open window's quantum expires (add_quantum's `m_expire`). */
@@ -325,6 +340,7 @@ export class GeneratedFrameRunner {
       this.processors.length > 1 && !this.perfectRounds;
     this.order = Int32Array.from(this.processors, (_, index) => index);
     this.suspendable = this.processors.some(entry => entry.processor.suspended);
+    this.held = new Uint8Array(this.processors.length);
     for (const event of options.machine.execution.frameEvents) {
       if (event.frequency) {
         const period = new Attotime().setExact(event.periodAttoseconds !== undefined
@@ -518,6 +534,82 @@ export class GeneratedFrameRunner {
     return (this.originLine + this.base.since(this.frameBase) / this.linePeriod.total) % vtotal;
   }
 
+  /**
+   * MAME `screen_device::reset_origin(beamy, beamx)`: re-base the screen's
+   * timing so the beam stands at (beamy, beamx) at `now`. MAME moves
+   * `m_vblank_start_time`, and with it every line after: the MC6845 calls it
+   * each time its own frame counter wraps, which puts VBLANK on the CRTC's
+   * phase. Wardner's CRTC wraps 45 lines into the screen's second frame, so
+   * MAME's second VBLANK comes 2.85 ms early and every frame after keeps
+   * that phase; Qix's comes 0.54 ms early.
+   *
+   * The frame in progress keeps its number and ends where VBLANK now falls.
+   * If the beam now stands past the line frame() is on, frame() runs on from
+   * the beam's line; a re-base onto VBLANK start itself ends the frame there,
+   * as MAME calls vblank_begin at once.
+   *
+   * Timers armed before the call keep their expiries, as MAME's emu_timers
+   * do; frame events on the lines a jump passes over do not fire this frame.
+   *
+   * Answers how far the start of the line the board stands on moved, in
+   * seconds, whether frame() jumps, and the line the board then stands on
+   * (the one before the beam's), or undefined if nothing moved.
+   */
+  resetOrigin(now: bigint, beamy: number, beamx: number): { lineStartShift: number; jumped: boolean; previousLine: number } | undefined {
+    const screen = this.machine.execution.screen;
+    const vtotal = Math.max(1, screen.vtotal);
+    const htotal = Math.max(1, screen.htotal ?? screen.width);
+    const line = ((Math.floor(beamy) % vtotal) + vtotal) % vtotal;
+    const index = ((line - this.originLine) % vtotal + vtotal) % vtotal;
+    const linePeriod = BigInt(this.linePeriod.total);
+    const framePeriod = this.framePeriod.exact;
+    // m_pixeltime = m_frame_period / (m_height * m_width)
+    const pixel = framePeriod / BigInt(vtotal * htotal);
+    const lineStart = now - BigInt(Math.max(0, Math.floor(beamx))) * pixel;
+    const oldBase = this.frameBase.exact;
+    // The frame `now` falls in, counted from the one in progress. The device
+    // clock that fires the CRTC's timer runs up to a round ahead of the lines
+    // this loop has reached, so Qix's wrap to line 0 comes in the next frame
+    // while this one still runs: read as this frame's line 0, it sent the
+    // loop back there every frame and the frame never ended.
+    const since = now - oldBase;
+    let frames = since / framePeriod;
+    if (since < frames * framePeriod) frames -= 1n;
+    // The frame in progress starts where the new grid puts it.
+    const base = lineStart - BigInt(index) * linePeriod - frames * framePeriod;
+    if (base === oldBase) return undefined;
+    this.frameBase.setExact(base);
+    // A line keeps its number; only when it falls moves. The loop has
+    // dispatched lines up to the one it is on, which in a round spanning
+    // lines can be ahead of the time the device fired at: it runs on from
+    // there, the round ending where that line now ends. Only a beam that
+    // has moved past it skips the lines between.
+    const current = Math.min(this.lineIndex, vtotal - 1);
+    const reached = index + Number(frames) * vtotal;
+    const oldStart = oldBase + BigInt(current) * linePeriod;
+    let newCurrent = current;
+    if (reached > current) {
+      newCurrent = reached - 1;
+      if (reached >= vtotal) {
+        // Past this frame's end: it ends here (a re-base onto vbstart itself
+        // is VBLANK at once, as MAME calls vblank_begin), and the next frame
+        // starts on the line the beam stands on.
+        this.rebasedIndex = vtotal;
+        this.nextFrameStart = Math.min(vtotal - 1, reached - vtotal);
+      } else {
+        this.rebasedIndex = reached;
+      }
+    } else {
+      this.rebasedLine = true;
+    }
+    const newStart = base + BigInt(newCurrent) * linePeriod;
+    return {
+      lineStartShift: Number(newStart - oldStart) / 1e18,
+      jumped: reached > current,
+      previousLine: (this.originLine + newCurrent) % vtotal,
+    };
+  }
+
   /** How far a processor stands past the round's base, in its own cycles. */
   get cyclesAhead(): readonly number[] {
     return this.processors.map(entry => entry.local.since(this.base) / entry.cycle.total);
@@ -533,6 +625,23 @@ export class GeneratedFrameRunner {
     this.timerFired = true;
     this.frames = 0;
     this.fromOrigin = true;
+    this.awaitingPresent = false;
+  }
+
+  /**
+   * MAME's soft reset (running_machine::soft_reset): every device resets and
+   * emulated time carries on. The beam keeps its phase, so a device timer
+   * that re-arms itself from its own expiry (the MC6845's line timer, which
+   * a reset leaves running) still measures the same frame; each periodic
+   * interrupt is armed a period from now (interface_post_reset). The frame
+   * count starts again, as the frames a reset is followed by are counted.
+   * Restarting the clock instead put Qix's CRTC 2.69 s off the beam after
+   * its contract's reset, and its scanline latch read a line early.
+   */
+  softReset(): void {
+    for (const scheduled of this.periodicEvents) scheduled.next.set(this.base).addTime(scheduled.period);
+    this.timerFired = true;
+    this.frames = 0;
     this.awaitingPresent = false;
   }
 
@@ -567,26 +676,40 @@ export class GeneratedFrameRunner {
     let rendered = false;
     this.pendingLines = 0;
     this.awaitingPresent = this.presentsAtEnd;
-    for (let index = 0; index < vtotal; index++) {
-      const line = (origin + index) % vtotal;
-      this.atOrigin = this.fromOrigin && index === 0 && this.origin === 'vbstart';
-      if (this.runLine(line, framebuffer)) rendered = true;
-    }
-    this.atOrigin = false;
-    this.fromOrigin = false;
-    if (this.presentsAtEnd) {
-      // The beam reaches vbstart again: what the processors still owe is
-      // paid, and the frame is presented, as MAME presents at VBLANK.
+    this.rebasedIndex = undefined;
+    const first = this.nextFrameStart;
+    this.nextFrameStart = 0;
+    for (let start = first; ;) {
+      for (this.lineIndex = start; this.lineIndex < vtotal; this.lineIndex++) {
+        const index = this.lineIndex;
+        const line = (origin + index) % vtotal;
+        this.atOrigin = this.fromOrigin && index === 0 && this.origin === 'vbstart';
+        if (this.runLine(line, framebuffer)) rendered = true;
+        // The screen was re-based (resetOrigin): the beam now stands on
+        // another line of this frame, which runs on from there.
+        if (this.rebasedIndex !== undefined) {
+          this.lineIndex = this.rebasedIndex - 1;
+          this.rebasedIndex = undefined;
+          this.pendingLines = 0;
+        }
+      }
+      this.atOrigin = false;
+      this.fromOrigin = false;
+      // What the processors still owe for the frame's last lines is paid
+      // before it ends: at vbstart, where MAME presents, or at the origin,
+      // which is scanline 0's timer.
       if (this.pendingLines > 0) {
         this.runProcessors(this.pendingLines, (origin + vtotal - 1) % vtotal);
         this.pendingLines = 0;
       }
+      if (this.rebasedIndex === undefined || this.rebasedIndex >= vtotal) break;
+      start = this.rebasedIndex;
+      this.rebasedIndex = undefined;
+    }
+    this.rebasedIndex = undefined;
+    if (this.presentsAtEnd) {
       this.present(framebuffer);
       rendered = true;
-    } else if (this.pendingLines > 0) {
-      // The next frame starts at its origin, which is scanline 0's timer.
-      this.runProcessors(this.pendingLines, (origin + vtotal - 1) % vtotal);
-      this.pendingLines = 0;
     }
     this.presented();
     this.frameBase.addTime(this.framePeriod);
@@ -620,6 +743,8 @@ export class GeneratedFrameRunner {
     if (this.pendingLines > 0 && this.boundaryLines.has(line)) {
       this.runProcessors(this.pendingLines, line - 1);
       this.pendingLines = 0;
+      // Re-based while paying them: this line is not where the beam is.
+      if (this.rebasedIndex !== undefined) return false;
     }
     if (this.eventPhase === 'before-processors' && !this.atOrigin) this.dispatchLine(line, framebuffer);
     // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
@@ -652,6 +777,7 @@ export class GeneratedFrameRunner {
         this.boundaryLines.has((line + 1) % Math.max(1, screen.vtotal));
       this.runProcessors(this.pendingLines, line, timerNext);
       this.pendingLines = 0;
+      if (this.rebasedIndex !== undefined) return rendered;
     }
 
     this.onLine?.(line, 'after-processors', framebuffer);
@@ -690,15 +816,28 @@ export class GeneratedFrameRunner {
     const target = this.target;
     const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
     const endIndex = ((lastLine - this.originLine + vtotal) % vtotal) + 1;
-    if (endIndex >= vtotal) end.set(this.frameBase).addTime(this.framePeriod);
-    else end.setPeriodsFrom(this.frameBase, endIndex, this.linePeriod);
+    const lineEnd = () => {
+      if (endIndex >= vtotal) end.set(this.frameBase).addTime(this.framePeriod);
+      else end.setPeriodsFrom(this.frameBase, endIndex, this.linePeriod);
+    };
+    lineEnd();
     this.roundStart.set(base);
     this.roundFirstLine = lastLine - lines + 1;
     this.roundLines = lines;
     // Work posted outside any slice (a line callback, an event) is due now.
     this.onSynchronize?.('base');
     const periodic = this.periodicEvents.length > 0;
-    while (base.before(end)) {
+    for (;;) {
+      // A device re-based the screen (resetOrigin). On the line these rounds
+      // run, they run on to its end where it now falls; on another, the
+      // lines being paid are no longer where the beam is, and the frame
+      // carries on from the line it stands on.
+      if (this.rebasedIndex !== undefined) break;
+      if (this.rebasedLine) {
+        this.rebasedLine = false;
+        lineEnd();
+      }
+      if (!base.before(end)) break;
       // MAME's execute_timers at the head of a timeslice: a periodic timer
       // the base has reached fires before any processor runs.
       const untilPeriodic = periodic ? this.firePeriodic() : Infinity;
@@ -808,10 +947,13 @@ export class GeneratedFrameRunner {
         // after was 1.1 us short and its main CPU's PIA poll fell into the
         // next one (#275).
         if (this.synchronizeRequested) synchronized = true;
-        if (this.synchronizeRequested && executed < cycles) this.pullTarget(local, slop);
-        // Whole cycles left it short of the target (MAME skips a waiting
-        // device, which then stands wherever it stopped).
-        if (!this.synchronizeRequested && scheduled.processor.suspended?.() !== 'waiting') this.pullTarget(local, slop);
+        // Whole cycles left it short of the target, whether or not it
+        // synchronized (MAME skips a waiting device, which then stands
+        // wherever it stopped). Wardner's TMS32010 released the main Z80 on
+        // the last instruction its slice had room for, 0.12 us short of the
+        // target; the round went on to the target, and the Z80, run after it,
+        // ate a cycle MAME's never did.
+        if (this.synchronizeRequested || scheduled.processor.suspended?.() !== 'waiting') this.pullTarget(local, slop);
         this.synchronizeRequested = false;
       }
       this.onSynchronize?.('target');
@@ -981,14 +1123,22 @@ export class GeneratedFrameRunner {
   private roundOrder(): Int32Array {
     const order = this.order;
     if (!this.suspendable) return order;
+    // Asked once per processor a round, and the configured order kept while
+    // none is suspended: Qix runs thousands of rounds a frame, its CPUs
+    // almost never held, and asking twice each round cost it CI's floor.
     const processors = this.processors;
+    const held = this.held;
+    let any = false;
+    for (let index = 0; index < processors.length; index++) {
+      const suspended = processors[index]!.processor.suspended?.() !== undefined;
+      held[index] = suspended ? 1 : 0;
+      any ||= suspended;
+    }
+    if (!any && !this.reordered) return order;
     let next = 0;
-    for (let index = 0; index < processors.length; index++) {
-      if (!processors[index]!.processor.suspended?.()) order[next++] = index;
-    }
-    for (let index = 0; index < processors.length; index++) {
-      if (processors[index]!.processor.suspended?.()) order[next++] = index;
-    }
+    for (let index = 0; index < processors.length; index++) if (!held[index]) order[next++] = index;
+    for (let index = 0; index < processors.length; index++) if (held[index]) order[next++] = index;
+    this.reordered = any;
     return order;
   }
 

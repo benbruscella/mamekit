@@ -30,6 +30,24 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
+### Qix, Wardner, the Namco four, Mortal Kombat and NBA Jam match MAME: the MC6845 re-bases the screen, a reset keeps time, held CPUs run last ([#300](https://github.com/benbruscella/mamekit/issues/300))
+
+**For players:** Nothing visible in most games. Qix runs exactly as MAME does, through a reset too: its memory matches MAME's on every compared frame, with and without input. Wardner's memory matches MAME's on every compared frame too, where it left MAME at the first, and so do Dig Dug's, Xevious's, Galaga's and Pole Position's. Mortal Kombat and NBA Jam already matched MAME; the tool comparing them was wrong.
+
+**Under the hood:**
+- `mamekit against`/`diverge` convert byte addresses through a space's address shift. MAME's Lua accessors and taps take the space's own units, bits on the TMS34010 and words on the TMS32010's I/O. The oracle had compared Mortal Kombat's palette with MAME's VRAM, and `read_range` dropped a bit-addressed range's last byte.
+- `has_screen()` resolves, and `screen().reset_origin()` re-bases the frame runner (`GeneratedFrameRunner.resetOrigin`). The MC6845 calls it each time its frame counter wraps, and VBLANK moves onto the CRTC's phase: 2.85 ms on Wardner, 0.54 ms on Qix.
+- `board.reset()` is MAME's soft reset. Devices and processors reset; emulated time, the beam and the device clock carry on, and periodic interrupts are re-armed a period from now.
+- A CPU held in RESET or HALT runs after the active devices in a round, as MAME's `rebuild_execute_list` orders it. Wardner's halted Z80 had eaten to the round's end before its TMS32010 let it go.
+- A processor that synchronized still ends the round where its whole cycles stopped, as MAME's `target = max(m_localtime, m_basetime)` does for every device. Wardner's TMS32010 released the main Z80 a fraction of a cycle short of the round's end, and the Z80 ate one cycle more than MAME's.
+- `screen_device::vblank()` compares times: the VBLANK bit is read from the beam unrounded, not through vpos's half-pixel rounding, which cleared Wardner's VBLANK bit one poll early.
+- `screen().has_screen_update()` and `refresh_attoseconds()` answer the TMS9928A's `device_config_complete`, which `has_screen()` now reaches.
+- A timer armed in work the device clock's own processor posted with `synchronize()` counts down from the time the work was posted, not from the round's end the devices had reached. The 06xx's NMI timer, re-armed by a control write, had run two Z80 cycles off its clock edge. Dig Dug and Xevious now match MAME's memory on every compared frame.
+- A devcb's unconnected default comes from its constructor, `m_iack_in(*this, 0xffff)`, where it had been guessed: 0xff for an 8-bit read and 0 otherwise. Pole Position's Z8002s pushed an interrupt tag of 0 where MAME pushes 0xffff. About sixty defaults moved, most of them to 0: an i8255's, Z80 PIO's or PIA's unconnected port now reads 0, as in MAME.
+- The valued `set_inputline(tag, line, ASSERT_LINE/CLEAR_LINE/HOLD_LINE)` acts only when its data is set, as devcb's `if ((data ^ exor) & mask)` does, and a call that comes to nothing synchronizes nothing. Pole Position's LS259 Q0, `set_inputline(maincpu, 0, CLEAR_LINE).invert()`, had cleared the IRQ and cut the Z80's slice when the IRQ was enabled.
+- A hosted MCU's RESET, taken from its host's reset signal, changes once the round has run up to the write, like any other input line. Galaga's 51xx and 54xx had started 37 MCU cycles before the main Z80's LS259 write released them. Galaga and Pole Position now match MAME's memory on every compared frame.
+- `mamekit against`/`diverge --io cpu:data:a-b` tap a processor's data space, a hosted MCU's included.
+
 ### The ZX Spectrum draws its picture, and its tapes wait for PLAY ([#290](https://github.com/benbruscella/mamekit/issues/290))
 
 **For players:** The ZX Spectrum and Spectrum 128 show a picture again, where the screen stayed black. A tape now loads: Manic Miner reaches its title screen on the 48K, where it stopped at "Bytes: MM2". The BASIC prompt, the 128's menu and both loaded titles are pixel-exact against MAME on the frames compared. During a load, the border stripes sit up to a line from MAME's. Both machines lose their EXPERIMENTAL label.

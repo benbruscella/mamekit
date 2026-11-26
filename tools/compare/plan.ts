@@ -36,7 +36,7 @@ export interface RamPlan {
 
 export interface IoPlan {
   /** `space` is the processor's I/O space (`--io maincpu:io:40-43`); the program space when absent. */
-  taps: { tag: string; space?: 'io'; lo: number; hi: number; read: boolean; write: boolean }[];
+  taps: { tag: string; space?: 'io' | 'data'; lo: number; hi: number; read: boolean; write: boolean }[];
   /** Our frames tapped. */
   from: number;
   to: number;
@@ -44,18 +44,21 @@ export interface IoPlan {
   offset?: number;
 }
 
-/** `cpu:a-b[:rw]`, or `cpu:io:a-b[:rw]` for the processor's I/O space (hex). */
+/**
+ * `cpu:a-b[:rw]`, or `cpu:io:a-b[:rw]` for the processor's I/O space, or
+ * `cpu:data:a-b[:rw]` for its data space (an MCU's internal RAM, the MB88's) (hex).
+ */
 export function parseIoTap(spec: string): IoPlan['taps'][number] {
   // Read from the right: a processor's tag is a device path and may hold
   // colons itself (Venture's sound CPU is `soundbd:audiocpu`).
   const parts = spec.split(':');
   const mode = /^(r|w|rw|wr)$/.test(parts.at(-1) ?? '') && parts.length > 2 ? parts.pop()! : 'rw';
   const range = parts.pop() ?? '';
-  const space = parts.at(-1) === 'io' ? (parts.pop(), 'io' as const) : undefined;
+  const space = parts.at(-1) === 'io' || parts.at(-1) === 'data' ? parts.pop() as 'io' | 'data' : undefined;
   if (!space && parts.at(-1) === 'program') parts.pop();
   const tag = parts.join(':');
   const [lo, hi] = range.split('-').map(value => parseInt(value, 16));
-  if (!tag || Number.isNaN(lo)) throw new Error(`--io ${spec}: expected <cpu>[:io]:<start>-<end>[:r|w|rw]`);
+  if (!tag || Number.isNaN(lo)) throw new Error(`--io ${spec}: expected <cpu>[:io|:data]:<start>-<end>[:r|w|rw]`);
   return { tag, ...(space ? { space } : {}), lo: lo!, hi: hi ?? lo!, read: mode.includes('r'), write: mode.includes('w') };
 }
 

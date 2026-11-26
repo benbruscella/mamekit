@@ -96,16 +96,59 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
    * were wrapped, so a 68000's word writes to a word handler never appeared
    * (half of Marble Madness's traffic).
    */
+  // A processor's data space: an MCU's internal RAM (the MB88's), which no
+  // board bus sees. The device a round runs is stamped at its own local time,
+  // the running slice's start plus the cycles it has run, as MAME's
+  // `machine.time` is the executing device's.
+  const tapDataSpace = (board: Board, tag: string, taps: { tap: IoTap; index: number }[]) => {
+    const generated = board as unknown as {
+      devices?: Map<string, { hostedCalls?(): { space?(index: number): Record<string, unknown> | undefined }; definition?: { spaces?: { index: number; name: string }[] }; totalCyclesNow?(): number }>;
+      frameRunner?: { running?: { processor: { tag: string } }; runningLocalExact?(cycles: number): bigint | undefined; runningCycles?: number };
+    };
+    const device = generated.devices?.get(tag);
+    const index = device?.definition?.spaces?.find(space => space.name === 'data')?.index;
+    const space = index === undefined ? undefined : device?.hostedCalls?.().space?.(index);
+    if (!space || typeof space.read_byte !== 'function' || typeof space.write_byte !== 'function') {
+      throw new Error(`the board has no data space on ${tag}`);
+    }
+    // The cycles the device has run of its slice (generated-device totalCyclesNow less what it had before).
+    const running = device as unknown as { runningCycles?: number; members: Record<string, unknown>; icountMember: string };
+    const seconds = (): number => {
+      const runner = generated.frameRunner;
+      if (runner?.running?.processor.tag !== tag || running.runningCycles === undefined) return Number.NaN;
+      const elapsed = running.runningCycles - Number(running.members[running.icountMember]);
+      const local = runner.runningLocalExact?.(elapsed);
+      return local === undefined ? Number.NaN : Number(local) / 1e18;
+    };
+    const log = (kind: 'R' | 'W', address: number, data: number) => {
+      const frame = framesRun + 1;
+      if (dumping || frame < plan.io!.from || frame > plan.io!.to) return;
+      for (const { tap, index: tapIndex } of taps) {
+        if (!(kind === 'R' ? tap.read : tap.write) || address < tap.lo || address > tap.hi) continue;
+        ioLines.push(`${frame} ${kind} ${tapIndex} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+        if (ioLines.length >= 4096) flushIo();
+        return;
+      }
+    };
+    const read = (space.read_byte as (address: number) => number).bind(space);
+    const write = (space.write_byte as (address: number, data: number) => unknown).bind(space);
+    space.read_byte = (address: number) => { const value = read(address); log('R', address, Number(value) & 0xff); return value; };
+    space.write_byte = (address: number, data: number) => { log('W', address, data & 0xff); return write(address, data); };
+  };
   const tapBuses = (board: Board) => {
     const cpus = (board as unknown as { cpus?: Map<string, { bus?: object }> }).cpus;
     const buses = (board as unknown as { cpuBuses?: Map<string, object> }).cpuBuses;
     const generated = board as unknown as { cpuSeconds?(cpu: unknown): number; machine?: { execution: { cpus: { tag: string }[] } } };
     const byTag = new Map<string, { tap: IoTap; index: number }[]>();
     // A processor's I/O space is its bus's port methods (in/out), keyed apart.
-    const key = (tap: IoTap) => tap.space === 'io' ? `${tap.tag}\u0000io` : tap.tag;
+    const key = (tap: IoTap) => tap.space ? `${tap.tag}\u0000${tap.space}` : tap.tag;
     plan.io!.taps.forEach((tap, index) => byTag.set(key(tap), [...byTag.get(key(tap)) ?? [], { tap, index }]));
     for (const [keyed, taps] of byTag) {
       const tag = taps[0]!.tap.tag;
+      if (taps[0]!.tap.space === 'data') {
+        tapDataSpace(board, tag, taps);
+        continue;
+      }
       const ports = keyed !== tag;
       // A core compiled whole decodes its own internal map before the board's
       // bus: the S-SMP's I/O registers at $f0-$ff never reach the bus, so the
@@ -126,6 +169,15 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           }) as Record<string, unknown>
         : (cpus?.get(tag)?.bus ?? buses?.get(tag)) as Record<string, unknown> | undefined;
       if (!bus) throw new Error(`the board has no CPU bus ${tag}`);
+      // The core's own space takes its own units: a bit-addressed one (the
+      // TMS34010's, shift 3) is handed bit addresses and a word-addressed one
+      // (the TMS32010's, shift -1) words, which are logged as the bytes the
+      // plan and MAME's side (oracle.lua to_byte) count in.
+      const program = (core as { definition?: { spaces?: { index: number; endianness?: string; dataBits?: number; addressShift?: number }[] } } | undefined)
+        ?.definition?.spaces?.find(space => space.index === 0);
+      const shift = coreSpace ? program?.addressShift ?? 0 : 0;
+      const toByte = (address: number) => shift > 0 ? Math.floor(address / 2 ** shift)
+        : shift < 0 ? address * 2 ** -shift : address;
       // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
       const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tag);
       const seconds = () => cpu && generated.cpuSeconds ? generated.cpuSeconds(cpu) : 0;
@@ -158,7 +210,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           } finally {
             if (word) inWord--;
           }
-          if (word || inWord === 0) log('R', address, Number(value) & (word ? 0xffff : 0xff), word ? 2 : 1);
+          if (word || inWord === 0) log('R', toByte(address), Number(value) & (word ? 0xffff : 0xff), word ? 2 : 1);
           return value;
         };
       }
@@ -170,14 +222,12 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       // MAME's lanes back into bytes; a whole word stays one word.
       // Only on a space wider than a byte: on an 8-bit one (the 6502's) the
       // interruptible accessors are the byte access itself, already logged.
-      const program = (core as { definition?: { spaces?: { index: number; endianness?: string; dataBits?: number }[] } } | undefined)
-        ?.definition?.spaces?.find(space => space.index === 0);
       if (coreSpace && (program?.dataBits ?? 8) > 8) {
         const target = coreSpace.target;
         const little = program?.endianness === 'little';
         const lanes = (address: number, value: number, mask: unknown) => {
           const selected = Number(mask ?? 0xffff) & 0xffff || 0xffff;
-          const even = address & ~1;
+          const even = toByte(address) & ~1;
           if (selected === 0xff00) return { address: even + (little ? 1 : 0), data: (value >>> 8) & 0xff, bytes: 1 };
           if (selected === 0x00ff) return { address: even + (little ? 0 : 1), data: value & 0xff, bytes: 1 };
           return { address: even, data: value & 0xffff, bytes: 2 };
@@ -228,7 +278,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         const original = method.bind(bus);
         const word = name !== 'write' && name !== 'out';
         bus[name] = (address: number, data: number, ...rest: unknown[]) => {
-          if (word || inWord === 0) log('W', address, Number(data) & (word ? 0xffff : 0xff), word ? 2 : 1);
+          if (word || inWord === 0) log('W', toByte(address), Number(data) & (word ? 0xffff : 0xff), word ? 2 : 1);
           if (word) inWord++;
           try {
             original(address, data, ...rest);
