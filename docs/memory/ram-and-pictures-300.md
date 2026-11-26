@@ -20,7 +20,15 @@ Findings, each generic:
 5. **Whole-cycle pull for a synchronizing processor.** MAME's `if (m_localtime < target) target = max(m_localtime, m_basetime)` applies to every device run, synchronized or not; ours skipped it for a synchronizing one that ran out its slice. Wardner 410 → 1930.
 6. **vblank() is unrounded time.** `inVblank()` (screen host, custom PORT_READ_LINE vblank bits) reads the beam unrounded; vpos's half-pixel rounding dropped Wardner's VBLANK bit one poll early. Wardner RAM-identical over 3,600 frames.
 
-7. **Synchronized work's timer lead.** Work posted by the timer-clock CPU runs at drain, devices at the round's end (past the post time); `armLead` returned 0 for that poster, so a timer armed there (06xx NMI re-arm) counted down from round end: 2 Z80 cycles late for good. Now takes the generic lead. digdug/xevious RAM-identical 2,400 frames; galaga 721→1288, polepos 246→329 (still open). Only 22 targets compose `synchronize()` (`grep -l synchronize -r dist/games`): a cheap blast radius for scheduler-sync changes.
+7. **Synchronized work's timer lead.** Work posted by the timer-clock CPU runs at drain, devices at the round's end (past the post time); `armLead` returned 0 for that poster, so a timer armed there (06xx NMI re-arm) counted down from round end: 2 Z80 cycles late for good. Now takes the generic lead. digdug/xevious RAM-identical 2,400 frames; galaga 721→1288, polepos 246→329 (closed by 8–10). Only 22 targets compose `synchronize()` (`grep -l synchronize -r dist/games`): a cheap blast radius for scheduler-sync changes.
+
+8. **devcb defaults from the constructor** (`devcbDefault` in device-compiler.ts): the second constructor arg, e.g. z8002 `m_iack_in(*this, 0xffff)`; was guessed 0xff/0. ~60 moved, mostly to 0 (i8255, Z80 PIO, PIA ports).
+9. **Valued set_inputline** (`delivery` hold/assert/clear from the emitter's `*_LINE` regex): acts only when data is set, no synchronize otherwise (polepos LS259 Q0 `CLEAR_LINE).invert()`). `pulse` is NOT valued: it is the lowering's name for the MSM5205 VCK NMI, whose falling edge must still synchronize. Including it moved kungfum and congo sound.
+10. **Hosted MCU reset synchronized** (host `reset` signal → `model.resetHeld`): galaga's 54xx started 37 MCU cycles early. galaga/polepos RAM-identical 2,400 frames.
+
+Tooling: `--io cpu:data:a-b` taps a data space (hosted MCU via `hostedCalls().space(1)`).
+
+Speed floors: the MC6845 with a screen runs MAME's line/HSYNC/DE timers every scanline; qix CI 68→78 s (15.6 fps), floor lowered 16→14 (90% rule). `roundOrder` asks suspended() once/round. gunsmoke's 42 floor sits at CI's measurement; a slow runner fails it, and a rerun passed. To attribute a CI speed drop, grep the `PASS <game> (Ns)` durations across `gh run view --job` logs per commit.
 
 CI goldens: after this PR's fixes, simpsons robotron ladybug cavenger joust bublbobl qix wardner ddragon nbajam moved by design; reset contracts (joust/robotron/qix) show +14–23% sound writes from soft reset, within MAME tolerance.
 
