@@ -30,9 +30,9 @@ MAMEDEV's release notes (see the README).
 
 ## Unreleased
 
-### Qix, Wardner, Mortal Kombat and NBA Jam match MAME: the MC6845 re-bases the screen, a reset keeps time, held CPUs run last ([#300](https://github.com/benbruscella/mamekit/issues/300))
+### Qix, Wardner, Dig Dug, Xevious, Mortal Kombat and NBA Jam match MAME: the MC6845 re-bases the screen, a reset keeps time, held CPUs run last ([#300](https://github.com/benbruscella/mamekit/issues/300))
 
-**For players:** Nothing visible in most games. Qix runs exactly as MAME does, through a reset too: its memory matches MAME's on every compared frame, with and without input. Wardner's memory matches MAME's on every compared frame too, where it left MAME at the first. Mortal Kombat and NBA Jam already matched MAME; the tool comparing them was wrong.
+**For players:** Nothing visible in most games. Qix runs exactly as MAME does, through a reset too: its memory matches MAME's on every compared frame, with and without input. Wardner's memory matches MAME's on every compared frame too, where it left MAME at the first, and so do Dig Dug's and Xevious's. Mortal Kombat and NBA Jam already matched MAME; the tool comparing them was wrong.
 
 **Under the hood:**
 - `mamekit against`/`diverge` convert byte addresses through a space's address shift. MAME's Lua accessors and taps take the space's own units, bits on the TMS34010 and words on the TMS32010's I/O. The oracle had compared Mortal Kombat's palette with MAME's VRAM, and `read_range` dropped a bit-addressed range's last byte.
@@ -42,6 +42,7 @@ MAMEDEV's release notes (see the README).
 - A processor that synchronized still ends the round where its whole cycles stopped, as MAME's `target = max(m_localtime, m_basetime)` does for every device. Wardner's TMS32010 released the main Z80 a fraction of a cycle short of the round's end, and the Z80 ate one cycle more than MAME's.
 - `screen_device::vblank()` compares times: the VBLANK bit is read from the beam unrounded, not through vpos's half-pixel rounding, which cleared Wardner's VBLANK bit one poll early.
 - `screen().has_screen_update()` and `refresh_attoseconds()` answer the TMS9928A's `device_config_complete`, which `has_screen()` now reaches.
+- A timer armed in work the device clock's own processor posted with `synchronize()` counts down from the time the work was posted, not from the round's end the devices had reached. The 06xx's NMI timer, re-armed by a control write, had run two Z80 cycles off its clock edge. Dig Dug and Xevious now match MAME's memory on every compared frame; Galaga first differs at frame 1288 (was 721), Pole Position at 329 (was 246).
 
 ### The ZX Spectrum draws its picture, and its tapes wait for PLAY ([#290](https://github.com/benbruscella/mamekit/issues/290))
 
