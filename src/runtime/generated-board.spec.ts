@@ -558,9 +558,13 @@ assert.ok(timingDevice.get('m_seconds') < busWriteTime,
 clockHost.cpuCycles.set('maincpu', bankedCycles + 11);
 finder.capture_screen();
 assert.ok(timingDevice.get('m_seconds') > busWriteTime);
+const beforeReset = timingDevice.get('m_seconds');
 screenHostBoard.reset();
 finder.capture_screen();
-assert.equal(timingDevice.get('m_seconds'), 0, 'reset starts a fresh scheduler clock');
+// MAME's soft reset resets the devices and keeps emulated time: a device
+// timer that re-arms itself from its own expiry (the MC6845's line timer)
+// still measures the same clock as the beam afterwards.
+assert.equal(timingDevice.get('m_seconds'), beforeReset, 'reset keeps the scheduler clock');
 
 let clockedPeripheral: Device | undefined;
 const instructionObservations: number[][] = [];

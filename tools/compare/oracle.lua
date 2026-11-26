@@ -151,6 +151,27 @@ local function cpu_space(tag, name)
   return device.spaces[name or "program"]
 end
 
+-- The plan's addresses are bytes, as ours counts them. A bit-addressed space
+-- (the TMS34010's, shift 3) counts its own in bits, a word-addressed one (the
+-- TMS32010's, shift -1) in words, and MAME's accessors and taps take the
+-- space's units (emumem.h byte2addr / addr2byte). Read unscaled, Mortal
+-- Kombat's palette at byte $300000 was compared with MAME's VRAM at bit
+-- $300000, and Wardner's DSP wrote its port 3 on MAME's side, byte 6 on ours.
+local function byte_shift(space)
+  local shift = space.shift or 0
+  return shift > 0 and shift or 0
+end
+local function to_address(space, byte)
+  local shift = space.shift or 0
+  if shift >= 0 then return byte << shift end
+  return byte >> -shift
+end
+local function to_byte(space, address)
+  local shift = space.shift or 0
+  if shift >= 0 then return address >> shift end
+  return address << -shift
+end
+
 oracle.ram = {}
 for index, cpu in ipairs(plan.ram) do
   local space = cpu_space(cpu.tag)
@@ -164,8 +185,18 @@ end
 local function dump_ram()
   oracle.dumping = true
   for _, cpu in ipairs(oracle.ram) do
+    local shift = byte_shift(cpu.space)
     for _, range in ipairs(cpu.ranges) do
-      oracle.files.ram:write(cpu.space:read_range(range[1], range[2], 8))
+      if shift == 0 then
+        oracle.files.ram:write(cpu.space:read_range(range[1], range[2], 8))
+      elseif range[1] == range[2] then
+        oracle.files.ram:write(string.char(cpu.space:read_u8(range[1] << shift)))
+      else
+        -- read_range sizes its result as (last - first + 1) / step: the last
+        -- byte's address range runs to its final unit, or that byte is lost.
+        oracle.files.ram:write(cpu.space:read_range(range[1] << shift,
+          ((range[2] + 1) << shift) - 1, 8, 1 << shift))
+      end
     end
   end
   oracle.dumping = false
@@ -200,7 +231,7 @@ for index, tap in ipairs(plan.io) do
     return function(offset, data, mask)
       local frame = oracle.count + 1
       if not oracle.dumping and frame >= plan.io_from and frame <= plan.io_to then
-        local address, value, bytes = as_issued(space, offset, data, mask)
+        local address, value, bytes = as_issued(space, to_byte(space, offset), data, mask)
         -- The tap is installed on whole bus words; only an access that touches
         -- the bytes asked for is logged, as ours logs it.
         if address + (bytes or 1) - 1 >= tap.lo and address <= tap.hi then
@@ -213,8 +244,8 @@ for index, tap in ipairs(plan.io) do
   -- MAME taps whole bus words: a range is widened to the word boundaries
   -- (a 68000's $860001 is installed as $860000-$860001).
   local granule = space.data_width // 8
-  local lo = tap.lo - (tap.lo % granule)
-  local hi = tap.hi - (tap.hi % granule) + granule - 1
+  local lo = to_address(space, tap.lo - (tap.lo % granule))
+  local hi = to_address(space, tap.hi - (tap.hi % granule) + granule) - 1
   if tap.read then
     oracle.taps[#oracle.taps + 1] = space:install_read_tap(lo, hi, "oracle-r" .. index, record("R"))
   end

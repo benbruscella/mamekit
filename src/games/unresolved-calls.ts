@@ -23,7 +23,6 @@ export const KNOWN_UNRESOLVED_CALLS: ReadonlyMap<string, string> = new Map([
   ["get_card_device", "c64 c64p coleco"],
   ["gfx", "wardner"],
   ["gfx().set_colorbase", "wardner"],
-  ["has_screen", "qix wardner"],
   ["konami_sortlayers_3", "simpsons"],
   ["m_adc.found", "marble"],
   ["m_bitmap[0].resize", "popeye"],

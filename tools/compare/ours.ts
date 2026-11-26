@@ -126,6 +126,15 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           }) as Record<string, unknown>
         : (cpus?.get(tag)?.bus ?? buses?.get(tag)) as Record<string, unknown> | undefined;
       if (!bus) throw new Error(`the board has no CPU bus ${tag}`);
+      // The core's own space takes its own units: a bit-addressed one (the
+      // TMS34010's, shift 3) is handed bit addresses and a word-addressed one
+      // (the TMS32010's, shift -1) words, which are logged as the bytes the
+      // plan and MAME's side (oracle.lua to_byte) count in.
+      const program = (core as { definition?: { spaces?: { index: number; endianness?: string; dataBits?: number; addressShift?: number }[] } } | undefined)
+        ?.definition?.spaces?.find(space => space.index === 0);
+      const shift = coreSpace ? program?.addressShift ?? 0 : 0;
+      const toByte = (address: number) => shift > 0 ? Math.floor(address / 2 ** shift)
+        : shift < 0 ? address * 2 ** -shift : address;
       // The emulated time an access happened at, on the CPU's own cycle count, as MAME's side stamps it.
       const cpu = generated.machine?.execution.cpus.find(candidate => candidate.tag === tag);
       const seconds = () => cpu && generated.cpuSeconds ? generated.cpuSeconds(cpu) : 0;
@@ -158,7 +167,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
           } finally {
             if (word) inWord--;
           }
-          if (word || inWord === 0) log('R', address, Number(value) & (word ? 0xffff : 0xff), word ? 2 : 1);
+          if (word || inWord === 0) log('R', toByte(address), Number(value) & (word ? 0xffff : 0xff), word ? 2 : 1);
           return value;
         };
       }
@@ -170,14 +179,12 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       // MAME's lanes back into bytes; a whole word stays one word.
       // Only on a space wider than a byte: on an 8-bit one (the 6502's) the
       // interruptible accessors are the byte access itself, already logged.
-      const program = (core as { definition?: { spaces?: { index: number; endianness?: string; dataBits?: number }[] } } | undefined)
-        ?.definition?.spaces?.find(space => space.index === 0);
       if (coreSpace && (program?.dataBits ?? 8) > 8) {
         const target = coreSpace.target;
         const little = program?.endianness === 'little';
         const lanes = (address: number, value: number, mask: unknown) => {
           const selected = Number(mask ?? 0xffff) & 0xffff || 0xffff;
-          const even = address & ~1;
+          const even = toByte(address) & ~1;
           if (selected === 0xff00) return { address: even + (little ? 1 : 0), data: (value >>> 8) & 0xff, bytes: 1 };
           if (selected === 0x00ff) return { address: even + (little ? 0 : 1), data: value & 0xff, bytes: 1 };
           return { address: even, data: value & 0xffff, bytes: 2 };
@@ -228,7 +235,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         const original = method.bind(bus);
         const word = name !== 'write' && name !== 'out';
         bus[name] = (address: number, data: number, ...rest: unknown[]) => {
-          if (word || inWord === 0) log('W', address, Number(data) & (word ? 0xffff : 0xff), word ? 2 : 1);
+          if (word || inWord === 0) log('W', toByte(address), Number(data) & (word ? 0xffff : 0xff), word ? 2 : 1);
           if (word) inWord++;
           try {
             original(address, data, ...rest);

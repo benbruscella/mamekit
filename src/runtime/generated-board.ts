@@ -963,19 +963,45 @@ class IrBoard implements Board {
               this.pendingScreenArea = { x: area.min_x, y: area.min_y, width: area.max_x - area.min_x + 1, height: area.max_y - area.min_y + 1 };
               return 0;
             }
+            // Back to the picture's own shape before the frame ended: a CRTC
+            // being programmed register by register passes through others
+            // (Wardner's HD6845S configures 960 visible lines, then 240).
+            this.pendingScreenArea = undefined;
             screen.xOffset = area.min_x;
             screen.yOffset = area.min_y;
             return 0;
           },
           pixel: (x: number, y: number) => this.screenPixel?.(Number(x), Number(y)) ?? 0,
+          // screen_device::has_screen_update() / refresh_attoseconds(): asked
+          // by a video device's device_config_complete before it supplies its
+          // own (the TMS9928A's, once has_screen() is true). The board's
+          // screen is already composed from the configuration they complete:
+          // its update and its frame period are set.
+          has_screen_update: () => 1,
+          refresh_attoseconds: () => Number(screenPeriods(machine.execution.screen).frame.exact),
           // screen_device::reset_origin(beamy, beamx): MAME re-bases its VBLANK
           // timing so the beam stands at (beamy, beamx) now. The MC6845 calls it
-          // at the top of every frame it counts out; the frame runner owns the
-          // beam and starts each frame at line 0 already, so on a CRTC programmed
-          // to the screen's own frame (Qix's) there is nothing to move. A CRTC
-          // counting a different frame length would drift against this screen,
-          // which the frame runner does not model yet.
-          reset_origin: () => 0,
+          // at the top of every frame it counts out, which puts the screen on
+          // the CRTC's phase: Wardner's second VBLANK comes 2.85 ms early, and
+          // every one after keeps the new phase (GeneratedFrameRunner.resetOrigin).
+          // The device clock counts from the start of the line the board
+          // stands on (currentLine), so it moves with that line; after a jump
+          // the board stands on the line before the beam's, whose end is the
+          // frame runner's next boundary.
+          reset_origin: (beamy: unknown = 0, beamx: unknown = 0) => {
+            const runner = this.frameRunner;
+            if (!runner) return 0;
+            const exact = this.exactMachineTime();
+            const now = exact ? exactToAttos(exact) : BigInt(Math.round(this.machineSeconds() * 1e18));
+            const moved = runner.resetOrigin(now, Number(beamy) || 0, Number(beamx) || 0);
+            if (!moved) return 0;
+            this.timedHardwareDelivered -= moved.lineStartShift;
+            if (moved.jumped) {
+              this.currentLine = moved.previousLine;
+              this.currentLineFraction = 0;
+            }
+            return 0;
+          },
           // screen_device::clock(): the pixel clock set_raw gave it.
           clock: () => machine.execution.screen.pixelClock ??
             machine.execution.screen.refresh * (machine.execution.screen.htotal ?? machine.execution.screen.width) *
@@ -1383,6 +1409,10 @@ class IrBoard implements Board {
           },
           calls: {
             screen: () => screenHost,
+            // device_video_interface::has_screen(): a device left unconfigured
+            // binds the machine's first screen (divideo.cpp), which every board
+            // here has. The MC6845 reprograms and re-bases it only when it has one.
+            has_screen: () => 1,
             ...screenServiceCalls,
             'machine().sound().system_mute': systemMute,
             // The interleave a device asks for itself: the Taito SJ security
@@ -3847,6 +3877,12 @@ class IrBoard implements Board {
         return {
         tag: specification.tag,
         enabled: () => !this.cpuHeld.get(specification.tag),
+        // Held in RESET or HALT it is suspended, and MAME's
+        // rebuild_execute_list runs it after every active device. Wardner's
+        // main Z80, halted while its TMS32010 works, kept its first place:
+        // it ate to the round's end before the DSP let it go, and resumed
+        // 19 cycles after MAME's, which the DSP's synchronize had stopped short.
+        suspended: () => this.cpuHeld.get(specification.tag) ? 'eating' as const : undefined,
         // Held in RESET or HALT, MAME's timeslice still books the slice to
         // the processor (eatcycles): its machine time while it runs again is
         // the machine's, not short by every cycle it sat out. Rampage's sound
@@ -4516,10 +4552,14 @@ class IrBoard implements Board {
     }
   }
 
+  /**
+   * MAME's soft reset (running_machine::soft_reset), the reset a player or a
+   * contract asks for: every device and processor resets, and emulated time,
+   * the beam and the device clock carry on (GeneratedFrameRunner.softReset).
+   */
   reset(): void {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     this.observedTransportSeconds.clear();
-    for (const tag of this.cpuCycles.keys()) this.cpuCycles.set(tag, 0);
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
@@ -4528,15 +4568,11 @@ class IrBoard implements Board {
     }
     this.videoPrimitives?.reset?.();
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
-    this.frameRunner.reset();
+    this.frameRunner.softReset();
     this.soundRuntime?.reset?.();
     for (const reset of this.peripheralResets) reset();
     this.inputLatchPrevious.clear();
-    this.currentLine = this.frameRunner.originLine;
     this.scheduledWork.length = 0;
-    this.timedHardwareDelivered = this.lineSeconds();
-    this.heldDeviceSeconds = 0;
-    this.powerOnCreditLines = 1;
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
