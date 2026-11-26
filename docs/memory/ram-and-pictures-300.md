@@ -34,4 +34,6 @@ CI goldens: after this PR's fixes, simpsons robotron ladybug cavenger joust bubl
 
 Tooling notes: `against --runtime <commit>` overlays use the current tree's `unresolved-calls.ts`, so removing an entry breaks main's runtime there (temporarily restore it). `diverge` can't time-compare across a reset when our clock restarted (fixed by 3).
 
+#300 was closed by #301's merge (2026-11-26); its open rows (F1 rest, F3–F6, wardner/mk/nbajam pictures) continue in **#303**, a sub-issue of #247. The epic's 5.5 moved to Done, and qix's floor is entry 13.1.
+
 Related: [[mame-scheduler-synchronize]], [[held-cpu-eats-cycles]], [[gauntlet-296]], [[mamekit-compare-commands]].
