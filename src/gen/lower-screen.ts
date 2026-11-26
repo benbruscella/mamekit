@@ -168,6 +168,8 @@ export function lowerScreen(devices: KGNode[], g: Graph, machine: KGNode, graph:
         : 'frame' as const,
     ...((screenDev?.props.screenVideoAttributes as string[] | undefined)?.includes('VIDEO_VARIABLE_WIDTH')
       ? { variableWidth: true as const } : {}),
+    ...((screenDev?.props.screenVideoAttributes as string[] | undefined)?.includes('VIDEO_UPDATE_AFTER_VBLANK')
+      ? { updateAfterVblank: true as const } : {}),
     ...(physicalAspect(screenDev) ? { physicalAspect: physicalAspect(screenDev)! } : {}),
     rotate: monitor === 'ROT90' ? 90 : monitor === 'ROT270' ? 270 : monitor === 'ROT180' ? 180 : 0,
   };

@@ -290,6 +290,8 @@ export class GeneratedFrameRunner {
    * reach that instant until the frame is presented.
    */
   awaitingPresent = false;
+  /** The line whose events frame() dispatched before presenting (vblankEndIndex); -1 for none. */
+  private dispatchedAhead = -1;
 
   constructor(options: GeneratedFrameRunnerOptions) {
     this.machine = options.machine;
@@ -669,6 +671,23 @@ export class GeneratedFrameRunner {
     return this.origin === 'vbstart' && this.machine.execution.screen.updateMode !== 'scanline' && this.originLine > 0;
   }
 
+  /**
+   * Where an UPDATE_AFTER_VBLANK screen's frames end: VBLANK end's index from
+   * the origin. The schedule still runs from VBLANK to VBLANK (its base, its
+   * timers), but frame() returns, and presents, when the beam reaches VBLANK
+   * end, as MAME's frame_update runs from vblank_end. MAME arms its first
+   * vblank_end from the first vblank_begin, a frame after time zero, so the
+   * first frame is a whole schedule frame and VBLANK's lines after it: The
+   * Simpsons' first frame is 304 lines, and every one after it 264.
+   */
+  private get vblankEndIndex(): number | undefined {
+    const screen = this.machine.execution.screen;
+    if (!screen.updateAfterVblank || !this.presentsAtEnd) return undefined;
+    const vtotal = Math.max(1, screen.vtotal);
+    const index = ((((screen.vbend ?? 0) - this.originLine) % vtotal) + vtotal) % vtotal;
+    return index > 0 ? index : undefined;
+  }
+
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
     const vtotal = Math.max(1, screen.vtotal);
@@ -677,8 +696,11 @@ export class GeneratedFrameRunner {
     this.pendingLines = 0;
     this.awaitingPresent = this.presentsAtEnd;
     this.rebasedIndex = undefined;
-    const first = this.nextFrameStart;
+    const endIndex = this.vblankEndIndex;
+    const first = endIndex !== undefined && !this.fromOrigin ? endIndex : this.nextFrameStart;
     this.nextFrameStart = 0;
+    // The first frame's VBLANK end is no presentation: it comes a frame on.
+    if (endIndex !== undefined && this.fromOrigin) this.awaitingPresent = false;
     for (let start = first; ;) {
       for (this.lineIndex = start; this.lineIndex < vtotal; this.lineIndex++) {
         const index = this.lineIndex;
@@ -707,6 +729,30 @@ export class GeneratedFrameRunner {
       this.rebasedIndex = undefined;
     }
     this.rebasedIndex = undefined;
+    if (endIndex !== undefined) {
+      // The schedule frame ends at VBLANK; this one runs on to VBLANK's end.
+      this.frameBase.addTime(this.framePeriod);
+      this.frames++;
+      this.awaitingPresent = true;
+      for (this.lineIndex = 0; this.lineIndex < endIndex; this.lineIndex++) {
+        this.runLine((origin + this.lineIndex) % vtotal, framebuffer);
+      }
+      if (this.pendingLines > 0) {
+        this.runProcessors(this.pendingLines, (origin + endIndex - 1) % vtotal);
+        this.pendingLines = 0;
+      }
+      this.rebasedIndex = undefined;
+      // vblank_end runs the screen's VBLANK callbacks before frame_update, so
+      // the line's events come first, and the next frame does not repeat them.
+      const line = (origin + endIndex) % vtotal;
+      if (this.eventPhase === 'before-processors') {
+        this.dispatchLine(line, framebuffer);
+        this.dispatchedAhead = line;
+      }
+      this.present(framebuffer);
+      this.presented();
+      return;
+    }
     if (this.presentsAtEnd) {
       this.present(framebuffer);
       rendered = true;
@@ -746,7 +792,9 @@ export class GeneratedFrameRunner {
       // Re-based while paying them: this line is not where the beam is.
       if (this.rebasedIndex !== undefined) return false;
     }
-    if (this.eventPhase === 'before-processors' && !this.atOrigin) this.dispatchLine(line, framebuffer);
+    const dispatchedAhead = this.dispatchedAhead === line;
+    this.dispatchedAhead = -1;
+    if (this.eventPhase === 'before-processors' && !this.atOrigin && !dispatchedAhead) this.dispatchLine(line, framebuffer);
     // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
     // of the scanline, before CPUs execute the interval leading to the next
     // line. Drawing afterwards can combine sprite RAM from two states across

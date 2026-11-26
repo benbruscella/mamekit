@@ -713,3 +713,50 @@ console.log('generated-frame.spec: 21 passed');
   runner.frame(new Uint32Array(1));
   assert.equal(cycles, 220);
 }
+
+// MAME's VIDEO_UPDATE_AFTER_VBLANK: frame_update runs from vblank_end, so a
+// frame runs from one VBLANK end to the next. The schedule keeps its VBLANK-
+// to-VBLANK base; only where frame() returns moves. MAME arms its first
+// vblank_end from the first vblank_begin, so the first frame is the whole
+// schedule frame and VBLANK's lines after it (lines 3, 0, 1, 2, then 3, 0),
+// and each after it a frame (1, 2, 3, 0). The VBLANK-end line's events run
+// before the picture is taken, as vblank_end calls them before frame_update,
+// and the next frame does not run them again.
+{
+  const afterMachine: BoardIr = {
+    ...machine,
+    callbacks: [...machine.callbacks, { id: 'callback:vblank-end', ownerTag: 'screen', signal: 'screen_vblank', operation: 'set' }],
+    execution: {
+      ...machine.execution,
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 4, vbstart: 3, vbend: 1, rotate: 0, updateAfterVblank: true },
+      frameEvents: [
+        { callbackId: 'callback:vblank', ownerTag: 'screen', signal: 'screen_vblank', line: 3, state: 1 },
+        { callbackId: 'callback:vblank-end', ownerTag: 'screen', signal: 'screen_vblank', line: 1, state: 0 },
+      ],
+    },
+  };
+  let cycles = 0;
+  const lines: number[] = [];
+  const timeline: string[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine: afterMachine,
+    origin: 'vbstart',
+    processors: [{ tag: 'maincpu', run: budget => { cycles += budget; return budget; } }],
+    video: { width: 1, height: 1, render: () => { timeline.push('render'); }, vblank: () => {} },
+    onLine: (line, phase) => { if (phase === 'before-processors') lines.push(line); },
+    onEvent: event => timeline.push(event.callbackId),
+  });
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(lines, [3, 0, 1, 2, 3, 0], 'the first frame ends at the second VBLANK end');
+  assert.equal(cycles, 90, 'six lines of 15 cycles');
+  assert.equal(timeline.at(-1), 'render');
+  assert.equal(timeline.at(-2), 'callback:vblank-end', 'VBLANK end\'s events before the picture');
+  lines.length = 0;
+  timeline.length = 0;
+  cycles = 0;
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(lines, [1, 2, 3, 0], 'a frame from VBLANK end to VBLANK end');
+  assert.equal(cycles, 60);
+  assert.deepEqual(timeline, ['callback:vblank', 'callback:vblank-end', 'render'], 'VBLANK end\'s events once, before the picture');
+  assert.equal(runner.frameCount, 2);
+}

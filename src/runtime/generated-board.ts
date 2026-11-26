@@ -3759,11 +3759,23 @@ class IrBoard implements Board {
             // anchored to the scheduler's could never come due, and the
             // device clock stood still for three frames.
             const standing = (this.beamPosition() - baseLine) * this.lineSeconds();
-            if (Math.abs(standing) > 1e-12) return;
+            if (standing < -1e-12) return;
             const timer = soonestTimerHandle();
             const due = timer?.exactDueAttos();
             if (!timer || due === undefined) return;
             const baseAttos = this.frameRunner.baseExact();
+            // Ahead of the base (the round before was pulled back to a
+            // processor's whole cycles, past which the devices had already
+            // run), the round still ends on the exact expiry; only the
+            // countdown stays where the device clock has it. Bounded by the
+            // clock's seconds, The Simpsons' K053260 edge fell an attosecond
+            // short of the sound Z80's next whole cycle: the Z80 ran none of
+            // the round and took its NMI a HALT fetch (4 cycles) before MAME's.
+            if (standing > 1e-12) {
+              const ahead = Number(due - baseAttos) * 1e-18;
+              if (Math.abs(ahead - (soonest + standing)) <= EXACT_ANCHOR_LIMIT_SECONDS) exactUntil = ahead;
+              return;
+            }
             // Only drift: the countdown carries what the exact expiry does not
             // (the arming processor's lead, the round's base), and where the
             // two are further apart than drift, the countdown is the one that
@@ -4656,9 +4668,15 @@ class IrBoard implements Board {
    */
   private exactMachineTime(): ExactAttotime | undefined {
     const runner = this.frameRunner;
-    // Not before the scheduler starts: a device_start's timer counts from
-    // power-on, which the runner's base does not stand at yet.
-    if (!this.exactTimeKnown || !runner || !this.schedulerRunning) return undefined;
+    // Before the scheduler starts, the machine is at power-on, time zero
+    // exactly, which the runner's base does not stand at yet. MAME arms a
+    // device_reset's periodic timer from zero: The Simpsons' K053260, armed
+    // `from_ticks(16, clock())` there, ran on the sound Z80's cycle grid, and
+    // counted from seconds it fell 3,318 attoseconds short of it, so a round
+    // bounded by its edge left the Z80 a cycle short (one HALT fetch).
+    if (!this.exactTimeKnown) return undefined;
+    if (!this.schedulerRunning) return exactFromAttos(0n);
+    if (!runner) return undefined;
     if (generatedTimerExpiry() !== undefined) return generatedTimerExactExpiry();
     if (this.deliveringDeviceTime || this.runningRoundDevice !== undefined) return undefined;
     if (this.runningCpu !== undefined) {
@@ -4703,8 +4721,10 @@ class IrBoard implements Board {
    * from vbstart, so from the line after it the instant is past the wrap.
    */
   private secondsToPresent(): number {
-    const { vbstart, vtotal } = this.machine.execution.screen;
-    const lines = this.currentLine >= vbstart ? vtotal - this.currentLine + vbstart : vbstart - this.currentLine;
+    // Presented where VBLANK starts, or where it ends on an UPDATE_AFTER_VBLANK screen.
+    const { vbstart, vbend, vtotal, updateAfterVblank } = this.machine.execution.screen;
+    const at = updateAfterVblank ? (vbend ?? 0) % Math.max(1, vtotal) : vbstart;
+    const lines = this.currentLine >= at ? vtotal - this.currentLine + at : at - this.currentLine;
     return lines * this.lineSeconds() - this.timedHardwareDelivered;
   }
 
