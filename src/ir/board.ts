@@ -175,7 +175,13 @@ export const HOST_INPUT_LINES = {
  * distinguish these: irqN_line_hold stays asserted until acknowledged,
  * irqN_line_assert leaves the line up, nmi_line_pulse strobes it.
  */
-export type CpuLineDelivery = 'hold' | 'assert' | 'pulse' | 'level';
+/**
+ * How a callback drives a CPU line. `level` is devcb's `set_inputline(tag,
+ * line)`: the line follows the data. The others are its valued form,
+ * `set_inputline(tag, line, value)`, which sets the line to that value when
+ * the (transformed) data is non-zero and does nothing otherwise.
+ */
+export type CpuLineDelivery = 'hold' | 'assert' | 'pulse' | 'clear' | 'level';
 
 export type BoardEffect =
   /** Drive a CPU interrupt or control pin. */

@@ -24,7 +24,7 @@ interface MapRange {
 export interface DivergeTap {
   tag: string;
   /** The processor's I/O space; its program space when absent. */
-  space?: 'io';
+  space?: 'io' | 'data';
   lo: number;
   hi: number;
   /** Why the range is tapped: the device, share or register that put it there. */

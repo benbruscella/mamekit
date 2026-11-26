@@ -2379,15 +2379,16 @@ function compileMameDeviceSource(
     };
     return memberDeclarations(declaration, constants).map(member => ({
       ...member,
+      declaredName: member.name,
       name: emittedMemberName(className, member.name),
       valueType: scoped(specialize(className, member.valueType)),
-    })).flatMap(member => {
+    })).flatMap(({ declaredName, ...member }) => {
       if (member.valueType.startsWith('devcb_')) {
         callbacks.push({
           signal: member.name.replace(/^m_/, ''),
           member: member.name,
           slots: callbackSlots(member.valueType, constants),
-          initial: member.valueType.startsWith('devcb_read8') ? 0xff : 0,
+          initial: devcbDefault(constructorBindings[declaredName] ?? constructorBindings[member.name], member.valueType, constants),
           ...(member.valueType.startsWith('devcb_read') ? { reads: true } : {}),
         });
         return [];
@@ -6097,6 +6098,21 @@ function memberConstructorBindings(source: string): Record<string, string[]> {
     bindings[match[1]!] ??= splitMameArgs(match[2]!).map(argument => argument.trim());
   }
   return bindings;
+}
+
+/**
+ * What an unbound devcb read returns: the default its owner's constructor
+ * gives it, `m_iack_in(*this, 0xffff)` (devcb_read's `dflt`, required). The
+ * Z8000's interrupt acknowledge reads 0xffff unbound, and pushes it as the
+ * interrupt's type tag; taken as 0, Pole Position's Z8002s stacked 0 where
+ * MAME's stack 0xffff. Only where the argument does not evaluate does the
+ * type's usual value stand in.
+ */
+function devcbDefault(args: string[] | undefined, valueType: string, constants: Record<string, number>): number {
+  const written = args?.[1];
+  const value = written === undefined ? null : evalExpr(written, constants);
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  return valueType.startsWith('devcb_read8') ? 0xff : 0;
 }
 
 /** A devcb array's size, which MAME often names: `devcb_read8::array<PORT_COUNT>`. */

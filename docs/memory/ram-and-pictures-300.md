@@ -20,7 +20,9 @@ Findings, each generic:
 5. **Whole-cycle pull for a synchronizing processor.** MAME's `if (m_localtime < target) target = max(m_localtime, m_basetime)` applies to every device run, synchronized or not; ours skipped it for a synchronizing one that ran out its slice. Wardner 410 → 1930.
 6. **vblank() is unrounded time.** `inVblank()` (screen host, custom PORT_READ_LINE vblank bits) reads the beam unrounded; vpos's half-pixel rounding dropped Wardner's VBLANK bit one poll early. Wardner RAM-identical over 3,600 frames.
 
-F2 (digdug, open): the 06XX's NMI timer ends no round at its expiry when the device clock stands ahead of the base (up to 3.6 µs) and has already passed it; the round runs ~2 main cycles past, and the NMI is taken an instruction late (frame 325, push at `99ff`). Look at nextTimerSeconds' headroom/soonest arithmetic for an overdue timer while devices lead.
+7. **Synchronized work's timer lead.** Work posted by the timer-clock CPU runs at drain, devices at the round's end (past the post time); `armLead` returned 0 for that poster, so a timer armed there (06xx NMI re-arm) counted down from round end: 2 Z80 cycles late for good. Now takes the generic lead. digdug/xevious RAM-identical 2,400 frames; galaga 721→1288, polepos 246→329 (still open). Only 22 targets compose `synchronize()` (`grep -l synchronize -r dist/games`): a cheap blast radius for scheduler-sync changes.
+
+CI goldens: after this PR's fixes, simpsons robotron ladybug cavenger joust bublbobl qix wardner ddragon nbajam moved by design; reset contracts (joust/robotron/qix) show +14–23% sound writes from soft reset, within MAME tolerance.
 
 Tooling notes: `against --runtime <commit>` overlays use the current tree's `unresolved-calls.ts`, so removing an entry breaks main's runtime there (temporarily restore it). `diverge` can't time-compare across a reset when our clock restarted (fixed by 3).
 

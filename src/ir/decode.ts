@@ -230,7 +230,7 @@ const CPU_LINES = new Set([
   'irq', 'irq1', 'irq2', 'irq3', 'irq4', 'irq5', 'irq6', 'irq7',
   'firq', 'nmi', 'reset', 'halt', 'busreq', 'core',
 ]);
-const DELIVERIES = new Set(['hold', 'assert', 'pulse', 'level']);
+const DELIVERIES = new Set(['hold', 'assert', 'pulse', 'clear', 'level']);
 const TRANSFORM_KINDS = new Set(['invert', 'mask', 'bit', 'rshift', 'lshift']);
 
 /**

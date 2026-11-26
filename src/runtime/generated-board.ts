@@ -4466,8 +4466,19 @@ class IrBoard implements Board {
     });
     if (host.signalNames().includes('reset')) {
       host.on('reset', state => {
-        model.resetHeld = state !== 0;
-        if (model.resetHeld) device.reset();
+        const apply = () => {
+          model.resetHeld = state !== 0;
+          if (model.resetHeld) device.reset();
+        };
+        // The host drives its processor's RESET through set_input_line
+        // (namco_54xx_device::reset), which is set_state_synced like every
+        // line (deviceInputLine): the processor runs up to the time it was
+        // driven before the line changes. Applied in place, Galaga's 51xx
+        // and 54xx, released by the main Z80's LS259 write and run after it
+        // in the round, started from the round's base, 37 MCU cycles before
+        // the write; MAME's start 5 cycles after it.
+        if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
+        else apply();
       });
     }
     return () => !model.resetHeld && !this.cpuHeld.get(tag);
@@ -6803,7 +6814,24 @@ class IrBoard implements Board {
         if (state) this.frameRunner?.quantumWindow(seconds, this.quantumWindowStart());
       },
       cpuLine: (tag, line, delivery, input) => {
-        const apply = cpuLineEffect(tag, line, delivery, input);
+        const level = cpuLineEffect(tag, line, delivery, input);
+        // devcb's valued `set_inputline(tag, line, value)`:
+        // `if ((data ^ exor) & mask) exec.set_input_line(linenum, value)`.
+        // Data that comes to nothing leaves the line alone, and synchronizes
+        // nothing. Pole Position's LS259 Q0 is `set_inputline(maincpu, 0,
+        // CLEAR_LINE).invert()`: setting the bit (enabling the IRQ) does
+        // nothing, and clearing it clears the line. Followed as a level, the
+        // enable cleared the line, synchronized, and cut the Z80's slice; its
+        // Z8002s then ran up to the write and cleared the sprite words it was
+        // about to read, which MAME's Z80, running on, read before them.
+        // Only hold, assert and clear are written values. A pulse is the
+        // lowering's own name for the non-valued `set_inputline(cpu, NMI)`
+        // of an MSM5205 VCK: MAME sets the line with each edge's data, so the
+        // falling edge synchronizes too (Kung-Fu Master's sound 6803).
+        const value = delivery === 'clear' ? 0 : delivery === 'hold' || delivery === 'assert' ? 1 : undefined;
+        const apply: EffectExecutor | undefined = level && value !== undefined
+          ? state => { if (state) level(value); }
+          : level;
         if (!apply || line === 'busreq' || line === 'core') return apply;
         // devcb's set_inputline is set_input_line, and that goes through
         // device_input::set_state_synced like any other (cpuInputLine): from
@@ -6813,6 +6841,7 @@ class IrBoard implements Board {
         // run after it in the round, started from the round's base, 18 us
         // before the write that released it.
         return state => {
+          if (value !== undefined && !state) return;
           if (this.synchronizesLineFrom(tag)) this.synchronize(() => { apply(state); });
           else apply(state);
         };
