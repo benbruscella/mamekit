@@ -455,6 +455,22 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       return [`${helper.className}.${helper.name}`];
     });
     if (initHandlers.length) g.node('Game', id, { initHandlers });
+    // `machine().add_notifier(MACHINE_NOTIFY_RESET, machine_notify_delegate(&cls::fn, this))`
+    // in the init, or in a helper it calls: MAME calls it on every reset,
+    // after reset_all_devices (registered first, when the machine starts), so
+    // after machine_reset. Taito SJ's reset_common sets its sound latch to
+    // 0xff that way; dropped, Elevator Action's sound CPU read 0 at 15 us.
+    const initBodies = [initFunction?.body ?? '', ...[...(initFunction?.body ?? '').matchAll(/^\s*(\w+)\s*\(\s*\)\s*;/gm)]
+      .map(call => ast.findFunctionInHierarchy(gm.cls, call[1]!)?.body ?? '')];
+    const resetNotifiers = initBodies.flatMap(body => [...body.matchAll(
+      /add_notifier\s*\(\s*MACHINE_NOTIFY_RESET\s*,\s*machine_notify_delegate\s*\(\s*&\s*(\w+)::(\w+)\s*,\s*this\s*\)/g,
+    )].flatMap(match => {
+      const target = ast.findFunctionInHierarchy(gm.cls, match[2]!);
+      if (!target?.className) return [];
+      g.edge(id, emitSourceHandlerClosure(g, ast, target.className, target.name, consts, target.span), 'CALLS_HANDLER');
+      return [`${target.className}.${target.name}`];
+    }));
+    if (resetNotifiers.length) g.node('Game', id, { resetNotifiers });
   }
 
   // --- rom sets ---

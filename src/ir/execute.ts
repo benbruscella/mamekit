@@ -517,6 +517,18 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   // `pc() - 1`, the last one it fetched.
   STATE_GENPC: -1,
   STATE_GENPCBASE: -2,
+  // emu/diexec.h's suspend reasons, which device_execute_interface::suspended()
+  // masks. Unresolved they read 0: Double Dragon's comram_r asks its HD63701
+  // `suspended(SUSPEND_REASON_RESET | SUSPEND_REASON_HALT)` and a zero mask
+  // answers "running", so the main CPU read 0xff from shared RAM at frame 3.
+  SUSPEND_REASON_HALT: 0x0001,
+  SUSPEND_REASON_RESET: 0x0002,
+  SUSPEND_REASON_SPIN: 0x0004,
+  SUSPEND_REASON_TRIGGER: 0x0008,
+  SUSPEND_REASON_DISABLE: 0x0010,
+  SUSPEND_REASON_TIMESLICE: 0x0020,
+  SUSPEND_REASON_CLOCK: 0x0040,
+  SUSPEND_ANY_REASON: 0xffffffff,
   // emu/emumem.h's address space numbers. Unnamed, board codegen declined
   // every driver handler that says `space(AS_PROGRAM)` -- the SNES scanline,
   // HBLANK and HDMA timers, hundreds of calls a frame, all interpreted.

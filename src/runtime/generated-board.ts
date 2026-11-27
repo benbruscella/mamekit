@@ -402,6 +402,11 @@ const CYCLE_ROUNDING = 1e-6;
  * Generated driver handlers call set_input_line directly, so these lines do
  * not necessarily arrive through the typed connection/effect path below.
  */
+/** device_execute_interface's suspend reasons (emu/diexec.h). */
+const SUSPEND_REASON_HALT = DEFAULT_CONSTANTS.SUSPEND_REASON_HALT!;
+const SUSPEND_REASON_RESET = DEFAULT_CONSTANTS.SUSPEND_REASON_RESET!;
+const SUSPEND_ANY_REASON = DEFAULT_CONSTANTS.SUSPEND_ANY_REASON!;
+
 export function applyGeneratedCpuInputLine(
   cpu: Cpu,
   line: number,
@@ -488,15 +493,15 @@ class IrBoard implements Board {
   private readonly cpuBuses = new Map<string, Bus>();
   private readonly cpuCycles = new Map<string, number>();
   private readonly cpuStalls = new Map<string, number>();
-  private readonly cpuHeld = new Map<string, boolean>();
   /**
-   * MAME applies CPU suspend/resume requests at scheduler boundaries.  A
-   * driver's immediate `suspended()` query therefore observes the previous
-   * bus state once before the newly requested HALT/RESET state becomes
-   * visible.  Several dual-CPU boards use that transition as their bus-grant
-   * handshake (Double Dragon's HD63701 is the canonical example).
+   * device_execute_interface's suspend mask, per processor: SUSPEND_REASON_HALT
+   * and SUSPEND_REASON_RESET, set and cleared by their own lines; held while
+   * it is non-zero. One flag for both let a HALT clear release a RESET hold:
+   * Double Dragon's bankswitch_w asserts the HD63701's RESET and clears its
+   * HALT in one write, and the sub CPU read as running, so comram_r answered
+   * 0xff from frame 3.
    */
-  private readonly cpuReportedSuspended = new Map<string, boolean>();
+  private readonly cpuHeld = new Map<string, number>();
   private readonly devices = new Map<string, Device>();
   /** Devices whose device_start waits for the board's callbacks and video (startReadsHostBindings). */
   private readonly hostBoundStarts: Device[] = [];
@@ -2853,8 +2858,7 @@ class IrBoard implements Board {
       this.linkDaisyChain(specification, cpu);
       this.cpuCycles.set(specification.tag, 0);
       this.cpuStalls.set(specification.tag, 0);
-      this.cpuHeld.set(specification.tag, false);
-      this.cpuReportedSuspended.set(specification.tag, false);
+      this.cpuHeld.set(specification.tag, 0);
       const acknowledge = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
         callback.signal === 'set_irq_acknowledge_callback');
@@ -2913,7 +2917,7 @@ class IrBoard implements Board {
           if (line === INPUT_LINE_NMI) cpu.nmi();
           else if (line === INPUT_LINE_RESET) {
             cpu.reset();
-            this.cpuHeld.set(specification.tag, false);
+            this.holdCpu(specification.tag, SUSPEND_REASON_RESET, false);
             this.cpuResetReleased(specification.tag);
           }
           else {
@@ -2962,14 +2966,13 @@ class IrBoard implements Board {
         this.adjustGeneratedIcount(specification.tag, delta);
         return 0;
       };
-      calls[`m_${specification.tag}.suspended`] = () => {
-        const reported = this.cpuReportedSuspended.get(specification.tag) ?? false;
-        this.cpuReportedSuspended.set(
-          specification.tag,
-          this.cpuHeld.get(specification.tag) ?? false,
-        );
-        return Number(reported);
-      };
+      // device_execute_interface::suspended() reads m_nextsuspend: held in
+      // RESET or HALT from the moment the (synchronized) input line lands,
+      // not from the next round. Double Dragon's shared RAM answers the main
+      // CPU only while its HD63701 is held (comram_r); a query that lagged by
+      // one call read 0xff at the first access after the hold, frame 3.
+      calls[`m_${specification.tag}.suspended`] = (reason = SUSPEND_ANY_REASON) =>
+        Number(((this.cpuHeld.get(specification.tag) ?? 0) & Number(reason)) !== 0);
       // Handlers reference CPUs by their state-member name (m_subcpu2) as
       // well as by tag; every CPU call gets both aliases uniformly.
       const cpuSpecification = machine.devices?.find(device => device.tag === specification.tag);
@@ -4316,14 +4319,26 @@ class IrBoard implements Board {
    *   CT port. Applied at once, it was asserted and cleared inside the Z80's
    *   slice, the MCU never saw it, and no voice sample ever played.
    */
+  /** Sets or clears one suspend reason (MAME's suspend/resume) and the held view it implies. */
+  private holdCpu(tag: string, reason: number, held: boolean): void {
+    const reasons = this.cpuHeld.get(tag) ?? 0;
+    this.cpuHeld.set(tag, held ? reasons | reason : reasons & ~reason);
+  }
+
+  /** Whether a processor's RESET line holds it (SUSPEND_REASON_RESET). */
+  private cpuInReset(tag: string): boolean {
+    return ((this.cpuHeld.get(tag) ?? 0) & SUSPEND_REASON_RESET) !== 0;
+  }
+
   private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
     const apply = () => {
       // A line that changes may wake a stopped core (stoppedProcessor).
       const activity = this.cpuActivity(tag);
       activity.quietSlices = 0;
       activity.quietPc = undefined;
-      const released = line === INPUT_LINE_RESET && state === 0 && this.cpuHeld.get(tag) === true;
-      applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+      const released = line === INPUT_LINE_RESET && state === 0 && this.cpuInReset(tag);
+      applyGeneratedCpuInputLine(cpu, line, state,
+        held => this.holdCpu(tag, line === INPUT_LINE_RESET ? SUSPEND_REASON_RESET : SUSPEND_REASON_HALT, held), dataBus);
       if (released) this.cpuResetReleased(tag);
     };
     if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
@@ -4374,9 +4389,9 @@ class IrBoard implements Board {
     if (line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) {
       const apply = () => {
         const held = state !== 0;
-        const released = !held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag) === true;
+        const released = !held && line === INPUT_LINE_RESET && this.cpuInReset(tag);
         if (released) device.reset();
-        this.cpuHeld.set(tag, held);
+        this.holdCpu(tag, line === INPUT_LINE_RESET ? SUSPEND_REASON_RESET : SUSPEND_REASON_HALT, held);
         if (released) this.cpuResetReleased(tag);
       };
       // device_input::set_state_synced: the line changes through
@@ -4582,10 +4597,7 @@ class IrBoard implements Board {
     this.observedTransportSeconds.clear();
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
-    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
-    for (const tag of this.cpuReportedSuspended.keys()) {
-      this.cpuReportedSuspended.set(tag, false);
-    }
+    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, 0);
     this.videoPrimitives?.reset?.();
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.softReset();
@@ -4915,12 +4927,14 @@ class IrBoard implements Board {
    * or past the next VBLANK start. It compares times, unrounded, where
    * vpos() rounds half a pixel on: read through vpos, Wardner's VBLANK bit
    * (port $58) dropped one poll before MAME's at the line it ends on.
+   *
+   * Inside a slice it is the running processor's own time (frameLines), in a
+   * one-line round too: there the board's line is already the next one by the
+   * slice's end, and Double Dragon's HD6309, polling VBLANK through the last
+   * line of the frame, saw it end a line before MAME's (frame 229).
    */
   private inVblank(): boolean {
-    const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningCycles())
-      : undefined;
-    const position = this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction;
+    const position = this.expiryBeam ?? (this.frameRunner?.originLine ?? 0) + this.frameLines();
     const height = this.rasterHeight();
     const line = ((Math.floor(this.rasterLabel(position)) % height) + height) % height;
     const { vbend = 0 } = this.machine.execution.screen;
@@ -4968,10 +4982,7 @@ class IrBoard implements Board {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
-    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
-    for (const tag of this.cpuReportedSuspended.keys()) {
-      this.cpuReportedSuspended.set(tag, false);
-    }
+    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, 0);
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     for (const reset of this.peripheralResets) reset();
     this.runMachineReset();
@@ -5141,7 +5152,7 @@ class IrBoard implements Board {
    */
   stateKeys(): readonly string[] {
     return [
-      'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
+      'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld',
       'runningSliceCycles', 'devices', 'generatedBanks',
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
@@ -6788,8 +6799,8 @@ class IrBoard implements Board {
       }
       if (line === 'reset') {
         return state => {
-          const released = !state && this.cpuHeld.get(tag) === true;
-          this.cpuHeld.set(tag, Boolean(state));
+          const released = !state && this.cpuInReset(tag);
+          this.holdCpu(tag, SUSPEND_REASON_RESET, Boolean(state));
           if (state) this.cpus.get(tag)?.reset();
           else if (released) this.cpuResetReleased(tag);
         };
@@ -6798,7 +6809,7 @@ class IrBoard implements Board {
         // MAME's INPUT_LINE_HALT suspends the processor in the scheduler.
         // It acknowledges nothing: a bus request is `busreq`, which the
         // core grants itself.
-        return state => { this.cpuHeld.set(tag, Boolean(state)); };
+        return state => { this.holdCpu(tag, SUSPEND_REASON_HALT, Boolean(state)); };
       }
       const numberedIrq = /^irq([1-7])$/.exec(line);
       if (numberedIrq) {

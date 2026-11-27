@@ -2635,6 +2635,17 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private ramPaletteMirror?: Uint16Array;
   private priorityBitmap?: GeneratedPriorityBitmap;
 
+  /** screen_device::width(): the whole raster, HBLANK included. */
+  private rasterWidth(): number {
+    const screen = this.machine.execution.screen;
+    return Math.max(1, screen.htotal ?? (screen.xOffset ?? 0) + screen.width);
+  }
+
+  /** screen_device::height(): the whole raster, VBLANK included. */
+  private rasterHeight(): number {
+    return Math.max(1, this.machine.execution.screen.vtotal);
+  }
+
   constructor(
     machine: BoardIr,
     regions: Regions,
@@ -2968,8 +2979,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       __frame: 0,
       frame_number(this: { __frame: number }) { return this.__frame; },
       vpos: () => bindings.calls?.['m_screen.vpos']?.() ?? 0,
-      width: () => this.width,
-      height: () => this.height,
+      width: () => this.rasterWidth(),
+      height: () => this.rasterHeight(),
       update_partial: (line: number) => updatePartial?.(line),
       priority: () => this.screenPriority(),
       visible_area: () => new GeneratedRectangle(
@@ -3032,8 +3043,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     // Source creation order and generated plan order are identical.
     let nextCreatedTilemap = 0;
     const calls = bindings.calls ??= {};
-    calls['m_screen.width'] = () => this.width;
-    calls['m_screen.height'] = () => this.height;
+    // screen_device::width() and height() are the whole raster (m_width,
+    // m_height), not the visible window. Answered with the window, Double
+    // Dragon's scanline callback took line 0's previous line as 239, not 271,
+    // and raised a FIRQ MAME never does on every frame.
+    calls['m_screen.width'] = () => this.rasterWidth();
+    calls['m_screen.height'] = () => this.rasterHeight();
     calls['machine().tilemap().create'] = () =>
       createdTilemaps[Math.min(nextCreatedTilemap++, createdTilemaps.length - 1)] ?? 0;
     const bitmapWidth = machine.execution.screen.width * (machine.video?.renderScale?.x ?? 1);

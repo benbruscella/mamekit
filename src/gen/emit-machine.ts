@@ -659,6 +659,8 @@ export function lowerGeneratedMachine(
   for (const node of graph.nodes) {
     if (node.label === 'Game' && node.props.name === game) {
       startHandlers.unshift(...((node.props.initHandlers as string[] | undefined) ?? []));
+      // The init's reset notifiers run after machine_reset (build.ts).
+      resetHandlers.push(...((node.props.resetNotifiers as string[] | undefined) ?? []));
       initDelegates.push(...((node.props.initDelegates as string[] | undefined) ?? [])
         .map(value => JSON.parse(value) as { member: string; handler: string }));
     }
