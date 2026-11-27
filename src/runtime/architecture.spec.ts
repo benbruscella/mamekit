@@ -180,7 +180,7 @@ const SAVED_BOARD_FIELDS = [
   'declarativeEeprom', 'devices', 'frameRunner', 'generatedBanks', 'generatedResources',
   'heldDeviceSeconds', 'hostState', 'inFrame', 'inputLatchPrevious', 'observedTransportSeconds',
   'pendingBankEntry', 'pendingTimers', 'runningSliceCycles',
-  'softResetPending', 'soundRuntime', 'state', 'timedHardwareDelivered',
+  'soundRuntime', 'state', 'timedHardwareDelivered',
   'timerCpuCarriedCycles', 'video', 'videoPrimitives',
 ];
 {

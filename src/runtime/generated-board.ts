@@ -782,8 +782,6 @@ class IrBoard implements Board {
   private soundRuntime?: SoundRuntimeHooks;
   private readonly peripheralResets: Array<() => void> = [];
   private readonly peripheralTicks: Array<(seconds: number) => void> = [];
-  /** `machine().schedule_soft_reset()`, taken when the frame ends. */
-  private softResetPending = false;
   /** Delegates devices registered with `screen_device::register_vblank_callback`. */
   private readonly vblankCallbacks = new Map<string, (screen: unknown, state: number) => unknown>();
   private readonly inputs: InputPorts;
@@ -1088,7 +1086,7 @@ class IrBoard implements Board {
             side_effects_disabled: () => 0,
             phase: () => this.machinePhase,
             time: () => generatedAttotime(this.machineSeconds()),
-            schedule_soft_reset: () => { this.softResetPending = true; return 0; },
+            schedule_soft_reset: () => this.scheduleSoftReset(),
           },
         };
         const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
@@ -1429,7 +1427,7 @@ class IrBoard implements Board {
             machine: () => ({
               // MAME defers a soft reset to the end of the timeslice; the
               // board takes it when the frame ends. The watchdog's way out.
-              schedule_soft_reset: () => { this.softResetPending = true; return 0; },
+              schedule_soft_reset: () => this.scheduleSoftReset(),
               // False during emulation; MAME only sets it for a debugger peek.
               // Devices gate real state changes on it — the 6532 sets its timer
               // interrupt enable inside `if (!machine().side_effects_disabled())`
@@ -4550,10 +4548,6 @@ class IrBoard implements Board {
       this.inFrame = false;
     }
     this.applyScreenArea();
-    if (this.softResetPending) {
-      this.softResetPending = false;
-      this.softReset();
-    }
   }
 
   /** Apply source-declared PORT_CHANGED_MEMBER edge callbacks. */
@@ -5009,6 +5003,18 @@ class IrBoard implements Board {
    * output latch; resetting the frame runner would also make a boot watchdog
    * look like an endless frame-zero loop to clients.
    */
+  /**
+   * `machine().schedule_soft_reset()`: `m_soft_reset_timer->adjust(attotime::zero)`
+   * and eat_all_cycles, a timer due now, as synchronize() posts. Elevator
+   * Action's watchdog fires on frame 131's VBLANK; taken when the frame
+   * ended instead, 24 lines on, its sound Z80 ran on in the old program
+   * where MAME's had restarted from 0.
+   */
+  private scheduleSoftReset(): number {
+    this.synchronize(() => this.softReset());
+    return 0;
+  }
+
   private softReset(): void {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     for (const device of this.devices.values()) device.reset();
@@ -5016,6 +5022,10 @@ class IrBoard implements Board {
     for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, 0);
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     for (const reset of this.peripheralResets) reset();
+    // Each processor's interface_post_reset arms its periodic interrupt a
+    // period from the reset: left on the old schedule, Elevator Action's
+    // sound Z80 took an IRQ 20 us after its watchdog reset that MAME's did not.
+    for (const tag of this.cpus.keys()) this.cpuResetReleased(tag);
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
@@ -5188,7 +5198,7 @@ class IrBoard implements Board {
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
-      'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'softResetPending',
+      'inFrame', 'timedHardwareDelivered', 'soundRuntime',
       // A slice's overrun still owed to the device clock: since #184 a 6502
       // pays it at its next instruction, so a load must find it where it was.
       'timerCpuCarriedCycles', 'heldDeviceSeconds',

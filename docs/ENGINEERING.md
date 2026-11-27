@@ -918,7 +918,10 @@ npm run mamekit -- diverge wboy --frames 29-29 --io soundcpu:0-ffff:rw --list so
 MAME's and our times side by side and the cycles between them, and
 `--around N` keeps only those near a difference. It is how to read when each
 side took an interrupt, rather than only that they differ. Both access logs
-stay in `.cache/compare/diverge/<target>/`.
+stay in `.cache/compare/diverge/<target>/`. A processor a device hosts is
+tapped by its device path, `--io bmcu:mcu:0-7ff` for Taito SJ's security
+68705: its program space is the device's own, its addresses masked to the
+space's width as MAME's tap sees them.
 
 **Where things go.**
 
