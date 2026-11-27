@@ -692,7 +692,7 @@ class IrBoard implements Board {
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
   /** `scheduler().synchronize()` work, run once the posting CPU has yielded. */
-  private readonly scheduledWork: { at: number; run: () => void }[] = [];
+  private readonly scheduledWork: { at: number; exactAt?: bigint; run: () => void }[] = [];
   private currentLineFraction = 0;
   private inFrame = false;
   /**
@@ -3847,9 +3847,19 @@ class IrBoard implements Board {
           this.roundTimerArmed = armedRoundTimer;
           // Synchronized work still waiting is a timer at the time it was
           // posted (drainScheduledWork).
+          // Bounded on its exact time where it was posted at one, as a device
+          // timer's expiry is (boundExactly): in seconds, Wonder Boy's PIO
+          // NMI, posted at 466,183 us, bounded the round 21 attoseconds short
+          // of it, and the sound Z80's last cycle before it did not fit, so it
+          // took the NMI an instruction before MAME's.
           let untilWork = Infinity;
+          const baseExact = this.exactTimeKnown && this.scheduledWork.some(work => work.exactAt !== undefined)
+            ? this.frameRunner!.baseExact() : undefined;
           for (let index = 0; index < this.scheduledWork.length; index++) {
-            untilWork = Math.min(untilWork, this.scheduledWork[index]!.at - this.roundBaseSeconds);
+            const work = this.scheduledWork[index]!;
+            untilWork = Math.min(untilWork, work.exactAt !== undefined && baseExact !== undefined
+              ? Number(work.exactAt - baseExact) * 1e-18
+              : work.at - this.roundBaseSeconds);
           }
           if (!this.pendingTimers.size) return Math.min(untilDevice, untilWork);
           fireRoundTimers(this.roundBaseSeconds);
@@ -4633,6 +4643,7 @@ class IrBoard implements Board {
     const poster = this.runningCpu;
     this.scheduledWork.push({
       at,
+      ...(exactAt ? { exactAt: exactToAttos(exactAt) } : {}),
       run: () => {
         const outer = this.workPoster;
         this.workPoster = poster;
@@ -4650,7 +4661,12 @@ class IrBoard implements Board {
     // a generic latch's start posts the not-pending state it publishes, and
     // run there and then, Neo Geo's NMI merger started after it and set every
     // input high again, so the sound CPU took one NMI and never another.
-    if (!this.drainingScheduledWork && this.schedulerRunning) this.drainScheduledWork();
+    // Only work due by now: a processor that ran ahead in the round may have
+    // posted some for later. Wonder Boy's main Z80 posts its PIO's ARDY ->
+    // sound NMI at 466,183 us; the SN76489's READY timer, firing at 466,041
+    // before the sound Z80 has caught up, synchronizes through its input
+    // merger, and drained in full that took the NMI 143 us early.
+    if (!this.drainingScheduledWork && this.schedulerRunning) this.drainScheduledWork(at);
   }
 
   /**
@@ -4939,7 +4955,22 @@ class IrBoard implements Board {
     const line = ((Math.floor(this.rasterLabel(position)) % height) + height) % height;
     const { vbend = 0 } = this.machine.execution.screen;
     const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
-    return vbstart > vbend ? line >= vbstart || line < vbend : line >= vbstart && line < vbend;
+    if (vbstart > vbend ? line >= vbstart || line < vbend : line >= vbstart && line < vbend) return true;
+    // MAME's vblank() is `machine().time() < m_vblank_end_time`, and the end
+    // moves on when the VBLANK-begin timer fires: a processor still behind
+    // a VBLANK start the scheduler has passed reads it. Mat Mania's 6502,
+    // less than a cycle short of frame 12's VBLANK, sat out the round that
+    // ended there, then polled at 191,487.333 us: in VBLANK in MAME's.
+    if (this.expiryBeam !== undefined) return false;
+    const base = this.frameRunner?.runningBaseFrameLines();
+    if (base === undefined) return false;
+    // In beam positions, where VBLANK starts at the execution screen's
+    // vbstart whatever raster a device has configured (rasterLabel).
+    const basePosition = (this.frameRunner?.originLine ?? 0) + base;
+    const { vbstart: startPosition, vtotal } = this.machine.execution.screen;
+    const total = Math.max(1, vtotal);
+    const sinceStart = (((basePosition - startPosition + 1e-9) % total) + total) % total - 1e-9;
+    return position < basePosition - sinceStart;
   }
 
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
@@ -6786,13 +6817,17 @@ class IrBoard implements Board {
         // never gone low (notably Taito SJ's sound NMI circuit).
         return delivery === 'pulse'
           ? state => {
-            if (state && !this.cpuHeld.get(tag)) this.cpus.get(tag)?.nmi();
+            if (state && !this.cpuInReset(tag)) this.cpus.get(tag)?.nmi();
           }
           : state => {
             // Edges that occur while RESET is asserted are not latched by
             // the physical CPU.  Retaining one in the generated core made
             // Gauntlet's sound-latch NMI pre-empt its reset handshake.
-            if (!this.cpuHeld.get(tag)) {
+            // Held on HALT or WAIT it still reaches execute_set_input, as
+            // MAME's does: Wonder Boy's sound Z80, waiting on its SN76489's
+            // READY, took the NMI of a command once released, and dropped,
+            // the command at frame 312 of its contract was never read.
+            if (!this.cpuInReset(tag)) {
               this.cpus.get(tag)?.setInputLine(INPUT_LINE_NMI, state ? 1 : 0);
             }
           };

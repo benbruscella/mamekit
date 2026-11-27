@@ -1234,6 +1234,18 @@ export class GeneratedFrameRunner {
    * measured as `elapsed / target` restarted at 0: Gyruss's i8039 DAC stepped
    * back a fifth of a line at every round seam (#194).
    */
+  /**
+   * Where the round's base stands, in lines from the frame's origin line,
+   * while a processor runs: how far the scheduler has gone, and with it the
+   * timers that have fired, whatever the running processor's own time.
+   */
+  runningBaseFrameLines(): number | undefined {
+    if (!this.running) return undefined;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const first = ((this.roundFirstLine - this.originLine) % vtotal + vtotal) % vtotal;
+    return first + this.base.since(this.roundStart) / this.linePeriod.total;
+  }
+
   runningFrameLines(elapsedCycles: number): number | undefined {
     const running = this.running;
     if (!running) return undefined;

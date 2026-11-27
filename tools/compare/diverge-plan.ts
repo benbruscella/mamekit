@@ -197,3 +197,37 @@ export function earliest(divergences: readonly CpuDivergence[]): CpuDivergence |
   const at = (entry: CpuDivergence) => entry.first!.mame?.time ?? entry.first!.ours?.time ?? Infinity;
   return [...timed].sort((left, right) => at(left) - at(right))[0];
 }
+
+/** One processor's accesses, MAME's and ours side by side, in order. */
+export interface PairedAccess {
+  index: number;
+  mame?: IoAccess;
+  ours?: IoAccess;
+  /** How far ours is from MAME's, in the processor's cycles (positive: ours later). */
+  cycles?: number;
+  /** Kind, address or value differ, or one side has no access here. */
+  differs: boolean;
+}
+
+/**
+ * Every access a processor made in the window, paired by position: what the
+ * first-difference summary leaves out, so the time each side reached an
+ * agreed access (an NMI's handler, a latch read) can be read off directly.
+ */
+export function pairAccesses(
+  mame: readonly IoAccess[],
+  ours: readonly IoAccess[],
+  taps: readonly { tag: string }[],
+  clocks: Readonly<Record<string, number>>,
+  tag: string,
+): PairedAccess[] {
+  const on = (list: readonly IoAccess[]) => list.filter(access => taps[access.tap]?.tag === tag);
+  const left = on(mame);
+  const right = on(ours);
+  return Array.from({ length: Math.max(left.length, right.length) }, (_, index) => {
+    const a = left[index];
+    const b = right[index];
+    const differs = !a || !b || a.kind !== b.kind || a.address !== b.address || a.data !== b.data;
+    return { index, ...(a ? { mame: a } : {}), ...(b ? { ours: b } : {}), ...(a && b ? cyclesApart(a, b, clocks[tag]) : {}), differs };
+  });
+}

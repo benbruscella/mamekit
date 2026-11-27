@@ -23,6 +23,7 @@ import type { Cpu, CpuBus } from './generated-cpu.ts';
 import {
   registerGeneratedDevice,
   createDevice,
+  withGeneratedTimerExpiry,
   type Device,
 } from './generated-device.ts';
 
@@ -636,6 +637,46 @@ assert.ok(instructionObservations.some(samples => new Set(samples).size > 1),
   'a peripheral the round runs stands still inside the CPU slice');
   assert.equal(clockedPeripheral?.get('m_counter'), 200, 'and the rounds give it every cycle of two frames');
   clockedPeripheral = (clockedBoard as unknown as { devices: Map<string, Device> }).devices.get('counter');
+}
+
+// scheduler().synchronize() outside a slice (a device timer's callback) runs
+// what is due by its own time, not work a processor ahead in the round posted
+// for later: that is a timer still to come. Wonder Boy's SN76489 READY timer
+// synchronized through its input merger and ran the main Z80's PIO NMI,
+// posted 143 us further on, before the sound Z80 had caught up to it.
+{
+  const internals = screenHostBoard as unknown as {
+    scheduledWork: { at: number; run: () => void }[];
+    synchronize(run: () => void): void;
+  };
+  screenHostBoard.frame(new Uint32Array(320 * 264));
+  const ran: string[] = [];
+  internals.scheduledWork.push({ at: 10, run: () => ran.push('later') });
+  withGeneratedTimerExpiry(1, () => internals.synchronize(() => ran.push('now')));
+  assert.deepEqual(ran, ['now'], 'work posted for later waits for its time');
+  assert.equal(internals.scheduledWork.length, 1);
+  internals.scheduledWork.length = 0;
+}
+
+// A processor's hold is MAME's suspend mask: RESET and HALT are separate
+// reasons, so clearing one leaves the other. Double Dragon's bankswitch_w
+// clears the sub CPU's HALT while its RESET is still asserted; as one flag,
+// that let the HD63701 run, and its shared RAM stopped answering the main CPU.
+{
+  const internals = screenHostBoard as unknown as {
+    cpuHeld: Map<string, number>;
+    holdCpu(tag: string, reason: number, held: boolean): void;
+    cpuInReset(tag: string): boolean;
+  };
+  const RESET = 0x2;
+  const HALT = 0x1;
+  internals.holdCpu('maincpu', RESET, true);
+  internals.holdCpu('maincpu', HALT, true);
+  internals.holdCpu('maincpu', HALT, false);
+  assert.equal(internals.cpuInReset('maincpu'), true, 'a HALT clear leaves RESET held');
+  assert.equal(internals.cpuHeld.get('maincpu'), RESET);
+  internals.holdCpu('maincpu', RESET, false);
+  assert.equal(internals.cpuHeld.get('maincpu'), 0, 'and with both clear it runs');
 }
 
 // A clocked peripheral's fractional cycles are part of a save state. They are

@@ -460,16 +460,10 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
     // after reset_all_devices (registered first, when the machine starts), so
     // after machine_reset. Taito SJ's reset_common sets its sound latch to
     // 0xff that way; dropped, Elevator Action's sound CPU read 0 at 15 us.
-    const initBodies = [initFunction?.body ?? '', ...[...(initFunction?.body ?? '').matchAll(/^\s*(\w+)\s*\(\s*\)\s*;/gm)]
-      .map(call => ast.findFunctionInHierarchy(gm.cls, call[1]!)?.body ?? '')];
-    const resetNotifiers = initBodies.flatMap(body => [...body.matchAll(
-      /add_notifier\s*\(\s*MACHINE_NOTIFY_RESET\s*,\s*machine_notify_delegate\s*\(\s*&\s*(\w+)::(\w+)\s*,\s*this\s*\)/g,
-    )].flatMap(match => {
-      const target = ast.findFunctionInHierarchy(gm.cls, match[2]!);
-      if (!target?.className) return [];
-      g.edge(id, emitSourceHandlerClosure(g, ast, target.className, target.name, consts, target.span), 'CALLS_HANDLER');
-      return [`${target.className}.${target.name}`];
-    }));
+    const resetNotifiers = driverResetNotifiers(ast, gm.cls, initFunction?.body ?? '').map(target => {
+      g.edge(id, emitSourceHandlerClosure(g, ast, target.className!, target.name, consts, target.span), 'CALLS_HANDLER');
+      return `${target.className}.${target.name}`;
+    });
     if (resetNotifiers.length) g.node('Game', id, { resetNotifiers });
   }
 
@@ -1872,6 +1866,23 @@ export function driverConstructorCalls(ast: MameAstIndex, className: string): Ma
 }
 
 /** Resolve a MAME lifecycle override in base-first execution order. */
+/**
+ * The reset notifiers a driver's init registers, in its own body or in a
+ * no-argument helper it calls: `machine().add_notifier(MACHINE_NOTIFY_RESET,
+ * machine_notify_delegate(&cls::fn, this))`. Each is resolved through the
+ * driver's class hierarchy; one that does not resolve is left out.
+ */
+export function driverResetNotifiers(ast: MameAstIndex, className: string, initBody: string): MameFunction[] {
+  const helpers = [...initBody.matchAll(/^\s*(\w+)\s*\(\s*\)\s*;/gm)]
+    .map(call => ast.findFunctionInHierarchy(className, call[1]!)?.body ?? '');
+  return [initBody, ...helpers].flatMap(body => [...body.matchAll(
+    /add_notifier\s*\(\s*MACHINE_NOTIFY_RESET\s*,\s*machine_notify_delegate\s*\(\s*&\s*(\w+)::(\w+)\s*,\s*this\s*\)/g,
+  )].flatMap(match => {
+    const target = ast.findFunctionInHierarchy(className, match[2]!);
+    return target?.className ? [target] : [];
+  }));
+}
+
 export function resolveMachineLifecycle(
   ast: MameAstIndex,
   className: string,

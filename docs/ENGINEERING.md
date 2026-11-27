@@ -911,7 +911,14 @@ npm run mamekit -- against nes --survey
 npm run mamekit -- compare dkong dkongjr
 npm run mamekit -- show --markdown
 npm run mamekit -- diverge marble
+npm run mamekit -- diverge wboy --frames 29-29 --io soundcpu:0-ffff:rw --list soundcpu --around 8
 ```
+
+`diverge --list all|<cpu>` prints every tapped access of the window with
+MAME's and our times side by side and the cycles between them, and
+`--around N` keeps only those near a difference. It is how to read when each
+side took an interrupt, rather than only that they differ. Both access logs
+stay in `.cache/compare/diverge/<target>/`.
 
 **Where things go.**
 
@@ -919,6 +926,7 @@ npm run mamekit -- diverge marble
 |---|---|---|
 | `.cache/compare/<target>.json` | the latest `against` report per target | no |
 | `.cache/compare/<target>/<title>/` | side-by-side PNGs and the audio spectrogram | no |
+| `.cache/compare/diverge/<target>/` | the last `diverge` window's access logs, MAME's and ours | no |
 | `.mamekit/baseline/<commit>/` | baselines (`record`) | yes |
 | `.mamekit/compare/` | the latest comparison (`compare`) and its logs | yes |
 | `.mamekit/mame/<version>/` | MAME's side of every run (the MAME cache, below) | yes |

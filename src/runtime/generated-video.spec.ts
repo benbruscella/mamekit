@@ -318,6 +318,19 @@ const generatedPrimitives = new GeneratedMameVideoPrimitives(
   screenState,
   { calls: { 'm_screen.vpos': () => 37 } },
 );
+// screen_device::width() and height() are the whole raster, blanking
+// included (m_width, m_height), not the visible area: Double Dragon's
+// scanline callback takes the line before 0 as height() - 1.
+{
+  const rasterMachine: BoardIr = {
+    ...machine,
+    execution: { ...machine.execution, screen: { ...machine.execution.screen, width: 256, height: 240, htotal: 384, vtotal: 272 } },
+  };
+  const raster = new GeneratedMameVideoPrimitives(rasterMachine, {}, {}, {});
+  const size = executeGeneratedProgram(compileMameHandler('return m_screen->width() * 1000 + m_screen->height();'),
+    raster.generatedVideoBindings(new Uint32Array(4)));
+  assert.equal(size.value, 384 * 1000 + 272, 'the screen\'s size is its raster');
+}
 const romRead = compileMameHandler(`
   uint8_t *rom = memregion("gfx4")->base();
   return rom[1];

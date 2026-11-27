@@ -11,6 +11,14 @@
  *   --io cpu:a-b[:rw]    tap these ranges instead of the board's own (repeatable, hex)
  *   --show               print the ranges it would tap, and stop
  *   --context N          agreed accesses printed before each difference (default 6)
+ *   --list all|<cpu>     print every tapped access of the window, MAME's and ours
+ *                        paired in order with both times and the cycles between
+ *                        them, for every processor or the one named
+ *   --around N           with --list, only the accesses within N of one that
+ *                        differs, or that is more than two cycles apart in time
+ *
+ * Both sides' access logs are kept in .cache/compare/diverge/<target>/
+ * (mame-io.txt, ours-io.txt: `frame kind tap address data seconds`).
  *
  * Which ranges: read from the generated board's address maps
  * (diverge-plan.ts). On a board of several processors, every device more than
@@ -32,19 +40,19 @@
  */
 
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { gameOutputDir } from '../../src/gen/output-layout.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { readAccesses, type IoAccess } from './compare.ts';
-import { compareByCpu, divergeRanges, earliest, type CpuDivergence, type DivergeTap } from './diverge-plan.ts';
+import { compareByCpu, divergeRanges, earliest, pairAccesses, TIME_TOLERANCE_CYCLES, type CpuDivergence, type DivergeTap } from './diverge-plan.ts';
 import { projectRoot } from './mame-side.ts';
 import { parseIoTap } from './plan.ts';
 import { cliEntry, reportRoot } from './paths.ts';
 import type { RunReport } from './report.ts';
 
 const argv = process.argv.slice(2);
-const valued = new Set(['--frames', '--until', '--input', '--scenario', '--io', '--context', '--dist']);
+const valued = new Set(['--frames', '--until', '--input', '--scenario', '--io', '--context', '--list', '--around', '--dist']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -154,6 +162,9 @@ async function tapWindow(from: number, to: number, offset: number): Promise<{ re
   if (!run.workDir) throw new Error('mamekit against kept no captures');
   const mame = readAccesses(join(run.workDir, 'mame-io.txt'));
   const ours = readAccesses(join(run.workDir, 'ours-io.txt'));
+  for (const name of ['mame-io.txt', 'ours-io.txt']) {
+    if (existsSync(join(run.workDir, name))) copyFileSync(join(run.workDir, name), join(scratch, name));
+  }
   rmSync(run.workDir, { recursive: true, force: true });
   return { result: compareByCpu(mame, ours, taps, clocks, Number(option('--context') ?? 6)), mame, ours };
 }
@@ -170,6 +181,8 @@ for (let widen = 0; widen < 3 && !option('--frames'); widen++) {
 }
 
 // --- the result ---------------------------------------------------------------
+
+const signedCycles = (cycles: number) => `${cycles > 0 ? '+' : ''}${cycles}`;
 
 const access = (entry: IoAccess | undefined) => entry
   ? `${entry.kind} ${entry.address}=${entry.data} (frame ${entry.frame}${entry.time === undefined ? '' : `, ${(entry.time * 1e6).toFixed(3)} us`})`
@@ -191,6 +204,30 @@ for (const cpu of tapped.result) {
     for (const entry of first.before) console.log(`      ${access(entry)}`);
   }
 }
+const listing = option('--list');
+if (listing) {
+  const tags = listing === 'all' ? tapped.result.map(cpu => cpu.tag) : [listing];
+  for (const tag of tags) {
+    if (!taps.some(tap => tap.tag === tag)) throw new Error(`--list ${tag}: no range on ${tag} is tapped`);
+    const rows = pairAccesses(tapped.mame, tapped.ours, taps, clocks, tag);
+    console.log(`\n${tag}: every access, MAME | ours | cycles ours is later`);
+    const side = (entry: IoAccess | undefined) => entry
+      ? `${entry.kind} ${entry.address}=${entry.data} f${entry.frame}${entry.time === undefined ? '' : ` ${(entry.time * 1e6).toFixed(3)}`}`
+      : '-';
+    const around = option('--around') === undefined ? Infinity : Number(option('--around'));
+    const marked = rows.flatMap(row => row.differs || Math.abs(row.cycles ?? 0) > TIME_TOLERANCE_CYCLES ? [row.index] : []);
+    const near = (index: number) => around === Infinity || marked.some(at => Math.abs(at - index) <= around);
+    let skipped = false;
+    for (const row of rows) {
+      if (!near(row.index)) { skipped = true; continue; }
+      if (skipped) console.log('     ...');
+      skipped = false;
+      console.log(`  ${row.differs ? '*' : ' '}${String(row.index).padStart(5)}  ${side(row.mame).padEnd(36)} ${side(row.ours).padEnd(36)} ` +
+        (row.cycles === undefined ? '' : signedCycles(row.cycles)));
+    }
+  }
+}
+console.log(`\naccess logs: ${relative(projectRoot, scratch)}/mame-io.txt, ours-io.txt`);
 const lead = earliest(tapped.result);
 console.log(lead
   ? `\n${lead.tag} leaves MAME first: ${access(lead.first!.mame ?? lead.first!.ours)}`
