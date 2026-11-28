@@ -68,6 +68,37 @@ export function markExactAttotime(device: AttotimeDevice): boolean {
   return true;
 }
 
+/**
+ * In every device, exact or not: `*` and `/` on an attotime one of
+ * attotime's factories just built (`attotime::from_hz(clock) * cycles`).
+ * The factory's value is exact (exactAttotimeFromHz), and a bare `*` takes it
+ * to seconds in a double: Battlezone's AVG re-armed its state machine 1.27 ps
+ * short of a whole clock a step, and a round ending on it gave the POKEY one
+ * cycle fewer than MAME's, read back through RANDOM. Marked `attotime: true`,
+ * the operator is attotime's (attotimeBinary), exact on an exact operand and
+ * the seconds arithmetic otherwise. Answers how many it marked.
+ */
+export function markAttotimeFactoryProducts(device: AttotimeDevice): number {
+  let marked = 0;
+  const factory = (expression: GeneratedExpression) => expression.kind === 'call' &&
+    expression.callee.kind === 'identifier' && expression.callee.name.startsWith('attotime::from_');
+  for (const method of device.methods) {
+    walkOperations(method.program.operations, operation => {
+      for (const root of operationExpressions(operation)) {
+        walkExpression(root, node => {
+          if (node.kind !== 'binary' || (node.operator !== '*' && node.operator !== '/')) return;
+          if ((node as { attotime?: true }).attotime) return;
+          // `/` divides an attotime by a factor, never a factor by one.
+          if (!(factory(node.left) || (node.operator === '*' && factory(node.right)))) return;
+          (node as { attotime?: true }).attotime = true;
+          marked++;
+        });
+      }
+    });
+  }
+  return marked;
+}
+
 /** Every name's declared type in one method: members, then parameters and locals over them. */
 function methodTypes(method: AttotimeMethod, memberTypes: ReadonlyMap<string, string | undefined>): Map<string, string | undefined> {
   const types = new Map(memberTypes);

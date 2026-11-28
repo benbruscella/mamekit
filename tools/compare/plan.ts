@@ -42,6 +42,12 @@ export interface IoPlan {
   to: number;
   /** MAME's tapped frames are ours + offset (a board that boots out of step); 0 when absent. */
   offset?: number;
+  /**
+   * Processors whose program counter is logged with every tapped access, as
+   * `tag=pc` fields after the time: where a hosted MCU stood when the main
+   * CPU polled it, which says which of MAME's rounds the poll fell in.
+   */
+  watch?: string[];
 }
 
 /**

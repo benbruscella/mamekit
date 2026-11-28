@@ -21,6 +21,10 @@ import { bootFrame, InputRecorder, inputTimeline, MEDIA_SWITCH, moveBootEvent, r
 
 type IoTap = IoPlan['taps'][number];
 import { projectRoot } from './mame-side.ts';
+import { DEFAULT_CONSTANTS } from '../../src/ir/execute.ts';
+
+/** MAME's STATE_GENPC: the state index of a processor's current PC. */
+const STATE_GENPC = DEFAULT_CONSTANTS.STATE_GENPC!;
 
 /** The machine's contract to borrow: the scenario named, else one of the title's kind, else its first. */
 export async function baseContract(target: string, scenario?: string, kind?: 'cartridge' | 'software'): Promise<GameTestContract> {
@@ -79,6 +83,31 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   // Bus traffic in the tapped ranges, buffered and written in blocks: a
   // shared RAM tap logs hundreds of thousands of accesses.
   const ioLines: string[] = [];
+  /**
+   * The watched processors' program counters at an access, as oracle-watch.lua
+   * appends MAME's: ` tag=pc` each, STATE_GENPC (MAME's CURPC). A board CPU's
+   * core and a hosted one's device both answer stateInt.
+   */
+  let watchedPcs: { tag: string; pc: () => number | undefined }[] = [];
+  const watched = (): string => {
+    let text = '';
+    for (const { tag, pc } of watchedPcs) {
+      const value = pc();
+      text += ` ${tag}=${value === undefined ? '?' : (value >>> 0).toString(16)}`;
+    }
+    return text;
+  };
+  const watchProcessors = (board: Board) => {
+    const generated = board as unknown as {
+      cpus?: Map<string, { device?: { stateInt?(index: number): number | undefined } }>;
+      devices?: Map<string, { stateInt?(index: number): number | undefined }>;
+    };
+    watchedPcs = (plan.io?.watch ?? []).map(tag => {
+      const device = generated.cpus?.get(tag)?.device ?? generated.devices?.get(tag);
+      if (typeof device?.stateInt !== 'function') throw new Error(`--io-watch ${tag}: the board has no processor ${tag}`);
+      return { tag, pc: () => device.stateInt!(STATE_GENPC) };
+    });
+  };
   const flushIo = () => {
     if (!ioLines.length) return;
     appendFileSync(ioFile, ioLines.join(''));
@@ -131,7 +160,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       if (dumping || frame < plan.io!.from || frame > plan.io!.to) return;
       for (const { tap, index: tapIndex } of taps) {
         if (!(kind === 'R' ? tap.read : tap.write) || address < tap.lo || address > tap.hi) continue;
-        ioLines.push(`${frame} ${kind} ${tapIndex} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+        ioLines.push(`${frame} ${kind} ${tapIndex} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}${watched()}\n`);
         if (ioLines.length >= 4096) flushIo();
         return;
       }
@@ -204,7 +233,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         const address = portMask === undefined ? raw : raw & portMask;
         for (const { tap, index } of taps) {
           if (!(kind === 'R' ? tap.read : tap.write) || address + bytes - 1 < tap.lo || address > tap.hi) continue;
-          ioLines.push(`${frame} ${kind} ${index} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+          ioLines.push(`${frame} ${kind} ${index} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}${watched()}\n`);
           if (ioLines.length >= 4096) flushIo();
           return;
         }
@@ -398,7 +427,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         // too: the two sides then read the same port, and only the emulation
         // differs. A contract run hands a frame's travel out against the beam.
         input.frameFraction = null;
-        if (plan.io) tapBuses(board);
+        if (plan.io) { tapBuses(board); watchProcessors(board); }
         if (plan.ram) captureAtPresentation(board);
       },
       // The start types once a quickload has loaded, which can be later than

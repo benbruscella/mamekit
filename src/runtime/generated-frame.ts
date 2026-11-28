@@ -1262,12 +1262,14 @@ export class GeneratedFrameRunner {
    * every read the round's last line, and a game polling for VBLANK
    * (Phoenix, Rampage) never saw the beam move.
    */
-  runningBeam(elapsedCycles: number): number | undefined {
+  runningBeam(elapsedCycles: number, oneLine = false): number | undefined {
     const running = this.running;
     // A one-line round is already resolved inside the line by the board's
     // instruction-time device clock, which boards such as the 2600 position
     // sprites by; only a round spanning lines needs the processor's position.
-    if (!running || this.roundLines <= 1) return undefined;
+    // `oneLine` asks for it in a one-line round too, where nothing else has
+    // it: a generated core reports its slice's timing only at its ends.
+    if (!running || (this.roundLines <= 1 && !oneLine)) return undefined;
     return this.roundFirstLine + this.runStartLines + elapsedCycles / running.cyclesPerLine;
   }
 

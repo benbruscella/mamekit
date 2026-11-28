@@ -347,6 +347,8 @@ export interface IoAccess {
   data: string;
   /** The emulated time of the access in seconds, from power-on. */
   time?: number;
+  /** Watched processors' program counters at the access (`--io-watch`), by tag, in hex. */
+  watch?: Record<string, string>;
 }
 
 export interface IoResult {
@@ -359,9 +361,12 @@ export interface IoResult {
 export function readAccesses(path: string): IoAccess[] {
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf8').split('\n').filter(Boolean).map(line => {
-    const [frame, kind, tap, address, data, time] = line.split(' ');
+    const [frame, kind, tap, address, data, time, ...fields] = line.split(' ');
+    const watch = fields.length
+      ? Object.fromEntries(fields.map(field => [field.slice(0, field.lastIndexOf('=')), field.slice(field.lastIndexOf('=') + 1)]))
+      : undefined;
     return { frame: Number(frame), kind: kind as 'R' | 'W', tap: Number(tap), address: address!, data: data!,
-      ...(time === undefined ? {} : { time: Number(time) }) };
+      ...(time === undefined ? {} : { time: Number(time) }), ...(watch ? { watch } : {}) };
   });
 }
 

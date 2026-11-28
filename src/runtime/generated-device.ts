@@ -1923,8 +1923,16 @@ class IrDevice implements Device {
     // line reaches its own execute_set_input. An object the CPU holds raises
     // its interrupts this way -- the 6805's timer calls
     // `m_parent.set_input_line(M6805_INT_TIMER, ASSERT_LINE)`.
+    // Through the device's own set_input_line binding, asked at the call: a
+    // board hosting the CPU rebinds that to its line delivery, which
+    // synchronizes as MAME's set_state_synced does. Straight to
+    // execute_set_input, Arkanoid's 68705 cleared its timer request (tcr_w)
+    // without ending its slice, and ran on where MAME's main CPU runs first.
     if (definition.methods.some(method => method.name === 'execute_set_input')) {
-      self.set_input_line = (line: unknown, state: unknown) => this.call('execute_set_input', Number(line), Number(state));
+      self.set_input_line = (line: unknown, state: unknown) => {
+        const bound = this.bindings.calls?.set_input_line;
+        return bound ? bound(Number(line), Number(state)) : this.call('execute_set_input', Number(line), Number(state));
+      };
     }
     // Framework bookkeeping an owned object asks its device for: the save
     // state walker and the debugger have their own routes, and a log line is

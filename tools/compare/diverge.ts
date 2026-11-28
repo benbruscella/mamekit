@@ -16,9 +16,14 @@
  *                        them, for every processor or the one named
  *   --around N           with --list, only the accesses within N of one that
  *                        differs, or that is more than two cycles apart in time
+ *   --watch cpu[,cpu]    log each named processor's PC with every tapped access,
+ *                        on both sides (a hosted MCU by its device path, mcu:mcu):
+ *                        where it stood when another processor touched the bus,
+ *                        which tells MAME's rounds apart. MAME runs again for it
+ *                        (oracle-watch.lua; the cached plain runs are kept)
  *
  * Both sides' access logs are kept in .cache/compare/diverge/<target>/
- * (mame-io.txt, ours-io.txt: `frame kind tap address data seconds`).
+ * (mame-io.txt, ours-io.txt: `frame kind tap address data seconds [tag=pc ...]`).
  *
  * Which ranges: read from the generated board's address maps
  * (diverge-plan.ts). On a board of several processors, every device more than
@@ -52,7 +57,7 @@ import { cliEntry, reportRoot } from './paths.ts';
 import type { RunReport } from './report.ts';
 
 const argv = process.argv.slice(2);
-const valued = new Set(['--frames', '--until', '--input', '--scenario', '--io', '--context', '--list', '--around', '--dist']);
+const valued = new Set(['--frames', '--until', '--input', '--scenario', '--io', '--watch', '--context', '--list', '--around', '--dist']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -153,7 +158,10 @@ if (option('--frames')) {
 // --- tapping -----------------------------------------------------------------
 
 const clocks = Object.fromEntries(config.board.cpus.map(cpu => [cpu.tag, Number((cpu as { clock?: number }).clock ?? 0)]));
-const ioArgs = taps.flatMap(tap => ['--io', `${where(tap)}:${hex(tap.lo)}-${hex(tap.hi)}:rw`]);
+const ioArgs = [
+  ...taps.flatMap(tap => ['--io', `${where(tap)}:${hex(tap.lo)}-${hex(tap.hi)}:rw`]),
+  ...(options.get('--watch') ?? []).flatMap(watch => ['--io-watch', watch]),
+];
 
 async function tapWindow(from: number, to: number, offset: number): Promise<{ result: CpuDivergence[]; mame: IoAccess[]; ours: IoAccess[] }> {
   const run = await against([...ioArgs, '--io-frames', `${from}-${to}`, ...(offset ? ['--io-offset', String(offset)] : []),
@@ -184,8 +192,11 @@ for (let widen = 0; widen < 3 && !option('--frames'); widen++) {
 
 const signedCycles = (cycles: number) => `${cycles > 0 ? '+' : ''}${cycles}`;
 
+const pcs = (entry: IoAccess) => entry.watch
+  ? Object.entries(entry.watch).map(([tag, pc]) => ` ${tag}@${pc}`).join('')
+  : '';
 const access = (entry: IoAccess | undefined) => entry
-  ? `${entry.kind} ${entry.address}=${entry.data} (frame ${entry.frame}${entry.time === undefined ? '' : `, ${(entry.time * 1e6).toFixed(3)} us`})`
+  ? `${entry.kind} ${entry.address}=${entry.data} (frame ${entry.frame}${entry.time === undefined ? '' : `, ${(entry.time * 1e6).toFixed(3)} us`})${pcs(entry)}`
   : 'nothing';
 console.log(`\nframes ${window.from}-${window.to} (MAME's ${window.from + window.offset}-${window.to + window.offset}): ` +
   `${tapped.mame.length} MAME / ${tapped.ours.length} ours accesses`);
@@ -212,7 +223,7 @@ if (listing) {
     const rows = pairAccesses(tapped.mame, tapped.ours, taps, clocks, tag);
     console.log(`\n${tag}: every access, MAME | ours | cycles ours is later`);
     const side = (entry: IoAccess | undefined) => entry
-      ? `${entry.kind} ${entry.address}=${entry.data} f${entry.frame}${entry.time === undefined ? '' : ` ${(entry.time * 1e6).toFixed(3)}`}`
+      ? `${entry.kind} ${entry.address}=${entry.data} f${entry.frame}${entry.time === undefined ? '' : ` ${(entry.time * 1e6).toFixed(3)}`}${pcs(entry)}`
       : '-';
     const around = option('--around') === undefined ? Infinity : Number(option('--around'));
     const marked = rows.flatMap(row => row.differs || Math.abs(row.cycles ?? 0) > TIME_TOLERANCE_CYCLES ? [row.index] : []);
@@ -222,7 +233,8 @@ if (listing) {
       if (!near(row.index)) { skipped = true; continue; }
       if (skipped) console.log('     ...');
       skipped = false;
-      console.log(`  ${row.differs ? '*' : ' '}${String(row.index).padStart(5)}  ${side(row.mame).padEnd(36)} ${side(row.ours).padEnd(36)} ` +
+      const width = options.has('--watch') ? 52 : 36;
+      console.log(`  ${row.differs ? '*' : ' '}${String(row.index).padStart(5)}  ${side(row.mame).padEnd(width)} ${side(row.ours).padEnd(width)} ` +
         (row.cycles === undefined ? '' : signedCycles(row.cycles)));
     }
   }

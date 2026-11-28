@@ -934,6 +934,7 @@ class IrBoard implements Board {
           // for the line it is already standing on and gets deferred a frame.
           vpos: () => this.deviceBeamLine(),
           hpos: () => this.beamHpos(),
+          hblank: () => this.beamHblank() ? 1 : 0,
           // screen_device::vblank(): the beam is outside the visible lines.
           vblank: () => this.inVblank() ? 1 : 0,
           // update_now() and pixel(x, y): the picture composed up to the
@@ -3106,6 +3107,16 @@ class IrBoard implements Board {
       // `bmcu:mcu`) while composed machine tags retain the configured finder
       // path (`mcu:mcu`).  The child leaf is the stable identity across those
       // two source namespaces.
+      // The processor raising its own lines (the 6805 timer's
+      // `m_parent.set_input_line(M6805_INT_TIMER, ...)` from tcr_w) is
+      // delivered as its host's are, so it synchronizes as set_state_synced
+      // does and ends the running slice. Arkanoid's 68705 clears its timer
+      // request there; MAME's round ends on it, and the main CPU runs first in
+      // the next, where ours ran the MCU on through its IRQ handler.
+      if (device?.methodNames().includes('execute_set_input')) {
+        device.bindCall('set_input_line', (line, state) =>
+          this.deviceInputLine(specification.tag, device, Number(line) || 0, Number(state)));
+      }
       const leaf = specification.tag.split(':').at(-1)!;
       const firmware = regions[specification.tag] ?? regions[
         Object.keys(regions).find(name => name.endsWith(`:${leaf}`)) ?? ''
@@ -3557,6 +3568,7 @@ class IrBoard implements Board {
       };
       for (const owner of new Set(screenOwners)) {
         calls[`${owner}.hpos`] = () => this.beamHpos();
+        calls[`${owner}.hblank`] = () => this.beamHblank() ? 1 : 0;
         calls[`${owner}.update_now`] = () => {
           if (activeFramebuffer) video?.updatePartialAt(activeFramebuffer, this.beamLine(), this.beamHpos());
           return 1;
@@ -4405,7 +4417,13 @@ class IrBoard implements Board {
     // line takes effect at once. Deferred to the round's end, the SN76489A's
     // READY release (a timer, through an input merger onto the Z80's WAIT)
     // held System 1's sound Z80 170 us per write instead of 16.
-    return this.runningCpu !== undefined && this.schedulerRunning && generatedTimerExpiry() === undefined;
+    // A device the round runs beside the CPUs (a hosted MCU) synchronizes as
+    // they do: MAME's executing device is whichever is running. Arkanoid's
+    // 68705 clears its own IRQ on the PC2 edge that clears the host flag;
+    // MAME's slice ends there, and the main CPU, run first in the next round,
+    // sees the flag 22 us later than when the MCU ran on.
+    return (this.runningCpu !== undefined || this.runningRoundDevice !== undefined) &&
+      this.schedulerRunning && generatedTimerExpiry() === undefined;
   }
 
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {
@@ -4937,11 +4955,28 @@ class IrBoard implements Board {
     return screen.vbstart + since * Math.max(1, screen.vtotal) / raster.height;
   }
 
+  /**
+   * MAME's `screen_device::hblank()`: hpos() outside the visible area's
+   * columns. Unbound, a driver's `m_screen->hblank()` answered nothing, and
+   * Carnival's composite blank (cblank_comp_r) never showed an HBLANK.
+   */
+  private beamHblank(): boolean {
+    const screen = this.machine.execution.screen;
+    const left = screen.xOffset ?? 0;
+    const position = this.beamHpos();
+    return position < left || position > left + screen.width - 1;
+  }
+
   /** The beam's pixel within its line: MAME's `screen_device::hpos()`. */
   private beamHpos(): number {
     const htotal = this.rasterWidth();
+    // The running processor's own time, in a one-line round too: MAME's
+    // hpos() is machine().time() against the line's start. A generated core
+    // moves currentLineFraction only at its slice's ends, so Carnival's Z80,
+    // polling the composite blank (cblank_comp_r) under a perfect quantum,
+    // read pixel 0 of every line and never saw the HBLANK MAME's saw.
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningCycles())
+      ? this.frameRunner?.runningBeam(this.runningCycles(), true)
       : undefined;
     const beam = this.rasterLabel(this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
