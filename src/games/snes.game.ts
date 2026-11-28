@@ -109,7 +109,7 @@ export const snes = {
         audio: {
           writes: 2396067,
           nonzeroWrites: 2245969,
-          writeHash: 'a2aa286d',
+          writeHash: '59a9eeef',
           pcmHash: 'd5d3505e',
           rms: 0.043054,
         },
