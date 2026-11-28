@@ -635,7 +635,6 @@ export interface GeneratedExecutionCpu {
     globalMask?: number;
   };
   io?: { ranges: RangeSpec[]; globalMask?: number; space?: GeneratedAddressSpaceSemantics };
-  interruptVectorWriters?: string[];
   source?: BoardSourceRef;
 }
 
@@ -669,6 +668,13 @@ export interface GeneratedScreen {
    * (screen_device::update_partial). The SNES PPU draws its line at row 0.
    */
   variableWidth?: true;
+  /**
+   * MAME's VIDEO_UPDATE_AFTER_VBLANK: the primary screen's `frame_update`
+   * (the screen update, the input poll, the frame notifier) runs when VBLANK
+   * ends instead of when it starts (screen_device::vblank_end), so a frame
+   * runs from one VBLANK end to the next.
+   */
+  updateAfterVblank?: true;
   /**
    * screen_device::physical_aspect(): the shape the unrotated picture is
    * shown at, reduced. `set_physical_aspect(w, h)` where the driver gives one;

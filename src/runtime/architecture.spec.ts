@@ -175,12 +175,12 @@ const HOST_MODELS = [
   'hostedCarry', 'roundDevices', 'systemMute',
 ];
 const SAVED_BOARD_FIELDS = [
-  'bankDeviceBuses', 'cpuBuses', 'cpuCycles', 'cpuHeld', 'cpuReportedSuspended',
+  'bankDeviceBuses', 'cpuBuses', 'cpuCycles', 'cpuHeld',
   'cpuStalls', 'cpus', 'currentLine', 'currentLineFraction',
   'declarativeEeprom', 'devices', 'frameRunner', 'generatedBanks', 'generatedResources',
   'heldDeviceSeconds', 'hostState', 'inFrame', 'inputLatchPrevious', 'observedTransportSeconds',
   'pendingBankEntry', 'pendingTimers', 'runningSliceCycles',
-  'softResetPending', 'soundRuntime', 'state', 'timedHardwareDelivered',
+  'soundRuntime', 'state', 'timedHardwareDelivered',
   'timerCpuCarriedCycles', 'video', 'videoPrimitives',
 ];
 {

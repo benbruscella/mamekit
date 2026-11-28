@@ -60,7 +60,7 @@ export const snes = {
         audio: {
           writes: 479213,
           nonzeroWrites: 243195,
-          writeHash: '63a331a3',
+          writeHash: 'd1fe0424',
           pcmHash: 'f33bfda3',
           rms: 0.029104,
         },
@@ -109,7 +109,7 @@ export const snes = {
         audio: {
           writes: 2396067,
           nonzeroWrites: 2245969,
-          writeHash: 'a2aa286d',
+          writeHash: '59a9eeef',
           pcmHash: 'd5d3505e',
           rms: 0.043054,
         },

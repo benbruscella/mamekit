@@ -402,6 +402,11 @@ const CYCLE_ROUNDING = 1e-6;
  * Generated driver handlers call set_input_line directly, so these lines do
  * not necessarily arrive through the typed connection/effect path below.
  */
+/** device_execute_interface's suspend reasons (emu/diexec.h). */
+const SUSPEND_REASON_HALT = DEFAULT_CONSTANTS.SUSPEND_REASON_HALT!;
+const SUSPEND_REASON_RESET = DEFAULT_CONSTANTS.SUSPEND_REASON_RESET!;
+const SUSPEND_ANY_REASON = DEFAULT_CONSTANTS.SUSPEND_ANY_REASON!;
+
 export function applyGeneratedCpuInputLine(
   cpu: Cpu,
   line: number,
@@ -472,6 +477,12 @@ function generatedCallValue(value: unknown): unknown {
     : value;
 }
 
+/** An attotime argument in seconds: a number already, or an attotime object. */
+function attotimeArgumentSeconds(value: unknown): number {
+  if (value && typeof value === 'object' && 'as_double' in value) return (value as { as_double(): number }).as_double();
+  return Number(value) || 0;
+}
+
 class IrBoard implements Board {
   fbWidth: number;
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
@@ -488,15 +499,15 @@ class IrBoard implements Board {
   private readonly cpuBuses = new Map<string, Bus>();
   private readonly cpuCycles = new Map<string, number>();
   private readonly cpuStalls = new Map<string, number>();
-  private readonly cpuHeld = new Map<string, boolean>();
   /**
-   * MAME applies CPU suspend/resume requests at scheduler boundaries.  A
-   * driver's immediate `suspended()` query therefore observes the previous
-   * bus state once before the newly requested HALT/RESET state becomes
-   * visible.  Several dual-CPU boards use that transition as their bus-grant
-   * handshake (Double Dragon's HD63701 is the canonical example).
+   * device_execute_interface's suspend mask, per processor: SUSPEND_REASON_HALT
+   * and SUSPEND_REASON_RESET, set and cleared by their own lines; held while
+   * it is non-zero. One flag for both let a HALT clear release a RESET hold:
+   * Double Dragon's bankswitch_w asserts the HD63701's RESET and clears its
+   * HALT in one write, and the sub CPU read as running, so comram_r answered
+   * 0xff from frame 3.
    */
-  private readonly cpuReportedSuspended = new Map<string, boolean>();
+  private readonly cpuHeld = new Map<string, number>();
   private readonly devices = new Map<string, Device>();
   /** Devices whose device_start waits for the board's callbacks and video (startReadsHostBindings). */
   private readonly hostBoundStarts: Device[] = [];
@@ -687,7 +698,7 @@ class IrBoard implements Board {
   private readonly bindings: GeneratedHandlerBindings;
   private currentLine = 0;
   /** `scheduler().synchronize()` work, run once the posting CPU has yielded. */
-  private readonly scheduledWork: { at: number; run: () => void }[] = [];
+  private readonly scheduledWork: { at: number; exactAt?: bigint; run: () => void }[] = [];
   private currentLineFraction = 0;
   private inFrame = false;
   /**
@@ -777,8 +788,6 @@ class IrBoard implements Board {
   private soundRuntime?: SoundRuntimeHooks;
   private readonly peripheralResets: Array<() => void> = [];
   private readonly peripheralTicks: Array<(seconds: number) => void> = [];
-  /** `machine().schedule_soft_reset()`, taken when the frame ends. */
-  private softResetPending = false;
   /** Delegates devices registered with `screen_device::register_vblank_callback`. */
   private readonly vblankCallbacks = new Map<string, (screen: unknown, state: number) => unknown>();
   private readonly inputs: InputPorts;
@@ -925,6 +934,7 @@ class IrBoard implements Board {
           // for the line it is already standing on and gets deferred a frame.
           vpos: () => this.deviceBeamLine(),
           hpos: () => this.beamHpos(),
+          hblank: () => this.beamHblank() ? 1 : 0,
           // screen_device::vblank(): the beam is outside the visible lines.
           vblank: () => this.inVblank() ? 1 : 0,
           // update_now() and pixel(x, y): the picture composed up to the
@@ -1083,7 +1093,7 @@ class IrBoard implements Board {
             side_effects_disabled: () => 0,
             phase: () => this.machinePhase,
             time: () => generatedAttotime(this.machineSeconds()),
-            schedule_soft_reset: () => { this.softResetPending = true; return 0; },
+            schedule_soft_reset: () => this.scheduleSoftReset(),
           },
         };
         const screenServiceCalls: Record<string, (...args: number[]) => unknown> = {};
@@ -1420,11 +1430,15 @@ class IrBoard implements Board {
                 : Number(duration) || 0);
               return 0;
             },
+            'machine().scheduler().add_quantum': (quantum: unknown = 0, duration: unknown = 0) => {
+              this.addQuantum(attotimeArgumentSeconds(quantum), attotimeArgumentSeconds(duration));
+              return 0;
+            },
             exists: () => 1,
             machine: () => ({
               // MAME defers a soft reset to the end of the timeslice; the
               // board takes it when the frame ends. The watchdog's way out.
-              schedule_soft_reset: () => { this.softResetPending = true; return 0; },
+              schedule_soft_reset: () => this.scheduleSoftReset(),
               // False during emulation; MAME only sets it for a debugger peek.
               // Devices gate real state changes on it — the 6532 sets its timer
               // interrupt enable inside `if (!machine().side_effects_disabled())`
@@ -1692,6 +1706,12 @@ class IrBoard implements Board {
     // between the two halves of a handshake that a single slice contains.
     calls['machine().scheduler().perfect_quantum'] = (seconds = 0) => {
       this.perfectQuantum(seconds);
+      return 0;
+    };
+    // A quantum of its own for a while (scheduler::add_quantum): Irem's M72
+    // asks for 1.5 us rounds for its first 25 seconds.
+    calls['machine().scheduler().add_quantum'] = (quantum = 0, duration = 0) => {
+      this.addQuantum(attotimeArgumentSeconds(quantum), attotimeArgumentSeconds(duration));
       return 0;
     };
     // Generated handlers execute normal CPU accesses, never debugger/disassembly
@@ -2303,7 +2323,6 @@ class IrBoard implements Board {
     this.installMemoryBanks(machine, regions, registry, sinks);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installSourceHandlerWidthAdapters(machine, registry);
-    this.installInterruptVectorWriters(machine, registry);
     for (const specification of machine.devices ?? []) {
       for (const map of specification.addressMaps ?? []) {
         const device = this.devices.get(specification.tag);
@@ -2853,8 +2872,7 @@ class IrBoard implements Board {
       this.linkDaisyChain(specification, cpu);
       this.cpuCycles.set(specification.tag, 0);
       this.cpuStalls.set(specification.tag, 0);
-      this.cpuHeld.set(specification.tag, false);
-      this.cpuReportedSuspended.set(specification.tag, false);
+      this.cpuHeld.set(specification.tag, 0);
       const acknowledge = machine.callbacks.find(callback =>
         callback.ownerTag === specification.tag &&
         callback.signal === 'set_irq_acknowledge_callback');
@@ -2913,7 +2931,7 @@ class IrBoard implements Board {
           if (line === INPUT_LINE_NMI) cpu.nmi();
           else if (line === INPUT_LINE_RESET) {
             cpu.reset();
-            this.cpuHeld.set(specification.tag, false);
+            this.holdCpu(specification.tag, SUSPEND_REASON_RESET, false);
             this.cpuResetReleased(specification.tag);
           }
           else {
@@ -2962,14 +2980,13 @@ class IrBoard implements Board {
         this.adjustGeneratedIcount(specification.tag, delta);
         return 0;
       };
-      calls[`m_${specification.tag}.suspended`] = () => {
-        const reported = this.cpuReportedSuspended.get(specification.tag) ?? false;
-        this.cpuReportedSuspended.set(
-          specification.tag,
-          this.cpuHeld.get(specification.tag) ?? false,
-        );
-        return Number(reported);
-      };
+      // device_execute_interface::suspended() reads m_nextsuspend: held in
+      // RESET or HALT from the moment the (synchronized) input line lands,
+      // not from the next round. Double Dragon's shared RAM answers the main
+      // CPU only while its HD63701 is held (comram_r); a query that lagged by
+      // one call read 0xff at the first access after the hold, frame 3.
+      calls[`m_${specification.tag}.suspended`] = (reason = SUSPEND_ANY_REASON) =>
+        Number(((this.cpuHeld.get(specification.tag) ?? 0) & Number(reason)) !== 0);
       // Handlers reference CPUs by their state-member name (m_subcpu2) as
       // well as by tag; every CPU call gets both aliases uniformly.
       const cpuSpecification = machine.devices?.find(device => device.tag === specification.tag);
@@ -3090,6 +3107,16 @@ class IrBoard implements Board {
       // `bmcu:mcu`) while composed machine tags retain the configured finder
       // path (`mcu:mcu`).  The child leaf is the stable identity across those
       // two source namespaces.
+      // The processor raising its own lines (the 6805 timer's
+      // `m_parent.set_input_line(M6805_INT_TIMER, ...)` from tcr_w) is
+      // delivered as its host's are, so it synchronizes as set_state_synced
+      // does and ends the running slice. Arkanoid's 68705 clears its timer
+      // request there; MAME's round ends on it, and the main CPU runs first in
+      // the next, where ours ran the MCU on through its IRQ handler.
+      if (device?.methodNames().includes('execute_set_input')) {
+        device.bindCall('set_input_line', (line, state) =>
+          this.deviceInputLine(specification.tag, device, Number(line) || 0, Number(state)));
+      }
       const leaf = specification.tag.split(':').at(-1)!;
       const firmware = regions[specification.tag] ?? regions[
         Object.keys(regions).find(name => name.endsWith(`:${leaf}`)) ?? ''
@@ -3541,6 +3568,7 @@ class IrBoard implements Board {
       };
       for (const owner of new Set(screenOwners)) {
         calls[`${owner}.hpos`] = () => this.beamHpos();
+        calls[`${owner}.hblank`] = () => this.beamHblank() ? 1 : 0;
         calls[`${owner}.update_now`] = () => {
           if (activeFramebuffer) video?.updatePartialAt(activeFramebuffer, this.beamLine(), this.beamHpos());
           return 1;
@@ -3759,11 +3787,23 @@ class IrBoard implements Board {
             // anchored to the scheduler's could never come due, and the
             // device clock stood still for three frames.
             const standing = (this.beamPosition() - baseLine) * this.lineSeconds();
-            if (Math.abs(standing) > 1e-12) return;
+            if (standing < -1e-12) return;
             const timer = soonestTimerHandle();
             const due = timer?.exactDueAttos();
             if (!timer || due === undefined) return;
             const baseAttos = this.frameRunner.baseExact();
+            // Ahead of the base (the round before was pulled back to a
+            // processor's whole cycles, past which the devices had already
+            // run), the round still ends on the exact expiry; only the
+            // countdown stays where the device clock has it. Bounded by the
+            // clock's seconds, The Simpsons' K053260 edge fell an attosecond
+            // short of the sound Z80's next whole cycle: the Z80 ran none of
+            // the round and took its NMI a HALT fetch (4 cycles) before MAME's.
+            if (standing > 1e-12) {
+              const ahead = Number(due - baseAttos) * 1e-18;
+              if (Math.abs(ahead - (soonest + standing)) <= EXACT_ANCHOR_LIMIT_SECONDS) exactUntil = ahead;
+              return;
+            }
             // Only drift: the countdown carries what the exact expiry does not
             // (the arming processor's lead, the round's base), and where the
             // two are further apart than drift, the countdown is the one that
@@ -3832,9 +3872,19 @@ class IrBoard implements Board {
           this.roundTimerArmed = armedRoundTimer;
           // Synchronized work still waiting is a timer at the time it was
           // posted (drainScheduledWork).
+          // Bounded on its exact time where it was posted at one, as a device
+          // timer's expiry is (boundExactly): in seconds, Wonder Boy's PIO
+          // NMI, posted at 466,183 us, bounded the round 21 attoseconds short
+          // of it, and the sound Z80's last cycle before it did not fit, so it
+          // took the NMI an instruction before MAME's.
           let untilWork = Infinity;
+          const baseExact = this.exactTimeKnown && this.scheduledWork.some(work => work.exactAt !== undefined)
+            ? this.frameRunner!.baseExact() : undefined;
           for (let index = 0; index < this.scheduledWork.length; index++) {
-            untilWork = Math.min(untilWork, this.scheduledWork[index]!.at - this.roundBaseSeconds);
+            const work = this.scheduledWork[index]!;
+            untilWork = Math.min(untilWork, work.exactAt !== undefined && baseExact !== undefined
+              ? Number(work.exactAt - baseExact) * 1e-18
+              : work.at - this.roundBaseSeconds);
           }
           if (!this.pendingTimers.size) return Math.min(untilDevice, untilWork);
           fireRoundTimers(this.roundBaseSeconds);
@@ -4304,14 +4354,26 @@ class IrBoard implements Board {
    *   CT port. Applied at once, it was asserted and cleared inside the Z80's
    *   slice, the MCU never saw it, and no voice sample ever played.
    */
+  /** Sets or clears one suspend reason (MAME's suspend/resume) and the held view it implies. */
+  private holdCpu(tag: string, reason: number, held: boolean): void {
+    const reasons = this.cpuHeld.get(tag) ?? 0;
+    this.cpuHeld.set(tag, held ? reasons | reason : reasons & ~reason);
+  }
+
+  /** Whether a processor's RESET line holds it (SUSPEND_REASON_RESET). */
+  private cpuInReset(tag: string): boolean {
+    return ((this.cpuHeld.get(tag) ?? 0) & SUSPEND_REASON_RESET) !== 0;
+  }
+
   private cpuInputLine(tag: string, cpu: Cpu, line: number, state: number, dataBus?: number | (() => number)): void {
     const apply = () => {
       // A line that changes may wake a stopped core (stoppedProcessor).
       const activity = this.cpuActivity(tag);
       activity.quietSlices = 0;
       activity.quietPc = undefined;
-      const released = line === INPUT_LINE_RESET && state === 0 && this.cpuHeld.get(tag) === true;
-      applyGeneratedCpuInputLine(cpu, line, state, held => this.cpuHeld.set(tag, held), dataBus);
+      const released = line === INPUT_LINE_RESET && state === 0 && this.cpuInReset(tag);
+      applyGeneratedCpuInputLine(cpu, line, state,
+        held => this.holdCpu(tag, line === INPUT_LINE_RESET ? SUSPEND_REASON_RESET : SUSPEND_REASON_HALT, held), dataBus);
       if (released) this.cpuResetReleased(tag);
     };
     if (this.synchronizesLineFrom(tag)) this.synchronize(apply);
@@ -4355,16 +4417,22 @@ class IrBoard implements Board {
     // line takes effect at once. Deferred to the round's end, the SN76489A's
     // READY release (a timer, through an input merger onto the Z80's WAIT)
     // held System 1's sound Z80 170 us per write instead of 16.
-    return this.runningCpu !== undefined && this.schedulerRunning && generatedTimerExpiry() === undefined;
+    // A device the round runs beside the CPUs (a hosted MCU) synchronizes as
+    // they do: MAME's executing device is whichever is running. Arkanoid's
+    // 68705 clears its own IRQ on the PC2 edge that clears the host flag;
+    // MAME's slice ends there, and the main CPU, run first in the next round,
+    // sees the flag 22 us later than when the MCU ran on.
+    return (this.runningCpu !== undefined || this.runningRoundDevice !== undefined) &&
+      this.schedulerRunning && generatedTimerExpiry() === undefined;
   }
 
   private deviceInputLine(tag: string, device: Device, line: number, state: number): number {
     if (line === INPUT_LINE_RESET || line === INPUT_LINE_HALT) {
       const apply = () => {
         const held = state !== 0;
-        const released = !held && line === INPUT_LINE_RESET && this.cpuHeld.get(tag) === true;
+        const released = !held && line === INPUT_LINE_RESET && this.cpuInReset(tag);
         if (released) device.reset();
-        this.cpuHeld.set(tag, held);
+        this.holdCpu(tag, line === INPUT_LINE_RESET ? SUSPEND_REASON_RESET : SUSPEND_REASON_HALT, held);
         if (released) this.cpuResetReleased(tag);
       };
       // device_input::set_state_synced: the line changes through
@@ -4513,10 +4581,6 @@ class IrBoard implements Board {
       this.inFrame = false;
     }
     this.applyScreenArea();
-    if (this.softResetPending) {
-      this.softResetPending = false;
-      this.softReset();
-    }
   }
 
   /** Apply source-declared PORT_CHANGED_MEMBER edge callbacks. */
@@ -4570,10 +4634,7 @@ class IrBoard implements Board {
     this.observedTransportSeconds.clear();
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
-    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
-    for (const tag of this.cpuReportedSuspended.keys()) {
-      this.cpuReportedSuspended.set(tag, false);
-    }
+    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, 0);
     this.videoPrimitives?.reset?.();
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     this.frameRunner.softReset();
@@ -4609,6 +4670,7 @@ class IrBoard implements Board {
     const poster = this.runningCpu;
     this.scheduledWork.push({
       at,
+      ...(exactAt ? { exactAt: exactToAttos(exactAt) } : {}),
       run: () => {
         const outer = this.workPoster;
         this.workPoster = poster;
@@ -4626,7 +4688,12 @@ class IrBoard implements Board {
     // a generic latch's start posts the not-pending state it publishes, and
     // run there and then, Neo Geo's NMI merger started after it and set every
     // input high again, so the sound CPU took one NMI and never another.
-    if (!this.drainingScheduledWork && this.schedulerRunning) this.drainScheduledWork();
+    // Only work due by now: a processor that ran ahead in the round may have
+    // posted some for later. Wonder Boy's main Z80 posts its PIO's ARDY ->
+    // sound NMI at 466,183 us; the SN76489's READY timer, firing at 466,041
+    // before the sound Z80 has caught up, synchronizes through its input
+    // merger, and drained in full that took the NMI 143 us early.
+    if (!this.drainingScheduledWork && this.schedulerRunning) this.drainScheduledWork(at);
   }
 
   /**
@@ -4656,9 +4723,15 @@ class IrBoard implements Board {
    */
   private exactMachineTime(): ExactAttotime | undefined {
     const runner = this.frameRunner;
-    // Not before the scheduler starts: a device_start's timer counts from
-    // power-on, which the runner's base does not stand at yet.
-    if (!this.exactTimeKnown || !runner || !this.schedulerRunning) return undefined;
+    // Before the scheduler starts, the machine is at power-on, time zero
+    // exactly, which the runner's base does not stand at yet. MAME arms a
+    // device_reset's periodic timer from zero: The Simpsons' K053260, armed
+    // `from_ticks(16, clock())` there, ran on the sound Z80's cycle grid, and
+    // counted from seconds it fell 3,318 attoseconds short of it, so a round
+    // bounded by its edge left the Z80 a cycle short (one HALT fetch).
+    if (!this.exactTimeKnown) return undefined;
+    if (!this.schedulerRunning) return exactFromAttos(0n);
+    if (!runner) return undefined;
     if (generatedTimerExpiry() !== undefined) return generatedTimerExactExpiry();
     if (this.deliveringDeviceTime || this.runningRoundDevice !== undefined) return undefined;
     if (this.runningCpu !== undefined) {
@@ -4703,8 +4776,10 @@ class IrBoard implements Board {
    * from vbstart, so from the line after it the instant is past the wrap.
    */
   private secondsToPresent(): number {
-    const { vbstart, vtotal } = this.machine.execution.screen;
-    const lines = this.currentLine >= vbstart ? vtotal - this.currentLine + vbstart : vbstart - this.currentLine;
+    // Presented where VBLANK starts, or where it ends on an UPDATE_AFTER_VBLANK screen.
+    const { vbstart, vbend, vtotal, updateAfterVblank } = this.machine.execution.screen;
+    const at = updateAfterVblank ? (vbend ?? 0) % Math.max(1, vtotal) : vbstart;
+    const lines = this.currentLine >= at ? vtotal - this.currentLine + at : at - this.currentLine;
     return lines * this.lineSeconds() - this.timedHardwareDelivered;
   }
 
@@ -4880,11 +4955,28 @@ class IrBoard implements Board {
     return screen.vbstart + since * Math.max(1, screen.vtotal) / raster.height;
   }
 
+  /**
+   * MAME's `screen_device::hblank()`: hpos() outside the visible area's
+   * columns. Unbound, a driver's `m_screen->hblank()` answered nothing, and
+   * Carnival's composite blank (cblank_comp_r) never showed an HBLANK.
+   */
+  private beamHblank(): boolean {
+    const screen = this.machine.execution.screen;
+    const left = screen.xOffset ?? 0;
+    const position = this.beamHpos();
+    return position < left || position > left + screen.width - 1;
+  }
+
   /** The beam's pixel within its line: MAME's `screen_device::hpos()`. */
   private beamHpos(): number {
     const htotal = this.rasterWidth();
+    // The running processor's own time, in a one-line round too: MAME's
+    // hpos() is machine().time() against the line's start. A generated core
+    // moves currentLineFraction only at its slice's ends, so Carnival's Z80,
+    // polling the composite blank (cblank_comp_r) under a perfect quantum,
+    // read pixel 0 of every line and never saw the HBLANK MAME's saw.
     const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningCycles())
+      ? this.frameRunner?.runningBeam(this.runningCycles(), true)
       : undefined;
     const beam = this.rasterLabel(this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction) + this.halfPixelLines();
     return Math.min(htotal - 1, Math.floor((beam - Math.floor(beam)) * htotal));
@@ -4895,17 +4987,34 @@ class IrBoard implements Board {
    * or past the next VBLANK start. It compares times, unrounded, where
    * vpos() rounds half a pixel on: read through vpos, Wardner's VBLANK bit
    * (port $58) dropped one poll before MAME's at the line it ends on.
+   *
+   * Inside a slice it is the running processor's own time (frameLines), in a
+   * one-line round too: there the board's line is already the next one by the
+   * slice's end, and Double Dragon's HD6309, polling VBLANK through the last
+   * line of the frame, saw it end a line before MAME's (frame 229).
    */
   private inVblank(): boolean {
-    const running = this.runningCpu
-      ? this.frameRunner?.runningBeam(this.runningCycles())
-      : undefined;
-    const position = this.expiryBeam ?? running ?? this.currentLine + this.currentLineFraction;
+    const position = this.expiryBeam ?? (this.frameRunner?.originLine ?? 0) + this.frameLines();
     const height = this.rasterHeight();
     const line = ((Math.floor(this.rasterLabel(position)) % height) + height) % height;
     const { vbend = 0 } = this.machine.execution.screen;
     const vbstart = this.configuredRaster()?.vbstart ?? this.machine.execution.screen.vbstart;
-    return vbstart > vbend ? line >= vbstart || line < vbend : line >= vbstart && line < vbend;
+    if (vbstart > vbend ? line >= vbstart || line < vbend : line >= vbstart && line < vbend) return true;
+    // MAME's vblank() is `machine().time() < m_vblank_end_time`, and the end
+    // moves on when the VBLANK-begin timer fires: a processor still behind
+    // a VBLANK start the scheduler has passed reads it. Mat Mania's 6502,
+    // less than a cycle short of frame 12's VBLANK, sat out the round that
+    // ended there, then polled at 191,487.333 us: in VBLANK in MAME's.
+    if (this.expiryBeam !== undefined) return false;
+    const base = this.frameRunner?.runningBaseFrameLines();
+    if (base === undefined) return false;
+    // In beam positions, where VBLANK starts at the execution screen's
+    // vbstart whatever raster a device has configured (rasterLabel).
+    const basePosition = (this.frameRunner?.originLine ?? 0) + base;
+    const { vbstart: startPosition, vtotal } = this.machine.execution.screen;
+    const total = Math.max(1, vtotal);
+    const sinceStart = (((basePosition - startPosition + 1e-9) % total) + total) % total - 1e-9;
+    return position < basePosition - sinceStart;
   }
 
   /** The whole beam line a read sees now: MAME's `screen_device::vpos()`. */
@@ -4944,16 +5053,29 @@ class IrBoard implements Board {
    * output latch; resetting the frame runner would also make a boot watchdog
    * look like an endless frame-zero loop to clients.
    */
+  /**
+   * `machine().schedule_soft_reset()`: `m_soft_reset_timer->adjust(attotime::zero)`
+   * and eat_all_cycles, a timer due now, as synchronize() posts. Elevator
+   * Action's watchdog fires on frame 131's VBLANK; taken when the frame
+   * ended instead, 24 lines on, its sound Z80 ran on in the old program
+   * where MAME's had restarted from 0.
+   */
+  private scheduleSoftReset(): number {
+    this.synchronize(() => this.softReset());
+    return 0;
+  }
+
   private softReset(): void {
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RESET']!;
     for (const device of this.devices.values()) device.reset();
     for (const cpu of this.cpus.values()) cpu.reset();
-    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, false);
-    for (const tag of this.cpuReportedSuspended.keys()) {
-      this.cpuReportedSuspended.set(tag, false);
-    }
+    for (const tag of this.cpuHeld.keys()) this.cpuHeld.set(tag, 0);
     for (const tag of this.cpuStalls.keys()) this.cpuStalls.set(tag, 0);
     for (const reset of this.peripheralResets) reset();
+    // Each processor's interface_post_reset arms its periodic interrupt a
+    // period from the reset: left on the old schedule, Elevator Action's
+    // sound Z80 took an IRQ 20 us after its watchdog reset that MAME's did not.
+    for (const tag of this.cpus.keys()) this.cpuResetReleased(tag);
     this.runMachineReset();
     this.machinePhase = DEFAULT_CONSTANTS['machine_phase::RUNNING']!;
   }
@@ -5121,12 +5243,12 @@ class IrBoard implements Board {
    */
   stateKeys(): readonly string[] {
     return [
-      'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld', 'cpuReportedSuspended',
+      'cpus', 'cpuBuses', 'bankDeviceBuses', 'cpuCycles', 'cpuStalls', 'cpuHeld',
       'runningSliceCycles', 'devices', 'generatedBanks',
       'observedTransportSeconds',
       'pendingBankEntry', 'generatedResources', 'state', 'declarativeEeprom',
       'videoPrimitives', 'video', 'frameRunner', 'currentLine', 'currentLineFraction',
-      'inFrame', 'timedHardwareDelivered', 'soundRuntime', 'softResetPending',
+      'inFrame', 'timedHardwareDelivered', 'soundRuntime',
       // A slice's overrun still owed to the device clock: since #184 a 6502
       // pays it at its next instruction, so a load must find it where it was.
       'timerCpuCarriedCycles', 'heldDeviceSeconds',
@@ -5257,6 +5379,15 @@ class IrBoard implements Board {
   perfectQuantum(seconds: number): void {
     this.frameRunner?.quantumWindow(seconds, this.quantumWindowStart());
     this.frameRunner?.requestSynchronize();
+  }
+
+  /**
+   * MAME `scheduler::add_quantum(quantum, duration)`: rounds no longer than
+   * `quantum` from now for `duration`. MAME re-plans only at the next round,
+   * so unlike perfect_quantum the running slice is not cut.
+   */
+  addQuantum(quantumSeconds: number, seconds: number): void {
+    this.frameRunner?.addQuantum(quantumSeconds, seconds, this.quantumWindowStart());
   }
 
   /**
@@ -6083,30 +6214,6 @@ class IrBoard implements Board {
     }
   }
 
-  private installInterruptVectorWriters(
-    machine: BoardIr,
-    registry: HandlerRegistry,
-  ): void {
-    const cpuTagsByWriter = new Map<string, string[]>();
-    for (const cpu of machine.execution.cpus) {
-      for (const writer of cpu.interruptVectorWriters ?? []) {
-        const tags = cpuTagsByWriter.get(writer) ?? [];
-        tags.push(cpu.tag);
-        cpuTagsByWriter.set(writer, tags);
-      }
-    }
-    for (const [writer, cpuTags] of cpuTagsByWriter) {
-      const original = registry.write[writer];
-      if (!original) continue;
-      registry.write[writer] = (address, offset, data) => {
-        original(address, offset, data);
-        for (const cpuTag of cpuTags) {
-          this.cpus.get(cpuTag)?.setIrqLine(false);
-        }
-      };
-    }
-  }
-
   /**
    * A sound chip's `device_rom_interface` reads through its own address space
    * 0 (the Williams ADPCM OKI's banked low half): each window is a fixed region
@@ -6755,21 +6862,25 @@ class IrBoard implements Board {
         // never gone low (notably Taito SJ's sound NMI circuit).
         return delivery === 'pulse'
           ? state => {
-            if (state && !this.cpuHeld.get(tag)) this.cpus.get(tag)?.nmi();
+            if (state && !this.cpuInReset(tag)) this.cpus.get(tag)?.nmi();
           }
           : state => {
             // Edges that occur while RESET is asserted are not latched by
             // the physical CPU.  Retaining one in the generated core made
             // Gauntlet's sound-latch NMI pre-empt its reset handshake.
-            if (!this.cpuHeld.get(tag)) {
+            // Held on HALT or WAIT it still reaches execute_set_input, as
+            // MAME's does: Wonder Boy's sound Z80, waiting on its SN76489's
+            // READY, took the NMI of a command once released, and dropped,
+            // the command at frame 312 of its contract was never read.
+            if (!this.cpuInReset(tag)) {
               this.cpus.get(tag)?.setInputLine(INPUT_LINE_NMI, state ? 1 : 0);
             }
           };
       }
       if (line === 'reset') {
         return state => {
-          const released = !state && this.cpuHeld.get(tag) === true;
-          this.cpuHeld.set(tag, Boolean(state));
+          const released = !state && this.cpuInReset(tag);
+          this.holdCpu(tag, SUSPEND_REASON_RESET, Boolean(state));
           if (state) this.cpus.get(tag)?.reset();
           else if (released) this.cpuResetReleased(tag);
         };
@@ -6778,7 +6889,7 @@ class IrBoard implements Board {
         // MAME's INPUT_LINE_HALT suspends the processor in the scheduler.
         // It acknowledges nothing: a bus request is `busreq`, which the
         // core grants itself.
-        return state => { this.cpuHeld.set(tag, Boolean(state)); };
+        return state => { this.holdCpu(tag, SUSPEND_REASON_HALT, Boolean(state)); };
       }
       const numberedIrq = /^irq([1-7])$/.exec(line);
       if (numberedIrq) {

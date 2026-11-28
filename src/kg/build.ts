@@ -8,6 +8,7 @@ import {
   type MameClass, type MameFunction, type SourceSpan,
 } from '../mame/ast.ts';
 import { compileMameHandler } from '../mame/handler-ir.ts';
+import { foldTemplateCallArguments, resolveIfConstexpr } from '../mame/function-template.ts';
 import { lowerDriverMemberPointers } from '../mame/member-pointers.ts';
 import { CPreprocessor } from '../mame/c-preprocessor.ts';
 import { DEFAULT_CONSTANTS } from '../ir/execute.ts';
@@ -455,6 +456,16 @@ export function buildGraph(mameSrc: string, driverFile: string, cardUnits: reado
       return [`${helper.className}.${helper.name}`];
     });
     if (initHandlers.length) g.node('Game', id, { initHandlers });
+    // `machine().add_notifier(MACHINE_NOTIFY_RESET, machine_notify_delegate(&cls::fn, this))`
+    // in the init, or in a helper it calls: MAME calls it on every reset,
+    // after reset_all_devices (registered first, when the machine starts), so
+    // after machine_reset. Taito SJ's reset_common sets its sound latch to
+    // 0xff that way; dropped, Elevator Action's sound CPU read 0 at 15 us.
+    const resetNotifiers = driverResetNotifiers(ast, gm.cls, initFunction?.body ?? '').map(target => {
+      g.edge(id, emitSourceHandlerClosure(g, ast, target.className!, target.name, consts, target.span), 'CALLS_HANDLER');
+      return `${target.className}.${target.name}`;
+    });
+    if (resetNotifiers.length) g.node('Game', id, { resetNotifiers });
   }
 
   // --- rom sets ---
@@ -1856,6 +1867,23 @@ export function driverConstructorCalls(ast: MameAstIndex, className: string): Ma
 }
 
 /** Resolve a MAME lifecycle override in base-first execution order. */
+/**
+ * The reset notifiers a driver's init registers, in its own body or in a
+ * no-argument helper it calls: `machine().add_notifier(MACHINE_NOTIFY_RESET,
+ * machine_notify_delegate(&cls::fn, this))`. Each is resolved through the
+ * driver's class hierarchy; one that does not resolve is left out.
+ */
+export function driverResetNotifiers(ast: MameAstIndex, className: string, initBody: string): MameFunction[] {
+  const helpers = [...initBody.matchAll(/^\s*(\w+)\s*\(\s*\)\s*;/gm)]
+    .map(call => ast.findFunctionInHierarchy(className, call[1]!)?.body ?? '');
+  return [initBody, ...helpers].flatMap(body => [...body.matchAll(
+    /add_notifier\s*\(\s*MACHINE_NOTIFY_RESET\s*,\s*machine_notify_delegate\s*\(\s*&\s*(\w+)::(\w+)\s*,\s*this\s*\)/g,
+  )].flatMap(match => {
+    const target = ast.findFunctionInHierarchy(className, match[2]!);
+    return target?.className ? [target] : [];
+  }));
+}
+
 export function resolveMachineLifecycle(
   ast: MameAstIndex,
   className: string,
@@ -3086,18 +3114,37 @@ function handlerProps(
     // spectrum_128_state::spectrum_128_ram_r(...)` keeps it on the function's
     // own line, inside the span, where the prefix below never sees it.
     const declaration = /template\s*<([^<>]*)>\s*$/.exec(prefix);
-    const names = !declaration && fn.templateParameters?.length ? fn.templateParameters : splitMameArgs(declaration?.[1] ?? '').flatMap(parameter => {
-      const text = parameter.trim();
-      if (!text || text.includes('...')) return [];
-      const name = /([A-Za-z_]\w*)\s*(?:=.*)?$/.exec(text)?.[1];
-      return name ? [name] : [];
-    });
+    // A parameter's default is an expression of those before it:
+    // konami_helper.h's `template <unsigned N, unsigned A = N - 2, unsigned B
+    // = N - 1, ...>`, which `konami_sortlayers<3>` instantiates as <3, 1, 2>.
+    const declared = !declaration && fn.templateParameters?.length
+      ? fn.templateParameters.map(name => ({ name, fallback: undefined as string | undefined }))
+      : splitMameArgs(declaration?.[1] ?? '').flatMap(parameter => {
+        const text = parameter.trim();
+        if (!text || text.includes('...')) return [];
+        const match = /([A-Za-z_]\w*)\s*(?:=\s*(.*))?$/.exec(text);
+        return match ? [{ name: match[1]!, fallback: match[2]?.trim() }] : [];
+      });
     const values = specialization[1]!.split('_').map(Number);
-    for (const [index, name] of names.entries()) {
-      const value = values[index];
-      if (value !== undefined && Number.isInteger(value) && identifiers.has(name)) {
-        specializedConstants[name] = value;
-      }
+    const bound: Record<string, number> = {};
+    for (const [index, { name, fallback }] of declared.entries()) {
+      const value = values[index] ?? (fallback === undefined ? undefined : evalExpr(fallback, { ...constants, ...bound }) ?? undefined);
+      if (value === undefined || !Number.isInteger(value)) continue;
+      bound[name] = value;
+      if (identifiers.has(name)) specializedConstants[name] = value;
+    }
+    // With its arguments known, the instance is what C++ compiles: the
+    // `if constexpr` branches it discards are gone, and the template calls it
+    // makes name their instances in numbers (`konami_sortlayers<N, A, B - 1>`
+    // in <3, 0, 2> is `konami_sortlayers<3, 0, 1>`), which is how the handler
+    // parser spells, and the closure below follows, each one.
+    if (body && Object.keys(bound).length) {
+      const evaluate = (text: string) => evalExpr(text, { ...constants, ...bound });
+      body = foldTemplateCallArguments(
+        resolveIfConstexpr(body, evaluate),
+        name => isSourceTemplate(ast, name),
+        evaluate,
+      );
     }
   }
   const available = { ...constants, ...specializedConstants };
@@ -3387,6 +3434,21 @@ function configArgument(text: string, sources: readonly string[], constants: Rec
  * its arity (`copy_layer__a6`), else the method itself or, with a numeric
  * suffix, the function template it specializes.
  */
+/**
+ * Whether the source declares this function as a template: by the AST's own
+ * reading, or by the `template <...>` header just before it, which the AST
+ * does not keep for every spelling (`template <unsigned N, unsigned A = N - 2,
+ * ..., typename U>` on its own line above an `inline void`).
+ */
+function isSourceTemplate(ast: MameAstIndex, name: string): boolean {
+  const fn = ast.findUniqueFunction(name);
+  if (!fn) return false;
+  if (fn.templateParameters?.length) return true;
+  const unit = ast.ast.units.find(candidate => candidate.file === fn.span.file);
+  const prefix = unit?.source.slice(Math.max(0, fn.span.start - 256), fn.span.start) ?? '';
+  return /template\s*<[^<>]*>\s*$/.test(prefix);
+}
+
 function handlerFunction(ast: MameAstIndex, ownerClass: string, method: string): { fn?: MameFunction; exact: boolean } {
   const overload = parseOverloadedName(method);
   if (overload) {
@@ -3395,7 +3457,14 @@ function handlerFunction(ast: MameAstIndex, ownerClass: string, method: string):
   }
   const exactFunction = ast.findFunctionInHierarchy(ownerClass, method);
   if (exactFunction) return { fn: exactFunction, exact: true };
-  return { fn: ast.findFunctionInHierarchy(ownerClass, method.replace(/_-?\d+$/, '')), exact: false };
+  // One numeric suffix per bound template argument: `konami_sortlayers_3_1_1`
+  // is konami_sortlayers<3, 1, 1>. The longest name that exists wins.
+  for (let name = method; /_-?\d+$/.test(name);) {
+    name = name.replace(/_-?\d+$/, '');
+    const fn = ast.findFunctionInHierarchy(ownerClass, name);
+    if (fn) return { fn, exact: false };
+  }
+  return { fn: undefined, exact: false };
 }
 
 function emitSourceHandlerClosure(
@@ -3411,14 +3480,32 @@ function emitSourceHandlerClosure(
   const handlerId = `handler:${ownerClass}.${method}`;
   if (visited.has(handlerId)) return handlerId;
   visited.add(handlerId);
-  g.node('Handler', handlerId, handlerProps(
+  const props = handlerProps(
     ast,
     ownerClass,
     method,
     constants,
     fallbackSource,
-  ));
+  );
+  g.node('Handler', handlerId, props);
   if (!fn) return handlerId;
+
+  // A function template called with numbers names one instance of it, which
+  // is a handler of its own (`konami_sortlayers<3>(...)` is
+  // konami_sortlayers_3, as the handler parser spells the call). Read from the
+  // body as this instance compiles it, where its own arguments are already
+  // numbers and the branches it discards are gone, so a template that
+  // recurses on itself (konami_helper.h's bubble sort) stops where C++ does.
+  const compiled = typeof props.sourceBody === 'string' ? props.sourceBody : fn.body;
+  for (const match of compiled.matchAll(/(?<![\w.>:])([A-Za-z_]\w*)\s*<\s*(-?\d+(?:\s*,\s*-?\d+)*)\s*>\s*\(/g)) {
+    const [, name, args] = match;
+    if (!isSourceTemplate(ast, name!)) continue;
+    const template = ast.findUniqueFunction(name!)!;
+    const instance = `${name}_${args!.split(',').map(value => value.trim()).join('_')}`;
+    const instanceId = emitSourceHandlerClosure(
+      g, ast, template.className, instance, constants, template.span, visited);
+    g.edge(handlerId, instanceId, 'CALLS_HANDLER');
+  }
 
   // Virtual dispatch: a driver class further down the chain may redefine this
   // method, and it is the GAME macro's class -- not the class this call is

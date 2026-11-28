@@ -42,6 +42,12 @@ export interface IoPlan {
   to: number;
   /** MAME's tapped frames are ours + offset (a board that boots out of step); 0 when absent. */
   offset?: number;
+  /**
+   * Processors whose program counter is logged with every tapped access, as
+   * `tag=pc` fields after the time: where a hosted MCU stood when the main
+   * CPU polled it, which says which of MAME's rounds the poll fell in.
+   */
+  watch?: string[];
 }
 
 /**
@@ -335,6 +341,20 @@ export function boardRam(config: ShellConfig): RamPlan['cpus'] {
       .sort((left, right) => left[0] - right[0]);
     return { tag: cpu.tag, ranges };
   }).filter(cpu => cpu.ranges.length);
+}
+
+/**
+ * The RAM ranges MAME's side cannot read back: a `writeonly()` share, which a
+ * read through the address space finds unmapped. Both sides still dump them
+ * (the plan, and with it MAME's cache key, stays as it was); the comparison
+ * leaves their bytes out. Pac-Man's sprite coordinates at 0x5060 are one: its
+ * every write agrees on both sides, its dump never did.
+ */
+export function boardWriteOnly(config: ShellConfig): { tag: string; start: number; end: number }[] {
+  return config.board.cpus.flatMap(cpu =>
+    ((cpu as { ranges?: { kind: string; start: number; end: number; writeOnly?: boolean }[] }).ranges ?? [])
+      .filter(range => range.kind === 'ram' && range.writeOnly)
+      .map(range => ({ tag: cpu.tag, start: range.start, end: range.end })));
 }
 
 /** `maincpu:0-7ff,6000-7fff` -> one processor's ranges. */

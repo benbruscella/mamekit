@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import type { GeneratedExpression, GeneratedHandlerOperation } from '../ir/board.ts';
-import { markExactAttotime } from './exact-attotime-marking.ts';
+import { markAttotimeFactoryProducts, markExactAttotime } from './exact-attotime-marking.ts';
+import { attotimeBinary, ExactAttotime, exactAttotimeFromHz } from '../ir/exact-attotime.ts';
 import { markWidePrecision } from './wide-precision.ts';
 
 const id = (name: string): GeneratedExpression => ({ kind: 'identifier', name });
@@ -69,3 +70,29 @@ assert.equal(markExactAttotime(plain), false);
 assert.equal(plain.exactAttotime, undefined);
 const untouched = (plain.methods[0]!.program.operations[0] as { value: { attotime?: true } }).value;
 assert.equal(untouched.attotime, undefined);
+
+// A device that never reads attotime's fields still multiplies a factory's
+// exact attotime: avgdvg.cpp's `m_vg_run_timer->adjust(attotime::from_hz(m_clock) * cycles)`.
+{
+  const fromHz: GeneratedExpression = { kind: 'call', callee: id('attotime::from_hz'), args: [{ kind: 'number', value: 1512000 }] };
+  const product = { kind: 'binary', operator: '*', left: fromHz, right: id('cycles') } as GeneratedExpression;
+  const quotient = { kind: 'binary', operator: '/', left: id('cycles'), right: fromHz } as GeneratedExpression;
+  const plainProduct = { kind: 'binary', operator: '*', left: id('cycles'), right: id('m_scale') } as GeneratedExpression;
+  const avg = {
+    members: [{ name: 'm_scale', valueType: 'int' }],
+    methods: [{ parameters: 'int cycles', program: { operations: [
+      { op: 'call', expression: product },
+      { op: 'call', expression: quotient },
+      { op: 'call', expression: plainProduct },
+    ] as GeneratedHandlerOperation[] } }],
+  } as Parameters<typeof markAttotimeFactoryProducts>[0];
+  assert.equal(markAttotimeFactoryProducts(avg), 1);
+  assert.equal((product as { attotime?: true }).attotime, true);
+  assert.equal((quotient as { attotime?: true }).attotime, undefined, 'a factor is never divided by an attotime');
+  assert.equal((plainProduct as { attotime?: true }).attotime, undefined);
+  assert.equal(avg.exactAttotime, undefined, 'the device itself stays on seconds');
+  // And the product is MAME's: a whole clock, 661375661375 attoseconds a cycle.
+  const exact = attotimeBinary('*', exactAttotimeFromHz(1512000), 3) as ExactAttotime;
+  assert.ok(exact instanceof ExactAttotime);
+  assert.equal(BigInt(exact.as_attoseconds()), 661375661375n * 3n);
+}

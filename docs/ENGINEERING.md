@@ -911,7 +911,17 @@ npm run mamekit -- against nes --survey
 npm run mamekit -- compare dkong dkongjr
 npm run mamekit -- show --markdown
 npm run mamekit -- diverge marble
+npm run mamekit -- diverge wboy --frames 29-29 --io soundcpu:0-ffff:rw --list soundcpu --around 8
 ```
+
+`diverge --list all|<cpu>` prints every tapped access of the window with
+MAME's and our times side by side and the cycles between them, and
+`--around N` keeps only those near a difference. It is how to read when each
+side took an interrupt, rather than only that they differ. Both access logs
+stay in `.cache/compare/diverge/<target>/`. A processor a device hosts is
+tapped by its device path, `--io bmcu:mcu:0-7ff` for Taito SJ's security
+68705: its program space is the device's own, its addresses masked to the
+space's width as MAME's tap sees them.
 
 **Where things go.**
 
@@ -919,6 +929,7 @@ npm run mamekit -- diverge marble
 |---|---|---|
 | `.cache/compare/<target>.json` | the latest `against` report per target | no |
 | `.cache/compare/<target>/<title>/` | side-by-side PNGs and the audio spectrogram | no |
+| `.cache/compare/diverge/<target>/` | the last `diverge` window's access logs, MAME's and ours | no |
 | `.mamekit/baseline/<commit>/` | baselines (`record`) | yes |
 | `.mamekit/compare/` | the latest comparison (`compare`) and its logs | yes |
 | `.mamekit/mame/<version>/` | MAME's side of every run (the MAME cache, below) | yes |
@@ -951,7 +962,10 @@ zeroed — were found this way, not by a golden.
 - *RAM* with `--ram`, every frame from 1, for every RAM range the generated
   board maps, or the ranges named (`--ram maincpu:0-7ff`). A processor this
   boot does not have is left out of the board's ranges, such as the 1541's
-  when a C64 tape leaves the drive slot empty; one named is refused. The report gives
+  when a C64 tape leaves the drive slot empty; one named is refused. A
+  `writeonly()` share is dumped but not compared: MAME's side reads it through
+  the address space, where nothing answers (Pac-Man's sprite coordinates at
+  0x5060). The plan, and so MAME's cache key, stays the same. The report gives
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
   is the figure the earlier RAM-only comparison reported (Green Beret: 16, 25 and 19

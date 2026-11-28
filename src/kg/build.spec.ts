@@ -9,6 +9,7 @@ import {
   gameSubgraph,
   parseIoportMembers,
   driverConstructorCalls,
+  driverResetNotifiers,
   resolveMachineLifecycle,
   constructorConfigCalls,
 } from './build.ts';
@@ -313,6 +314,30 @@ assert.deepEqual(
     .map(fn => `${fn.className}.${fn.name}`),
   ['base_state.machine_start', 'derived_state.machine_start'],
   'qualified base lifecycle calls must retain inherited setup in base-first order',
+);
+
+// A driver init's reset notifier, registered in a helper it calls, as Taito
+// SJ's init_common does through reset_common: MAME calls it on every reset.
+const notifierAst = new MameAstIndex(parseMameAst([{
+  file: 'src/mame/test/notifier.cpp',
+  source: `
+class sj_state : public driver_device { };
+void sj_state::reset_common() { m_soundlatch = 0xff; }
+void sj_state::init_common()
+{
+  save_item(NAME(m_soundlatch));
+  machine().add_notifier(MACHINE_NOTIFY_RESET, machine_notify_delegate(&sj_state::reset_common, this));
+}
+void sj_state::init_game()
+{
+  init_common();
+}
+`,
+}]));
+assert.deepEqual(
+  driverResetNotifiers(notifierAst, 'sj_state', 'init_common();').map(fn => `${fn.className}.${fn.name}`),
+  ['sj_state.reset_common'],
+  'a reset notifier the init registers through a helper is lowered',
 );
 
 // MAME constructs the driver before starting it: a constructor body's own

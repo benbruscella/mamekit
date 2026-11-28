@@ -1102,3 +1102,53 @@ assert.ok(!branchEmitted.methods.includes('calls_reference_helper'), 'a callee w
   const built = new Function(`return ${emitted.source}`)() as Record<string, (runtime: unknown) => unknown>;
   assert.equal(built.sum!({ members: {} }), 23, 'base is seed * 2, taken once');
 }
+
+// An element's `&=` intersects when the element is a rectangle: taitosj's
+// `sprite_areas[which] &= clip` (a `rectangle *` parameter) emitted as a bare
+// `&` stored 0, and no sprite/layer collision was ever seen. A member array of
+// unknown element type and an integer right side stays a plain AND.
+{
+  const indexedAnd = generatedDeviceMethodsSource({
+    ...definition,
+    // Declared without `bits`, as a board's driver array is to the emitter.
+    members: [...definition.members, { name: 'm_regs', valueType: 'uint8_t', arrayLength: 4, initial: 0 }],
+    hotMethods: ['clip_areas', 'clear_bit'],
+    methods: [
+      {
+        name: 'clip_areas',
+        parameters: 'rectangle *areas, rectangle clip',
+        source: { file: 'src/devices/test.cpp', line: 8 },
+        program: compileMameHandler('areas[1] &= clip;'),
+      },
+      {
+        name: 'clear_bit',
+        parameters: '',
+        source: { file: 'src/devices/test.cpp', line: 9 },
+        program: compileMameHandler('m_regs[2] &= ~0x40;'),
+      },
+    ],
+  });
+  assert.match(indexedAnd.source, /runtime\.andAssign\(runtime\.readIndex\(areas, 1\)/);
+  assert.doesNotMatch(indexedAnd.source.slice(indexedAnd.source.indexOf('clear_bit')), /andAssign/);
+  const methods = Function(`return ${indexedAnd.source}`)() as Record<string, (runtime: unknown, ...args: unknown[]) => unknown>;
+  const calls: unknown[] = [];
+  const area = { intersect(other: unknown) { calls.push(other); } };
+  const areas = [null, area];
+  const clip = { min_x: 0 };
+  methods.clip_areas!({
+    members: {},
+    andAssign: (current: { intersect: (o: unknown) => void }, value: unknown) => { current.intersect(value); return current; },
+    readIndex: (array: unknown[], index: number) => array[index],
+    writeIndex: (array: unknown[], index: number, value: unknown) => { array[index] = value; },
+  }, areas, clip);
+  assert.deepEqual(calls, [clip]);
+  assert.equal(areas[1], area);
+  const regs = [0, 0, 0xff];
+  methods.clear_bit!({
+    members: { m_regs: regs },
+    readIndex: (array: number[], index: number) => array[index],
+    writeIndex: (array: number[], index: number, value: number) => { array[index] = value; },
+    writableMember: () => regs,
+  });
+  assert.equal(regs[2], 0xbf);
+}

@@ -33,7 +33,7 @@ export const ladybug = sourceTarget({
     audio: {
       writes: 958171,
       nonzeroWrites: 236151,
-      writeHash: 'd4778c7b',
+      writeHash: '1471ad2d',
       pcmHash: 'b918c660',
       rms: 0.071111,
     },

@@ -517,6 +517,18 @@ export const DEFAULT_CONSTANTS: Record<string, number> = {
   // `pc() - 1`, the last one it fetched.
   STATE_GENPC: -1,
   STATE_GENPCBASE: -2,
+  // emu/diexec.h's suspend reasons, which device_execute_interface::suspended()
+  // masks. Unresolved they read 0: Double Dragon's comram_r asks its HD63701
+  // `suspended(SUSPEND_REASON_RESET | SUSPEND_REASON_HALT)` and a zero mask
+  // answers "running", so the main CPU read 0xff from shared RAM at frame 3.
+  SUSPEND_REASON_HALT: 0x0001,
+  SUSPEND_REASON_RESET: 0x0002,
+  SUSPEND_REASON_SPIN: 0x0004,
+  SUSPEND_REASON_TRIGGER: 0x0008,
+  SUSPEND_REASON_DISABLE: 0x0010,
+  SUSPEND_REASON_TIMESLICE: 0x0020,
+  SUSPEND_REASON_CLOCK: 0x0040,
+  SUSPEND_ANY_REASON: 0xffffffff,
   // emu/emumem.h's address space numbers. Unnamed, board codegen declined
   // every driver handler that says `space(AS_PROGRAM)` -- the SNES scanline,
   // HBLANK and HDMA timers, hundreds of calls a frame, all interpreted.
@@ -2013,6 +2025,11 @@ function compileFastExpression(
   // does for the interpreter.
   if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
+    // `swap` writes through its arguments' storage, which compiled argument
+    // values no longer name; evaluateCall has it.
+    if ((name === 'swap' || name === 'std::swap') && expression.args.length === 2) {
+      return context => evaluate(expression, context);
+    }
     const args = expression.args.map(arg => compileFastExpression(arg, bindings, locals));
     const generatedArguments = compileGeneratedCallArguments(name, expression.args, args);
     return context => {
@@ -2621,6 +2638,16 @@ const CONSTANT_MACROS: ReadonlyMap<string, number> = new Map([
   ['rgb_t::white', 0xffffffff],
 ]);
 
+/** `std::less<T>()` and its siblings: callables answering 1 or 0. */
+const STD_COMPARISONS: Readonly<Record<string, (left: unknown, right: unknown) => number>> = {
+  'std::less': (left, right) => Number(toNumber(left) < toNumber(right)),
+  'std::less_equal': (left, right) => Number(toNumber(left) <= toNumber(right)),
+  'std::greater': (left, right) => Number(toNumber(left) > toNumber(right)),
+  'std::greater_equal': (left, right) => Number(toNumber(left) >= toNumber(right)),
+  'std::equal_to': (left, right) => Number(toNumber(left) === toNumber(right)),
+  'std::not_equal_to': (left, right) => Number(toNumber(left) !== toNumber(right)),
+};
+
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   const constant = CONSTANT_MACROS.get(name);
   if (constant !== undefined) return constant;
@@ -2714,6 +2741,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::min') {
     return args.map(toNumber).reduce((least, value) => (value < least ? value : least));
   }
+  // <functional>'s comparison objects, made to be passed on and called:
+  // konami_sortlayers3 hands `std::less<U>()` to the sort it instantiates,
+  // which compares two layer priorities with it. Unanswered, the sort never
+  // ran and the K052109's layers drew in tilemap order whatever the K053251
+  // said.
+  const comparison = args.length === 0 ? STD_COMPARISONS[name] : undefined;
+  if (comparison) return comparison;
   if (name === 'std::max') {
     return args.map(toNumber).reduce((most, value) => (most < value ? value : most));
   }
@@ -3325,6 +3359,19 @@ function evaluateCall(
     const generated = context.bindings.referenceCalls?.[name];
     if (generated) {
       return generated(...generatedCallArguments(name, expression.args, context));
+    }
+    // `std::swap(a, b)`, or `using std::swap; swap(a, b)`: objects trade
+    // contents, anything else trades values through its storage, as the
+    // emitter writes it (device-codegen's swap).
+    if ((name === 'swap' || name === 'std::swap') && expression.args.length === 2) {
+      const [leftExpression, rightExpression] = expression.args as [GeneratedExpression, GeneratedExpression];
+      const left = evaluate(leftExpression, context);
+      const right = evaluate(rightExpression, context);
+      if (!generatedSwapObjects(left, right)) {
+        assign(leftExpression, '=', right, context);
+        assign(rightExpression, '=', left, context);
+      }
+      return 0;
     }
     return applyIdentifierCall(
       name,

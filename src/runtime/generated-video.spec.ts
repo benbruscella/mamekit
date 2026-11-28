@@ -15,6 +15,8 @@ import {
   GeneratedPaletteShadows,
   GeneratedVideoRenderer,
   type GeneratedVideoPrimitives,
+  zoomSource,
+  zoomStep,
 } from './generated-video.ts';
 
 const sourceGfx = new GeneratedGfxElement({
@@ -318,6 +320,19 @@ const generatedPrimitives = new GeneratedMameVideoPrimitives(
   screenState,
   { calls: { 'm_screen.vpos': () => 37 } },
 );
+// screen_device::width() and height() are the whole raster, blanking
+// included (m_width, m_height), not the visible area: Double Dragon's
+// scanline callback takes the line before 0 as height() - 1.
+{
+  const rasterMachine: BoardIr = {
+    ...machine,
+    execution: { ...machine.execution, screen: { ...machine.execution.screen, width: 256, height: 240, htotal: 384, vtotal: 272 } },
+  };
+  const raster = new GeneratedMameVideoPrimitives(rasterMachine, {}, {}, {});
+  const size = executeGeneratedProgram(compileMameHandler('return m_screen->width() * 1000 + m_screen->height();'),
+    raster.generatedVideoBindings(new Uint32Array(4)));
+  assert.equal(size.value, 384 * 1000 + 272, 'the screen\'s size is its raster');
+}
 const romRead = compileMameHandler(`
   uint8_t *rom = memregion("gfx4")->base();
   return rom[1];
@@ -795,4 +810,14 @@ assert.deepEqual(
   assert.deepEqual(pixels, [3 * 16 + 1, 9 + 2048]);
 }
 
-console.log('generated-video.spec: 25 passed');
+{
+  // drawgfxzoom_core's truncated 16.16 step: 16 source pixels over 24 lands
+  // destination pixel 3 on source 1 (3 * 43690 >> 16), where the exact ratio
+  // 3 * 16 / 24 is 2; and a flip mirrors the steps, not the source.
+  const step = zoomStep(16, 24);
+  assert.equal(step, 43690);
+  assert.equal(zoomSource(3, 24, step, 0), 1);
+  assert.deepEqual([0, 1, 22, 23].map(index => zoomSource(index, 24, step, 1)), [15, 14, 0, 0]);
+}
+
+console.log('generated-video.spec: 26 passed');

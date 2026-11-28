@@ -14,7 +14,7 @@ import {
 import { normalizeMameExecutionSource } from './execution-source.ts';
 import { braceBody, initializerItems, objectMacros, stripCppComments } from './initializer.ts';
 import { isWideType, markWidePrecision } from './wide-precision.ts';
-import { markExactAttotime } from './exact-attotime-marking.ts';
+import { markAttotimeFactoryProducts, markExactAttotime } from './exact-attotime-marking.ts';
 import { monomorphizeClassTemplate } from './function-template.ts';
 import { compileMameHandler } from './handler-ir.ts';
 import { walkExpressions, walkOperations } from '../ir/walk.ts';
@@ -534,6 +534,7 @@ export function compileMameDevice(
     // Before the 64-bit pass, which takes an attotime's `m_attoseconds`
     // (attoseconds_t, an s64) as 64-bit once it is marked.
     markExactAttotime(device);
+    markAttotimeFactoryProducts(device);
     markDeviceWidePrecision(mameSrc, device);
     if (device.sourceFiles.some(file => /\.h$/.test(file) && existsSync(join(mameSrc, file)) &&
       /^\s*(?:int|u\d+|uint\d+_t)\s+(?:\w+\s*,\s*)*m_inst_substate\b/m.test(readFileSync(join(mameSrc, file), 'utf8')))) {

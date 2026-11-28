@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import type { IoAccess } from './compare.ts';
-import { compareByCpu, divergeRanges, earliest, TIME_TOLERANCE_CYCLES } from './diverge-plan.ts';
+import { compareByCpu, divergeRanges, earliest, pairAccesses, TIME_TOLERANCE_CYCLES } from './diverge-plan.ts';
 
 const board = (cpus: { tag: string; ranges: object[] }[]) => ({ board: { cpus } }) as unknown as ShellConfig;
 
@@ -91,5 +91,13 @@ assert.equal(wrong[0]!.first?.reason, 'value');
 assert.equal(wrong[0]!.first?.ours?.data, '3c');
 assert.equal(wrong[1]!.first?.reason, 'missing');
 assert.equal(earliest(wrong)?.tag, 'maincpu', 'the processor that left MAME first, by emulated time');
+
+// The listing pairs every access of one processor, marking where they part.
+const listed = pairAccesses(mame, [ours[0]!, ours[1]!, access(0, 'W', 'f80001', '3c', 200)], pair, clocks, 'audiocpu');
+assert.equal(listed.length, 2);
+assert.equal(listed[0]!.differs, false);
+assert.ok(listed[0]!.cycles !== undefined);
+assert.equal(listed[1]!.ours, undefined);
+assert.equal(listed[1]!.differs, true, 'a side with no access here differs');
 
 console.log('diverge-plan.spec: ok');

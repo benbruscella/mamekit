@@ -21,6 +21,10 @@ import { bootFrame, InputRecorder, inputTimeline, MEDIA_SWITCH, moveBootEvent, r
 
 type IoTap = IoPlan['taps'][number];
 import { projectRoot } from './mame-side.ts';
+import { DEFAULT_CONSTANTS } from '../../src/ir/execute.ts';
+
+/** MAME's STATE_GENPC: the state index of a processor's current PC. */
+const STATE_GENPC = DEFAULT_CONSTANTS.STATE_GENPC!;
 
 /** The machine's contract to borrow: the scenario named, else one of the title's kind, else its first. */
 export async function baseContract(target: string, scenario?: string, kind?: 'cartridge' | 'software'): Promise<GameTestContract> {
@@ -79,6 +83,31 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   // Bus traffic in the tapped ranges, buffered and written in blocks: a
   // shared RAM tap logs hundreds of thousands of accesses.
   const ioLines: string[] = [];
+  /**
+   * The watched processors' program counters at an access, as oracle-watch.lua
+   * appends MAME's: ` tag=pc` each, STATE_GENPC (MAME's CURPC). A board CPU's
+   * core and a hosted one's device both answer stateInt.
+   */
+  let watchedPcs: { tag: string; pc: () => number | undefined }[] = [];
+  const watched = (): string => {
+    let text = '';
+    for (const { tag, pc } of watchedPcs) {
+      const value = pc();
+      text += ` ${tag}=${value === undefined ? '?' : (value >>> 0).toString(16)}`;
+    }
+    return text;
+  };
+  const watchProcessors = (board: Board) => {
+    const generated = board as unknown as {
+      cpus?: Map<string, { device?: { stateInt?(index: number): number | undefined } }>;
+      devices?: Map<string, { stateInt?(index: number): number | undefined }>;
+    };
+    watchedPcs = (plan.io?.watch ?? []).map(tag => {
+      const device = generated.cpus?.get(tag)?.device ?? generated.devices?.get(tag);
+      if (typeof device?.stateInt !== 'function') throw new Error(`--io-watch ${tag}: the board has no processor ${tag}`);
+      return { tag, pc: () => device.stateInt!(STATE_GENPC) };
+    });
+  };
   const flushIo = () => {
     if (!ioLines.length) return;
     appendFileSync(ioFile, ioLines.join(''));
@@ -100,16 +129,22 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
   // board bus sees. The device a round runs is stamped at its own local time,
   // the running slice's start plus the cycles it has run, as MAME's
   // `machine.time` is the executing device's.
-  const tapDataSpace = (board: Board, tag: string, taps: { tap: IoTap; index: number }[]) => {
+  const tapDataSpace = (board: Board, tag: string, taps: { tap: IoTap; index: number }[], spaceName = 'data') => {
     const generated = board as unknown as {
-      devices?: Map<string, { hostedCalls?(): { space?(index: number): Record<string, unknown> | undefined }; definition?: { spaces?: { index: number; name: string }[] }; totalCyclesNow?(): number }>;
+      devices?: Map<string, { hostedCalls?(): { space?(index: number): Record<string, unknown> | undefined }; definition?: { spaces?: { index: number; name: string; addressBits?: number }[] }; totalCyclesNow?(): number }>;
       frameRunner?: { running?: { processor: { tag: string } }; runningLocalExact?(cycles: number): bigint | undefined; runningCycles?: number };
     };
     const device = generated.devices?.get(tag);
-    const index = device?.definition?.spaces?.find(space => space.name === 'data')?.index;
+    const definition = device?.definition?.spaces?.find(space => space.name === spaceName)
+      ?? (spaceName === 'program' ? device?.definition?.spaces?.find(space => space.index === 0) : undefined);
+    const index = definition?.index;
+    // MAME's tap sees an address after the space's mask: the 68705 reads its
+    // IRQ vector at 0xfffa, which its 11-bit space decodes as 0x7fa.
+    const bits = (definition as { addressBits?: number } | undefined)?.addressBits;
+    const mask = bits !== undefined && bits < 32 ? 2 ** bits - 1 : 0xffffffff;
     const space = index === undefined ? undefined : device?.hostedCalls?.().space?.(index);
     if (!space || typeof space.read_byte !== 'function' || typeof space.write_byte !== 'function') {
-      throw new Error(`the board has no data space on ${tag}`);
+      throw new Error(`the board has no ${spaceName} space on ${tag}`);
     }
     // The cycles the device has run of its slice (generated-device totalCyclesNow less what it had before).
     const running = device as unknown as { runningCycles?: number; members: Record<string, unknown>; icountMember: string };
@@ -125,15 +160,15 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       if (dumping || frame < plan.io!.from || frame > plan.io!.to) return;
       for (const { tap, index: tapIndex } of taps) {
         if (!(kind === 'R' ? tap.read : tap.write) || address < tap.lo || address > tap.hi) continue;
-        ioLines.push(`${frame} ${kind} ${tapIndex} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+        ioLines.push(`${frame} ${kind} ${tapIndex} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}${watched()}\n`);
         if (ioLines.length >= 4096) flushIo();
         return;
       }
     };
     const read = (space.read_byte as (address: number) => number).bind(space);
     const write = (space.write_byte as (address: number, data: number) => unknown).bind(space);
-    space.read_byte = (address: number) => { const value = read(address); log('R', address, Number(value) & 0xff); return value; };
-    space.write_byte = (address: number, data: number) => { log('W', address, data & 0xff); return write(address, data); };
+    space.read_byte = (address: number) => { const value = read(address); log('R', (address & mask) >>> 0, Number(value) & 0xff); return value; };
+    space.write_byte = (address: number, data: number) => { log('W', (address & mask) >>> 0, data & 0xff); return write(address, data); };
   };
   const tapBuses = (board: Board) => {
     const cpus = (board as unknown as { cpus?: Map<string, { bus?: object }> }).cpus;
@@ -147,6 +182,13 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
       const tag = taps[0]!.tap.tag;
       if (taps[0]!.tap.space === 'data') {
         tapDataSpace(board, tag, taps);
+        continue;
+      }
+      // A processor a device hosts (Taito SJ's security 68705, `mcu:mcu`)
+      // has no board bus: its program space is the device's own.
+      const hostedDevice = (board as unknown as { devices?: Map<string, unknown> }).devices?.get(tag);
+      if (!taps[0]!.tap.space && !cpus?.get(tag) && !buses?.get(tag) && hostedDevice) {
+        tapDataSpace(board, tag, taps, 'program');
         continue;
       }
       const ports = keyed !== tag;
@@ -191,7 +233,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         const address = portMask === undefined ? raw : raw & portMask;
         for (const { tap, index } of taps) {
           if (!(kind === 'R' ? tap.read : tap.write) || address + bytes - 1 < tap.lo || address > tap.hi) continue;
-          ioLines.push(`${frame} ${kind} ${index} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}\n`);
+          ioLines.push(`${frame} ${kind} ${index} ${address.toString(16)} ${(data >>> 0).toString(16)} ${seconds().toFixed(10)}${watched()}\n`);
           if (ioLines.length >= 4096) flushIo();
           return;
         }
@@ -385,7 +427,7 @@ export async function runOurs(plan: OraclePlan): Promise<void> {
         // too: the two sides then read the same port, and only the emulation
         // differs. A contract run hands a frame's travel out against the beam.
         input.frameFraction = null;
-        if (plan.io) tapBuses(board);
+        if (plan.io) { tapBuses(board); watchProcessors(board); }
         if (plan.ram) captureAtPresentation(board);
       },
       // The start types once a quickload has loaded, which can be later than

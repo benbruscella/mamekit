@@ -255,6 +255,16 @@ export class GeneratedFrameRunner {
   private reordered = false;
   /** A `perfect_quantum` window is open: rounds are the perfect interleave. */
   private windowOpen = false;
+  /**
+   * MAME's quantum list past the perfect window: each `add_quantum(quantum,
+   * duration)` a driver asked for, smallest requested first, running at
+   * `max(requested, the perfect interleave)` until it expires. Irem's M72
+   * boosts the interleave to 1.5 us for its first 25 seconds
+   * (m72_state::synch_callback); at the machine's own quantum, the V30's
+   * `REP STOSB` RAM test ran unbroken where MAME's restarts it every round
+   * (cont_rep's CLK(2)), and the boot drew ahead by a frame.
+   */
+  private quantumBoosts: { requested: number; actual: number; expire: Attotime }[] = [];
   /** When the open window's quantum expires (add_quantum's `m_expire`). */
   private readonly windowExpire = new Attotime();
   /**
@@ -290,6 +300,8 @@ export class GeneratedFrameRunner {
    * reach that instant until the frame is presented.
    */
   awaitingPresent = false;
+  /** The line whose events frame() dispatched before presenting (vblankEndIndex); -1 for none. */
+  private dispatchedAhead = -1;
 
   constructor(options: GeneratedFrameRunnerOptions) {
     this.machine = options.machine;
@@ -464,6 +476,41 @@ export class GeneratedFrameRunner {
   private readonly expireScratch = new Attotime();
 
   /**
+   * MAME `scheduler::add_quantum(quantum, duration)` with a quantum of its
+   * own (a zero one is perfect_quantum, quantumWindow): the rounds are no
+   * longer than it until `duration` from now. One already open with the same
+   * request keeps the later expiry, as MAME's list does.
+   */
+  addQuantum(quantumSeconds: number, seconds: number, now?: bigint): void {
+    if (!(quantumSeconds > 0)) {
+      this.quantumWindow(seconds, now);
+      return;
+    }
+    const expire = new Attotime();
+    if (now === undefined) expire.set(this.running ? this.running.local : this.base);
+    else expire.setExact(now);
+    const current = new Attotime().set(expire);
+    expire.add(secondsToAttoseconds(Math.max(seconds, 0)));
+    this.quantumBoosts = this.quantumBoosts.filter(boost => current.before(boost.expire));
+    const requested = secondsToAttoseconds(quantumSeconds);
+    const same = this.quantumBoosts.find(boost => boost.requested === requested);
+    if (same) {
+      if (same.expire.before(expire)) same.expire.set(expire);
+      return;
+    }
+    const interleave = this.perfectInterleave?.();
+    const floor = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : 0;
+    this.quantumBoosts.push({ requested, actual: Math.max(requested, floor), expire });
+    this.quantumBoosts.sort((left, right) => left.requested - right.requested);
+  }
+
+  /** The round length outside a perfect window: the machine's, or a shorter boost still open. */
+  private get roundQuantum(): number {
+    const boost = this.quantumBoosts[0];
+    return boost && boost.actual < this.machineQuantum ? boost.actual : this.machineQuantum;
+  }
+
+  /**
    * MAME `scheduler().synchronize()` from inside a processor's slice: end the
    * slice after the instruction in progress. The processors after it in the
    * round run only up to where it stopped, the posted work runs, and the
@@ -622,6 +669,7 @@ export class GeneratedFrameRunner {
     for (const event of this.periodicEvents) event.next.set(event.period);
     this.windowOpen = false;
     this.windowExpire.clear();
+    this.quantumBoosts = [];
     this.timerFired = true;
     this.frames = 0;
     this.fromOrigin = true;
@@ -657,7 +705,7 @@ export class GeneratedFrameRunner {
 
   /** Save-state roots (machine-state.ts): the times and counters, never the schedule. */
   stateKeys(): readonly string[] {
-    return ['processors', 'frameBase', 'base', 'periodicEvents', 'windowOpen', 'windowExpire', 'frames', 'fromOrigin', 'screenRaster'];
+    return ['processors', 'frameBase', 'base', 'periodicEvents', 'windowOpen', 'windowExpire', 'quantumBoosts', 'frames', 'fromOrigin', 'screenRaster'];
   }
 
   /**
@@ -669,6 +717,23 @@ export class GeneratedFrameRunner {
     return this.origin === 'vbstart' && this.machine.execution.screen.updateMode !== 'scanline' && this.originLine > 0;
   }
 
+  /**
+   * Where an UPDATE_AFTER_VBLANK screen's frames end: VBLANK end's index from
+   * the origin. The schedule still runs from VBLANK to VBLANK (its base, its
+   * timers), but frame() returns, and presents, when the beam reaches VBLANK
+   * end, as MAME's frame_update runs from vblank_end. MAME arms its first
+   * vblank_end from the first vblank_begin, a frame after time zero, so the
+   * first frame is a whole schedule frame and VBLANK's lines after it: The
+   * Simpsons' first frame is 304 lines, and every one after it 264.
+   */
+  private get vblankEndIndex(): number | undefined {
+    const screen = this.machine.execution.screen;
+    if (!screen.updateAfterVblank || !this.presentsAtEnd) return undefined;
+    const vtotal = Math.max(1, screen.vtotal);
+    const index = ((((screen.vbend ?? 0) - this.originLine) % vtotal) + vtotal) % vtotal;
+    return index > 0 ? index : undefined;
+  }
+
   frame(framebuffer: Uint32Array): void {
     const screen = this.machine.execution.screen;
     const vtotal = Math.max(1, screen.vtotal);
@@ -677,8 +742,11 @@ export class GeneratedFrameRunner {
     this.pendingLines = 0;
     this.awaitingPresent = this.presentsAtEnd;
     this.rebasedIndex = undefined;
-    const first = this.nextFrameStart;
+    const endIndex = this.vblankEndIndex;
+    const first = endIndex !== undefined && !this.fromOrigin ? endIndex : this.nextFrameStart;
     this.nextFrameStart = 0;
+    // The first frame's VBLANK end is no presentation: it comes a frame on.
+    if (endIndex !== undefined && this.fromOrigin) this.awaitingPresent = false;
     for (let start = first; ;) {
       for (this.lineIndex = start; this.lineIndex < vtotal; this.lineIndex++) {
         const index = this.lineIndex;
@@ -707,6 +775,30 @@ export class GeneratedFrameRunner {
       this.rebasedIndex = undefined;
     }
     this.rebasedIndex = undefined;
+    if (endIndex !== undefined) {
+      // The schedule frame ends at VBLANK; this one runs on to VBLANK's end.
+      this.frameBase.addTime(this.framePeriod);
+      this.frames++;
+      this.awaitingPresent = true;
+      for (this.lineIndex = 0; this.lineIndex < endIndex; this.lineIndex++) {
+        this.runLine((origin + this.lineIndex) % vtotal, framebuffer);
+      }
+      if (this.pendingLines > 0) {
+        this.runProcessors(this.pendingLines, (origin + endIndex - 1) % vtotal);
+        this.pendingLines = 0;
+      }
+      this.rebasedIndex = undefined;
+      // vblank_end runs the screen's VBLANK callbacks before frame_update, so
+      // the line's events come first, and the next frame does not repeat them.
+      const line = (origin + endIndex) % vtotal;
+      if (this.eventPhase === 'before-processors') {
+        this.dispatchLine(line, framebuffer);
+        this.dispatchedAhead = line;
+      }
+      this.present(framebuffer);
+      this.presented();
+      return;
+    }
     if (this.presentsAtEnd) {
       this.present(framebuffer);
       rendered = true;
@@ -746,7 +838,9 @@ export class GeneratedFrameRunner {
       // Re-based while paying them: this line is not where the beam is.
       if (this.rebasedIndex !== undefined) return false;
     }
-    if (this.eventPhase === 'before-processors' && !this.atOrigin) this.dispatchLine(line, framebuffer);
+    const dispatchedAhead = this.dispatchedAhead === line;
+    this.dispatchedAhead = -1;
+    if (this.eventPhase === 'before-processors' && !this.atOrigin && !dispatchedAhead) this.dispatchLine(line, framebuffer);
     // MAME's VIDEO_UPDATE_SCANLINE timer calls update_partial at the start
     // of the scanline, before CPUs execute the interval leading to the next
     // line. Drawing afterwards can combine sprite RAM from two states across
@@ -768,7 +862,7 @@ export class GeneratedFrameRunner {
     // of MAME's, so the round runs on through it. Ending one there as well
     // split Venture's round at line 279, and its main CPU saw a PIA edge the
     // sound CPU raised earlier in that round, which MAME's had run past (#275).
-    const inQuantumWindow = this.windowOpen;
+    const inQuantumWindow = this.windowOpen || this.quantumBoosts.length > 0;
     if (this.perLineSchedule || inQuantumWindow) {
       // The next line's start is a timer where MAME has one there: a boundary
       // line, or any line of a scanline-updated screen (screen_device's
@@ -856,7 +950,7 @@ export class GeneratedFrameRunner {
         continue;
       }
       target.set(end);
-      this.lowerTarget(windowed ? this.windowQuantum! : this.machineQuantum);
+      this.lowerTarget(windowed ? this.windowQuantum! : this.roundQuantum);
       // The soonest periodic timer ends the round, to the attosecond: the
       // processors run the whole cycles that fit before it and no more.
       if (periodic) this.lowerTarget(untilPeriodic);
@@ -905,7 +999,7 @@ export class GeneratedFrameRunner {
         const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity, untilPeriodic));
         if (skipped > 0) {
           target.set(end);
-          this.lowerTarget(this.machineQuantum);
+          this.lowerTarget(this.roundQuantum);
           if (timerAttos !== undefined) this.lowerTarget(timerAttos - skipped);
           if (periodic) this.lowerTarget(untilPeriodic - skipped);
         }
@@ -1052,7 +1146,7 @@ export class GeneratedFrameRunner {
    */
   private stoppedTarget(target: Attotime): Attotime {
     if (!target.before(this.extendedTo)) return target;
-    const quantum = this.machineQuantum;
+    const quantum = this.roundQuantum;
     const into = target.since(this.extendedFrom);
     const quanta = Math.max(1, Math.ceil(into / quantum));
     const boundary = this.stoppedScratch.set(this.extendedFrom).add(quanta * quantum);
@@ -1068,7 +1162,7 @@ export class GeneratedFrameRunner {
    * a whole cycle of its own (and never past a timer, which bounds `end`).
    */
   private skipIdleRounds(room: number): number {
-    const quantum = this.machineQuantum;
+    const quantum = this.roundQuantum;
     let soonest = Infinity;
     for (const scheduled of this.processors) {
       if (scheduled.processor.suspended?.() === 'waiting') continue;
@@ -1112,6 +1206,9 @@ export class GeneratedFrameRunner {
    */
   private closeExpiredWindow(): void {
     if (this.windowOpen && this.timerFired && !this.base.before(this.windowExpire)) this.windowOpen = false;
+    if (this.quantumBoosts.length && this.timerFired) {
+      this.quantumBoosts = this.quantumBoosts.filter(boost => this.base.before(boost.expire));
+    }
   }
 
   /**
@@ -1165,12 +1262,14 @@ export class GeneratedFrameRunner {
    * every read the round's last line, and a game polling for VBLANK
    * (Phoenix, Rampage) never saw the beam move.
    */
-  runningBeam(elapsedCycles: number): number | undefined {
+  runningBeam(elapsedCycles: number, oneLine = false): number | undefined {
     const running = this.running;
     // A one-line round is already resolved inside the line by the board's
     // instruction-time device clock, which boards such as the 2600 position
     // sprites by; only a round spanning lines needs the processor's position.
-    if (!running || this.roundLines <= 1) return undefined;
+    // `oneLine` asks for it in a one-line round too, where nothing else has
+    // it: a generated core reports its slice's timing only at its ends.
+    if (!running || (this.roundLines <= 1 && !oneLine)) return undefined;
     return this.roundFirstLine + this.runStartLines + elapsedCycles / running.cyclesPerLine;
   }
 
@@ -1186,6 +1285,18 @@ export class GeneratedFrameRunner {
    * measured as `elapsed / target` restarted at 0: Gyruss's i8039 DAC stepped
    * back a fifth of a line at every round seam (#194).
    */
+  /**
+   * Where the round's base stands, in lines from the frame's origin line,
+   * while a processor runs: how far the scheduler has gone, and with it the
+   * timers that have fired, whatever the running processor's own time.
+   */
+  runningBaseFrameLines(): number | undefined {
+    if (!this.running) return undefined;
+    const vtotal = Math.max(1, this.machine.execution.screen.vtotal);
+    const first = ((this.roundFirstLine - this.originLine) % vtotal + vtotal) % vtotal;
+    return first + this.base.since(this.roundStart) / this.linePeriod.total;
+  }
+
   runningFrameLines(elapsedCycles: number): number | undefined {
     const running = this.running;
     if (!running) return undefined;

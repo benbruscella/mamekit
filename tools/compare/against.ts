@@ -22,6 +22,7 @@
  *   --ram-frames a-b[/n] which frames to dump (default 1 to the last compared frame)
  *   --io cpu:a-b[:r|w|rw]  tap bus accesses in a range on both sides (repeatable, hex)
  *   --io-frames a-b      the frames to tap (required with --io)
+ *   --io-watch cpu[,cpu] log each named processor's PC with every tapped access (repeatable)
  *   --io-offset K        tap MAME's frames a+K..b+K (a board that boots out of step)
  *   --audio              record MAME's sound too (-wavwrite) and compare it with
  *                        ours over the run, as tools/compare-audio.mjs does
@@ -69,9 +70,9 @@ import { reportRoot } from './paths.ts';
 import { describeOverlay, runtimeOverlay } from './overlay.ts';
 import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
-import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
+import { luaScriptPath, mameArguments, oracleScriptPath, watchScriptPath, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
 import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
-import { boardRam, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
+import { boardRam, boardWriteOnly, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
 import { compareStereo, readPcm16WavChannels, type StereoComparison } from './stereo-plan.ts';
 import { readMameWavForListener } from './mame-wav.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
@@ -97,7 +98,7 @@ if (childAt >= 0) {
 // --- options ---------------------------------------------------------------
 const argv = process.argv.slice(2);
 const valued = new Set(['--titles', '--frames', '--search', '--offset', '--input', '--scenario', '--ram-frames',
-  '--io', '--io-frames', '--io-offset', '--jobs', '--limit', '--dist', '--runtime', '--levels', '--mame', '--mame-src', '--timeout', '--out']);
+  '--io', '--io-frames', '--io-offset', '--io-watch', '--jobs', '--limit', '--dist', '--runtime', '--levels', '--mame', '--mame-src', '--timeout', '--out']);
 const positional: string[] = [];
 const options = new Map<string, string[]>();
 for (let index = 0; index < argv.length; index++) {
@@ -272,7 +273,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
   // A reset sets our board's frame counter back, and the harness then runs its
   // full length again: MAME runs as many frames as ours did.
   writeLuaPlan(join(dir, 'mame-plan.lua'), dir, boot.timeline, frames, { ...plan, last: Math.max(plan.last, report.ours.frames) });
-  const args = mameArguments(config, outputDir.category, boot, boot.software, mameSrc, dir, politeness);
+  const args = mameArguments(config, outputDir.category, boot, boot.software, mameSrc, dir, politeness, oracleScriptPath(plan));
   if (request.audio) args.push('-wavwrite', join(dir, 'mame.wav'));
   // What to type to see the same run by hand, less this run's private directories.
   const shown: string[] = [];
@@ -312,7 +313,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
       images,
     };
   }
-  if (request.ram) report.ram = compareRam(dir, request.ram, ramOurs, frames.ram, offsets, request.frames);
+  if (request.ram) report.ram = compareRam(dir, request.ram, ramOurs, frames.ram, offsets, request.frames, boardWriteOnly(config));
   if (request.io) report.io = compareIo(dir);
   const inputs = compareInputs(dir, boot.timeline.inputs, report.ours.frames);
   if (inputs) report.inputs = inputs;
@@ -340,6 +341,12 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
  * and checks it against what was kept, listing the machine as uncacheable
  * when the two differ; `--no-mame-cache` neither reads nor writes the cache.
  */
+/** The script text a run is keyed by: oracle.lua, and the watch wrapper when the run names it. */
+function scriptText(args: string[]): string {
+  const oracle = readFileSync(luaScriptPath, 'utf8');
+  return args.includes(watchScriptPath) ? `${oracle}\n${readFileSync(watchScriptPath, 'utf8')}` : oracle;
+}
+
 async function mameSide(args: string[], dir: string, boot: OursBoot): Promise<{ status: number | null; output: string; cached?: string }> {
   const planText = readFileSync(join(dir, 'mame-plan.lua'), 'utf8');
   const parents = [listed?.cloneof, listed?.romof, listed?.romof ? cachedListXmlMachine(mame, listed.romof)?.romof : undefined];
@@ -348,7 +355,7 @@ async function mameSide(args: string[], dir: string, boot: OursBoot): Promise<{ 
   const searchPaths = [...romPaths(config, outputDir.category), samplesDir];
   const key = mameCacheKey({
     version: mame.version, target: target!, args, plan: planText, dir,
-    script: readFileSync(luaScriptPath, 'utf8'), sets: setFiles(searchPaths, names, boot.software),
+    script: scriptText(args), sets: setFiles(searchPaths, names, boot.software),
   });
   const skipped = uncacheable(mame.version)[target!];
   const useCache = !flag('--no-mame-cache') && !skipped;
@@ -523,7 +530,8 @@ function ioRequest(): OraclePlan['io'] {
   const [from, to] = window.split('-').map(Number);
   const taps = specs.map(parseIoTap);
   const offset = Number(option('--io-offset') ?? 0);
-  return { taps, from: from!, to: to ?? from!, ...(offset ? { offset } : {}) };
+  const watch = options.get('--io-watch')?.flatMap(value => value.split(',')).filter(Boolean);
+  return { taps, from: from!, to: to ?? from!, ...(offset ? { offset } : {}), ...(watch?.length ? { watch } : {}) };
 }
 
 // --- survey ----------------------------------------------------------------

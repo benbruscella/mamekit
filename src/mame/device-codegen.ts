@@ -3201,7 +3201,9 @@ function emitAssignment(
   if (expression.kind === 'unary' && expression.operator === '*') {
     const pointer = emitExpression(expression.operand, context);
     const current = `runtime.readIndex(${pointer}, 0)`;
-    const next = operator === '='
+    const next = operator === '&='
+      ? pointerAssignment(current, operator, right, elementAndType(expression, value, context))
+      : operator === '='
       ? right
       : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     return `runtime.pointerStore(${pointer}, ${next})`;
@@ -3229,7 +3231,13 @@ function emitAssignment(
       return `${object}[${index}] = ${plain ? wrapType(next, plain) : next}`;
     }
     const current = `runtime.readIndex(${object}, ${index})`;
-    const next = operator === '='
+    // An element's `&=` follows the same rule as a plain target's: a
+    // rectangle intersects. taitosj's `sprite_areas[which] &= cliprect` as a
+    // bare `&` stored 0 for every sprite area, so no sprite/layer collision
+    // was ever seen (Jungle King's `m_collision_reg[3]`).
+    const next = operator === '&='
+      ? pointerAssignment(current, operator, right, elementAndType(expression, value, context))
+      : operator === '='
       ? right
       : (operator === '>>=' ? `runtime.shiftRight(${current}, ${right})` : `((${current}) ${operator.slice(0, -1)} (${right}))`);
     if (operator === '=' && ownedArrayMember(expression.object, context)) {
@@ -3294,6 +3302,39 @@ function emitAssignment(
     return `${target.code} = ${next}`;
   }
   return `${target.code} = ${wrapTarget(next, target)}`;
+}
+
+/**
+ * The type an element's `&=` is decided by: the element's own when known (a
+ * `rectangle *` parameter's element is a rectangle), else `int` when the right
+ * side is an integer, since a rectangle only intersects with a rectangle. Only
+ * when neither is known does the runtime test the shape: the SNES's
+ * `m_cpu_regs[18] &= ~0x40` stays a plain AND on its hot path.
+ */
+function elementAndType(
+  expression: GeneratedExpression,
+  value: GeneratedExpression,
+  context: EmitContext,
+): string | undefined {
+  const known = expressionValueType(expression, context);
+  if (known) return known;
+  const holder = expression.kind === 'index' ? expression.object
+    : expression.kind === 'unary' ? expression.operand : undefined;
+  const local = holder?.kind === 'identifier' ? context.locals.get(holder.name) : undefined;
+  const element = local?.replace(/\bconst\b/g, '').replace(/\*\s*$/, '').trim();
+  if (element && local !== element) return element;
+  return integerOperand(value, context) ? 'int' : undefined;
+}
+
+/** An integer-valued operand: a literal, integer arithmetic on literals, or a declared integer. */
+function integerOperand(value: GeneratedExpression, context: EmitContext): boolean {
+  if (value.kind === 'number') return true;
+  if (value.kind === 'unary' && ['~', '-', '!'].includes(value.operator)) return integerOperand(value.operand, context);
+  if (value.kind === 'binary' && ['|', '&', '^', '<<', '>>', '+', '-', '*'].includes(value.operator)) {
+    return integerOperand(value.left, context) && integerOperand(value.right, context);
+  }
+  const type = expressionValueType(value, context);
+  return !!type && integerBitsForType(type) && !/\b(?:float|double)\b/.test(type);
 }
 
 function pointerAssignment(

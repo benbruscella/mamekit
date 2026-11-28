@@ -52,3 +52,14 @@ Shared rule in `src/mame/worker-crash.ts`: the NES board workers and
 `closure-pool.ts` both retry a runtime-signal death up to 3 attempts on a fresh
 process; an extraction error still fails at once. Fault injection via
 `NODE_OPTIONS=--import <preload>` that SIGILLs the child is how to test it.
+
+## 2026-11-28: wboy's rewind check (#303), the clearest evidence yet
+
+- wboy's "sound writes diverged after a save-state rewind load" failed about 4 runs in 7 under `acceptance.ts`.
+- A probe that wraps sn1/sn2 `invoke` logged each `sound_stream_update`: registers, counters, sample count and every `put_int` value.
+  - In both runs the generated `method_sound_stream_update` started from identical state with an identical sample count, yet a single sample mid-loop came out different.
+  - The bad values are one-sample blips, which the chip cannot produce: its outputs change only every 8 samples. Some runs had 0, one had 2, one had 27 spaced on 8-sample ticks, one had 1142.
+- The member arrays are plain JS arrays with data properties.
+- `--no-use-osr` still blips (27, and 5), so it is not OSR.
+- The rewind fails whenever a blip lands in its window. Any run's blip makes it disagree with the clean replay; the "reference" run was the corrupted one.
+- **How to apply:** a wboy rewind failure on this Mac is this fault. CI arbitrates. The probe is reusable: count one-sample blips in the logged long updates.

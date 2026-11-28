@@ -1694,12 +1694,12 @@ export class GeneratedGfxElement {
     }
     const base = modulo(code, gfx.count) * gfx.width * gfx.height;
     const colorBase = this.entry.colorBase + color * this.penGranularity;
+    const stepX = zoomStep(gfx.width, width);
+    const stepY = zoomStep(gfx.height, height);
     for (let dy = 0; dy < height; dy++) {
-      const rawY = scale ? Math.min(gfx.height - 1, Math.floor(dy * gfx.height / height)) : dy;
-      const sourceY = flipY ? gfx.height - 1 - rawY : rawY;
+      const sourceY = scale ? zoomSource(dy, height, stepY, flipY) : flipY ? gfx.height - 1 - dy : dy;
       for (let dx = 0; dx < width; dx++) {
-        const rawX = scale ? Math.min(gfx.width - 1, Math.floor(dx * gfx.width / width)) : dx;
-        const sourceX = flipX ? gfx.width - 1 - rawX : rawX;
+        const sourceX = scale ? zoomSource(dx, width, stepX, flipX) : flipX ? gfx.width - 1 - dx : dx;
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         const mode = drawModes[pen] ?? DRAWMODE_NONE;
         if (mode === DRAWMODE_NONE) continue;
@@ -1737,16 +1737,16 @@ export class GeneratedGfxElement {
     const element = modulo(code, gfx.count);
     const base = element * gfx.width * gfx.height;
     const colorBase = this.entry.colorBase + color * this.penGranularity;
+    const stepX = zoomStep(gfx.width, width);
+    const stepY = zoomStep(gfx.height, height);
     for (let dy = 0; dy < height; dy++) {
       const y = sy + dy;
       if (y < clip.min_y || y > clip.max_y) continue;
-      const rawY = Math.min(gfx.height - 1, Math.floor(dy * gfx.height / height));
-      const sourceY = flipY ? gfx.height - 1 - rawY : rawY;
+      const sourceY = zoomSource(dy, height, stepY, flipY);
       for (let dx = 0; dx < width; dx++) {
         const x = sx + dx;
         if (x < clip.min_x || x > clip.max_x) continue;
-        const rawX = Math.min(gfx.width - 1, Math.floor(dx * gfx.width / width));
-        const sourceX = flipX ? gfx.width - 1 - rawX : rawX;
+        const sourceX = zoomSource(dx, width, stepX, flipX);
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         if (transparentMask & (1 << pen)) continue;
         if (priority) {
@@ -1769,6 +1769,25 @@ export class GeneratedGfxElement {
       }
     }
   }
+}
+
+/**
+ * drawgfxzoom_core's 16.16 source step (drawgfxt.ipp): `(width << 16) /
+ * dstwidth`, truncated. The truncation is behaviour: where the exact ratio
+ * would land a destination pixel on a source pixel's first column, MAME's
+ * stepped position falls just short and reads the column before.
+ */
+export function zoomStep(sourceSize: number, destinationSize: number): number {
+  return Math.trunc((sourceSize * 0x10000) / destinationSize);
+}
+
+/**
+ * The source row or column drawgfxzoom_core reads for destination pixel
+ * `index` of `count`: `index * step >> 16`, or under a flip, stepping back
+ * from `(count - 1) * step` -- the steps are mirrored, not the source.
+ */
+export function zoomSource(index: number, count: number, step: number, flip: number): number {
+  return Math.floor(((flip ? count - 1 - index : index) * step) / 0x10000);
 }
 
 /**
@@ -2635,6 +2654,17 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
   private ramPaletteMirror?: Uint16Array;
   private priorityBitmap?: GeneratedPriorityBitmap;
 
+  /** screen_device::width(): the whole raster, HBLANK included. */
+  private rasterWidth(): number {
+    const screen = this.machine.execution.screen;
+    return Math.max(1, screen.htotal ?? (screen.xOffset ?? 0) + screen.width);
+  }
+
+  /** screen_device::height(): the whole raster, VBLANK included. */
+  private rasterHeight(): number {
+    return Math.max(1, this.machine.execution.screen.vtotal);
+  }
+
   constructor(
     machine: BoardIr,
     regions: Regions,
@@ -2968,8 +2998,8 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
       __frame: 0,
       frame_number(this: { __frame: number }) { return this.__frame; },
       vpos: () => bindings.calls?.['m_screen.vpos']?.() ?? 0,
-      width: () => this.width,
-      height: () => this.height,
+      width: () => this.rasterWidth(),
+      height: () => this.rasterHeight(),
       update_partial: (line: number) => updatePartial?.(line),
       priority: () => this.screenPriority(),
       visible_area: () => new GeneratedRectangle(
@@ -3032,8 +3062,12 @@ export class GeneratedMameVideoPrimitives implements GeneratedVideoPrimitives, R
     // Source creation order and generated plan order are identical.
     let nextCreatedTilemap = 0;
     const calls = bindings.calls ??= {};
-    calls['m_screen.width'] = () => this.width;
-    calls['m_screen.height'] = () => this.height;
+    // screen_device::width() and height() are the whole raster (m_width,
+    // m_height), not the visible window. Answered with the window, Double
+    // Dragon's scanline callback took line 0's previous line as 239, not 271,
+    // and raised a FIRQ MAME never does on every frame.
+    calls['m_screen.width'] = () => this.rasterWidth();
+    calls['m_screen.height'] = () => this.rasterHeight();
     calls['machine().tilemap().create'] = () =>
       createdTilemaps[Math.min(nextCreatedTilemap++, createdTilemaps.length - 1)] ?? 0;
     const bitmapWidth = machine.execution.screen.width * (machine.video?.renderScale?.x ?? 1);

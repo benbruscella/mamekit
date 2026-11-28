@@ -173,7 +173,7 @@
       "palette": "none"
     },
     "crush": {
-      "sha256": "bb2e216df795132cc26be22ab92b4668b1dba8dbf0db2f21f49e257a2c352b82",
+      "sha256": "66cfb34a084f3988e423518d4fe544f4b3d97d060fff9d1943cf23fec45ff770",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 8,
@@ -227,11 +227,11 @@
       "palette": "none"
     },
     "elevator": {
-      "sha256": "dfc18e8499e997b5474a15397cb6fa49ee044d27ea81cbfd1e56c0196ad58430",
+      "sha256": "998eafcd3f5015c58efe2f4e43a3b412fe2d38988d448ad339c3fb458df97cc2",
       "callbacks": 20,
       "frameEvents": 2,
       "devices": 17,
-      "handlers": 67,
+      "handlers": 68,
       "maps": 3,
       "palette": "ram:palette:-:native:64:2"
     },
@@ -380,11 +380,11 @@
       "palette": "none"
     },
     "junglek": {
-      "sha256": "704f86ace81a6c90ebe05a54d0bcc4a2ec73324e6b4e217a020819564aab80ee",
+      "sha256": "75b28811a1a7c52e9b50a9f563e4aca9280d9a04a2735d081a9bf86e65e0a31a",
       "callbacks": 11,
       "frameEvents": 2,
       "devices": 15,
-      "handlers": 52,
+      "handlers": 53,
       "maps": 2,
       "palette": "ram:palette:-:native:64:2"
     },
@@ -488,7 +488,7 @@
       "palette": "none"
     },
     "mspacman": {
-      "sha256": "d36de8f3c63ee95a4b55eb920a0c3e4cae5632dbafcec5860cdd01f29d7dc3e8",
+      "sha256": "62ed1d510b7477b007c061238b954d951e4250b38dd461a64b9229aefa975fbe",
       "callbacks": 9,
       "frameEvents": 2,
       "devices": 8,
@@ -515,7 +515,7 @@
       "palette": "none"
     },
     "pacman": {
-      "sha256": "838182d93f9974ed0912ff0c08a653a7a027dfdedbc0877c9ec02bb3a937cc80",
+      "sha256": "c2d79d34b2e70f16ccb910239e4d9eb09effe8212cc9c785ce29d478ec0bb8f8",
       "callbacks": 8,
       "frameEvents": 2,
       "devices": 8,
@@ -677,11 +677,11 @@
       "palette": "ram:paletteram:-:big:4096:2"
     },
     "simpsons": {
-      "sha256": "975e772e8b7a727b53acf8005ede5fb6f1882a2d1e899e3a359e060f0e54f19a",
+      "sha256": "ebab8baf8175dd4637408902dffe02cd6eec488804afb919464933e509b352b5",
       "callbacks": 7,
       "frameEvents": 1,
       "devices": 12,
-      "handlers": 56,
+      "handlers": 59,
       "maps": 2,
       "palette": "ram:palette:-:native:2048:2"
     },

@@ -926,4 +926,18 @@ check('resize on an object calls its own resize; a container is still resized', 
   assert.equal((resizeGeneratedContainer([1], 3) as number[]).length, 3, 'a vector grows');
 });
 
+// konami_sortlayers3 passes `std::less<U>()` to a sort that calls it, and the
+// sort trades priorities with `swap`: a scalar swap trades values through
+// storage, as the emitter writes it.
+check('std::less is callable and swap trades scalars', () => {
+  const members = { m_pri: [3, 1] };
+  const result = executeGeneratedProgram(compileMameHandler(`
+    auto cmp = std::less<int>();
+    if (cmp(m_pri[1], m_pri[0])) { using std::swap; swap(m_pri[0], m_pri[1]); }
+    auto le = std::less_equal<int>();
+    return cmp(2, 2) + le(2, 2) * 10;`), { members }, {}).value;
+  assert.deepEqual(members.m_pri, [1, 3]);
+  assert.equal(result, 10);
+});
+
 console.log(`execute.spec: ${passed} passed, 0 failed`);

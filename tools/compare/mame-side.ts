@@ -29,6 +29,15 @@ export const projectRoot = resolve(here, '../..');
 /** The Lua script MAME runs every comparison with; its text is part of the MAME cache key. */
 export const luaScriptPath = join(here, 'oracle.lua');
 const luaScript = luaScriptPath;
+/**
+ * oracle.lua with watched processors' PCs on each tapped access
+ * (oracle-watch.lua). A separate script so that oracle.lua's text, which every
+ * cached MAME run is keyed by, does not change for it.
+ */
+export const watchScriptPath = join(here, 'oracle-watch.lua');
+/** The script a run's plan needs: the watch wrapper only when it watches. */
+export const oracleScriptPath = (plan: { io?: { watch?: string[] } }): string =>
+  plan.io?.watch?.length ? watchScriptPath : luaScriptPath;
 
 export interface Politeness {
   /** Run on the efficiency cores (macOS taskpolicy -b): ~6x slower, never in the way. */
@@ -103,6 +112,7 @@ export function mameArguments(
   mameSrc: string,
   dir: string,
   politeness: Politeness,
+  script: string = luaScript,
 ): string[] {
   // Slot options come before the title: a list a card declares (the
   // Interface 2's spectrum_cart) does not exist until the card is fitted.
@@ -121,7 +131,7 @@ export function mameArguments(
     '-nvram_directory', join(dir, 'mame-nvram'),
     '-cfg_directory', join(dir, 'mame-cfg'),
     '-snapshot_directory', join(dir, 'mame-snap'),
-    '-autoboot_script', luaScript,
+    '-autoboot_script', script,
   ];
 }
 
@@ -188,6 +198,7 @@ export function writeLuaPlan(
     // MAME's frames are ours + offset, where a board boots out of step.
     io_from: io.from + (io.offset ?? 0),
     io_to: io.to + (io.offset ?? 0),
+    ...(io.watch?.length ? { io_watch: io.watch } : {}),
   })}\n`);
 }
 
