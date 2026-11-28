@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: a2db6e3d-fa2b-4b33-a9d7-486bb53745c7
-  modified: 2026-11-27T15:13:37.582Z
+  modified: 2026-11-28T03:09:27.222Z
 ---
 
 #303 continues [[ram-and-pictures-300]]. Commits "303 1".."303 4" are the user's; work after 303 4 (2026-11-27) is soft reset as synchronize, periodic re-arm on soft reset, and hosted taps.
@@ -52,6 +52,14 @@ metadata:
 - First seen inside a `REP MOVSW` (0xaf91, copying 0x0ed0 to sprite RAM at 0x3000) 3 us after the VBLANK NMI. Both sides break the REP at a round end and refetch `F3 A5`, but ours breaks one word earlier, so a round boundary differs.
 - By frame 368 the lag decides whether MAME's `JZ` at 0xb371 runs before the NMI (VBLANK at 368*F = 5991628.8 us).
 - Analysis tip: both sides stamp several accesses with one time in different orders; sort by (time, kind, address) before pairing.
+
+**Final gen:all + matrix (2026-11-28, uncommitted work on top of "303 5"):**
+- audit:generated and audit:facts pass. audit:semantics moved only crush, elevator (+1 handler), junglek (+1 handler), mspacman, pacman and simpsons (+3 handlers); not re-recorded.
+- Matrix 89/110. c64p:tape (stack overflow) and friskyt (rewind) were flakes: each passed twice on retry. The other 19 are golden moves only; no golden was re-recorded on the branch since main.
+- wboy: the rewind check fails about 4 runs in 7. With `MAMEKIT_STATE_ROUNDTRIP=0` it is 5/5 deterministic.
+  - The *original* run's PCM after `board.save()` varies across processes: expected hash 415478e4, 997336a4, 92c2d1f9; the first differing write was 8343 one time and 45917 another. The replay is always 7007523e.
+  - Video and state hashes stay equal; only stream.pcm sample values differ.
+  - No clock, random or WeakRef reaches emulation, so the cause is unknown. Same family as [[acceptance-run-flake]], but much more frequent here.
 
 **Open:**
 - ddragon frame 1058: the main IRQ lands one 6309 instruction early.
