@@ -60,7 +60,15 @@ metadata:
   - The *original* run's PCM after `board.save()` varies across processes: expected hash 415478e4, 997336a4, 92c2d1f9; the first differing write was 8343 one time and 45917 another. The replay is always 7007523e.
   - Video and state hashes stay equal; only stream.pcm sample values differ.
 
+**Jungle King closed (2026-11-28, uncommitted on top of "303 9"):**
+- `d403` is taitosj's `m_collision_reg[3]` (sprite/layer), set inside screen_update, so no CPU write is tapped for it.
+- Cause: an *indexed* `&=` (`sprite_areas[which] &= cliprect`, a `rectangle *` parameter) took device-codegen's pointerSafeIndex path, which wrote a bare `&` and skipped `pointerAssignment`'s rectangle rule. Every sprite area became 0, so no collision was ever seen.
+- Fix: `elementAndType` in device-codegen.ts (element type if known, else `int` when the right side is an integer, else `runtime.andAssign`). SNES `m_cpu_regs[18] &= ~0x40` stays a plain AND; no device file changed.
+- junglek RAM and pictures identical to MAME over 600 frames (was frame 364). elevator unchanged (893). Both contracts pass with goldens unchanged.
+
 **Open:**
 - ddragon frame 1058: the main IRQ lands one 6309 instruction early.
 - elevator frame 893: the MCU sits out by 1.7 fs inside the perfect-quantum window.
-- Both need MAME's scheduler state, which the oracle doesn't record. [[mame-scheduler-synchronize]]
+- elevator frame 892 cause, seen from the main side: it polls the security MCU's status `8801` (taitosjsec ZLSTATUS, under perfect_quantum(10us)) and ours reports ready one poll (6 us) before MAME's.
+- arkanoid frame 10 (RAM c7fb at 61): `d00c` bit 6 (the inverted host flag) clears 22 us (4 polls) early in ours, every command. The MCU's accesses are identical in time on both sides (PC2 rising at 166758.67 us), so only the round boundary differs: ours 166814.67 = main CPU's d018 write (set_input_line synchronize cut at 166648) + 1/6000 s; MAME's fits 160000 (sound_manager 50 Hz) + 41 quanta = 166833.33, i.e. MAME behaves as if that write did not cut the round. Skipping our cross-processor line synchronize (temporary dist switch) made it worse (frame 13), so the cut matters somewhere. Unresolved; reading diexec/schedule.cpp gives MAME the cut too.
+- These need MAME's scheduler state, which the oracle doesn't record. [[mame-scheduler-synchronize]]
