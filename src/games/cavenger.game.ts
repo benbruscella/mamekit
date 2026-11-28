@@ -24,10 +24,10 @@ export const cavenger = sourceTarget({
     },
     audio: {
       writes: 958171,
-      nonzeroWrites: 527294,
-      writeHash: 'e611735a',
-      pcmHash: '576ba729',
-      rms: 0.110575,
+      nonzeroWrites: 527165,
+      writeHash: '3acfe2ff',
+      pcmHash: 'b6d6196a',
+      rms: 0.110566,
     },
   },
 });

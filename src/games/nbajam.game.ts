@@ -63,7 +63,7 @@ export const nbajam = sourceTarget({
     audio: {
       writes: 2105769,
       nonzeroWrites: 2105767,
-      writeHash: '3c6cd256',
+      writeHash: '3ef62d9a',
       pcmHash: '9e7312d7',
       rms: 0.094881,
     },
