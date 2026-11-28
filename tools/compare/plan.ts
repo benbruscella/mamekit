@@ -337,6 +337,20 @@ export function boardRam(config: ShellConfig): RamPlan['cpus'] {
   }).filter(cpu => cpu.ranges.length);
 }
 
+/**
+ * The RAM ranges MAME's side cannot read back: a `writeonly()` share, which a
+ * read through the address space finds unmapped. Both sides still dump them
+ * (the plan, and with it MAME's cache key, stays as it was); the comparison
+ * leaves their bytes out. Pac-Man's sprite coordinates at 0x5060 are one: its
+ * every write agrees on both sides, its dump never did.
+ */
+export function boardWriteOnly(config: ShellConfig): { tag: string; start: number; end: number }[] {
+  return config.board.cpus.flatMap(cpu =>
+    ((cpu as { ranges?: { kind: string; start: number; end: number; writeOnly?: boolean }[] }).ranges ?? [])
+      .filter(range => range.kind === 'ram' && range.writeOnly)
+      .map(range => ({ tag: cpu.tag, start: range.start, end: range.end })));
+}
+
 /** `maincpu:0-7ff,6000-7fff` -> one processor's ranges. */
 export function parseRanges(spec: string): { tag: string; ranges: [number, number][] } {
   const at = spec.lastIndexOf(':');

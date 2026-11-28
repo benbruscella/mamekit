@@ -2025,6 +2025,11 @@ function compileFastExpression(
   // does for the interpreter.
   if (expression.kind === 'call' && expression.callee.kind === 'identifier') {
     const name = expression.callee.name;
+    // `swap` writes through its arguments' storage, which compiled argument
+    // values no longer name; evaluateCall has it.
+    if ((name === 'swap' || name === 'std::swap') && expression.args.length === 2) {
+      return context => evaluate(expression, context);
+    }
     const args = expression.args.map(arg => compileFastExpression(arg, bindings, locals));
     const generatedArguments = compileGeneratedCallArguments(name, expression.args, args);
     return context => {
@@ -2633,6 +2638,16 @@ const CONSTANT_MACROS: ReadonlyMap<string, number> = new Map([
   ['rgb_t::white', 0xffffffff],
 ]);
 
+/** `std::less<T>()` and its siblings: callables answering 1 or 0. */
+const STD_COMPARISONS: Readonly<Record<string, (left: unknown, right: unknown) => number>> = {
+  'std::less': (left, right) => Number(toNumber(left) < toNumber(right)),
+  'std::less_equal': (left, right) => Number(toNumber(left) <= toNumber(right)),
+  'std::greater': (left, right) => Number(toNumber(left) > toNumber(right)),
+  'std::greater_equal': (left, right) => Number(toNumber(left) >= toNumber(right)),
+  'std::equal_to': (left, right) => Number(toNumber(left) === toNumber(right)),
+  'std::not_equal_to': (left, right) => Number(toNumber(left) !== toNumber(right)),
+};
+
 export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   const constant = CONSTANT_MACROS.get(name);
   if (constant !== undefined) return constant;
@@ -2726,6 +2741,13 @@ export function applyGeneratedMacro(name: string, args: unknown[]): unknown {
   if (name === 'std::min') {
     return args.map(toNumber).reduce((least, value) => (value < least ? value : least));
   }
+  // <functional>'s comparison objects, made to be passed on and called:
+  // konami_sortlayers3 hands `std::less<U>()` to the sort it instantiates,
+  // which compares two layer priorities with it. Unanswered, the sort never
+  // ran and the K052109's layers drew in tilemap order whatever the K053251
+  // said.
+  const comparison = args.length === 0 ? STD_COMPARISONS[name] : undefined;
+  if (comparison) return comparison;
   if (name === 'std::max') {
     return args.map(toNumber).reduce((most, value) => (most < value ? value : most));
   }
@@ -3337,6 +3359,19 @@ function evaluateCall(
     const generated = context.bindings.referenceCalls?.[name];
     if (generated) {
       return generated(...generatedCallArguments(name, expression.args, context));
+    }
+    // `std::swap(a, b)`, or `using std::swap; swap(a, b)`: objects trade
+    // contents, anything else trades values through its storage, as the
+    // emitter writes it (device-codegen's swap).
+    if ((name === 'swap' || name === 'std::swap') && expression.args.length === 2) {
+      const [leftExpression, rightExpression] = expression.args as [GeneratedExpression, GeneratedExpression];
+      const left = evaluate(leftExpression, context);
+      const right = evaluate(rightExpression, context);
+      if (!generatedSwapObjects(left, right)) {
+        assign(leftExpression, '=', right, context);
+        assign(rightExpression, '=', left, context);
+      }
+      return 0;
     }
     return applyIdentifierCall(
       name,

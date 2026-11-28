@@ -962,7 +962,10 @@ zeroed — were found this way, not by a golden.
 - *RAM* with `--ram`, every frame from 1, for every RAM range the generated
   board maps, or the ranges named (`--ram maincpu:0-7ff`). A processor this
   boot does not have is left out of the board's ranges, such as the 1541's
-  when a C64 tape leaves the drive slot empty; one named is refused. The report gives
+  when a C64 tape leaves the drive slot empty; one named is refused. A
+  `writeonly()` share is dumped but not compared: MAME's side reads it through
+  the address space, where nothing answers (Pac-Man's sprite coordinates at
+  0x5060). The plan, and so MAME's cache key, stays the same. The report gives
   the first frame that differs and its addresses (`mame/ours`). It also gives,
   at each compared frame, MAME's RAM against the nearest of our frames, which
   is the figure the earlier RAM-only comparison reported (Green Beret: 16, 25 and 19

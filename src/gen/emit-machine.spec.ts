@@ -331,8 +331,10 @@ if (
 ) {
   throw new Error('HOLD_LINE must lower to held CPU-line delivery');
 }
-if (machine.execution.cpus[0]?.interruptVectorWriters?.[0] !== 'test_state.vector_w') {
-  throw new Error('interrupt-vector writer relation was not lowered from handler IR');
+// MAME's vector write only stores the vector (pacman_interrupt_vector_w): the
+// IRQ line is the driver's to clear, and the writer must not clear it too.
+if ('interruptVectorWriters' in (machine.execution.cpus[0] ?? {})) {
+  throw new Error('an interrupt-vector write must not be lowered as an IRQ acknowledge');
 }
 if (machine.devices?.find(device => device.tag === 'ay.0')?.member !== 'm_ay[0]') {
   throw new Error('device-array members must retain their finder index');

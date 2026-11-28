@@ -635,7 +635,6 @@ export interface GeneratedExecutionCpu {
     globalMask?: number;
   };
   io?: { ranges: RangeSpec[]; globalMask?: number; space?: GeneratedAddressSpaceSemantics };
-  interruptVectorWriters?: string[];
   source?: BoardSourceRef;
 }
 

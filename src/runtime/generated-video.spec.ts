@@ -15,6 +15,8 @@ import {
   GeneratedPaletteShadows,
   GeneratedVideoRenderer,
   type GeneratedVideoPrimitives,
+  zoomSource,
+  zoomStep,
 } from './generated-video.ts';
 
 const sourceGfx = new GeneratedGfxElement({
@@ -808,4 +810,14 @@ assert.deepEqual(
   assert.deepEqual(pixels, [3 * 16 + 1, 9 + 2048]);
 }
 
-console.log('generated-video.spec: 25 passed');
+{
+  // drawgfxzoom_core's truncated 16.16 step: 16 source pixels over 24 lands
+  // destination pixel 3 on source 1 (3 * 43690 >> 16), where the exact ratio
+  // 3 * 16 / 24 is 2; and a flip mirrors the steps, not the source.
+  const step = zoomStep(16, 24);
+  assert.equal(step, 43690);
+  assert.equal(zoomSource(3, 24, step, 0), 1);
+  assert.deepEqual([0, 1, 22, 23].map(index => zoomSource(index, 24, step, 1)), [15, 14, 0, 0]);
+}
+
+console.log('generated-video.spec: 26 passed');

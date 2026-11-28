@@ -1694,12 +1694,12 @@ export class GeneratedGfxElement {
     }
     const base = modulo(code, gfx.count) * gfx.width * gfx.height;
     const colorBase = this.entry.colorBase + color * this.penGranularity;
+    const stepX = zoomStep(gfx.width, width);
+    const stepY = zoomStep(gfx.height, height);
     for (let dy = 0; dy < height; dy++) {
-      const rawY = scale ? Math.min(gfx.height - 1, Math.floor(dy * gfx.height / height)) : dy;
-      const sourceY = flipY ? gfx.height - 1 - rawY : rawY;
+      const sourceY = scale ? zoomSource(dy, height, stepY, flipY) : flipY ? gfx.height - 1 - dy : dy;
       for (let dx = 0; dx < width; dx++) {
-        const rawX = scale ? Math.min(gfx.width - 1, Math.floor(dx * gfx.width / width)) : dx;
-        const sourceX = flipX ? gfx.width - 1 - rawX : rawX;
+        const sourceX = scale ? zoomSource(dx, width, stepX, flipX) : flipX ? gfx.width - 1 - dx : dx;
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         const mode = drawModes[pen] ?? DRAWMODE_NONE;
         if (mode === DRAWMODE_NONE) continue;
@@ -1737,16 +1737,16 @@ export class GeneratedGfxElement {
     const element = modulo(code, gfx.count);
     const base = element * gfx.width * gfx.height;
     const colorBase = this.entry.colorBase + color * this.penGranularity;
+    const stepX = zoomStep(gfx.width, width);
+    const stepY = zoomStep(gfx.height, height);
     for (let dy = 0; dy < height; dy++) {
       const y = sy + dy;
       if (y < clip.min_y || y > clip.max_y) continue;
-      const rawY = Math.min(gfx.height - 1, Math.floor(dy * gfx.height / height));
-      const sourceY = flipY ? gfx.height - 1 - rawY : rawY;
+      const sourceY = zoomSource(dy, height, stepY, flipY);
       for (let dx = 0; dx < width; dx++) {
         const x = sx + dx;
         if (x < clip.min_x || x > clip.max_x) continue;
-        const rawX = Math.min(gfx.width - 1, Math.floor(dx * gfx.width / width));
-        const sourceX = flipX ? gfx.width - 1 - rawX : rawX;
+        const sourceX = zoomSource(dx, width, stepX, flipX);
         const pen = gfx.pixels[base + sourceY * gfx.width + sourceX]!;
         if (transparentMask & (1 << pen)) continue;
         if (priority) {
@@ -1769,6 +1769,25 @@ export class GeneratedGfxElement {
       }
     }
   }
+}
+
+/**
+ * drawgfxzoom_core's 16.16 source step (drawgfxt.ipp): `(width << 16) /
+ * dstwidth`, truncated. The truncation is behaviour: where the exact ratio
+ * would land a destination pixel on a source pixel's first column, MAME's
+ * stepped position falls just short and reads the column before.
+ */
+export function zoomStep(sourceSize: number, destinationSize: number): number {
+  return Math.trunc((sourceSize * 0x10000) / destinationSize);
+}
+
+/**
+ * The source row or column drawgfxzoom_core reads for destination pixel
+ * `index` of `count`: `index * step >> 16`, or under a flip, stepping back
+ * from `(count - 1) * step` -- the steps are mirrored, not the source.
+ */
+export function zoomSource(index: number, count: number, step: number, flip: number): number {
+  return Math.floor(((flip ? count - 1 - index : index) * step) / 0x10000);
 }
 
 /**

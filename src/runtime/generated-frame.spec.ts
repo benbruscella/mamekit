@@ -347,6 +347,39 @@ assert.deepEqual(offscreenTimeline, ['cpu', 'render']);
   );
 }
 
+// add_quantum with a quantum of its own (Irem M72's 1.5 us for 25 s): rounds
+// are no longer than it while it lasts, and the frame is worth the same.
+{
+  const idle: BoardIr = {
+    ...machine,
+    callbacks: [],
+    execution: {
+      ...machine.execution,
+      cpus: [{ tag: 'maincpu', type: 'z80', clock: 1_584_000, region: 'maincpu' }],
+      screen: { width: 1, height: 1, refresh: 60, vtotal: 264, vbstart: 240, rotate: 0 },
+      frameEvents: [],
+    },
+  };
+  const slices: number[] = [];
+  const runner = new GeneratedFrameRunner({
+    machine: idle,
+    processors: [{ tag: 'maincpu', run: (budget: number) => { slices.push(budget); return budget; } }],
+  });
+  runner.frame(new Uint32Array(1));
+  slices.length = 0;
+  // 10 cycles' worth (6.31 us) for longer than a frame.
+  runner.addQuantum(10 / 1_584_000, 1);
+  runner.frame(new Uint32Array(1));
+  assert.ok(slices.length > 2000 && Math.max(...slices) <= 10, `rounds of at most the quantum: ${slices.length}, ${Math.max(...slices)}`);
+  assert.equal(slices.reduce((total, slice) => total + slice, 0), 26_400, 'and the frame is worth the same');
+  // The same request again keeps one entry; a zero quantum is perfect_quantum.
+  runner.addQuantum(10 / 1_584_000, 2);
+  slices.length = 0;
+  runner.addQuantum(0, 0.0001);
+  runner.frame(new Uint32Array(1));
+  assert.deepEqual(slices.slice(0, 5), [1, 1, 1, 1, 1], 'a zero quantum opens the perfect window');
+}
+
 // Every round starts with MAME's apply_suspend_changes, and inside a
 // perfect_quantum window every instruction is a round.
 {

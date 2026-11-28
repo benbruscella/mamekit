@@ -255,6 +255,16 @@ export class GeneratedFrameRunner {
   private reordered = false;
   /** A `perfect_quantum` window is open: rounds are the perfect interleave. */
   private windowOpen = false;
+  /**
+   * MAME's quantum list past the perfect window: each `add_quantum(quantum,
+   * duration)` a driver asked for, smallest requested first, running at
+   * `max(requested, the perfect interleave)` until it expires. Irem's M72
+   * boosts the interleave to 1.5 us for its first 25 seconds
+   * (m72_state::synch_callback); at the machine's own quantum, the V30's
+   * `REP STOSB` RAM test ran unbroken where MAME's restarts it every round
+   * (cont_rep's CLK(2)), and the boot drew ahead by a frame.
+   */
+  private quantumBoosts: { requested: number; actual: number; expire: Attotime }[] = [];
   /** When the open window's quantum expires (add_quantum's `m_expire`). */
   private readonly windowExpire = new Attotime();
   /**
@@ -466,6 +476,41 @@ export class GeneratedFrameRunner {
   private readonly expireScratch = new Attotime();
 
   /**
+   * MAME `scheduler::add_quantum(quantum, duration)` with a quantum of its
+   * own (a zero one is perfect_quantum, quantumWindow): the rounds are no
+   * longer than it until `duration` from now. One already open with the same
+   * request keeps the later expiry, as MAME's list does.
+   */
+  addQuantum(quantumSeconds: number, seconds: number, now?: bigint): void {
+    if (!(quantumSeconds > 0)) {
+      this.quantumWindow(seconds, now);
+      return;
+    }
+    const expire = new Attotime();
+    if (now === undefined) expire.set(this.running ? this.running.local : this.base);
+    else expire.setExact(now);
+    const current = new Attotime().set(expire);
+    expire.add(secondsToAttoseconds(Math.max(seconds, 0)));
+    this.quantumBoosts = this.quantumBoosts.filter(boost => current.before(boost.expire));
+    const requested = secondsToAttoseconds(quantumSeconds);
+    const same = this.quantumBoosts.find(boost => boost.requested === requested);
+    if (same) {
+      if (same.expire.before(expire)) same.expire.set(expire);
+      return;
+    }
+    const interleave = this.perfectInterleave?.();
+    const floor = interleave !== undefined && interleave > 0 ? secondsToAttoseconds(interleave) : 0;
+    this.quantumBoosts.push({ requested, actual: Math.max(requested, floor), expire });
+    this.quantumBoosts.sort((left, right) => left.requested - right.requested);
+  }
+
+  /** The round length outside a perfect window: the machine's, or a shorter boost still open. */
+  private get roundQuantum(): number {
+    const boost = this.quantumBoosts[0];
+    return boost && boost.actual < this.machineQuantum ? boost.actual : this.machineQuantum;
+  }
+
+  /**
    * MAME `scheduler().synchronize()` from inside a processor's slice: end the
    * slice after the instruction in progress. The processors after it in the
    * round run only up to where it stopped, the posted work runs, and the
@@ -624,6 +669,7 @@ export class GeneratedFrameRunner {
     for (const event of this.periodicEvents) event.next.set(event.period);
     this.windowOpen = false;
     this.windowExpire.clear();
+    this.quantumBoosts = [];
     this.timerFired = true;
     this.frames = 0;
     this.fromOrigin = true;
@@ -659,7 +705,7 @@ export class GeneratedFrameRunner {
 
   /** Save-state roots (machine-state.ts): the times and counters, never the schedule. */
   stateKeys(): readonly string[] {
-    return ['processors', 'frameBase', 'base', 'periodicEvents', 'windowOpen', 'windowExpire', 'frames', 'fromOrigin', 'screenRaster'];
+    return ['processors', 'frameBase', 'base', 'periodicEvents', 'windowOpen', 'windowExpire', 'quantumBoosts', 'frames', 'fromOrigin', 'screenRaster'];
   }
 
   /**
@@ -816,7 +862,7 @@ export class GeneratedFrameRunner {
     // of MAME's, so the round runs on through it. Ending one there as well
     // split Venture's round at line 279, and its main CPU saw a PIA edge the
     // sound CPU raised earlier in that round, which MAME's had run past (#275).
-    const inQuantumWindow = this.windowOpen;
+    const inQuantumWindow = this.windowOpen || this.quantumBoosts.length > 0;
     if (this.perLineSchedule || inQuantumWindow) {
       // The next line's start is a timer where MAME has one there: a boundary
       // line, or any line of a scanline-updated screen (screen_device's
@@ -904,7 +950,7 @@ export class GeneratedFrameRunner {
         continue;
       }
       target.set(end);
-      this.lowerTarget(windowed ? this.windowQuantum! : this.machineQuantum);
+      this.lowerTarget(windowed ? this.windowQuantum! : this.roundQuantum);
       // The soonest periodic timer ends the round, to the attosecond: the
       // processors run the whole cycles that fit before it and no more.
       if (periodic) this.lowerTarget(untilPeriodic);
@@ -953,7 +999,7 @@ export class GeneratedFrameRunner {
         const skipped = this.skipIdleRounds(Math.min(end.since(base), timerAttos ?? Infinity, untilPeriodic));
         if (skipped > 0) {
           target.set(end);
-          this.lowerTarget(this.machineQuantum);
+          this.lowerTarget(this.roundQuantum);
           if (timerAttos !== undefined) this.lowerTarget(timerAttos - skipped);
           if (periodic) this.lowerTarget(untilPeriodic - skipped);
         }
@@ -1100,7 +1146,7 @@ export class GeneratedFrameRunner {
    */
   private stoppedTarget(target: Attotime): Attotime {
     if (!target.before(this.extendedTo)) return target;
-    const quantum = this.machineQuantum;
+    const quantum = this.roundQuantum;
     const into = target.since(this.extendedFrom);
     const quanta = Math.max(1, Math.ceil(into / quantum));
     const boundary = this.stoppedScratch.set(this.extendedFrom).add(quanta * quantum);
@@ -1116,7 +1162,7 @@ export class GeneratedFrameRunner {
    * a whole cycle of its own (and never past a timer, which bounds `end`).
    */
   private skipIdleRounds(room: number): number {
-    const quantum = this.machineQuantum;
+    const quantum = this.roundQuantum;
     let soonest = Infinity;
     for (const scheduled of this.processors) {
       if (scheduled.processor.suspended?.() === 'waiting') continue;
@@ -1160,6 +1206,9 @@ export class GeneratedFrameRunner {
    */
   private closeExpiredWindow(): void {
     if (this.windowOpen && this.timerFired && !this.base.before(this.windowExpire)) this.windowOpen = false;
+    if (this.quantumBoosts.length && this.timerFired) {
+      this.quantumBoosts = this.quantumBoosts.filter(boost => this.base.before(boost.expire));
+    }
   }
 
   /**

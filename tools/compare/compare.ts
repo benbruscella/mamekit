@@ -275,13 +275,22 @@ export function compareRam(
   mameFrames: readonly number[],
   offsets: readonly number[],
   compared: readonly number[],
+  unread: readonly { tag: string; start: number; end: number }[] = [],
 ): RamResult {
   const size = ramBytesPerFrame(ram.cpus);
   const ours = frameChunks(join(dir, 'ours-ram.bin'), oursFrames, size);
   const mame = frameChunks(join(dir, 'mame-ram.bin'), mameFrames, size);
+  // Bytes MAME's side cannot read back (plan.ts boardWriteOnly) are not compared.
+  const skipped = new Uint8Array(size);
+  if (unread.length) {
+    for (let index = 0; index < size; index++) {
+      const { cpu, address } = addressAt(ram.cpus, index);
+      if (unread.some(range => range.tag === cpu && address >= range.start && address <= range.end)) skipped[index] = 1;
+    }
+  }
   const count = (left: Uint8Array, right: Uint8Array) => {
     let differing = 0;
-    for (let index = 0; index < size; index++) if (left[index] !== right[index]) differing++;
+    for (let index = 0; index < size; index++) if (!skipped[index] && left[index] !== right[index]) differing++;
     return differing;
   };
   const at = (offset: number) => {
@@ -321,7 +330,7 @@ export function compareRam(
     const right = ours.get(first)!;
     const addresses: RamDifference[] = [];
     for (let index = 0; index < size && addresses.length < 64; index++) {
-      if (left[index] === right[index]) continue;
+      if (skipped[index] || left[index] === right[index]) continue;
       const { cpu, address } = addressAt(ram.cpus, index);
       addresses.push({ cpu, address: address.toString(16), mame: left[index]!, ours: right[index]! });
     }

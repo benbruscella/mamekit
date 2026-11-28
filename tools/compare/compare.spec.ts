@@ -86,6 +86,11 @@ try {
   assert.deepEqual(ramResult.nearest, { 3: { offset: -1, bytes: 0 } });
   const aligned = compareRam(dir, ram, [1, 2, 3, 4], [1, 2, 3, 4, 5], [0], [4]);
   assert.deepEqual(aligned.firstDivergence?.addresses[0], { cpu: 'maincpu', address: '10', mame: 1, ours: 0 });
+  // A write-only range (plan.ts boardWriteOnly) is left out: what differs first
+  // is then byte 0x13, at frame 3.
+  const unread = compareRam(dir, ram, [1, 2, 3, 4], [1, 2, 3, 4, 5], [0], [4], [{ tag: 'maincpu', start: 0x10, end: 0x11 }]);
+  assert.equal(unread.firstDivergence?.frame, 3);
+  assert.deepEqual(unread.firstDivergence?.addresses, [{ cpu: 'maincpu', address: '13', mame: 0, ours: 1 }]);
 
   // I/O: the first access that differs, frame labels aside.
   writeFileSync(join(dir, 'mame-io.txt'), '3 R 0 2002 80\n3 W 0 2000 10\n');

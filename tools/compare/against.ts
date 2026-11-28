@@ -71,7 +71,7 @@ import type { ShellConfig } from '../../src/runtime/shell.ts';
 import { compareInputs, compareIo, comparePictures, compareRam, sideBySide, writePng } from './compare.ts';
 import { luaScriptPath, mameArguments, mameFrames, mamekitIdentity, politeCommand, projectRoot, resolveMame, romPaths, runMame, samplesDir, writeLuaPlan, type Politeness } from './mame-side.ts';
 import { differingCapture, mameCacheKey, markUncacheable, restoreMame, setFiles, storeMame, uncacheable } from './mame-cache.ts';
-import { boardRam, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
+import { boardRam, boardWriteOnly, parseIoTap, parseRanges, ramFrames, type InputMode, type OraclePlan, type OracleTitle, type OursBoot, type RamPlan } from './plan.ts';
 import { compareStereo, readPcm16WavChannels, type StereoComparison } from './stereo-plan.ts';
 import { readMameWavForListener } from './mame-wav.ts';
 import { gradeRun, pickSurveyTitles, surveyGroups, type AudioComparison, type RunReport, type SurveyEntry } from './report.ts';
@@ -312,7 +312,7 @@ async function runOne(request: RunRequest, quiet = false): Promise<RunReport> {
       images,
     };
   }
-  if (request.ram) report.ram = compareRam(dir, request.ram, ramOurs, frames.ram, offsets, request.frames);
+  if (request.ram) report.ram = compareRam(dir, request.ram, ramOurs, frames.ram, offsets, request.frames, boardWriteOnly(config));
   if (request.io) report.io = compareIo(dir);
   const inputs = compareInputs(dir, boot.timeline.inputs, report.ours.frames);
   if (inputs) report.inputs = inputs;

@@ -477,6 +477,12 @@ function generatedCallValue(value: unknown): unknown {
     : value;
 }
 
+/** An attotime argument in seconds: a number already, or an attotime object. */
+function attotimeArgumentSeconds(value: unknown): number {
+  if (value && typeof value === 'object' && 'as_double' in value) return (value as { as_double(): number }).as_double();
+  return Number(value) || 0;
+}
+
 class IrBoard implements Board {
   fbWidth: number;
   /** The screen's update_now() and pixel(x, y), once the video renderer exists. */
@@ -1423,6 +1429,10 @@ class IrBoard implements Board {
                 : Number(duration) || 0);
               return 0;
             },
+            'machine().scheduler().add_quantum': (quantum: unknown = 0, duration: unknown = 0) => {
+              this.addQuantum(attotimeArgumentSeconds(quantum), attotimeArgumentSeconds(duration));
+              return 0;
+            },
             exists: () => 1,
             machine: () => ({
               // MAME defers a soft reset to the end of the timeslice; the
@@ -1695,6 +1705,12 @@ class IrBoard implements Board {
     // between the two halves of a handshake that a single slice contains.
     calls['machine().scheduler().perfect_quantum'] = (seconds = 0) => {
       this.perfectQuantum(seconds);
+      return 0;
+    };
+    // A quantum of its own for a while (scheduler::add_quantum): Irem's M72
+    // asks for 1.5 us rounds for its first 25 seconds.
+    calls['machine().scheduler().add_quantum'] = (quantum = 0, duration = 0) => {
+      this.addQuantum(attotimeArgumentSeconds(quantum), attotimeArgumentSeconds(duration));
       return 0;
     };
     // Generated handlers execute normal CPU accesses, never debugger/disassembly
@@ -2306,7 +2322,6 @@ class IrBoard implements Board {
     this.installMemoryBanks(machine, regions, registry, sinks);
     this.installDeclarativeHandlers(machine, config, inputs, registry);
     this.installSourceHandlerWidthAdapters(machine, registry);
-    this.installInterruptVectorWriters(machine, registry);
     for (const specification of machine.devices ?? []) {
       for (const map of specification.addressMaps ?? []) {
         const device = this.devices.get(specification.tag);
@@ -5332,6 +5347,15 @@ class IrBoard implements Board {
   }
 
   /**
+   * MAME `scheduler::add_quantum(quantum, duration)`: rounds no longer than
+   * `quantum` from now for `duration`. MAME re-plans only at the next round,
+   * so unlike perfect_quantum the running slice is not cut.
+   */
+  addQuantum(quantumSeconds: number, seconds: number): void {
+    this.frameRunner?.addQuantum(quantumSeconds, seconds, this.quantumWindowStart());
+  }
+
+  /**
    * How far short of the accessing processor's cycle a register access brings
    * the device clock (`catchUpDeviceTime`). MAME's 6502 stops between an
    * instruction's cycles at a timer's expiry, so an access on cycle k finds
@@ -6152,30 +6176,6 @@ class IrBoard implements Board {
         memMask === 0xff00 ? (data >>> 8) & 0xff : data & 0xff,
         memMask,
       );
-    }
-  }
-
-  private installInterruptVectorWriters(
-    machine: BoardIr,
-    registry: HandlerRegistry,
-  ): void {
-    const cpuTagsByWriter = new Map<string, string[]>();
-    for (const cpu of machine.execution.cpus) {
-      for (const writer of cpu.interruptVectorWriters ?? []) {
-        const tags = cpuTagsByWriter.get(writer) ?? [];
-        tags.push(cpu.tag);
-        cpuTagsByWriter.set(writer, tags);
-      }
-    }
-    for (const [writer, cpuTags] of cpuTagsByWriter) {
-      const original = registry.write[writer];
-      if (!original) continue;
-      registry.write[writer] = (address, offset, data) => {
-        original(address, offset, data);
-        for (const cpuTag of cpuTags) {
-          this.cpus.get(cpuTag)?.setIrqLine(false);
-        }
-      };
     }
   }
 
