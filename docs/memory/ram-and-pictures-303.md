@@ -56,10 +56,9 @@ metadata:
 **Final gen:all + matrix (2026-11-28, uncommitted work on top of "303 5"):**
 - audit:generated and audit:facts pass. audit:semantics moved only crush, elevator (+1 handler), junglek (+1 handler), mspacman, pacman and simpsons (+3 handlers); not re-recorded.
 - Matrix 89/110. c64p:tape (stack overflow) and friskyt (rewind) were flakes: each passed twice on retry. The other 19 are golden moves only; no golden was re-recorded on the branch since main.
-- wboy: the rewind check fails about 4 runs in 7. With `MAMEKIT_STATE_ROUNDTRIP=0` it is 5/5 deterministic.
+- wboy: the rewind check fails about 4 runs in 7. Traced 2026-11-28 to the host fault ([[host-machine-faults]]): a pure SN76489A update gives one-sample blips from identical state; not a branch regression.
   - The *original* run's PCM after `board.save()` varies across processes: expected hash 415478e4, 997336a4, 92c2d1f9; the first differing write was 8343 one time and 45917 another. The replay is always 7007523e.
   - Video and state hashes stay equal; only stream.pcm sample values differ.
-  - No clock, random or WeakRef reaches emulation, so the cause is unknown. Same family as [[acceptance-run-flake]], but much more frequent here.
 
 **Open:**
 - ddragon frame 1058: the main IRQ lands one 6309 instruction early.
